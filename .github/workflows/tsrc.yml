@@ -1,0 +1,24 @@
+name: Verify ts-runtime-checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tsrc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ inputs.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Generate type checks
+        run: yarn gen-type-checks
+      - name: Check diff
+        run: git diff --exit-code
