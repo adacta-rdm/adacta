@@ -1,0 +1,108 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`createComponentNodeTree 1`] = `
+[
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [],
+            "component": {
+              "__typename": "Sample",
+              "id": "s",
+              "name": "PL-Pd-Pt-CZ",
+              "usagesAsProperty": [
+                {
+                  "device": {
+                    "id": "fakeDeviceId",
+                  },
+                  "id": "fakePropertyId",
+                  "name": "sample",
+                  "timestamp": "1970-01-01T00:00:00.000Z",
+                  "timestampEnd": "1970-01-01T00:00:00.000Z",
+                  "value": null,
+                },
+              ],
+            },
+            "name": "Sample",
+            "tag": "1.1.1",
+          },
+        ],
+        "component": {
+          "__typename": "Device",
+          "definition": {
+            "acceptsUnit": [],
+          },
+          "displayName": "Quartz tube",
+          "id": "t",
+          "name": "Quartz tube",
+          "usagesAsProperty": [
+            {
+              "device": {
+                "id": "fakeDeviceId",
+              },
+              "id": "fakePropertyId",
+              "name": "tube",
+              "timestamp": "1970-01-01T00:00:00.000Z",
+              "timestampEnd": "1970-01-01T00:00:00.000Z",
+              "value": null,
+            },
+          ],
+        },
+        "name": "Tube",
+        "tag": "1.1",
+      },
+    ],
+    "component": {
+      "__typename": "Device",
+      "definition": {
+        "acceptsUnit": [],
+      },
+      "displayName": "My furnace",
+      "id": "f",
+      "name": "My furnace",
+      "usagesAsProperty": [
+        {
+          "device": {
+            "id": "fakeDeviceId",
+          },
+          "id": "fakePropertyId",
+          "name": "furnace",
+          "timestamp": "1970-01-01T00:00:00.000Z",
+          "timestampEnd": "1970-01-01T00:00:00.000Z",
+          "value": null,
+        },
+      ],
+    },
+    "name": "Furnace",
+    "tag": "1",
+  },
+  {
+    "children": [],
+    "component": {
+      "__typename": "Device",
+      "definition": {
+        "acceptsUnit": [],
+      },
+      "displayName": "mfc x",
+      "id": "m",
+      "name": "mfc x",
+      "usagesAsProperty": [
+        {
+          "device": {
+            "id": "fakeDeviceId",
+          },
+          "id": "fakePropertyId",
+          "name": "mfc1",
+          "timestamp": "1970-01-01T00:00:00.000Z",
+          "timestampEnd": "1970-01-01T00:00:00.000Z",
+          "value": null,
+        },
+      ],
+    },
+    "name": "Mfc 1",
+    "tag": "2",
+  },
+]
+`;

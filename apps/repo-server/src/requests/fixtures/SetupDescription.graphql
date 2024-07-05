@@ -1,0 +1,11 @@
+mutation LinkImageWithSetupDescription($input: LinkImageWithSetupDescriptionInput!) {
+	linkImageWithSetupDescription(input: $input) {
+		__typename
+	}
+}
+
+mutation AddSetupLabel($input: AddSetupLabelInput!) {
+	addSetupLabel(input: $input) {
+		__typename
+	}
+}

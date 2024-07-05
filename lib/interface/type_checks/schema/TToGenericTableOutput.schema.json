@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/TToGenericTableOutput",
+  "definitions": {
+    "TToGenericTableOutput": {
+      "$ref": "#/definitions/IGenericTable"
+    },
+    "IGenericTable": {
+      "type": "object",
+      "properties": {
+        "header": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "headerInternal": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "body": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "header",
+        "headerInternal",
+        "body"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

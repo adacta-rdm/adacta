@@ -1,0 +1,17 @@
+{
+  "name": "GraphQL Schemas with Shared Types",
+  "projects": {
+    "Repository": {
+      "includes": [
+        "apps/repo-server/graphql/*.graphql",
+        "apps/repo-server/src/requests/**/*.graphql"
+      ]
+    },
+    "Relay": {
+      "includes": [
+        "apps/repo-server/src/graphql/generated/*.graphql",
+        "apps/desktop-app/src/**"
+      ]
+    }
+  }
+}

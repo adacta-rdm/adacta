@@ -1,0 +1,4 @@
+interface Connection_T {
+	edges: [Edge_T!]!
+	pageInfo: PageInfo!
+}

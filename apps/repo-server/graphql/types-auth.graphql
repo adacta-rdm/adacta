@@ -1,0 +1,5 @@
+input UpdateTimeSettingsInput {
+	locale: String!
+	dateStyle: String!
+	timeStyle: String!
+}

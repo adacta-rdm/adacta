@@ -1,0 +1,13 @@
+# @generated
+
+input Partial_DeviceInput {
+	name: String
+	deviceDefinition: ID
+	specifications: [SpecificationInput!]
+	"""
+	Whether a new short ID should be generated and assigned to the device.
+
+	Defaults to false for backwards compatibility.
+	"""
+	assignShortId: Boolean
+}

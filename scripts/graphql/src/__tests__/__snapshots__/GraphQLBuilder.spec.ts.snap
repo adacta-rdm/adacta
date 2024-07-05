@@ -1,0 +1,206 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`GraphQLBuilder > #operations() > returns operations 1`] = `
+{
+  "definitions": [
+    {
+      "directives": [],
+      "kind": "OperationDefinition",
+      "loc": {
+        "end": 88,
+        "start": 0,
+      },
+      "name": {
+        "kind": "Name",
+        "loc": {
+          "end": 12,
+          "start": 6,
+        },
+        "value": "Query1",
+      },
+      "operation": "query",
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "loc": {
+          "end": 88,
+          "start": 26,
+        },
+        "selections": [
+          {
+            "alias": undefined,
+            "arguments": [
+              {
+                "kind": "Argument",
+                "loc": {
+                  "end": 44,
+                  "start": 34,
+                },
+                "name": {
+                  "kind": "Name",
+                  "loc": {
+                    "end": 36,
+                    "start": 34,
+                  },
+                  "value": "id",
+                },
+                "value": {
+                  "kind": "Variable",
+                  "loc": {
+                    "end": 44,
+                    "start": 38,
+                  },
+                  "name": {
+                    "kind": "Name",
+                    "loc": {
+                      "end": 44,
+                      "start": 39,
+                    },
+                    "value": "input",
+                  },
+                },
+              },
+            ],
+            "directives": [],
+            "kind": "Field",
+            "loc": {
+              "end": 86,
+              "start": 29,
+            },
+            "name": {
+              "kind": "Name",
+              "loc": {
+                "end": 33,
+                "start": 29,
+              },
+              "value": "book",
+            },
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "loc": {
+                "end": 86,
+                "start": 46,
+              },
+              "selections": [
+                {
+                  "alias": undefined,
+                  "arguments": [],
+                  "directives": [],
+                  "kind": "Field",
+                  "loc": {
+                    "end": 52,
+                    "start": 50,
+                  },
+                  "name": {
+                    "kind": "Name",
+                    "loc": {
+                      "end": 52,
+                      "start": 50,
+                    },
+                    "value": "id",
+                  },
+                  "selectionSet": undefined,
+                },
+                {
+                  "alias": undefined,
+                  "arguments": [],
+                  "directives": [],
+                  "kind": "Field",
+                  "loc": {
+                    "end": 83,
+                    "start": 55,
+                  },
+                  "name": {
+                    "kind": "Name",
+                    "loc": {
+                      "end": 68,
+                      "start": 55,
+                    },
+                    "value": "wrappedString",
+                  },
+                  "selectionSet": {
+                    "kind": "SelectionSet",
+                    "loc": {
+                      "end": 83,
+                      "start": 69,
+                    },
+                    "selections": [
+                      {
+                        "alias": undefined,
+                        "arguments": [],
+                        "directives": [],
+                        "kind": "Field",
+                        "loc": {
+                          "end": 79,
+                          "start": 74,
+                        },
+                        "name": {
+                          "kind": "Name",
+                          "loc": {
+                            "end": 79,
+                            "start": 74,
+                          },
+                          "value": "value",
+                        },
+                        "selectionSet": undefined,
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      "variableDefinitions": [
+        {
+          "defaultValue": undefined,
+          "directives": [],
+          "kind": "VariableDefinition",
+          "loc": {
+            "end": 24,
+            "start": 13,
+          },
+          "type": {
+            "kind": "NonNullType",
+            "loc": {
+              "end": 24,
+              "start": 21,
+            },
+            "type": {
+              "kind": "NamedType",
+              "loc": {
+                "end": 23,
+                "start": 21,
+              },
+              "name": {
+                "kind": "Name",
+                "loc": {
+                  "end": 23,
+                  "start": 21,
+                },
+                "value": "ID",
+              },
+            },
+          },
+          "variable": {
+            "kind": "Variable",
+            "loc": {
+              "end": 19,
+              "start": 13,
+            },
+            "name": {
+              "kind": "Name",
+              "loc": {
+                "end": 19,
+                "start": 14,
+              },
+              "value": "input",
+            },
+          },
+        },
+      ],
+    },
+  ],
+  "kind": "Document",
+}
+`;

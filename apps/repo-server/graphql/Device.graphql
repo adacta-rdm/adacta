@@ -1,0 +1,65 @@
+type Device implements Node & SupportsUsageAsProperty & SupportsNotes & HasMetadata & HasImageResource & HasProjects {
+	id: ID!
+	name: String!
+	displayName: String!
+	metadata: Metadata!
+
+	"""
+	A unique identifier for this device. It is used in the URL of the device page.
+	"""
+	shortId: String
+
+	definition: DeviceDefinition!
+
+	definitions: [DeviceDefinitionGraphElement!]!
+	"""
+	Returns the combined specifications from the device and the inheritance tree
+	"""
+	specifications(names: [String!]): [Specification!]!
+	properties(timestamp: DateTime): [Property!]!
+
+	imageResource: [ResourceImage!]!
+	setupDescription(time: DateTime): [SetupDescription!]!
+
+	usagesAsProperty(
+		timeFrame: TimeFrameInput
+		time: DateTime
+		includeOverlaps: Boolean
+	): [Property!]!
+
+	# The parent device at the given time
+	parent(timestamp: DateTime): Device
+
+	samples: [SampleUsage!]!
+
+	usageInResource: [ResourceTimed]!
+
+	"""
+	Returns a flat list of all child devices. The list corresponds to the components this device is
+	made of in the specified timespan. A value of `null` for the `end` argument means "up until
+	now".
+	"""
+	components(
+		timeFrame: TimeFrameInput
+		time: DateTime
+		includeOverlaps: Boolean
+	): [ComponentWithPathAndTime!]!
+	# Can be undefined if the device is not installed anywhere
+	topLevelDevice(timestamp: DateTime): Device
+
+	"""
+	Returns the components that are available for use in the given time frame.
+	This resolver is used to find possible components to be used as sub-components of a device.
+	A timeframe is required as the device must be unused for the entire duration.
+
+	The property with the ID `ignoreProperty` should be ignored when checking for conflicts, because
+	it is the property that is being updated (and therefore won't cause a conflict with itself).
+	"""
+	freeComponents(begin: DateTime!, end: DateTime, ignoreProperty: ID): [PropertyValue!]!
+
+	componentsInSlot(path: [String!]!): [ComponentWithPathAndTime!]!
+
+	notes: NoteConnection!
+
+	projects(first: Int, after: String): ProjectConnection!
+}

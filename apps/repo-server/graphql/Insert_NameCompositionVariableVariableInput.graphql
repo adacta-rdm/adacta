@@ -1,0 +1,5 @@
+# @generated
+
+input Insert_NameCompositionVariableVariableInput {
+	input: NameCompositionVariableVariableInput!
+}

@@ -1,0 +1,20 @@
+type MyType {
+	result: Result_Type1
+}
+
+type Type1 {
+	name: String
+}
+
+type Type2 {
+	id: Int!
+}
+
+interface Result_T implements Node {
+	id: ID!
+	payload: T
+}
+
+interface Node {
+	id: ID!
+}

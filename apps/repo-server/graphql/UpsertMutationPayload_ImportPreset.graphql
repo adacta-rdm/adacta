@@ -1,0 +1,5 @@
+# @generated
+
+type UpsertMutationPayload_ImportPreset {
+	node: ImportPreset!
+}

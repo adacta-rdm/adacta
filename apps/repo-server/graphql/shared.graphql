@@ -1,0 +1,86 @@
+interface Node {
+	id: ID!
+}
+
+type PageCursor {
+	cursor: String!
+	pageNumber: Int!
+}
+
+type PageCursors {
+	first: PageCursor!
+	last: PageCursor!
+	around: [PageCursor!]!
+}
+
+type PageInfo {
+	hasPreviousPage: Boolean!
+	hasNextPage: Boolean!
+	startCursor: String
+	endCursor: String
+	cursors: PageCursors
+}
+
+interface Connection {
+	edges: [Edge!]!
+	pageInfo: PageInfo!
+}
+
+# TODO: node: any
+interface Edge {
+	cursor: String!
+}
+
+# Generic DeltedNodeEdge can be used to delete edge entries
+type DeletedNodeEdge implements Edge {
+	node: DeletedNode!
+	cursor: String!
+}
+
+type DeletedNode {
+	deletedId: ID!
+}
+
+type Metadata {
+	creator: User!
+	creationTimestamp: DateTime!
+	origin: OriginRepoMetadata
+	canEdit: Boolean
+}
+
+type OriginRepoMetadata {
+	#name: String
+	# TODO: Not sure if this type is that different from the RemoteRepo type... Let's see
+	# Pro: It is a remote repo
+	# Con: If a remote is removed, we would still like to have information about it
+	#url: String!
+	remoteRepo: RemoteRepo
+}
+
+"""
+When relay receives a mutation response, any objects in the mutation response with `id` fields that
+match records in the local store will automatically be updated with the new field values from the
+response. Furthermore any local data updates caused by the mutation will automatically cause
+components subscribed to the data to be notified of the change and re-render.
+Sometimes no id exists initially to subscribe to (e.g. user that is not yet logged in).
+This wrapper is therefore essential to allow UI updates as it provides an `id` that is known
+regardless of whether an actual id is known at the time. (e.g. it provides an id regardless of
+whether a user is logged in or no.)
+
+Needs to implement `Node` for types in `CONSTANT_NODE_IDS` to work.
+"""
+interface IdentifiedPayload implements Node {
+	id: ID!
+}
+
+scalar DateTime
+
+type DateOptions {
+	locale: String!
+	dateStyle: String!
+	timeStyle: String!
+}
+
+type Error {
+	message: String!
+}

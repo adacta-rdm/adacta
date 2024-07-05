@@ -1,0 +1,63 @@
+schema {
+	query: Query
+}
+
+type Query {
+	books: Connection_Book!
+	book(id: ID!): Book
+	func(input: Partial_Input1): String
+}
+
+type Book {
+	id: ID!
+	wrappedString: Wrapper_String!
+}
+
+interface Wrapper_T {
+	value: T!
+}
+
+interface Connection_T {
+	edges: [Edge_T!]!
+}
+
+interface Edge_T {
+	node: T!
+}
+
+type Type1 {
+	id: ID!
+}
+
+type Type2 {
+	prop1: Scalar1
+}
+
+interface Interface1 {
+	prop1: Float!
+	prop2: String!
+	prop3: Int!
+}
+
+input Input1 {
+	prop1: Float!
+	prop2: String!
+	prop3: Int!
+}
+
+input Input2_T {
+	prop1: Partial_T
+}
+
+scalar Scalar1
+
+enum Enum1 {
+	A
+	B
+}
+
+type Type_T {
+	optional: Partial_T
+}
+
+union Union1 = Wrapper_String | Wrapper_Int

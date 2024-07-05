@@ -1,0 +1,524 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Link reactor to samples > collectSamples() + collectDevices() > finds indirect connections to multiple samples 1`] = `
+[
+  {
+    "device": "1",
+    "usage": [
+      {
+        "sample": "Sample 2",
+        "timeframes": [
+          [
+            2,
+            5,
+          ],
+        ],
+      },
+      {
+        "sample": "Sample 3",
+        "timeframes": [
+          [
+            6,
+            10,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "2",
+    "usage": [
+      {
+        "sample": "Sample 2",
+        "timeframes": [
+          [
+            2,
+            7,
+          ],
+        ],
+      },
+      {
+        "sample": "Sample 1",
+        "timeframes": [
+          [
+            6,
+            10,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "3",
+    "usage": [
+      {
+        "sample": "Sample 1",
+        "timeframes": [
+          [
+            2,
+            10,
+          ],
+        ],
+      },
+      {
+        "sample": "Sample 2",
+        "timeframes": [
+          [
+            6,
+            7,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "4",
+    "usage": [
+      {
+        "sample": "Sample 2",
+        "timeframes": [
+          [
+            1,
+            9,
+          ],
+        ],
+      },
+      {
+        "sample": "Sample 1",
+        "timeframes": [
+          [
+            6,
+            7,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "5",
+    "usage": [
+      {
+        "sample": "Sample 3",
+        "timeframes": [
+          [
+            1,
+            "now",
+          ],
+        ],
+      },
+    ],
+  },
+]
+`;
+
+exports[`Link reactor to samples > collectSamples() + collectDevices() > finds indirect connections to multiple samples 2`] = `
+[
+  {
+    "sample": "Sample 1",
+    "usage": [
+      {
+        "device": "3",
+        "timeframes": [
+          [
+            2,
+            10,
+          ],
+        ],
+      },
+      {
+        "device": "2",
+        "timeframes": [
+          [
+            6,
+            10,
+          ],
+        ],
+      },
+      {
+        "device": "4",
+        "timeframes": [
+          [
+            6,
+            7,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "sample": "Sample 2",
+    "usage": [
+      {
+        "device": "4",
+        "timeframes": [
+          [
+            1,
+            9,
+          ],
+        ],
+      },
+      {
+        "device": "2",
+        "timeframes": [
+          [
+            2,
+            7,
+          ],
+        ],
+      },
+      {
+        "device": "1",
+        "timeframes": [
+          [
+            2,
+            5,
+          ],
+        ],
+      },
+      {
+        "device": "3",
+        "timeframes": [
+          [
+            6,
+            7,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "sample": "Sample 3",
+    "usage": [
+      {
+        "device": "5",
+        "timeframes": [
+          [
+            1,
+            "now",
+          ],
+        ],
+      },
+      {
+        "device": "1",
+        "timeframes": [
+          [
+            6,
+            10,
+          ],
+        ],
+      },
+    ],
+  },
+]
+`;
+
+exports[`Link reactor to samples > collectSamples() + collectDevices() > finds indirect connections to samples/devices 1`] = `
+[
+  {
+    "device": "FTIR 1",
+    "usage": [
+      {
+        "sample": "Test-Sample",
+        "timeframes": [
+          [
+            15,
+            20,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "Furnace 1",
+    "usage": [
+      {
+        "sample": "Test-Sample",
+        "timeframes": [
+          [
+            1,
+            20,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "Furnace 2",
+    "usage": [
+      {
+        "sample": "Test-Sample",
+        "timeframes": [
+          [
+            50,
+            "now",
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "Reaktor",
+    "usage": [
+      {
+        "sample": "Test-Sample",
+        "timeframes": [
+          [
+            15,
+            20,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "Thermocouple 1",
+    "usage": [],
+  },
+  {
+    "device": "Thermocouple 2",
+    "usage": [
+      {
+        "sample": "Test-Sample",
+        "timeframes": [
+          [
+            3,
+            4,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "Thermocouple 3",
+    "usage": [
+      {
+        "sample": "Test-Sample",
+        "timeframes": [
+          [
+            15,
+            20,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "Tube 1",
+    "usage": [
+      {
+        "sample": "Test-Sample",
+        "timeframes": [
+          [
+            1,
+            "now",
+          ],
+        ],
+      },
+    ],
+  },
+]
+`;
+
+exports[`Link reactor to samples > collectSamples() + collectDevices() > finds indirect connections to samples/devices 2`] = `
+[
+  {
+    "sample": "Test-Sample",
+    "usage": [
+      {
+        "device": "Tube 1",
+        "timeframes": [
+          [
+            1,
+            "now",
+          ],
+        ],
+      },
+      {
+        "device": "Furnace 1",
+        "timeframes": [
+          [
+            1,
+            20,
+          ],
+        ],
+      },
+      {
+        "device": "Thermocouple 2",
+        "timeframes": [
+          [
+            3,
+            4,
+          ],
+        ],
+      },
+      {
+        "device": "Reaktor",
+        "timeframes": [
+          [
+            15,
+            20,
+          ],
+        ],
+      },
+      {
+        "device": "FTIR 1",
+        "timeframes": [
+          [
+            15,
+            20,
+          ],
+        ],
+      },
+      {
+        "device": "Thermocouple 3",
+        "timeframes": [
+          [
+            15,
+            20,
+          ],
+        ],
+      },
+      {
+        "device": "Furnace 2",
+        "timeframes": [
+          [
+            50,
+            "now",
+          ],
+        ],
+      },
+    ],
+  },
+]
+`;
+
+exports[`Link reactor to samples > collectSamples() > finds correct samples and narrows down usage 1`] = `
+[
+  {
+    "device": "1",
+    "usage": [
+      {
+        "sample": "Sample 2",
+        "timeframes": [
+          [
+            25,
+            40,
+          ],
+        ],
+      },
+      {
+        "sample": "Sample 3",
+        "timeframes": [
+          [
+            40,
+            50,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "2",
+    "usage": [
+      {
+        "sample": "Sample 1",
+        "timeframes": [
+          [
+            1,
+            20,
+          ],
+        ],
+      },
+      {
+        "sample": "Sample 2",
+        "timeframes": [
+          [
+            20,
+            40,
+          ],
+        ],
+      },
+      {
+        "sample": "Sample 3",
+        "timeframes": [
+          [
+            40,
+            60,
+          ],
+        ],
+      },
+    ],
+  },
+]
+`;
+
+exports[`Link reactor to samples > collectSamples() > finds correct samples with multiple parents 1`] = `
+[
+  {
+    "device": "1",
+    "usage": [
+      {
+        "sample": "Sample 1",
+        "timeframes": [
+          [
+            20,
+            25,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "2",
+    "usage": [
+      {
+        "sample": "Sample 1",
+        "timeframes": [
+          [
+            25,
+            30,
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    "device": "3",
+    "usage": [
+      {
+        "sample": "Sample 1",
+        "timeframes": [
+          [
+            20,
+            30,
+          ],
+        ],
+      },
+    ],
+  },
+]
+`;
+
+exports[`Link reactor to samples > group > collectSamples 1`] = `
+[
+  {
+    "sample": {
+      "id": "foo",
+    },
+    "timeframes": [
+      [
+        1,
+        5,
+      ],
+      [
+        7,
+        8,
+      ],
+      [
+        10,
+        15,
+      ],
+    ],
+  },
+]
+`;

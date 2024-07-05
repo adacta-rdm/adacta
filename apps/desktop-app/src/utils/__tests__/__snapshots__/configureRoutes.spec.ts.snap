@@ -1,0 +1,43 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`configureRoutes() > snapshot 1`] = `
+[
+  Redirect {
+    "path": "/",
+    "status": undefined,
+    "to": "/repositories",
+  },
+  {
+    "Component": undefined,
+    "getData": undefined,
+    "path": "/login",
+    "route": "/login",
+  },
+  {
+    "Component": undefined,
+    "getData": undefined,
+    "path": "/long/path/to/somewhere",
+    "route": "/long/path/to/somewhere",
+  },
+  {
+    "Component": undefined,
+    "children": [
+      {
+        "Component": undefined,
+        "getData": undefined,
+        "path": "/",
+        "route": "/repositories/",
+      },
+      {
+        "Component": undefined,
+        "getData": undefined,
+        "path": "/new",
+        "route": "/repositories/new",
+      },
+    ],
+    "getData": undefined,
+    "path": "/repositories",
+    "route": "/repositories",
+  },
+]
+`;

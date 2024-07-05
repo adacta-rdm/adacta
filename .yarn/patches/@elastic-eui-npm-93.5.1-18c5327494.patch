@@ -1,0 +1,18 @@
+diff --git a/es/components/overlay_mask/overlay_mask_body.styles.js b/es/components/overlay_mask/overlay_mask_body.styles.js
+index 2756b27fb162a6e739ff290f0bb2255acdbc060c..2d904a52753e96b6420bc341bac607577ea125a9 100644
+--- a/es/components/overlay_mask/overlay_mask_body.styles.js
++++ b/es/components/overlay_mask/overlay_mask_body.styles.js
+@@ -8,11 +8,4 @@ function _EMOTION_STRINGIFIED_CSS_ERROR__() { return "You have tried to stringif
+  */
+ 
+ import { css } from '@emotion/react';
+-export var euiOverlayMaskBodyStyles = process.env.NODE_ENV === "production" ? {
+-  name: "131160-euiOverlayMaskBodyStyles",
+-  styles: "body{overflow:hidden;};label:euiOverlayMaskBodyStyles;"
+-} : {
+-  name: "131160-euiOverlayMaskBodyStyles",
+-  styles: "body{overflow:hidden;};label:euiOverlayMaskBodyStyles;",
+-  toString: _EMOTION_STRINGIFIED_CSS_ERROR__
+-};
+\ No newline at end of file
++export var euiOverlayMaskBodyStyles = {};

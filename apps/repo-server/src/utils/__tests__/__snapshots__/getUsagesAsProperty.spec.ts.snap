@@ -1,0 +1,192 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`getUsagesAsProperty > initial test > includeOverlaps: { id: '00000000-0000-0007-0000-000000000001', begin: +0, end: 3 } 1`] = `
+[
+  {
+    "begin": 0,
+    "couchId": null,
+    "deviceId": "Child1",
+    "end": 3,
+    "id": undefined,
+    "name": "device1",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+  {
+    "begin": 2,
+    "couchId": null,
+    "deviceId": "Child1",
+    "end": 5,
+    "id": undefined,
+    "name": "device1",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+]
+`;
+
+exports[`getUsagesAsProperty > initial test > includeOverlaps: { id: '00000000-0000-0007-0000-000000000001', begin: +0, end: 3 } 2`] = `
+[
+  {
+    "begin": 0,
+    "couchId": null,
+    "deviceId": "Child1",
+    "end": 3,
+    "id": undefined,
+    "name": "device1",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+]
+`;
+
+exports[`getUsagesAsProperty > initial test > includeOverlaps: { id: '00000000-0000-0007-0000-000000000001', begin: 2, end: 5 } 1`] = `
+[
+  {
+    "begin": 0,
+    "couchId": null,
+    "deviceId": "Child1",
+    "end": 3,
+    "id": undefined,
+    "name": "device1",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+  {
+    "begin": 2,
+    "couchId": null,
+    "deviceId": "Child1",
+    "end": 5,
+    "id": undefined,
+    "name": "device1",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+  {
+    "begin": 5,
+    "couchId": null,
+    "deviceId": "Child1",
+    "end": 10,
+    "id": undefined,
+    "name": "device1",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+]
+`;
+
+exports[`getUsagesAsProperty > initial test > includeOverlaps: { id: '00000000-0000-0007-0000-000000000001', begin: 2, end: 5 } 2`] = `
+[
+  {
+    "begin": 2,
+    "couchId": null,
+    "deviceId": "Child1",
+    "end": 5,
+    "id": undefined,
+    "name": "device1",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+]
+`;
+
+exports[`getUsagesAsProperty > initial test > includeOverlaps: { id: '00000000-0000-0007-0000-000000000001', begin: 2, end: 10 } 1`] = `
+[
+  {
+    "begin": 0,
+    "couchId": null,
+    "deviceId": "Child1",
+    "end": 3,
+    "id": undefined,
+    "name": "device1",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+  {
+    "begin": 2,
+    "couchId": null,
+    "deviceId": "Child1",
+    "end": 5,
+    "id": undefined,
+    "name": "device1",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+  {
+    "begin": 5,
+    "couchId": null,
+    "deviceId": "Child1",
+    "end": 10,
+    "id": undefined,
+    "name": "device1",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+]
+`;
+
+exports[`getUsagesAsProperty > initial test > includeOverlaps: { id: '00000000-0000-0007-0000-000000000001', begin: 2, end: 10 } 2`] = `[]`;
+
+exports[`getUsagesAsProperty > initial test > includeOverlaps: { id: '00000000-0000-0007-0000-000000000001', begin: 5, end: 10 } 1`] = `
+[
+  {
+    "begin": 5,
+    "couchId": null,
+    "deviceId": "Child1",
+    "end": 10,
+    "id": undefined,
+    "name": "device1",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+]
+`;
+
+exports[`getUsagesAsProperty > initial test > includeOverlaps: { id: '00000000-0000-0007-0000-000000000001', begin: 5, end: 10 } 2`] = `
+[
+  {
+    "begin": 5,
+    "couchId": null,
+    "deviceId": "Child1",
+    "end": 10,
+    "id": undefined,
+    "name": "device1",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+]
+`;
+
+exports[`getUsagesAsProperty > initial test > includeOverlaps: { id: '00000000-0000-0007-0000-000000000002', begin: 2, end: 10 } 1`] = `
+[
+  {
+    "begin": 5,
+    "couchId": null,
+    "deviceId": "Child2",
+    "end": "now",
+    "id": undefined,
+    "name": "device2",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+]
+`;
+
+exports[`getUsagesAsProperty > initial test > includeOverlaps: { id: '00000000-0000-0007-0000-000000000002', begin: 2, end: 10 } 2`] = `[]`;
+
+exports[`getUsagesAsProperty > initial test > includeOverlaps: { id: '00000000-0000-0007-0000-000000000002', begin: 2, end: null } 1`] = `
+[
+  {
+    "begin": 5,
+    "couchId": null,
+    "deviceId": "Child2",
+    "end": "now",
+    "id": undefined,
+    "name": "device2",
+    "ownerDeviceId": "Root-Device",
+    "sampleId": null,
+  },
+]
+`;
+
+exports[`getUsagesAsProperty > initial test > includeOverlaps: { id: '00000000-0000-0007-0000-000000000002', begin: 2, end: null } 2`] = `[]`;

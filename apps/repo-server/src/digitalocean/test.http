@@ -1,0 +1,147 @@
+
+### Downsample to 100 rows
+# Response code: 200 (OK); Time: 31461ms (31 s 461 ms); Content length: 13109 bytes (13.11 kB)
+# Response code: 200 (OK); Time: 31595ms (31 s 595 ms); Content length: 13109 bytes (13.11 kB)
+# Response code: 200 (OK); Time: 29907ms (29 s 907 ms); Content length: 13109 bytes (13.11 kB)
+# Multi column implementation
+# Response code: 200 (OK); Time: 23968ms (23 s 968 ms); Content length: 13109 bytes (13.11 kB)
+POST https://repo-staging.adacta.host/services/resources/downsample
+Content-Type: application/json
+
+{
+  "input": {
+    "path": "00000-file-100-cols-6",
+    "numberRows": 2184534,
+    "numberColumns": 6,
+    "columns": {
+      "x": 0,
+      "y": [1, 2, 3, 4, 5]
+    }
+  },
+
+  "threshold": 100
+}
+
+
+
+### Downsample to 18 rows
+# Response code: 200 (OK); Time: 35463ms (35 s 463 ms); Content length: 2269 bytes (2.27 kB)
+# Response code: 200 (OK); Time: 35065ms (35 s 65 ms); Content length: 2269 bytes (2.27 kB)
+# Response code: 200 (OK); Time: 31977ms (31 s 977 ms); Content length: 2269 bytes (2.27 kB)
+# Multi column implementation
+# Response code: 200 (OK); Time: 22620ms (22 s 620 ms); Content length: 2269 bytes (2.27 kB)
+POST https://repo-staging.adacta.host/services/resources/downsample
+Content-Type: application/json
+
+{
+  "input": {
+    "path": "00000-file-100-cols-6",
+    "numberRows": 2184534,
+    "numberColumns": 6,
+    "columns": {
+      "x": 0,
+      "y": [1, 2, 3, 4, 5]
+    }
+  },
+
+  "threshold": 18
+}
+
+
+### Downsample to 500 rows
+# Response code: 200 (OK); Time: 26823ms (26 s 823 ms); Content length: 65847 bytes (65.85 kB)
+# Response code: 200 (OK); Time: 29504ms (29 s 504 ms); Content length: 65847 bytes (65.85 kB)
+# Response code: 200 (OK); Time: 24524ms (24 s 524 ms); Content length: 65847 bytes (65.85 kB)
+# Multi column implementation
+# Response code: 200 (OK); Time: 22090ms (22 s 90 ms); Content length: 65847 bytes (65.85 kB)
+POST https://repo-staging.adacta.host/services/resources/downsample
+Content-Type: application/json
+
+{
+  "input": {
+    "path": "00000-file-100-cols-6",
+    "numberRows": 2184534,
+    "numberColumns": 6,
+    "columns": {
+      "x": 0,
+      "y": [1, 2, 3, 4, 5]
+    }
+  },
+
+  "threshold": 500
+}
+
+
+
+### Downsample to 100 rows (25 columns)
+# Response code: 200 (OK); Time: 33977ms (33 s 977 ms); Content length: 61545 bytes (61.55 kB)
+# Response code: 200 (OK); Time: 30842ms (30 s 842 ms); Content length: 61545 bytes (61.55 kB)
+# Response code: 200 (OK); Time: 36610ms (36 s 610 ms); Content length: 61545 bytes (61.55 kB)
+# Multi column implementation
+# Response code: 200 (OK); Time: 6944ms (6 s 944 ms); Content length: 61545 bytes (61.55 kB)
+POST https://repo-staging.adacta.host/services/resources/downsample
+Content-Type: application/json
+
+{
+  "input": {
+    "path": "00000-file-100-cols-25",
+    "numberRows": 524288,
+    "numberColumns": 25,
+    "columns": {
+      "x": 0,
+      "y": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+            11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+            21, 22, 23, 24]
+    }
+  },
+
+  "threshold": 100
+}
+
+### Downsample to 18 rows (25 columns)
+# Response code: 200 (OK); Time: 38693ms (38 s 693 ms); Content length: 10678 bytes (10.68 kB)
+# Multi column implementation
+# Response code: 200 (OK); Time: 8039ms (8 s 39 ms); Content length: 10678 bytes (10.68 kB)
+POST https://repo-staging.adacta.host/services/resources/downsample
+Content-Type: application/json
+
+{
+  "input": {
+    "path": "00000-file-100-cols-25",
+    "numberRows": 524288,
+    "numberColumns": 25,
+    "columns": {
+      "x": 0,
+      "y": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+        11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24]
+    }
+  },
+
+  "threshold": 18
+}
+
+### Downsample to 500 rows (25 columns)
+# Response code: 200 (OK); Time: 30694ms (30 s 694 ms); Content length: 309222 bytes (309.22 kB)
+# Response code: 200 (OK); Time: 35355ms (35 s 355 ms); Content length: 309222 bytes (309.22 kB)
+# Response code: 200 (OK); Time: 32087ms (32 s 87 ms); Content length: 309222 bytes (309.22 kB)
+# Multi column implementation
+# Response code: 200 (OK); Time: 7673ms (7 s 673 ms); Content length: 309222 bytes (309.22 kB)
+POST https://repo-staging.adacta.host/services/resources/downsample
+Content-Type: application/json
+
+{
+  "input": {
+    "path": "00000-file-100-cols-25",
+    "numberRows": 524288,
+    "numberColumns": 25,
+    "columns": {
+      "x": 0,
+      "y": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+        11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24]
+    }
+  },
+
+  "threshold": 500
+}

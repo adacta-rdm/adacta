@@ -1,0 +1,12 @@
+schema {
+	query: Query
+}
+
+type Query {
+	"""
+	Returns "world".
+	"""
+	hello: String!
+
+	myType(id: ID!): MyType
+}

@@ -1,0 +1,7 @@
+# @generated
+
+input Partial_ImportPresetInput {
+	deviceId: [ID!]
+	name: String
+	presetJson: String
+}

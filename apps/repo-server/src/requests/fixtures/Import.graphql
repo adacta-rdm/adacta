@@ -1,0 +1,41 @@
+mutation ImportRawResourceRequest {
+	importRawResourceRequest {
+		id
+		url
+	}
+}
+
+mutation ImportRawResource($input: ImportRawResourceInput!) {
+	importRawResource(input: $input)
+}
+
+mutation ImportImageResource($input: ImportImageResourceInput!) {
+	importImageResource(input: $input)
+}
+
+mutation CreateAndRunImportTransformation($input: CreateAndRunImportTransformationInput!) {
+	createAndRunImportTransformation(input: $input) {
+		__typename
+		importTaskId
+	}
+}
+
+# NOTE: This subscription is only here to create proper types. Keep in sync with subscription in
+# "LoadFixtures.ts"
+subscription ImportTask {
+	importTask {
+		id
+		payload {
+			__typename
+			... on ImportTransformationError {
+				message
+			}
+			... on ImportTransformationProgress {
+				progress
+			}
+			... on ImportTransformationSuccess {
+				ids
+			}
+		}
+	}
+}

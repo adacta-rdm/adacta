@@ -1,0 +1,62 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules
+
+
+
+
+# production
+build
+release
+dist
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# JetBrains IDE
+.idea
+
+# Yarn Zero-Installs
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Python
+venv
+
+# Docker
+docker-context
+
+# Digitalocean Functions
+.nimbella
+.deployed
+__deployer__.zip
+
+# Digitalocean app spec (may contain secrets)
+app-spec.yml
+app-spec.yaml
+app-spec.json
+*.spec.json
+
+# Keep environment variables out of version control
+*.env
+
+/apps/repo-server/public/resources
+/apps/desktop-app/src/euiIcons.js
+
+# Built microservices
+packages
+
+# Docker volumes
+temp
+
+# Generated files
+@

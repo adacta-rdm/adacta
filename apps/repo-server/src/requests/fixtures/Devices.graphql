@@ -1,0 +1,30 @@
+mutation AddDeviceDefinition($input: AddDeviceDefinitionInput!) {
+	addDeviceDefinition(input: $input) {
+		id
+	}
+}
+
+mutation AddDevice($input: Insert_DeviceInput!) {
+	upsertDevice(insert: $input) {
+		add {
+			appendedEdge {
+				node {
+					id
+					name
+				}
+			}
+		}
+	}
+}
+
+mutation AddComponent($input: AddComponentInput!) {
+	addComponent(input: $input) {
+		__typename
+	}
+}
+
+mutation AddDeviceImage($input: AddDeviceImageInput!) {
+	addDeviceImage(input: $input) {
+		__typename
+	}
+}

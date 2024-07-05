@@ -1,0 +1,6 @@
+# @generated
+
+input Partial_SampleInput {
+	name: String
+	specifications: [SpecificationInput!]
+}

@@ -1,0 +1,4 @@
+interface Edge_T {
+	cursor: String!
+	node: T!
+}

@@ -1,0 +1,380 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`graphQLBuilderCLI() > typescript type generation - requests code 1`] = `
+"// @generated
+import type { GraphQLClient, RequestOptions } from "graphql-request";
+import gql from "graphql-tag";
+export type Maybe<T> = T | null;
+export type InputMaybe<T> = Maybe<T>;
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>;
+};
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>;
+};
+type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
+/** All built-in and custom scalars, mapped to their actual values */
+export type Scalars = {
+  ID: string;
+  String: string;
+  Boolean: boolean;
+  Int: number;
+  Float: number;
+};
+
+export type IQuery = {
+  __typename?: "Query";
+  books: IConnection_Book;
+  book?: Maybe<IBook>;
+  func?: Maybe<Scalars["String"]>;
+};
+
+export type IQueryBookArgs = {
+  id: Scalars["ID"];
+};
+
+export type IQueryFuncArgs = {
+  input?: InputMaybe<IPartial_Input1>;
+};
+
+export type IConnection_Book = {
+  __typename?: "Connection_Book";
+  edges: Array<IEdge_Book>;
+};
+
+export type IEdge_Book = {
+  __typename?: "Edge_Book";
+  node: IBook;
+};
+
+export type IBook = {
+  __typename?: "Book";
+  id: Scalars["ID"];
+  wrappedString: IWrapper_String;
+};
+
+export type IWrapper_String = {
+  __typename?: "Wrapper_String";
+  value: Scalars["String"];
+};
+
+export type IPartial_Input1 = {
+  prop1?: InputMaybe<Scalars["Float"]>;
+  prop2?: InputMaybe<Scalars["String"]>;
+  prop3?: InputMaybe<Scalars["Int"]>;
+};
+
+export type IQuery1QueryVariables = Exact<{
+  input: Scalars["ID"];
+}>;
+
+export type IQuery1Query = {
+  __typename?: "Query";
+  book?: {
+    __typename?: "Book";
+    id: string;
+    wrappedString: { __typename?: "Wrapper_String"; value: string };
+  } | null;
+};
+
+export const Query1Document = gql\`
+  query Query1($input: ID!) {
+    book(id: $input) {
+      id
+      wrappedString {
+        value
+      }
+    }
+  }
+\`;
+
+export type SdkFunctionWrapper = <T>(
+  action: (requestHeaders?: Record<string, string>) => Promise<T>,
+  operationName: string,
+  operationType?: string,
+  variables?: any
+) => Promise<T>;
+
+const defaultWrapper: SdkFunctionWrapper = (
+  action,
+  _operationName,
+  _operationType,
+  _variables
+) => action();
+
+export function getSdk(
+  client: GraphQLClient,
+  withWrapper: SdkFunctionWrapper = defaultWrapper
+) {
+  return {
+    Query1(
+      variables: IQuery1QueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders
+    ): Promise<IQuery1Query> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<IQuery1Query>(Query1Document, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "Query1",
+        "query",
+        variables
+      );
+    },
+  };
+}
+export type Sdk = ReturnType<typeof getSdk>;
+"
+`;
+
+exports[`graphQLBuilderCLI() > typescript type generation - resolver types 1`] = `
+"// @generated
+import { ResolverReturnType } from "~/lib/utils/types";
+import type { GraphQLResolveInfo } from "graphql";
+import type { IGraphQLContext } from "../IGraphQLContext";
+export type Maybe<T> = T | null | undefined;
+export type InputMaybe<T> = T | null | undefined;
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>;
+};
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>;
+};
+export type RequireFields<T, K extends keyof T> = Omit<T, K> & {
+  [P in K]-?: NonNullable<T[P]>;
+};
+/** All built-in and custom scalars, mapped to their actual values */
+export type Scalars = {
+  ID: string;
+  String: string;
+  Boolean: boolean;
+  Int: number;
+  Float: number;
+};
+
+export type IQuery = {
+  __typename?: "Query";
+  /** Returns "world". */
+  hello: Scalars["String"];
+  myType?: Maybe<IMyType>;
+};
+
+export type IQueryMyTypeArgs = {
+  id: Scalars["ID"];
+};
+
+export type IMyType = {
+  __typename?: "MyType";
+  result?: Maybe<IResult_Type1>;
+};
+
+export type IResult_Type1 = INode & {
+  __typename?: "Result_Type1";
+  id: Scalars["ID"];
+  payload?: Maybe<IType1>;
+};
+
+export type INode = {
+  id: Scalars["ID"];
+};
+
+export type IType1 = {
+  __typename?: "Type1";
+  name?: Maybe<Scalars["String"]>;
+};
+
+export type ResolverTypeWrapper<T> = Promise<T> | T;
+
+export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
+  resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
+};
+export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> =
+  | ResolverFn<TResult, TParent, TContext, TArgs>
+  | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
+
+export type ResolverFn<TResult, TParent, TContext, TArgs> = (
+  parent: TParent,
+  args: TArgs,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => Promise<TResult> | TResult;
+
+export type SubscriptionSubscribeFn<TResult, TParent, TContext, TArgs> = (
+  parent: TParent,
+  args: TArgs,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => AsyncIterable<TResult> | Promise<AsyncIterable<TResult>>;
+
+export type SubscriptionResolveFn<TResult, TParent, TContext, TArgs> = (
+  parent: TParent,
+  args: TArgs,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => TResult | Promise<TResult>;
+
+export interface SubscriptionSubscriberObject<
+  TResult,
+  TKey extends string,
+  TParent,
+  TContext,
+  TArgs
+> {
+  subscribe: SubscriptionSubscribeFn<
+    { [key in TKey]: TResult },
+    TParent,
+    TContext,
+    TArgs
+  >;
+  resolve?: SubscriptionResolveFn<
+    TResult,
+    { [key in TKey]: TResult },
+    TContext,
+    TArgs
+  >;
+}
+
+export interface SubscriptionResolverObject<TResult, TParent, TContext, TArgs> {
+  subscribe: SubscriptionSubscribeFn<any, TParent, TContext, TArgs>;
+  resolve: SubscriptionResolveFn<TResult, any, TContext, TArgs>;
+}
+
+export type SubscriptionObject<
+  TResult,
+  TKey extends string,
+  TParent,
+  TContext,
+  TArgs
+> =
+  | SubscriptionSubscriberObject<TResult, TKey, TParent, TContext, TArgs>
+  | SubscriptionResolverObject<TResult, TParent, TContext, TArgs>;
+
+export type SubscriptionResolver<
+  TResult,
+  TKey extends string,
+  TParent = {},
+  TContext = {},
+  TArgs = {}
+> =
+  | ((
+      ...args: any[]
+    ) => SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>)
+  | SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>;
+
+export type TypeResolveFn<TTypes, TParent = {}, TContext = {}> = (
+  parent: TParent,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => Maybe<TTypes> | Promise<Maybe<TTypes>>;
+
+export type IsTypeOfResolverFn<T = {}, TContext = {}> = (
+  obj: T,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => boolean | Promise<boolean>;
+
+export type NextResolverFn<T> = () => Promise<T>;
+
+export type DirectiveResolverFn<
+  TResult = {},
+  TParent = {},
+  TContext = {},
+  TArgs = {}
+> = (
+  next: NextResolverFn<TResult>,
+  parent: TParent,
+  args: TArgs,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => TResult | Promise<TResult>;
+
+/** Mapping between all available schema types and the resolvers types */
+export type IResolversTypes = {
+  Query: ResolverTypeWrapper<{}>;
+  String: ResolverTypeWrapper<ResolverReturnType<Scalars["String"]>>;
+  ID: ResolverTypeWrapper<ResolverReturnType<Scalars["ID"]>>;
+  MyType: ResolverTypeWrapper<ResolverReturnType<IMyType>>;
+  Result_Type1: ResolverTypeWrapper<ResolverReturnType<IResult_Type1>>;
+  Node: IResolversTypes["Result_Type1"];
+  Type1: ResolverTypeWrapper<ResolverReturnType<IType1>>;
+  Boolean: ResolverTypeWrapper<ResolverReturnType<Scalars["Boolean"]>>;
+};
+
+/** Mapping between all available schema types and the resolvers parents */
+export type IResolversParentTypes = {
+  Query: {};
+  String: ResolverReturnType<Scalars["String"]>;
+  ID: ResolverReturnType<Scalars["ID"]>;
+  MyType: ResolverReturnType<IMyType>;
+  Result_Type1: ResolverReturnType<IResult_Type1>;
+  Node: IResolversParentTypes["Result_Type1"];
+  Type1: ResolverReturnType<IType1>;
+  Boolean: ResolverReturnType<Scalars["Boolean"]>;
+};
+
+export type IQueryResolvers<
+  ContextType = IGraphQLContext,
+  ParentType extends IResolversParentTypes["Query"] = IResolversParentTypes["Query"]
+> = {
+  hello?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
+  myType?: Resolver<
+    Maybe<IResolversTypes["MyType"]>,
+    ParentType,
+    ContextType,
+    RequireFields<IQueryMyTypeArgs, "id">
+  >;
+};
+
+export type IMyTypeResolvers<
+  ContextType = IGraphQLContext,
+  ParentType extends IResolversParentTypes["MyType"] = IResolversParentTypes["MyType"]
+> = {
+  result?: Resolver<
+    Maybe<IResolversTypes["Result_Type1"]>,
+    ParentType,
+    ContextType
+  >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IResult_Type1Resolvers<
+  ContextType = IGraphQLContext,
+  ParentType extends IResolversParentTypes["Result_Type1"] = IResolversParentTypes["Result_Type1"]
+> = {
+  id?: Resolver<IResolversTypes["ID"], ParentType, ContextType>;
+  payload?: Resolver<Maybe<IResolversTypes["Type1"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type INodeResolvers<
+  ContextType = IGraphQLContext,
+  ParentType extends IResolversParentTypes["Node"] = IResolversParentTypes["Node"]
+> = {
+  __resolveType: TypeResolveFn<"Result_Type1", ParentType, ContextType>;
+  id?: Resolver<IResolversTypes["ID"], ParentType, ContextType>;
+};
+
+export type IType1Resolvers<
+  ContextType = IGraphQLContext,
+  ParentType extends IResolversParentTypes["Type1"] = IResolversParentTypes["Type1"]
+> = {
+  name?: Resolver<Maybe<IResolversTypes["String"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IResolvers<ContextType = IGraphQLContext> = {
+  Query?: IQueryResolvers<ContextType>;
+  MyType?: IMyTypeResolvers<ContextType>;
+  Result_Type1?: IResult_Type1Resolvers<ContextType>;
+  Node?: INodeResolvers<ContextType>;
+  Type1?: IType1Resolvers<ContextType>;
+};
+"
+`;

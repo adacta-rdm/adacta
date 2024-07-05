@@ -1,0 +1,6 @@
+# @generated
+
+type Connection_NameCompositionVariable {
+	edges: [Edge_NameCompositionVariable!]!
+	pageInfo: PageInfo!
+}

@@ -1,0 +1,6 @@
+# @generated
+
+input Update_ImportPresetInput {
+	id: ID!
+	input: Partial_ImportPresetInput!
+}

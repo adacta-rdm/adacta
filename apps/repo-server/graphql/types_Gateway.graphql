@@ -1,0 +1,32 @@
+"""
+Represents the current user that is actively using the app. There is only a single `CurrentUser`
+(which exists even if no user is logged in), so the `id` field has a single known value. This known
+`id` value is essential for updating the UI. The actual information about the logged in user
+(if applicable) is embedded in the `payload` field. Wrapping the `User` in this way allows relay to
+keep track of the login state.
+"""
+type CurrentUser implements IdentifiedPayload & Node {
+	# Set to a constant, see `resolvers/Authentication.ts`
+	id: ID!
+
+	# Wrapped to allow delegation using field resolver
+	# This way payload is a field which can implement a resolver which delegates everything
+	payload: CurrentUserCore!
+}
+
+type CurrentUserCore {
+	user: User!
+
+	timeSetting: DateOptions
+}
+
+type RemoteRepo implements Node {
+	id: ID!
+	#accessPermissions: AccessPermissions
+}
+
+type SearchResult {
+	node: Node!
+	score: Float!
+	repositoryId: ID
+}

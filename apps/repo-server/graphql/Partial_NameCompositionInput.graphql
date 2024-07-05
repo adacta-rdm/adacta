@@ -1,0 +1,8 @@
+# @generated
+
+input Partial_NameCompositionInput {
+	name: String
+	variables: [ID!]
+	legacyNameIndex: Int
+	shortIdIndex: Int
+}

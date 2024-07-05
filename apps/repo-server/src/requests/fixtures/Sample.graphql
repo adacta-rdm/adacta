@@ -1,0 +1,9 @@
+mutation AddSample($input: AddSampleInput!) {
+	addSample(input: $input) {
+		appendedEdge {
+			node {
+				id
+			}
+		}
+	}
+}

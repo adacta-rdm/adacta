@@ -1,0 +1,6 @@
+# @generated
+
+type Connection_DeviceDefinition {
+	edges: [Edge_DeviceDefinition!]!
+	pageInfo: PageInfo!
+}

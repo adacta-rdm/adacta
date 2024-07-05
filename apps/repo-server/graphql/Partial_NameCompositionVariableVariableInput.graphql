@@ -1,0 +1,8 @@
+# @generated
+
+input Partial_NameCompositionVariableVariableInput {
+	name: String
+	alias: [String!]
+	prefix: String
+	suffix: String
+}

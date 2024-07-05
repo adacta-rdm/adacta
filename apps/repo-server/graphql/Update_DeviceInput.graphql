@@ -1,0 +1,6 @@
+# @generated
+
+input Update_DeviceInput {
+	id: ID!
+	input: Partial_DeviceInput!
+}

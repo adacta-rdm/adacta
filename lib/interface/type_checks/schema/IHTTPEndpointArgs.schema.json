@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/IHTTPEndpointArgs",
+  "definitions": {
+    "IHTTPEndpointArgs": {
+      "type": "object",
+      "properties": {
+        "params": {
+          "$ref": "#/definitions/JsonObject"
+        },
+        "http": {
+          "type": "object",
+          "properties": {
+            "headers": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "not": {}
+                  }
+                ]
+              }
+            },
+            "method": {
+              "$ref": "#/definitions/IHTTPMethod"
+            },
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "headers",
+            "method",
+            "path"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "params",
+        "http"
+      ],
+      "additionalProperties": false
+    },
+    "JsonObject": {
+      "type": "object",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/JsonValue"
+          },
+          {
+            "$ref": "#/definitions/JsonValue"
+          },
+          {
+            "not": {}
+          }
+        ]
+      },
+      "properties": {}
+    },
+    "JsonValue": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/JsonPrimitive"
+        },
+        {
+          "$ref": "#/definitions/JsonObject"
+        },
+        {
+          "$ref": "#/definitions/JsonArray"
+        }
+      ]
+    },
+    "JsonPrimitive": {
+      "type": [
+        "string",
+        "number",
+        "boolean",
+        "null"
+      ]
+    },
+    "JsonArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/JsonValue"
+      }
+    },
+    "IHTTPMethod": {
+      "type": "string",
+      "enum": [
+        "POST",
+        "GET",
+        "PUT",
+        "DELETE",
+        "HEAD",
+        "OPTIONS"
+      ]
+    }
+  }
+}

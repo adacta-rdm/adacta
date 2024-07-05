@@ -1,0 +1,1297 @@
+type RepositoryQuery {
+	repository(id: ID!): RepositoryQuery!
+
+	# Fetches an object given its ID
+	node(
+		# The ID of an object
+		id: ID!
+	): Node
+
+	# Fetches multiple objects by the given IDs
+	nodes(ids: [ID!]!): [Node!]!
+
+	"""
+	Fetches a UserProfile by given `id`.
+	If no id is given the currently logged in user is returned.
+	"""
+	user(id: ID!): User
+
+	currentUser: CurrentUser!
+
+	devices(
+		first: Int
+		after: String
+		order_by: DeviceOrder
+		filter: DevicesFilter
+		"""
+		If true, only devices that are created by the current user are returned
+		"""
+		showOnlyOwnDevices: Boolean
+	): DeviceConnection!
+
+	device(id: ID!): Device!
+
+	resources(
+		first: Int
+		after: String
+		rootsOnly: Boolean
+		order_by: ResourceOrder
+	): ResourceConnection!
+
+	resource(id: ID!): Resource!
+
+	mergedResourceChart(ids: [ID!]!, alignStart: Boolean, offsets: [Int!]): [Data!]!
+
+	samples(first: Int, after: String, rootsOnly: Boolean): SampleConnection!
+
+	sample(id: ID!): Sample!
+
+	"""
+	Request for a single device definition
+	"""
+	deviceDefinition(id: ID!): DeviceDefinition!
+
+	"""
+	Request for a list of device definitions
+	"""
+	deviceDefinitions: Connection_DeviceDefinition!
+
+	"""
+	Request for a full tree where simulatedParentId is treated as the parent of the root node
+	"""
+	deviceDefinitionsTree(simulatedParentId: [ID!]): [DeviceDefinitionGraphElement!]!
+
+	search: SearchResults!
+
+	importPresets(first: Int, after: String, deviceId: ID): Connection_ImportPreset!
+
+	projects(first: Int, after: String): ProjectConnection!
+
+	project(id: ID!): Project!
+
+	devicesHierarchical(first: Int, after: String): HierarchicalDeviceListConnection!
+
+	deviceNameComposition: NameCompositionQuery!
+
+	"""
+	Checks if the given name is available for the given "target type"
+
+	checkFor: The type of the object that should be checked for name availability (i.e. Device, Sample)
+	"""
+	checkNameAvailability(
+		name: String!
+		checkFor: NameAvailabilityCheckTarget
+	): CheckNameAvailability!
+}
+
+type CheckNameAvailability {
+	conflictResolution: ConflictResolution!
+	isAvailable: Boolean!
+}
+
+enum ConflictResolution {
+	IGNORE
+	WARN
+	DENY
+}
+
+enum NameAvailabilityCheckTarget {
+	DEVICE
+	DEVICE_DEFINITION
+	SAMPLE
+	PROJECT
+}
+
+"""
+Group NameComposition related fields on RepositoryQuery
+
+NOTE: This is not a "real" type or entity
+"""
+type NameCompositionQuery {
+	"""
+	List of available variables (for this repository)
+	"""
+	variables: Connection_NameCompositionVariable!
+
+	"""
+	Custom name composition
+	"""
+	composition: Connection_NameComposition!
+}
+
+type NameComposition implements Node {
+	id: ID!
+
+	name: String!
+
+	variables: Connection_NameCompositionVariable!
+
+	legacyNameIndex: Int
+	shortIdIndex: Int
+
+	"""
+	Indicates how this composition is used.
+	Whether this composition is the default composition for devices/samples
+	"""
+	usageType: NameCompositionType
+}
+
+enum NameCompositionType {
+	DEFAULT_DEVICES # Default composition for devices
+	DEFAULT_SAMPLES # Default composition for samples
+	DEFAULT_DEVICES_AND_SAMPLES # Default composition for samples and devices
+}
+
+interface NameCompositionVariable implements Node {
+	id: ID!
+	name: String!
+	deletable: Boolean!
+}
+
+type NameCompositionVariableConstant implements Node & NameCompositionVariable {
+	id: ID!
+	name: String!
+	deletable: Boolean!
+
+	value: String!
+}
+
+type NameCompositionVariableVariable implements Node & NameCompositionVariable {
+	id: ID!
+	name: String!
+	deletable: Boolean!
+
+	alias: [String!]!
+	prefix: String
+	suffix: String
+}
+
+enum DevicesFilter {
+	"""
+	rootsOnly will only show devices which have properties and were never used as a device.
+	The idea behind this flag is that it tries to display only setups/reactors.
+	"""
+	ROOTS_ONLY
+	"""
+	Only shows Devices that are not used as components of a different setup (right now)
+	"""
+	UNUSED_ONLY
+}
+
+enum DeviceOrder {
+	NAME
+	NAME_DESC
+}
+
+enum ResourceOrder {
+	NAME
+	NAME_DESC
+	CREATION_DATE
+	CREATION_DATE_DESC
+}
+
+"""
+"Notification"s describe messages that the server (i.e. worker/graphql) want's to present to the
+user over the UI as a toast. Since the UI itself can also create toasts the store of the currently
+active toasts is on the UI/Renderer side of the code. Therefore we only need to subscribe to a
+single `LatestNotification`. Once a new notification is available the Renderer is notified via the
+subscription and stores it in its own store (just as if another part of the renderer would have
+created a new toast). Automatic timeouts of toasts is therefore all handled by the renderer.
+See the comment for `IdentifiedPayload` to understand why `LatestNotification` needs an `id`.
+"""
+type LatestNotification implements IdentifiedPayload & Node {
+	id: ID!
+	payload: LatestNotificationPayload
+}
+
+type LatestNotificationPayload implements Node {
+	# Unique id per notification to make sure the subscription notifies relay if there is a new
+	# notification
+	id: ID!
+	notification: Notification!
+}
+
+type Notification {
+	title: String!
+	text: String
+	severity: NotificationSeverity
+}
+
+enum NotificationSeverity {
+	primary
+	success
+	warning
+	danger
+}
+
+type MonitoredJobsStatus implements Node {
+	id: ID!
+	statuses: [String!]!
+}
+
+type RepositorySubscription {
+	latestNotification: LatestNotification!
+	importTask: ImportTaskResult!
+
+	# Emitted when the downsampled version of a graph becomes ready
+	downsampleDataBecameReady: DownsampleDataBecameReady!
+
+	# Currently not emitted by the server but still part of the client
+	sampleAddedOrUpdated: SampleEdge!
+	deviceAddedOrUpdated: DeviceEdge!
+	resourceAddedOrUpdated: ResourceEdge!
+
+	removedNode: DeletedNodeEdge!
+}
+
+type ImportTaskResult {
+	id: ID!
+	payload: ImportTaskResultPayload!
+}
+
+union ImportTaskResultPayload =
+	  ImportTransformationSuccess
+	| ImportTransformationWarning
+	| ImportTransformationError
+	| ImportTransformationProgress
+
+type DownsampleDataBecameReady {
+	resourceId: ID!
+	dataPoints: Int!
+	singleColumn: Boolean
+
+	resource: ResourceTabularData!
+}
+
+type ImportTransformationProgress {
+	resourceId: ID
+	progress: Float
+}
+
+type RepositoryMutation {
+	repository(id: ID!): RepositoryMutation!
+
+	"""
+	Authentication
+	"""
+	# Users Time Setting
+	updateTimeSettings(input: UpdateTimeSettingsInput!): CurrentUser!
+
+	# NOTE: Using JSON strings to replicate connection between Render/Main
+	toCellArray(resourceId: ID!, options: JSONString): JSONString!
+	toGenericTable(resourceId: ID!, options: JSONString): JSONString!
+	toTabularDataArrayBuffer(
+		resourceId: ID!
+		deviceId: ID!
+		options: JSONString
+	): ImportWizardStep3Payload!
+
+	"""
+	Import
+	"""
+	# Import of file as raw resource
+	importRawResourceRequest: ImportRawResourceRequestResponse!
+	importRawResource(input: ImportRawResourceInput!): ID!
+	importImageResource(input: ImportImageResourceInput!): ID!
+	createAndRunImportTransformation(
+		input: CreateAndRunImportTransformationInput!
+	): CreateAndRunImportTransformationResponse!
+	deleteImportPreset(id: ID!): DeletedNode!
+
+	deleteResource(input: DeleteResourceInput!): DeletedNode!
+
+	addSample(input: AddSampleInput!): AddSamplePayload!
+
+	"""
+	Add a relation between two samples
+	"""
+	addSampleRelation(input: AddSampleRelationInput!): AddSampleRelationPayload!
+
+	"""
+	Create a new sample and a relationship between an existing sample and the newly created sample
+	"""
+	addSampleAndSampleRelation(input: AddSampleAndSampleRelationInput!): Sample!
+
+	deleteDevice(id: ID!): DeletedNode!
+	upsertDevice(insert: Insert_DeviceInput, update: Update_DeviceInput): UpsertMutationPayloadDevice
+
+	requestShortId(id: ID!): DeviceOrSampleOrError!
+	addDeviceDefinition(input: AddDeviceDefinitionInput!): DeviceDefinition!
+	editDeviceDefinition(input: EditDeviceDefinitionInput!): EditDeviceDefinitionResult!
+	deleteDeviceDefinition(id: ID!): DeleteDeviceDefinitionResult!
+
+	"""
+	Setup Description
+	"""
+	deleteSetupDescription(input: DeleteSetupDescriptionInput!): Device!
+	linkImageWithSetupDescription(input: LinkImageWithSetupDescriptionInput!): Device!
+	updateSetupDescriptionTime(input: UpdateSetupDescriptionTimeInput!): Device!
+	addSetupLabel(input: AddSetupLabelInput!): Device!
+	deleteSetupLabel(input: DeleteSetupLabelInput!): Device!
+
+	# Device Image
+	makePrimaryDeviceImage(input: MakePrimaryDeviceImageInput!): HasImageResource!
+	addDeviceImage(input: AddDeviceImageInput!): HasImageResource!
+	deleteDeviceImage(input: DeleteDeviceImageInput!): HasImageResource!
+
+	removeComponent(input: RemoveComponentInput!): Device!
+	addComponent(input: AddComponentInput!): Device!
+	editComponent(input: EditComponentInput!): Device!
+	swapComponent(input: SwapComponentInput!): Device!
+
+	linkToProject(input: LinkToProjectInput!): LinkToProjectPayload!
+	removeFromProject(input: RemoveFromProjectInput!): RemoveFromProjectPayload!
+	addProject(input: AddProjectInput!): AddProjectPayload!
+	deleteProject(id: ID!): DeletedNode!
+
+	addManualTransformation(input: AddManualTransformationInput!): AddManualTransformationPayload!
+
+	addEditNote(input: AddEditNoteInput!): Note
+	deleteNote(id: ID!): DeletedNode!
+
+	upsertImportPreset(
+		insert: Insert_ImportPresetInput
+		update: Update_ImportPresetInput
+	): UpsertMutationPayload_ImportPreset
+
+	upsertNameCompositionVariableVariable(
+		insert: Insert_NameCompositionVariableVariableInput
+		update: Update_NameCompositionVariableVariableInput
+	): UpsertMutationPayload_NameCompositionVariableVariable
+
+	upsertNameCompositionVariableConstant(
+		insert: Insert_NameCompositionVariableConstantInput
+		update: Update_NameCompositionVariableConstantInput
+	): UpsertMutationPayload_NameCompositionVariableConstant
+	deleteNameCompositionVariable(id: ID!): DeletedNode!
+
+	upsertNameComposition(
+		insert: Insert_NameCompositionInput
+		update: Update_NameCompositionInput
+	): UpsertMutationPayload_NameCompositionPayload
+	deleteNameComposition(id: ID!): DeletedNode!
+
+	upsertSample(insert: Insert_SampleInput, update: Update_SampleInput): UpsertMutationPayload_Sample
+
+	# Return-Type is a array of NameComposition's to allow returning both the old default and the new default
+	# to make it easier to update the UI
+	repoConfigSetDefaultDeviceNamingStrategy(id: ID!): [NameComposition!]!
+	repoConfigSetDefaultSampleNamingStrategy(id: ID!): [NameComposition!]!
+}
+
+type NameCompositionPayload {
+	# This is the updated/created NameComposition
+	node: NameComposition!
+
+	# Expose entrypoint to query to allow updates (for example to update the deletable flag on all
+	# variables)
+	query: NameCompositionQuery!
+}
+input SampleInput {
+	name: String!
+	specifications: [SpecificationInput!]!
+}
+
+input NameCompositionInput {
+	name: String!
+	variables: [ID!]!
+
+	legacyNameIndex: Int
+	shortIdIndex: Int
+}
+
+input NameCompositionVariableVariableInput {
+	name: String!
+	alias: [String!]!
+
+	prefix: String
+	suffix: String
+}
+
+input NameCompositionVariableConstantInput {
+	name: String!
+	value: String!
+}
+
+union DeviceOrSampleOrError = Device | Sample | Error
+
+type UpsertMutationPayloadDevice {
+	edit: Device
+	add: AddDevicePayload
+}
+
+input AddManualTransformationInput {
+	# ID of the resource used
+	source: ID!
+
+	# ID of the resource which was "created by" this manual transformation
+	target: ID!
+}
+
+type AddManualTransformationPayload {
+	source: Resource!
+	target: ResourceGeneric!
+
+	addEditNote(input: AddEditNoteInput!): Note
+	deleteNote(id: ID!): DeletedNode!
+}
+
+input AddEditNoteInput {
+	id: ID # Optional for creation
+	thingId: ID!
+
+	caption: String!
+	text: String!
+
+	begin: DateTime
+	end: DateTime
+}
+
+input DeleteResourceInput {
+	resourceId: ID!
+}
+
+input AddProjectInput {
+	id: ID! # Id of the thing which should get linked
+	name: String!
+}
+
+type AddProjectPayload {
+	node: Project!
+}
+
+type LinkToProjectPayload {
+	node: Project!
+}
+
+input LinkToProjectInput {
+	id: ID! # Id of the thing which should get linked
+	projectId: ID!
+}
+
+type RemoveFromProjectPayload {
+	deletedProjectId: ID!
+}
+
+input RemoveFromProjectInput {
+	id: ID! # Id of the thing which should get removed
+	projectId: ID!
+}
+
+input SwapComponentInput {
+	returnedDeviceId: ID!
+	propertyId: ID!
+
+	"""
+	Time of the swap (end of old property, begin of new propertxy)
+	"""
+	swapTime: DateTime!
+
+	"""
+	Time when the component which is swapped in gets removed
+	"""
+	newPropertyEndTime: DateTime
+
+	"""
+	Property value after the swap
+	"""
+	componentId: ID!
+}
+
+union EditDeviceDefinitionResult = DeviceDefinition | Error
+union DeleteDeviceDefinitionResult = DeletedNode | Error
+
+input EditDeviceInput {
+	id: ID!
+	definitions: [ID!]!
+
+	name: String!
+	specifications: [SpecificationInput!]!
+}
+
+input CreateAndRunImportTransformationInput {
+	rawResourceId: ID! # Id of raw resource
+	presetJson: String! # Using JSON here to avoid copying the whole structure
+	"""
+	If the number of problems does not exceed a certain number, the user should have the possibility
+	to accept these problems.
+	A possible case here is that individual lines cannot be processed because they are for example
+	a footer.
+
+	importWithWarnings should be set to True if the user agrees in the UI to accept the reported problems
+	"""
+	importWithWarnings: Boolean
+}
+
+input SaveImportPresetInput {
+	deviceId: ID!
+	name: String!
+	presetJson: String!
+}
+
+type SaveImportPresetPayload {
+	node: ImportPreset
+}
+
+input ImportImageResourceInput {
+	uploadId: ID!
+	#	mimeType: String!
+	#	height: Int!
+	#	width: Int!
+}
+
+input ImportRawResourceInput {
+	name: String!
+	uploadId: ID!
+	uploadDevice: ID!
+}
+
+input OriginRepoMetadataInput {
+	url: String!
+}
+
+input EditDeviceDefinitionInput {
+	id: ID!
+
+	parentDeviceDefinition: ID
+	name: String!
+	specifications: [SpecificationInput!]!
+	acceptedUnits: [String!]!
+}
+
+input AddDeviceDefinitionInput {
+	parentDeviceDefinition: ID
+	name: String!
+	specifications: [SpecificationInput!]!
+	acceptedUnits: [String!]!
+}
+
+input RemoveComponentInput {
+	"""
+	This ID should be the ID of the device that is currently displayed.
+	The ID is only used to control which updated device is returned after the mutation is executed
+	to ensure that the UI for that device updates.
+	Not necessarily the parent device, as adding children of children is also allowed.
+	"""
+	returnedDeviceId: ID!
+	componentId: ID!
+	begin: DateTime!
+	end: DateTime
+}
+
+input AddComponentInput {
+	"""
+	This ID should be the ID of the device that is currently displayed.
+	The ID is only used to control which updated device is returned after the mutation is executed
+	to ensure that the UI for that device updates.
+	Not necessarily the parent device, as adding children of children is also allowed.
+	"""
+	returnedDeviceId: ID!
+	parentDeviceId: ID!
+
+	"""
+	ID of the added device/sample
+	"""
+	componentId: ID!
+	name: String!
+	begin: DateTime!
+	end: DateTime
+}
+
+input EditComponentInput {
+	"""
+	"This ID should be the ID of the device that is currently displayed.
+	The ID is only used to control which updated device is returned after the mutation is executed
+	to ensure that the UI for that device updates.
+	Not necessarily the parent device, as editing children of children is also allowed.
+	"""
+	returnedDeviceId: ID!
+	propertyId: ID!
+
+	componentId: ID!
+	name: String!
+	begin: DateTime!
+	end: DateTime
+}
+
+input MakePrimaryDeviceImageInput {
+	imageOwnerId: ID!
+	imageId: ID!
+}
+
+input AddDeviceImageInput {
+	imageOwnerId: ID!
+	imageId: ID!
+}
+
+input DeleteDeviceImageInput {
+	imageOwnerId: ID!
+	imageId: ID!
+}
+
+input UpdateSetupDescriptionTimeInput {
+	deviceId: ID!
+
+	resourceId: ID!
+
+	begin: DateTime!
+	end: DateTime
+}
+
+input DeleteSetupDescriptionInput {
+	deviceId: ID!
+
+	imageId: ID!
+}
+
+input LinkImageWithSetupDescriptionInput {
+	deviceId: ID!
+	resourceId: ID!
+
+	begin: DateTime!
+	end: DateTime
+}
+
+input AddSetupLabelInput {
+	deviceId: ID!
+
+	imageId: ID!
+
+	xPos: Float!
+	yPos: Float!
+	propertyPath: [String!]!
+}
+
+input DeleteSetupLabelInput {
+	deviceId: ID!
+
+	imageId: ID!
+
+	xPos: Float!
+	yPos: Float!
+}
+input CheckRemoteConnectivityInput {
+	url: String!
+}
+
+input AddSampleInput {
+	name: String!
+}
+
+type AddSamplePayload {
+	appendedEdge: SampleEdge!
+}
+
+input AddSampleRelationInput {
+	sample1: ID!
+	sample2: ID!
+}
+
+type AddSampleRelationPayload {
+	sample1: Sample
+	sample2: Sample
+}
+
+input AddSampleAndSampleRelationInput {
+	name: String!
+	sample1: ID! # Sample from which this relation starts
+}
+
+type AddDevicePayload {
+	appendedEdge: DeviceEdge!
+	appendedEdgeHierarchical: HierarchicalDeviceListEdge!
+}
+
+enum AccessPermissions {
+	READ
+	READ_WRITE
+}
+
+input TabularResourceData {
+	data: [[Float!]!]!
+	header: [String!]!
+}
+
+input PullInput {
+	source: String!
+	repoId: ID!
+}
+
+input PushInput {
+	target: String!
+	nodeIds: [ID!]!
+}
+
+# This type is similar as `Node` but written as union as a workaround to get union types from relay-compiler
+union Entity =
+	  Sample
+	| Device
+	| DeviceDefinition
+	| ResourceGeneric
+	| ResourceTabularData
+	| User
+	| Property
+
+type SyncEntity {
+	rootDevice: Device
+	entities: [Entity!]!
+}
+
+interface HasProjects implements HasMetadata {
+	id: ID!
+	metadata: Metadata!
+	projects(first: Int, after: String): ProjectConnection!
+}
+
+interface HasMetadata {
+	metadata: Metadata!
+}
+
+interface Resource implements Node & HasProjects & HasMetadata {
+	id: ID!
+	name: String!
+	subName: String
+	projects(first: Int, after: String): ProjectConnection!
+	metadata: Metadata!
+	parent: Resource
+	children: ResourceConnection!
+	devices: [Device!]!
+	type: ResourceType
+}
+
+type Project implements Node & HasMetadata {
+	id: ID!
+	name: String!
+
+	metadata: Metadata!
+	contents: [HasProjects!]!
+}
+
+type ProjectConnection implements Connection {
+	edges: [ProjectEdge!]!
+	pageInfo: PageInfo!
+}
+
+type ProjectEdge implements Edge {
+	node: Project!
+	cursor: String!
+}
+
+interface ResourceTimed implements Resource & HasProjects & Node & HasMetadata {
+	id: ID!
+	name: String!
+	subName: String
+	projects(first: Int, after: String): ProjectConnection!
+	metadata: Metadata!
+	parent: Resource
+	children: ResourceConnection!
+	devices: [Device!]!
+	type: ResourceType
+
+	"""
+	Timeframe in which the resource was recorded
+	"""
+	begin: DateTime
+	end: DateTime
+}
+
+interface SupportsUsageAsProperty {
+	# Returns all properties where this device is used as property within a gvien timeframe
+	# Filter for properties that were part of the device for the whole time period.
+	# If includeOverlaps is set to true, then properties that are only valid for a part of the interval are also taken into account.
+	usagesAsProperty(
+		timeFrame: TimeFrameInput
+		time: DateTime
+		includeOverlaps: Boolean
+	): [Property!]!
+}
+
+interface SupportsNotes implements Node {
+	id: ID!
+	notes: NoteConnection! # TODO: Pagination needed?
+}
+
+type DeviceDefinitionGraphElement {
+	level: Int!
+	definition: DeviceDefinition!
+}
+
+# TODO: Merge with DeviceDefinitionGraphElement by using generic
+type SpecificationsGraphElement {
+	level: Int!
+	sample: Sample!
+}
+
+interface HasImageResource implements Node {
+	id: ID!
+	name: String!
+	imageResource: [ResourceImage!]!
+}
+
+type HierarchicalDeviceListEntry {
+	device: Device!
+	components: [ComponentWithPathAndTime!]!
+}
+
+type HierarchicalDeviceListConnection implements Connection {
+	edges: [HierarchicalDeviceListEdge!]!
+	pageInfo: PageInfo!
+}
+
+type HierarchicalDeviceListEdge implements Edge {
+	cursor: String!
+	node: HierarchicalDeviceListEntry
+
+	"""
+	Set to "true" if the device was newly created (i.e. for the Edge that is returned as the result
+	of the add device mutation)
+
+	In the UI this information can then be used to display the newly created device in a highlighted
+	way (even if filters would otherwise hide it)
+	"""
+	isNewlyCreated: Boolean
+}
+
+type ComponentWithPathAndTime {
+	component: PropertyValue!
+	pathFromTopLevelDevice: [String!]!
+	installDate: DateTime!
+	removeDate: DateTime
+}
+
+input TimeFrameInput {
+	begin: DateTime
+	end: DateTime
+}
+
+input StrictTimeFrameInput {
+	begin: DateTime!
+	end: DateTime!
+}
+
+type DeviceDefinition implements Node & HasImageResource & HasMetadata {
+	id: ID!
+	name: String!
+	imageResource: [ResourceImage!]!
+	propertyDefinitions: [PropertyDefinition!]!
+	specifications: [Specification!]!
+	acceptsUnit: [String!]!
+
+	definitions: [DeviceDefinitionGraphElement!]!
+
+	"""
+	Returns a flat list of devices which are derived from this DeviceDefinition or it's children
+	"""
+	derivedDefinitionsFlat: [DeviceDefinition!]!
+
+	usages: [DeviceOrDefinition!]!
+	metadata: Metadata!
+}
+
+type PropertyDefinition {
+	name: String!
+	type: PropertyType!
+}
+
+enum PropertyType {
+	Device
+	Sample
+}
+
+type SetupDescription {
+	id: ID!
+	imageResource: ResourceImage!
+	begin: DateTime!
+	end: DateTime
+	setupLabels: [SetupLabel!]!
+}
+
+type SetupLabel {
+	propertyPath: [String!]!
+	xPos: Float!
+	yPos: Float!
+}
+
+type SampleUsage {
+	sample: Sample!
+	timeframes: [TimeFrame!]!
+}
+
+type TimeFrame {
+	begin: DateTime!
+	end: DateTime
+
+	pathFromTopLevelDevice: [String!]!
+}
+
+#type StrictTimeFrame {
+#	begin: DateTime!
+#	end: DateTime!
+#}
+
+type Property implements Node {
+	id: ID!
+
+	timestamp: DateTime!
+	timestampEnd: DateTime
+
+	name: String!
+	"""
+	The device that this property belongs to
+	"""
+	device: Device!
+	value: PropertyValue!
+}
+
+union PropertyValue = Device | Sample
+
+type ResourceGeneric implements Node & Resource & ResourceTimed & HasProjects & HasMetadata {
+	id: ID!
+	name: String!
+	subName: String
+	projects(first: Int, after: String): ProjectConnection!
+	metadata: Metadata!
+	parent: Resource
+	children: ResourceConnection!
+	devices: [Device!]!
+	type: ResourceType
+
+	uploadDeviceId: String # Not sure if this is the right location...
+	"""
+	Timeframe in which the resource was recorded
+	"""
+	begin: DateTime
+	end: DateTime
+
+	"""
+	Path where the resource can be downloaded from.
+	"""
+	downloadURL: String!
+	text(start: Int!, end: Int!): String!
+}
+
+type ResourceTabularData implements Node & Resource & ResourceTimed & HasProjects & HasMetadata {
+	id: ID!
+	name: String!
+	subName: String
+	projects(first: Int, after: String): ProjectConnection!
+	metadata: Metadata!
+	parent: Resource
+	children: ResourceConnection!
+	devices: [Device!]!
+	type: ResourceType
+	"""
+	Timeframe in which the resource was recorded
+
+	Begin/End are marked as nullable, but the value should always be available.
+	The fields are marked as nullable here, so that they can be queried within a union with other
+	resources. According to GraphQL specs, fields with the same name must have the same nullability.
+	"""
+	begin: DateTime # Should not be optional
+	end: DateTime # Should not be optional
+	columns: [ColumnDescription!]!
+	rows(first: Int, after: String): RowConnection
+
+	"""
+	Downsamples the resources data.
+	If singleColumn is set to false all columns will be down sampled.
+	If singleColumn is set to true only one y axis will be select and down sampled. Currently, an attempt is made to
+	select a specific column position in which the reactor temperature is often (but not always) located.
+	"""
+	downSampled(dataPoints: Int!, singleColumn: Boolean): Data
+}
+
+type ColumnDescription {
+	label: String!
+	type: ColumnType!
+}
+
+type ResourceImage implements Node & Resource & HasProjects & HasMetadata {
+	id: ID!
+	name: String!
+	subName: String
+	projects(first: Int, after: String): ProjectConnection!
+	metadata: Metadata!
+	parent: Resource
+	children: ResourceConnection!
+	devices: [Device!]!
+	type: ResourceType
+
+	dataURI: String!
+	height: Float!
+	width: Float!
+}
+
+type Data {
+	x: DataSeries!
+	y: [DataSeries!]!
+}
+
+type Row {
+	values: [Float!]!
+}
+
+type RowConnection implements Connection {
+	edges: [RowEdge!]!
+	pageInfo: PageInfo!
+	count: Int!
+}
+
+type RowEdge implements Edge {
+	node: Row!
+	cursor: String!
+}
+
+type DataSeries {
+	label: String!
+	unit: String!
+	values: [Float]!
+	device: Device # The device this series was recorded with
+	resourceId: ID # Pointless for regular downsampling but useful for merged data
+}
+
+type SampleRelation implements Node {
+	id: ID!
+	type: String!
+	sample: Sample!
+}
+
+type Sample implements Node & SupportsUsageAsProperty & SupportsNotes & HasProjects & HasMetadata {
+	id: ID!
+
+	name: String!
+	displayName: String!
+
+	metadata: Metadata!
+
+	usagesAsProperty(
+		timeFrame: TimeFrameInput
+		time: DateTime
+		includeOverlaps: Boolean
+	): [Property!]!
+
+	"""
+	Outgoing relations
+	(i.e. this Sample is a batch and was used to create an other Sample)
+	"""
+	relatedSamples: [SampleRelation!]!
+
+	"""
+	Incoming relations
+	(i.e. this Sample is created out of a other Sample which is a batch)
+	"""
+	relatedSamplesReverse: [SampleRelation!]!
+
+	"""
+	Devices that have this sample as a prop
+	"""
+	devices: [Property!]!
+
+	"""
+	Device that has this sample as a prop at the given time
+	"""
+	device(timestamp: DateTime): Device
+
+	"""
+	Data that was recorded with this sample
+	"""
+	resources: [ResourceTabularData!]!
+
+	# Can be undefined if the device is not installed anywhere
+	topLevelDevice(timestamp: DateTime): Device
+
+	notes: NoteConnection!
+	projects(first: Int, after: String): ProjectConnection!
+
+	specifications: [Specification!]!
+	specificationsCollected: [SpecificationsGraphElement!]!
+}
+
+type Specification {
+	name: String!
+	value: String!
+}
+
+union DeviceOrDefinition = Device | DeviceDefinition
+union DeviceOrSample = Device | Sample
+
+type SpecificationList {
+	id: ID!
+}
+
+#type SpecificationWithSource {
+#	name: String!
+#	value: String!
+#	"""
+#	ID of Device/DeviceDefinition where this specification came from
+#	"""
+#	source: DeviceOrDefinition!
+#}
+
+input SpecificationInput {
+	name: String!
+	value: String!
+}
+
+type DeviceConnection implements Connection {
+	edges: [DeviceEdge!]!
+	pageInfo: PageInfo!
+}
+
+type DeviceEdge implements Edge {
+	"""
+	Set to "true" if the device was newly created (i.e. for the Edge that is returned as the result
+	of the add device mutation)
+
+	In the UI this information can then be used to display the newly created device in a highlighted
+	way (even if filters would otherwise hide it)
+	"""
+	isNewlyCreated: Boolean
+	node: Device!
+	cursor: String!
+}
+
+type ResourceConnection implements Connection {
+	edges: [ResourceEdge!]!
+	pageInfo: PageInfo!
+}
+
+type ResourceEdge implements Edge {
+	node: Resource!
+	cursor: String!
+}
+
+type SampleConnection implements Connection {
+	edges: [SampleEdge!]!
+	pageInfo: PageInfo!
+}
+
+type SampleEdge implements Edge {
+	node: Sample!
+	cursor: String!
+}
+
+type UserConnection implements Connection {
+	edges: [UserEdge!]!
+	pageInfo: PageInfo!
+}
+
+type UserEdge implements Edge {
+	node: User!
+	cursor: String!
+}
+
+type ImportPreset implements Node & HasMetadata {
+	id: ID!
+
+	metadata: Metadata!
+	devices: [Device!]!
+	displayName: String
+	presetJSON: String!
+	columns: [String!]!
+}
+
+type Transformation implements Node {
+	id: ID!
+}
+
+type ImportTransformationWarning {
+	message: [String]!
+}
+
+type ImportTransformationError {
+	message: [String]!
+}
+
+type ImportTransformationSuccess {
+	ids: [ID]!
+}
+
+type ImportRawResourceRequestResponse {
+	id: ID!
+	url: String!
+}
+
+type SearchResults implements Node {
+	id: ID!
+	search(query: String!, queryTime: DateTime!, first: Int!): [SearchResult!]!
+	devices(query: String!, queryTime: DateTime!, first: Int!, after: String): DeviceConnection
+	resources(query: String!, queryTime: DateTime!, first: Int!, after: String): ResourceConnection
+	samples(query: String!, queryTime: DateTime!, first: Int!, after: String): SampleConnection
+	projects(query: String!, queryTime: DateTime!, first: Int!, after: String): ProjectConnection
+	users(query: String!, first: Int!, after: String): UserConnection
+}
+
+type CreateAndRunImportTransformationResponse {
+	importTaskId: ID!
+}
+
+interface IBaseNote implements HasMetadata {
+	caption: String!
+	text: String!
+
+	begin: DateTime
+	end: DateTime
+
+	metadata: Metadata!
+}
+
+"""
+Base implementation for Note (but without ID) and the type used for old revisions
+"""
+type BaseNote implements IBaseNote & HasMetadata {
+	caption: String!
+	text: String!
+
+	begin: DateTime
+	end: DateTime
+
+	metadata: Metadata!
+}
+
+type Note implements Node & IBaseNote & HasMetadata {
+	id: ID!
+
+	caption: String!
+	text: String!
+
+	begin: DateTime
+	end: DateTime
+
+	revisions: [BaseNote!]!
+	metadata: Metadata!
+}
+
+type NoteConnection implements Connection {
+	edges: [NoteEdge!]!
+	pageInfo: PageInfo!
+}
+
+type NoteEdge implements Edge {
+	cursor: String!
+	node: Note!
+}
+
+scalar ResourceType
+
+scalar ColumnType
+
+scalar JSONString
+
+union ImportWizardStep3Payload = ImportWizardStep3PayloadSuccess | ImportWizardError
+
+type ImportWizardStep3PayloadSuccess {
+	data: ImportWizardStep3PayloadData!
+	warnings: [String!]
+}
+
+type ImportWizardError {
+	errors: [String!]!
+}
+
+type ImportWizardStep3PayloadData {
+	metadata: JSONString! # TODO: Type
+	end: DateTime!
+	begin: DateTime!
+	tabularData: [[String!]!]!
+}

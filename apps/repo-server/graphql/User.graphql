@@ -1,0 +1,15 @@
+type User implements Node {
+	id: ID!
+	name: String!
+
+	"""
+	Repositories the user has access to. This is a list of repository names.
+	"""
+	repositories: [String!]!
+
+	createdDevices: DeviceConnection!
+	createdResources: ResourceConnection!
+	createdSamples: SampleConnection!
+	createdProjects: ProjectConnection!
+	# Other properties are not available from Repo-Server and should be resolved by the client/auth server
+}

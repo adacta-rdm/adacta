@@ -1,0 +1,8 @@
+query Query1($input: ID!) {
+	book(id: $input) {
+		id
+		wrappedString {
+			value
+		}
+	}
+}

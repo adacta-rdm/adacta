@@ -1,0 +1,6 @@
+# @generated
+
+type Edge_DeviceDefinition {
+	cursor: String!
+	node: DeviceDefinition!
+}

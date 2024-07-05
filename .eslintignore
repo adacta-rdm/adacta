@@ -1,0 +1,13 @@
+**/dist/
+/apps/repo-server/public/resources/
+/config/
+**/__generated__/
+**/generated/
+lib/interface/type_checks/
+apps/desktop-app/src/euiIcons.js
+apps/desktop-app/release/
+
+!/apps/desktop-app/.storybook
+
+packages/resources/
+temp

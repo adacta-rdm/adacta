@@ -1,0 +1,6 @@
+# @generated
+
+type Edge_NameCompositionVariable {
+	cursor: String!
+	node: NameCompositionVariable!
+}

@@ -1,0 +1,6 @@
+# @generated
+
+type Connection_ImportPreset {
+	edges: [Edge_ImportPreset!]!
+	pageInfo: PageInfo!
+}

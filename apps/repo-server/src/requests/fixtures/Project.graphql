@@ -1,0 +1,13 @@
+mutation AddProject($input: AddProjectInput!) {
+	addProject(input: $input) {
+		node {
+			id
+		}
+	}
+}
+
+mutation LinkProject($input: LinkToProjectInput!) {
+	linkToProject(input: $input) {
+		__typename
+	}
+}

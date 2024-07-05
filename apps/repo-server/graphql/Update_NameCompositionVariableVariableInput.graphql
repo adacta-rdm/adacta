@@ -1,0 +1,6 @@
+# @generated
+
+input Update_NameCompositionVariableVariableInput {
+	id: ID!
+	input: Partial_NameCompositionVariableVariableInput!
+}

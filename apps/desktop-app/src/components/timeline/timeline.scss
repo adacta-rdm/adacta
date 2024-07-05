@@ -1,0 +1,81 @@
+@import "@elastic/eui/src/themes/amsterdam/colors_light";
+@import "@elastic/eui/src/themes/amsterdam/globals";
+
+$sampleColor: "euiColorVis6";
+$deviceColor: "euiColorVis0";
+$resourceColor: "euiColorVis4";
+
+@function tokenColor($color) {
+	@return map-get(map-get($euiPaletteColorBlind, $color), "graphic");
+}
+
+@function tokenBackgroundColor($color) {
+	@return tintOrShade(map-get(map-get($euiPaletteColorBlind, $color), "behindText"), 90%, 70%);
+}
+
+@function tokenBorder($color) {
+	@return tintOrShade(map-get(map-get($euiPaletteColorBlind, $color), "behindText"), 70%, 60%);
+}
+
+.vis-item {
+	background-color: $euiPageBackgroundColor;
+	border-color: $euiColorPrimary;
+	color: $euiColorPrimaryText;
+}
+
+.vis-item.vis-selected {
+	background-color: $euiColorLightShade;
+	border-color: $euiColorPrimary;
+	color: $euiColorPrimaryText;
+}
+
+.vis-time-axis {
+	background-color: $euiColorEmptyShade;
+}
+
+.vis-timeline {
+	border: 0;
+}
+
+.vis-item.vis-background .vis-item-content {
+	bottom: 0px;
+}
+
+// Remove border from subgroups
+.borderless-subgroup {
+	border: 0px;
+}
+
+// Hide vertical scrollbar
+.vis-left.vis-panel.vis-vertical-scroll {
+	overflow-y: hidden;
+}
+
+// Color Sample
+.vis-item-sample {
+	color: tokenColor($sampleColor);
+	border-color: tokenBorder($sampleColor);
+
+	.vis-item-overflow {
+		background-color: tokenBackgroundColor($sampleColor);
+	}
+}
+
+// Color Device
+.vis-item-device {
+	color: tokenColor($deviceColor);
+	border-color: tokenBorder($deviceColor);
+
+	.vis-item-overflow {
+		background-color: tokenBackgroundColor($deviceColor);
+	}
+}
+
+// Color Resources
+.vis-item.vis-background,
+.vis-item-resource {
+	z-index: 0;
+	color: tokenColor($resourceColor);
+	border: 1px solid tokenBorder($resourceColor);
+	background-color: tokenBackgroundColor($resourceColor);
+}

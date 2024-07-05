@@ -1,0 +1,5 @@
+input ImportPresetInput {
+	deviceId: [ID!]!
+	name: String!
+	presetJson: String!
+}

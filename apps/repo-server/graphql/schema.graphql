@@ -1,0 +1,5 @@
+schema {
+	query: RepositoryQuery
+	mutation: RepositoryMutation
+	subscription: RepositorySubscription
+}

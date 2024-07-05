@@ -1,0 +1,6 @@
+# @generated
+
+input Partial_NameCompositionVariableConstantInput {
+	name: String
+	value: String
+}

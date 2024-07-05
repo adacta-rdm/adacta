@@ -1,0 +1,27 @@
+{
+	"compilerOptions": {
+		"noEmit": true,
+		"strict": true,
+		"target": "es2021",
+		"module": "CommonJS",
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": false,
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"isolatedModules": true,
+		"jsx": "react-jsx",
+		"skipLibCheck": true,
+		"jsxImportSource": "@emotion/react",
+		"types": ["vite/client"],
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./@/*"],
+			"~/*": ["./*"]
+		}
+	},
+	"include": ["**/*", "**/.storybook/**/*", "**/.*"],
+	"exclude": ["**/dist/"]
+}

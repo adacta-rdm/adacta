@@ -1,0 +1,141 @@
+/**
+The MIT License (MIT)
+
+Copyright (c) 2015 strarsis https://github.com/strarsis/sass-math-pow
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ */
+/**
+The MIT License (MIT)
+
+Copyright (c) 2015 strarsis https://github.com/strarsis/sass-math-pow
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ */
+/**
+ * Text truncation
+ *
+ * Prevent text from wrapping onto multiple lines, and truncate with an ellipsis.
+ *
+ * 1. Ensure that the node has a maximum width after which truncation can occur.
+ */
+/**
+ * Text weight shifting
+ *
+ * When changing the font-weight based the state of the component
+ * this mixin will ensure that the sizing is dependent on the boldest
+ * weight so it doesn't shifter sibling content.
+ */
+/**
+ * 1. Focus rings shouldn't be visible on scrollable regions, but a11y requires them to be focusable.
+ *    Browser's supporting `:focus-visible` will still show outline on keyboard focus only.
+ *    Others like Safari, won't show anything at all.
+ * 2. Force the `:focus-visible` when the `tabindex=0` (is tabbable)
+ */
+/**
+ * For quickly applying a full-height element whether using flex or not
+ */
+/*
+ * Creates the Amsterdam style of button with a transparent background
+ */
+/*
+ * Creates the Amsterdam style of fill button
+ */
+/*
+The CSS in JS version of this file lives in:
+  - src/components/form/range/range.styles.ts
+
+The following files still use the Sass version:
+  - src/themes/amsterdam/overrides/_color_stops.scss
+  - src/themes/amsterdam/overrides/_hue.scss
+*/
+.vis-item {
+	background-color: #fafbfd;
+	border-color: #07c;
+	color: #0071c2;
+}
+
+.vis-item.vis-selected {
+	background-color: #d3dae6;
+	border-color: #07c;
+	color: #0071c2;
+}
+
+.vis-time-axis {
+	background-color: #fff;
+}
+
+.vis-timeline {
+	border: 0;
+}
+
+.vis-item.vis-background .vis-item-content {
+	bottom: 0px;
+}
+
+.borderless-subgroup {
+	border: 0px;
+}
+
+.vis-left.vis-panel.vis-vertical-scroll {
+	overflow-y: hidden;
+}
+
+.vis-item-sample {
+	color: #b9a888;
+	border-color: #f2ece3;
+}
+.vis-item-sample .vis-item-overflow {
+	background-color: #fbf9f6;
+}
+
+.vis-item-device {
+	color: #54b399;
+	border-color: #d3f0e8;
+}
+.vis-item-device .vis-item-overflow {
+	background-color: #f0faf7;
+}
+
+/* Unfortunately vis-selected is not applied to vis-background on click */
+.vis-item.vis-background,
+.vis-item-resource {
+	z-index: 0;
+	color: #ca8eae;
+	border: 1px solid #f7e4ee;
+	background-color: #fcf6f9;
+}
+
+/*# sourceMappingURL=timeline.css.map */

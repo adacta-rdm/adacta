@@ -1,0 +1,6 @@
+# @generated
+
+type Edge_ImportPreset {
+	cursor: String!
+	node: ImportPreset!
+}

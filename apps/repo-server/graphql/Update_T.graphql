@@ -1,0 +1,4 @@
+input Update_T {
+	id: ID!
+	input: Partial_T!
+}
