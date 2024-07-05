@@ -1,0 +1,68 @@
+name: Continuous Integration
+
+env:
+  node-version: 20.14.0 # Keep in sync with repo-server.dockerfile
+
+on:
+  push:
+    # Run only on branches that do not include a slash. Avoids running the pipeline for build artifact commits.
+    branches: "*"
+
+jobs:
+  test:
+    name: Check types, Run tests, eslint and prettier
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ env.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.node-version }}
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # The repo-server build is done here mainly to ensure that @/drizzle/migrations.ts is
+      # generated before the type-check runs
+      - name: Build repo-server
+        run: yarn build:repo-server
+
+      - name: Generate relay files
+        run: yarn relay
+
+      - name: Check types
+        run: yarn type-check
+
+      - name: Run tests
+        run: yarn test
+
+      - name: Run ESLint
+        run: yarn eslint
+
+      - name: Run prettier
+        run: yarn code-style-check
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ env.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.node-version }}
+      - name: Configure git
+        run: |
+          # Settings needed for git commit
+          git config --global user.email "bot@adacta"
+          git config --global user.name "adactabot"
+      - name: Install dependencies
+        run: yarn install --immutable
+      - run: yarn build
+      - name: Push build artifacts
+        # Only push build artifacts for production and staging branches
+        if: github.ref == 'refs/heads/production' || github.ref == 'refs/heads/staging'
+        run: yarn push-build
