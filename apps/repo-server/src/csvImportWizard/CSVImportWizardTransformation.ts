@@ -55,19 +55,28 @@ export async function CSVImportWizardTransformation(
 		 * This function is used to create the resource props for the new resource. It is called
 		 * after the import has finished and the data is available.
 		 *
-		 * Since the import can fail, this function returns a Result type to forward the errors
+		 * Since the import can fail with errors or soft-fail with warnings, this function returns a
+		 * Result type to forward the errors or warnings
 		 */
 		const getResourceProps = async (): Promise<
 			Result<
 				IResourceProps,
 				{
 					errors: string[];
+					warnings: string[];
 				}
 			>
 		> => {
 			const result = await importPromise;
 			if (result.isErr()) {
-				return err({ errors: [result.error.error] });
+				return err({ errors: [result.error.error], warnings: [] });
+			}
+
+			// If the import process resulted in warnings, but the user does not want to import with
+			// warnings we return the warnings as errors. This skips the creation of the resource
+			// in the database
+			if (result.value.warnings.length > 0 && !importWithWarnings) {
+				return err({ errors: [], warnings: result.value.warnings });
 			}
 
 			const { props } = result.value;
@@ -93,10 +102,22 @@ export async function CSVImportWizardTransformation(
 			createProgress
 		);
 
+		// The control flow is a bit confusing here. The `rm.create()` call actually forwards errors
+		// and warnings caused by the import process. This is necessary because the creation of the
+		// resource actually depends on the result of the import process (see `getResourceProps`).
 		if (rmResult.isErr()) {
 			logger
 				.bind({ errors: [rmResult.error.errors] })
 				.info(`CSVImportWizardTransformation: ${fileName} resulted in errors`);
+
+			const { error } = rmResult;
+
+			// If the resource creation returned only warnings, we return them (the use will then
+			// have to decide if the warnings are acceptable or not)
+			if (error.warnings.length > 0 && error.errors.length == 0) {
+				return { warnings: rmResult.error.warnings };
+			}
+
 			return { errors: rmResult.error.errors };
 		}
 
@@ -104,7 +125,6 @@ export async function CSVImportWizardTransformation(
 		resourceIds.push(resource.id);
 
 		const response = await importPromise;
-
 		if (response.isErr()) {
 			logger
 				.bind({ errors: [response.error.error] })

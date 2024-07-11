@@ -178,11 +178,11 @@ export const ImportMutations: IResolvers["RepositoryMutation"] = {
 		return { node: { id: preset.id } };
 	},
 
-	async deleteImportPreset(_, { id }, { services: { el }, schema: { Resource } }) {
-		const affectedRows = await el.update(Resource, id, { metadataDeletedAt: new Date() });
+	async deleteImportPreset(_, { id }, { services: { el }, schema: { ImportPreset } }) {
+		const affectedRows = await el.update(ImportPreset, id, { metadataDeletedAt: new Date() });
 
 		if (affectedRows === 0) {
-			throw new Error(`Resource with id ${id} not found`);
+			throw new Error(`ImportPreset with id ${id} not found`);
 		}
 
 		return { deletedId: id };

@@ -15,6 +15,13 @@
 			"when": 1719923545428,
 			"tag": "0001_equal_molecule_man",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "6",
+			"when": 1720687567878,
+			"tag": "0002_striped_caretaker",
+			"breakpoints": true
 		}
 	]
 }

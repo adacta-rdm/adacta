@@ -1,5 +1,3 @@
-import assert from "assert";
-
 import { StorageEngine } from "@omegadot/storage-engine";
 import type { Readable, Writable } from "@omegadot/streams";
 import { chain, createDuplex, createReadable, isReadable } from "@omegadot/streams";
@@ -62,7 +60,7 @@ export class ResourceManager {
 		creator: IUserId,
 		commitToDb = true, // TODO: Swap arg order
 		progress?: IProgressReporterFn
-	): Promise<Result<DrizzleEntity<"Resource">, { errors: string[] }>> {
+	): Promise<Result<DrizzleEntity<"Resource">, { errors: string[]; warnings: string[] }>> {
 		try {
 			const [writeProgress, miscProgress] = (progress ?? createProgressReporter(() => {})).fork(85);
 
@@ -104,12 +102,12 @@ export class ResourceManager {
 
 			writeProgress(85, "Saving TabularData Done");
 
-			// const props = typeof propsInfo == "function" ? await propsInfo() : propsInfo;
 			let props: IResourceProps;
 			if (typeof propsInfo === "function") {
 				const propsInfoResult = await propsInfo();
 				if (propsInfoResult.isErr()) {
-					return err(propsInfoResult.error);
+					await this.sto.remove(filenameTmp); // Cleanup temporary file
+					return err({ warnings: [], ...propsInfoResult.error });
 				}
 
 				props = propsInfoResult.value;
@@ -129,41 +127,15 @@ export class ResourceManager {
 			writeProgress(100, "Saving Resource done");
 
 			if (commitToDb) {
-				try {
-					await this.el.insert(this.schema.Resource, resource);
-				} catch (e: any) {
-					// Delete the newly written file in case the db insert failed and ignore any further errors
-					await this.sto.remove(filenameFinal);
-					// Newly generated id => conflict impossible
-					assertNoPouchDbConflict(e);
-				}
+				await this.el.insert(this.schema.Resource, resource);
 			}
 
 			miscProgress(100, "Saving Resource done");
 
 			return ok(resource);
 		} catch (e) {
-			return err({ errors: ["Unexpected error while creating resource"] });
+			return err({ warnings: [], errors: ["Unexpected error while creating resource"] });
 		}
-	}
-
-	/**
-	 * Special function which removes a resource from the disk if it does not exist in the database
-	 * anymore. Required for example for import presets (which won't get saved if they don't result
-	 * in a successful import)
-	 */
-	async destroyUncommitted(resource: DrizzleEntity<"Resource">) {
-		// Make sure the resource isn't saved to the database
-		const resourceInDb = await this.el.findOne(this.schema.Resource, resource.id);
-		if (!resourceInDb) {
-			await this.sto.remove(ResourceAttachmentManager.getPath(resource.id));
-		}
-	}
-}
-
-function assertNoPouchDbConflict(e: Error) {
-	if ("name" in e) {
-		assert(e.name !== "conflict");
 	}
 }
 

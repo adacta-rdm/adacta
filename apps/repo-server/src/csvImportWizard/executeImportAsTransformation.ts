@@ -51,7 +51,7 @@ export async function executeImportAsTransformation(
 	assertIImportWizardPreset(inputPreset);
 	assert(isEntityId(deviceId, "Device"));
 
-	const importWizardResource = EntityFactory.create(
+	const importPreset = EntityFactory.create(
 		"ImportPreset",
 		{
 			preset: inputPreset,
@@ -62,7 +62,7 @@ export async function executeImportAsTransformation(
 
 	const transformationInput = {
 		data: rawResource,
-		parameters: importWizardResource,
+		parameters: importPreset,
 	};
 
 	const importResult = await CSVImportWizardTransformation(
@@ -72,15 +72,19 @@ export async function executeImportAsTransformation(
 		progressReporter
 	);
 
+	// If there are any errors or if there is a warning and we don't have indication from the user
+	// that these warnings are acceptable we return early
 	if (
-		!(
-			(importResult.warnings && importResult.warnings?.length > 0) ||
-			(importResult.errors && importResult.errors?.length > 0)
-		)
+		(importResult.warnings &&
+			importResult.warnings?.length > 0 &&
+			input.importWithWarnings !== true) ||
+		(importResult.errors && importResult.errors?.length > 0)
 	) {
-		// Save the ImportWizardResource if the import was successful
-		await el.insert(schema.ImportPreset, importWizardResource);
+		return importResult;
 	}
+
+	// Save the ImportWizardResource if the import was successful
+	await el.insert(schema.ImportPreset, importPreset);
 
 	const importedResources = Object.fromEntries(
 		importResult.resources?.map((r, index) => [`resource${index}`, r]) ?? []
@@ -93,7 +97,7 @@ export async function executeImportAsTransformation(
 			input: {
 				data: transformationInput.data.id,
 			},
-			presetId: importWizardResource.id,
+			presetId: importPreset.id,
 			output: importedResources,
 		},
 		userId

@@ -5,6 +5,7 @@ import { EuiProvider } from "@elastic/eui";
 import { ElementType } from "react";
 import { RelayEnvironmentProvider } from "react-relay";
 import { createMockEnvironment } from "relay-test-utils";
+import "~/apps/desktop-app/src/tailwind-output.css";
 
 export const parameters = {
 	actions: { argTypesRegex: "^on[A-Z].*" },

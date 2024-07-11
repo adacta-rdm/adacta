@@ -2,6 +2,7 @@ import { join } from "path";
 
 import { mergeConfig } from "vite";
 import { StorybookConfig } from "@storybook/react-vite";
+import path from "node:path";
 
 const config: StorybookConfig = {
 	stories: [
@@ -12,6 +13,12 @@ const config: StorybookConfig = {
 		"@storybook/addon-links",
 		"@storybook/addon-essentials",
 		"@storybook/addon-interactions",
+		{
+			name: "storybook-addon-manual-mocks/vite",
+			options: {
+				mocksFolder: "__mocks__",
+			},
+		},
 	],
 	framework: {
 		name: "@storybook/react-vite",

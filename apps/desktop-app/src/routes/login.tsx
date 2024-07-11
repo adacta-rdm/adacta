@@ -1,6 +1,5 @@
 import {
 	EuiButton,
-	EuiButtonIcon,
 	EuiCallOut,
 	EuiFieldPassword,
 	EuiFieldText,
@@ -8,7 +7,6 @@ import {
 	EuiFlexItem,
 	EuiForm,
 	EuiFormRow,
-	EuiLoadingSpinner,
 	EuiPageTemplate,
 } from "@elastic/eui";
 import React, { useState } from "react";
@@ -16,12 +14,9 @@ import React, { useState } from "react";
 import type { IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { RedirectException } from "../RedirectException";
 import { AdactaPageTemplate } from "../components/layout/AdactaPageTemplate";
-import { Footer } from "../components/layout/Footer";
 import { useRouter } from "../hooks/useRouter";
-import { EDocId } from "../interfaces/EDocId";
 import { useService } from "../services/ServiceProvider";
 import { GraphQLHeaderService } from "../services/repositoryId/GraphQLHeaderService";
-import { DocFlyoutService } from "../services/toaster/FlyoutService";
 
 import type { ILoginResponse } from "~/lib/interface/ILoginResponse";
 import { assertILoginResponse } from "~/lib/interface/type_checks/assertILoginResponse";
@@ -42,36 +37,26 @@ export default function () {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState<string | undefined>();
-	const docFlyoutService = useService(DocFlyoutService);
-
-	if (isLoginInFlight) {
-		return <EuiLoadingSpinner />;
-	}
 
 	const pageTitle = "Login";
 
 	return (
 		<>
-			<AdactaPageTemplate>
+			<div
+				className={"bg-euiBackground absolute h-screen w-screen  bg-waves bg-no-repeat bg-bottom "}
+			/>
+			<AdactaPageTemplate className={"z-10"}>
 				<EuiPageTemplate.Header
+					className={"z-10"}
 					pageTitle={
 						<EuiFlexGroup alignItems="baseline" gutterSize="xs">
 							<EuiFlexItem grow={false}>{pageTitle}</EuiFlexItem>
-							<EuiFlexItem grow={false}>
-								<EuiButtonIcon
-									aria-label={"Open Documentation"}
-									color="text"
-									iconType="questionInCircle"
-									onClick={() => docFlyoutService.showDoc(EDocId.WELCOME)}
-								/>
-							</EuiFlexItem>
 						</EuiFlexGroup>
 					}
-					// rightSideItems={user ? [<Logout key={"welcome_logout"} />] : undefined}
 				/>
-				<EuiPageTemplate.Section>
+				<div className={"my-auto z-10"}>
 					<EuiFlexGroup justifyContent="spaceAround">
-						<EuiFlexItem grow={false} style={{ minWidth: "800px" }}>
+						<EuiFlexItem grow={false} style={{ minWidth: "400px" }}>
 							{error && <EuiCallOut color={"danger"}>{error}</EuiCallOut>}
 							<EuiForm component="form">
 								<EuiFormRow label="E-Mail">
@@ -79,6 +64,7 @@ export default function () {
 										name="email"
 										value={email}
 										onChange={(e) => setEmail(e.target.value)}
+										disabled={isLoginInFlight}
 									/>
 								</EuiFormRow>
 								<EuiFormRow label="Password">
@@ -86,11 +72,12 @@ export default function () {
 										name="password"
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
+										disabled={isLoginInFlight}
 									/>
 								</EuiFormRow>
 
 								<EuiFormRow>
-									<EuiFlexGroup alignItems={"center"}>
+									<EuiFlexGroup alignItems={"center"} justifyContent={"flexEnd"}>
 										<EuiFlexItem grow={false}>
 											<EuiButton
 												// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -112,6 +99,7 @@ export default function () {
 														setLoginInFlight(false);
 													}
 												}}
+												isLoading={isLoginInFlight}
 											>
 												Login
 											</EuiButton>
@@ -121,9 +109,8 @@ export default function () {
 							</EuiForm>
 						</EuiFlexItem>
 					</EuiFlexGroup>
-				</EuiPageTemplate.Section>
+				</div>
 			</AdactaPageTemplate>
-			<Footer />
 		</>
 	);
 }
