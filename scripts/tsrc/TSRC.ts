@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
 import { join } from "path";
 
@@ -28,25 +28,49 @@ type ModulePath = Tagged<string, "ModulePath">;
 type Declaration = InterfaceDeclaration | TypeAliasDeclaration | EnumDeclaration;
 
 /**
- * TSRC (TypeScript Run-time Checks) is a tool that generates run time type checks for TypeScript types. The types are
+ * TSRC (TypeScript Run-time Checks) is a tool that generates runtime type checks for TypeScript types. The types are
  * defined as plain TypeScript type declarations in any of the source files of the project. You do not need any special
- * syntax to define types that are eligible for run time type checks.
+ * syntax to define types that are eligible for runtime type checks.
  *
- * Three variants of run time type checks are generated for each type:
- * - `is<TypeName>`: A type guard function that checks whether the argument is of the type.
- * - `assert<TypeName>`: A type assertion function that asserts that the argument is of the type.
- * - `cast<TypeName>`: A type assertion function that casts the argument to the type.
+ * Three variants of runtime type checks are generated for each type:
+ *
+ * - `is<TypeName>(arg: unknown) => arg is Jsonify<TypeName>`
+ *    A function that checks whether the argument is of the type. Never throws.
+ *
+ * - `assert<TypeName>(arg: unknown) => asserts arg is Jsonify<TypeName>`
+ *    A function that throws if the argument is not of the type, and returns void otherwise.
+ *
+ * - `cast<TypeName>(arg: unknown) => Jsonify<TypeName>`
+ *    A function that throws if the argument is not of the type, and returns the argument unmodified otherwise.
  *
  * All generated functions internally use the same validation function. Which variant to use is a matter of preference.
  *
+ * Because the underlying validation is done using Ajv, only types that can be represented in JSON are supported. To
+ * prevent generating type checks for types that contain functions or other non-serializable values, the `Jsonify` type
+ * is used. If the type is not JSON serializable, the generated functions will cast to `never`, effectively making the
+ * type check useless (the `Jsonify` type is a utility type from the `type-fest` package).
+ *
  * Code generation is divided into two steps. In the first step, TSRC scans the source files of the project for type
- * declarations that are eligible for run time type checks. These types are then used to generate ambient module
- * declarations as a means to provide hints to the editor that run time type checks are available for these types.
- * At this stage, TSRC does not generate any code that performs run time type checks.
+ * declarations that are eligible for runtime type checks. These types are then used to generate ambient module
+ * declarations (i.e., a `d.ts` file) as a means to provide hints to the editor that runtime type checks are available
+ * for these types. The generated modules mirror the structure of the project's source files, but have a configurable
+ * prefix. For example, if the prefix is `@/tsrc`, the module `@/tsrc/path/to/file` will contain the runtime type
+ * checks for the types declared in `path/to/file.ts`. At this stage, TSRC does not generate any code that performs
+ * runtime type checks.
  *
- * The second step involves generating the actual run time type checks. This is done by scanning the project's source
- * files for imports to the ambient module declarations generated in the first step. For each import, TSRC generates a
+ * The second step involves generating the runtime check implementations. This is done by scanning the project's source
+ * files for imports to the ambient module declarations generated in the first step. For each imported module, TSRC
+ * generates a js file containing the implementation for the type check functions described above (`is<TypeName>`,
+ * `assert<TypeName>`, and `cast<TypeName>`). Internally, each function uses the same implementation to perform type
+ * checking, and this implementation is generated using the Ajv library. Due to the way Ajv generates code, a separate
+ * file is emitted for each type. For example, a file `path/to/file.ts` containing the types `A` and `B` will produce
+ * the following files (again assuming a prefix of `@/tsrc`):
+ * - `@/tsrc/path/to/file.js`: Contains the functions `isA`, `assertA`, `castA`, `isB`, `assertB`, and `castB`.
+ * - `@/tsrc/path/to/file_A.js`: Contains the Ajv generated code to validate type `A`.
+ * - `@/tsrc/path/to/file_B.js`: Contains the Ajv generated code to validate type `B`.
  *
+ * The first file is the implementation for the module defined in the `d.ts` file, whereas the other files are not meant
+ * to be consumed directly by the user.
  */
 export class TSRC {
 	/**
@@ -122,7 +146,7 @@ export class TSRC {
 
 	/**
 	 * Traverses the AST of `sourceFile` for type declarations and imports, and extracts the types that are eligible for
-	 * run time type checks.
+	 * runtime type checks.
 	 */
 	private processSourceFile(sourceFile: ts.SourceFile) {
 		// Skip files in node_modules
@@ -305,15 +329,15 @@ export class TSRC {
 	}
 
 	/**
-	 * The types that are eligible for run time type checks. Used to generate ambient module declarations.
+	 * The types that are eligible for runtime type checks. Used to generate ambient module declarations.
 	 *
 	 * The key is a module name, and the value is an array of type declarations contained in that module.
 	 */
 	private typeDecl = new Map<ModulePath, Declaration[]>();
 
 	/**
-	 * The modules containing run time type checks that have been imported somewhere in the project.
-	 * This is the list of run time type checks that need to be generated.
+	 * The modules containing runtime type checks that have been imported somewhere in the project.
+	 * This is the list of runtime type checks that need to be generated.
 	 */
 	public foundModules = new Set<ModulePath>();
 }
