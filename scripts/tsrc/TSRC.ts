@@ -90,7 +90,7 @@ export class TSRC {
 
 	/**
 	 * @param projectDirectory - Absolute path to the project directory.
-	 * @param outDirectory - Directory relative to the project directory where generated files are written to. Specifying a path within `node_modules` breaks auto-imports in the IDE.
+	 * @param virtualModuleName - Directory relative to the project directory where generated files are written to. Specifying a path within `node_modules` breaks auto-imports in the IDE.
 	 * @param ignore - List of paths relative to the project directory to ignore.
 	 */
 	constructor(
@@ -104,6 +104,7 @@ export class TSRC {
 		this.ignore = ignore.map((path) => resolve(projectDirectory, path));
 		this.virtualModuleName = virtualModuleName;
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		const tsconfigPath = ts.findConfigFile(this.projectDirectory, ts.sys.fileExists);
 
 		if (!tsconfigPath) {
@@ -111,6 +112,7 @@ export class TSRC {
 		}
 		this.tsconfigPath = tsconfigPath;
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		const result = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
 		if (result.error) {
 			throw new Error(result.error.messageText.toString());
