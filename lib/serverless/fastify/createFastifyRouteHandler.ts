@@ -2,7 +2,8 @@ import type { RouteHandler } from "fastify/types/route";
 import { StatusCodes } from "http-status-codes";
 
 import type { IHTTPEndpoint } from "../../interface/IHTTPEndpoint";
-import { castIHTTPEndpointArgs } from "../../interface/type_checks/castIHTTPEndpointArgs";
+
+import { castIHTTPEndpointArgs } from "@/tsrc/lib/interface/IHTTPEndpointArgs";
 
 export function createFastifyRouteHandler<T>(handler: IHTTPEndpoint<T>): RouteHandler {
 	return async function (request, reply) {

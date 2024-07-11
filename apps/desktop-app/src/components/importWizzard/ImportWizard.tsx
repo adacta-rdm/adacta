@@ -45,6 +45,8 @@ import type { ImportWizardSubscription } from "@/relay/ImportWizardSubscription.
 import type { ImportWizardToCellArrayMutation } from "@/relay/ImportWizardToCellArrayMutation.graphql";
 import type { ImportWizardToGenericTableMutation } from "@/relay/ImportWizardToGenericTableMutation.graphql";
 import type { ImportWizardToTabularDataArrayBufferMutation } from "@/relay/ImportWizardToTabularDataArrayBufferMutation.graphql";
+import { assertTToCellArrayOutput } from "@/tsrc/lib/interface/CSVImportWizzard/TToCellArrayOutput";
+import { assertTToGenericTableOutput } from "@/tsrc/lib/interface/CSVImportWizzard/TToGenericTableOutput";
 import type {
 	IGenericTable,
 	IToTabularDataOptions,
@@ -60,8 +62,6 @@ import type { TToCellArrayOutput } from "~/lib/interface/CSVImportWizzard/TToCel
 import type { TToGenericTableOutput } from "~/lib/interface/CSVImportWizzard/TToGenericTableOutput";
 import type { IColumnConfig, IImportWizardPreset } from "~/lib/interface/IImportWizardPreset";
 import type { ITabularDataColumnDescription } from "~/lib/interface/ITabularDataColumnDescription";
-import { assertTToCellArrayOutput } from "~/lib/interface/type_checks/assertTToCellArrayOutput";
-import { assertTToGenericTableOutput } from "~/lib/interface/type_checks/assertTToGenericTableOutput";
 
 const ImportWizardGraphQLSubscription = graphql`
 	subscription ImportWizardSubscription {

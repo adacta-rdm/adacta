@@ -17,9 +17,9 @@ import { useRouter } from "../../../hooks/useRouter";
 import { useService } from "../../../services/ServiceProvider";
 import { GraphQLHeaderService } from "../../../services/repositoryId/GraphQLHeaderService";
 
+import { assertIRegisterResponse } from "@/tsrc/lib/interface/IRegisterResponse";
 import type { IRegisterRequest } from "~/lib/interface/IRegisterRequest";
 import type { IRegisterResponse } from "~/lib/interface/IRegisterResponse";
-import { assertIRegisterResponse } from "~/lib/interface/type_checks/assertIRegisterResponse";
 import { RepoURL } from "~/lib/url/RepoURL";
 
 export function Register() {

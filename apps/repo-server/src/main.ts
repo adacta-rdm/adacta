@@ -24,6 +24,7 @@ import type { EntityLoader } from "./services/EntityLoader";
 import { RepositoryManagerPostgres } from "./services/RepositoryManagerPostgres";
 import { protectRoute } from "./utils/protectRoute";
 
+import { castIHTTPEndpointArgs } from "@/tsrc/lib/interface/IHTTPEndpointArgs";
 import { PostgresConfig } from "~/apps/repo-server/src/config/PostgresConfig";
 import { changePass } from "~/apps/repo-server/src/routes/auth/changePass";
 import { register } from "~/apps/repo-server/src/routes/auth/register";
@@ -32,7 +33,6 @@ import { createVersionResponse } from "~/lib/createVersionResponse";
 import { wrapResolversWithLogger } from "~/lib/graphql/wrapResolversWithLogger";
 import type { IHTTPEndpointArgs } from "~/lib/interface/IHTTPEndpointArgs";
 import type { IHTTPEndpointReturnType } from "~/lib/interface/IHTTPEndpointReturnType";
-import { castIHTTPEndpointArgs } from "~/lib/interface/type_checks/castIHTTPEndpointArgs";
 import { Logger } from "~/lib/logger/Logger";
 import { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
 

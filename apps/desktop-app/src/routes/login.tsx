@@ -18,8 +18,8 @@ import { useRouter } from "../hooks/useRouter";
 import { useService } from "../services/ServiceProvider";
 import { GraphQLHeaderService } from "../services/repositoryId/GraphQLHeaderService";
 
+import { assertILoginResponse } from "@/tsrc/lib/interface/ILoginResponse";
 import type { ILoginResponse } from "~/lib/interface/ILoginResponse";
-import { assertILoginResponse } from "~/lib/interface/type_checks/assertILoginResponse";
 import { RepoURL } from "~/lib/url/RepoURL";
 
 export function getData({ graphQLHeaders }: IRouteGetDataFunctionArgs) {
