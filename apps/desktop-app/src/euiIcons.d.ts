@@ -1,1 +1,1 @@
-declare module "euiIcons" {}
+declare module "@/euiIcons" {}

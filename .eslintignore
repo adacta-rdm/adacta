@@ -11,5 +11,4 @@ temp/
 # Generated code
 @/
 apps/repo-server/src/graphql/generated/
-apps/desktop-app/src/euiIcons.js
 **/type_checks/

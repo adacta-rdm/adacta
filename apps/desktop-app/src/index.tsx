@@ -12,7 +12,7 @@ import { GraphQLHeaderService } from "./services/repositoryId/GraphQLHeaderServi
 import { RouterService } from "./services/router/RouterService";
 
 import svg from "~/apps/desktop-app/public/images/AdactaLogo.svg";
-import "./euiIcons";
+import "@/euiIcons";
 
 // Bundle additional Moment.js locales
 import "../src/lib/momentLocales";

@@ -578,7 +578,8 @@ ${iconImportStatements.join("\n")}
 appendIconComponentCache({${ICON_TYPES.map((icon) => `${icon}: _${icon}`).join(", ")}});
 `;
 
-fs.writeFileSync(resolve("apps/desktop-app/src/euiIcons.js"), fileContents, "utf8");
+fs.mkdirSync("@", { recursive: true });
+fs.writeFileSync(resolve("@/euiIcons.js"), fileContents, "utf8");
 
 function resolve(...args: string[]) {
 	return path.resolve(__dirname, ...args);
