@@ -1,18 +1,21 @@
-import { IResolversTypes } from "~/apps/repo-server/src/graphql/generated/resolvers";
-import React, { PropsWithChildren, useCallback } from "react";
+import type { PropsWithChildren } from "react";
+import React, { useCallback } from "react";
 import { useRelayEnvironment } from "react-relay";
-import { OperationDescriptor, RelayEnvironmentProvider } from "react-relay/hooks";
-import { GraphQLResponse } from "relay-runtime";
+import type { OperationDescriptor } from "react-relay/hooks";
+import { RelayEnvironmentProvider } from "react-relay/hooks";
+import type { GraphQLResponse } from "relay-runtime";
 import { MockPayloadGenerator } from "relay-test-utils";
-import {
+import type {
 	MockResolver,
 	MockResolverContext,
 	MockResolvers,
 } from "relay-test-utils/lib/RelayMockPayloadGenerator";
-import { RelayMockEnvironment } from "relay-test-utils/lib/RelayModernMockEnvironment";
-import { PartialDeep } from "type-fest";
+import type { RelayMockEnvironment } from "relay-test-utils/lib/RelayModernMockEnvironment";
+import type { PartialDeep } from "type-fest";
 
 import { defaultMocks } from "./projectConfig";
+
+import type { IResolversTypes } from "~/apps/repo-server/src/graphql/generated/resolvers";
 
 type AsyncOperationMockResolver = (
 	operation: OperationDescriptor

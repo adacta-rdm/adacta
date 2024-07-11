@@ -2,7 +2,7 @@ import "../apps/desktop-app/src/euiIcons";
 import "@elastic/eui/dist/eui_theme_light.css";
 import "@elastic/charts/dist/theme_light.css";
 import { EuiProvider } from "@elastic/eui";
-import { ElementType } from "react";
+import type { ElementType } from "react";
 import { RelayEnvironmentProvider } from "react-relay";
 import { createMockEnvironment } from "relay-test-utils";
 import "~/apps/desktop-app/src/tailwind-output.css";

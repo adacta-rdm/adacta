@@ -1,9 +1,11 @@
-import { StoryObj } from "@storybook/react";
+import type { StoryObj } from "@storybook/react";
 import React, { Suspense } from "react";
-import { GraphQLTaggedNode, useLazyLoadQuery } from "react-relay";
-import { OperationType } from "relay-runtime";
+import type { GraphQLTaggedNode } from "react-relay";
+import { useLazyLoadQuery } from "react-relay";
+import type { OperationType } from "relay-runtime";
 
-import { RelayMockedDataProvider, TypedMockResolvers } from "./RelayMockedDataProvider";
+import type { TypedMockResolvers } from "./RelayMockedDataProvider";
+import { RelayMockedDataProvider } from "./RelayMockedDataProvider";
 
 // Wraps component to fetch required fragment
 // Can't be inlined into RelayMockedFragmentHelper as useLazyLoadQuery suspends the component (and that would

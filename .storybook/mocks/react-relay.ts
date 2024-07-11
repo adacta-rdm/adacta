@@ -1,8 +1,8 @@
 import { createContext, useContext } from "react";
-import { GraphQLTaggedNode } from "react-relay";
+import type { GraphQLTaggedNode } from "react-relay";
 
-import { DateTimeQuery$data } from "@/relay/DateTimeQuery.graphql";
-import { FreeComponentSelectionQuery$data } from "@/relay/FreeComponentSelectionQuery.graphql";
+import type { DateTimeQuery$data } from "@/relay/DateTimeQuery.graphql";
+import type { FreeComponentSelectionQuery$data } from "@/relay/FreeComponentSelectionQuery.graphql";
 
 //export type LazyLoadMockFetchFunction<TQuery extends OperationType> = (variables: TQuery["variables"]) => TQuery["response"];
 // export type LazyLoadMockDescription<TQuery extends OperationType> = [GraphQLTaggedNode, TQuery["response"]][];

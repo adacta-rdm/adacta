@@ -1,5 +1,5 @@
-import { FragmentRefs } from "relay-runtime";
-import { Spread } from "type-fest";
+import type { FragmentRefs } from "relay-runtime";
+import type { Spread } from "type-fest";
 
 import { Changelog } from "~/apps/desktop-app/src/components/changelog/Changelog";
 import { DeviceLink } from "~/apps/desktop-app/src/components/device/DeviceLink";

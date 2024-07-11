@@ -1,8 +1,7 @@
 import { join } from "path";
 
+import type { StorybookConfig } from "@storybook/react-vite";
 import { mergeConfig } from "vite";
-import { StorybookConfig } from "@storybook/react-vite";
-import path from "node:path";
 
 const config: StorybookConfig = {
 	stories: [

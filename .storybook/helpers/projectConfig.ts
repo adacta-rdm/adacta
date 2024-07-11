@@ -1,9 +1,10 @@
-import { createIDatetime } from "~/lib/createDate";
-import { uuid } from "~/lib/uuid";
 import seedrandom from "seedrandom";
 
-import { TypedMockResolvers } from "./RelayMockedDataProvider";
+import type { TypedMockResolvers } from "./RelayMockedDataProvider";
 import { getSeededRandomElement, getSeededRandomInt } from "./seededRandomUtils";
+
+import { createIDatetime } from "~/lib/createDate";
+import { uuid } from "~/lib/uuid";
 export const pseudoRandom = seedrandom("ADACTA_STATIC_SEED");
 
 const userNames = ["Max", "Moritz"];

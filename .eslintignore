@@ -1,13 +1,15 @@
+# Explicitly un-ignore .storybook/ directory
+!.storybook/
+
+# Built files
 **/dist/
-/apps/repo-server/public/resources/
-/config/
-**/__generated__/
-**/generated/
-lib/interface/type_checks/
+packages/
+
+# Postgres
+temp/
+
+# Generated code
+@/
+apps/repo-server/src/graphql/generated/
 apps/desktop-app/src/euiIcons.js
-apps/desktop-app/release/
-
-!/apps/desktop-app/.storybook
-
-packages/resources/
-temp
+**/type_checks/

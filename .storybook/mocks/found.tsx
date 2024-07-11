@@ -1,7 +1,7 @@
 import { EuiLink } from "@elastic/eui";
 import type { Match, RedirectProps, Router, RouterState } from "found";
 import * as React from "react";
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 
 export function useRouter(): RouterState {
 	return {
