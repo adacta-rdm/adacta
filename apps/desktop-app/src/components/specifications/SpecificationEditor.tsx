@@ -17,6 +17,7 @@ import type { ArrayElement } from "type-fest/source/internal";
 
 import { useDeviceSpecificationKeys, useSampleSpecificationKeys } from "./SpecificationKeyProvider";
 
+import { wrapWithSuspense } from "~/apps/desktop-app/src/utils/wrapWithSuspense";
 import type { ISpecification } from "~/lib/database/documents/interfaces/ISpecification";
 
 interface IProps {
@@ -25,29 +26,41 @@ interface IProps {
 	setUnsavedChanges?: (unsavedChanges: boolean) => void;
 }
 
-export const SpecificationEditorDevices = forwardRef<ISpecificationEditorActions, IProps>(
-	function SpecificationEditorDevices(props, ref) {
-		return (
-			<SpecificationEditor
-				{...props}
-				specificationKeySuggestions={useDeviceSpecificationKeys()}
-				ref={ref}
-			/>
-		);
-	}
-);
+export const SpecificationEditorDevices =
+	// The useDeviceSpecificationKeys() function suspends the component. Therefore, is important to
+	// wrap the component with a Suspense boundary to avoid loosing state
+	wrapWithSuspense(
+		forwardRef<ISpecificationEditorActions, IProps>(function SpecificationEditorDevices(
+			props,
+			ref
+		) {
+			return (
+				<SpecificationEditor
+					{...props}
+					specificationKeySuggestions={useDeviceSpecificationKeys()}
+					ref={ref}
+				/>
+			);
+		})
+	);
 
-export const SpecificationEditorSamples = forwardRef<ISpecificationEditorActions, IProps>(
-	function SpecificationEditorSamples(props: IProps, ref) {
-		return (
-			<SpecificationEditor
-				{...props}
-				specificationKeySuggestions={useSampleSpecificationKeys()}
-				ref={ref}
-			/>
-		);
-	}
-);
+export const SpecificationEditorSamples =
+	// The useSampleSpecificationKeys() function suspends the component. Therefore, is important to
+	// wrap the component with a Suspense boundary to avoid loosing state
+	wrapWithSuspense(
+		forwardRef<ISpecificationEditorActions, IProps>(function SpecificationEditorSamples(
+			props: IProps,
+			ref
+		) {
+			return (
+				<SpecificationEditor
+					{...props}
+					specificationKeySuggestions={useSampleSpecificationKeys()}
+					ref={ref}
+				/>
+			);
+		})
+	);
 
 export interface ISpecificationEditorActions {
 	addSpecification: (name: string, value: string) => void;
