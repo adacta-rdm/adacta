@@ -673,6 +673,7 @@ describe("CSVImportWizard", () => {
 						title: "b",
 						type: "number",
 						normalizerIds: [],
+						independent: ["a"],
 					},
 				},
 				decimalSeparator: ".",

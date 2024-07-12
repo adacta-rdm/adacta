@@ -299,9 +299,7 @@ function ui2preset(
 
 	if (errors.length > 0) return errors;
 
-	const manualDate = columnMetadataArray.find(
-		(c) => c.independent?.length === 0 && c.type === "number"
-	);
+	const manualDate = determineDateExtractionMode(formControls.columnMetadata).mode === "manual";
 
 	return {
 		delimiter: formControls.delimiter,

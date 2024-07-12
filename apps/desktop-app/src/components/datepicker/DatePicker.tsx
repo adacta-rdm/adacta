@@ -109,8 +109,7 @@ function DatePickerPure(props: TPropsPure) {
 				}
 			}}
 			locale={props.locale}
-			dateFormat={dateFormat}
-			timeFormat={showTime ? timeFormat : undefined}
+			dateFormat={showTime ? `${dateFormat} ${timeFormat}` : dateFormat}
 		/>
 	) : (
 		<EuiFlexGroup>
@@ -130,8 +129,7 @@ function DatePickerPure(props: TPropsPure) {
 								}
 							}}
 							locale={props.locale}
-							dateFormat={dateFormat}
-							timeFormat={showTime ? timeFormat : undefined}
+							dateFormat={showTime ? `${dateFormat} ${timeFormat}` : dateFormat}
 						/>
 					</EuiFlexItem>
 					{!props.disabled && (
