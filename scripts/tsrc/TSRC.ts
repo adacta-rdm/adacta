@@ -1,6 +1,6 @@
+import { statSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
-import { basename, dirname, resolve } from "node:path";
-import { join } from "path";
+import { basename, dirname, join, resolve, sep, normalize } from "node:path";
 
 import type { PathArg } from "@omegadot/fs";
 import Ajv from "ajv";
@@ -100,9 +100,10 @@ export class TSRC {
 	) {
 		// Interpret relative paths as being relative to projectDirectory.
 		// Calling `resolve` has no effect if `ignorePath` is absolute, so it's safe to call it unconditionally.
-		this.outDirectory = resolve(projectDirectory, virtualModuleName);
-		this.ignore = ignore.map((path) => resolve(projectDirectory, path));
-		this.virtualModuleName = virtualModuleName;
+		this.outDirectory = resolveAndNormalize(projectDirectory, virtualModuleName);
+		this.ignore = ignore.map((path) => resolveAndNormalize(projectDirectory, path));
+		// Normalize the virtual module name to not have leading or trailing slashes.
+		this.virtualModuleName = normalize(sep + virtualModuleName + sep).slice(1, -1);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		const tsconfigPath = ts.findConfigFile(this.projectDirectory, ts.sys.fileExists);
@@ -157,7 +158,7 @@ export class TSRC {
 		if (sourceFile.fileName.startsWith(this.outDirectory)) return;
 
 		for (const ignorePath of this.ignore) {
-			if (sourceFile.fileName.startsWith(resolve(this.projectDirectory, ignorePath))) return;
+			if (sourceFile.fileName.startsWith(ignorePath)) return;
 		}
 
 		const moduleName = this.moduleName(sourceFile);
@@ -405,4 +406,28 @@ export async function safeWriteGeneratedFile(
 ): Promise<void> {
 	if (fileContents) fileContents = `${GENERATED_HEADER_TS}\n${fileContents}`;
 	return safeWriteGeneratedFile_(filePath, fileContents, report, reportSkippedFiles);
+}
+
+/**
+ * The right-most parameter is considered {to}. Other parameters are considered an array of {from}.
+ *
+ * Starting from leftmost {from} parameter, resolves {to} to an absolute path.
+ * If {to} isn't already absolute, {from} arguments are prepended in right to left order, until an absolute path is
+ * found. If after using all {from} paths still no absolute path is found, the current working directory is used as
+ * well.
+ *
+ *
+ * The resulting path is normalized, and if the path is a directory returned with a trailing slash. If the path is a
+ * file or does not exist, the path is returned without a trailing slash.
+ *
+ * @param paths - A sequence of paths.
+ */
+function resolveAndNormalize(...paths: string[]) {
+	// resolve() normalizes the path and removes trailing slashes
+	const path = resolve(...paths);
+	const stat = statSync(path, { throwIfNoEntry: false });
+	if (!stat || stat.isFile()) return path;
+
+	// If the path is a directory, add a trailing slash
+	return path + sep;
 }
