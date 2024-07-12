@@ -167,13 +167,13 @@ export class TSRC {
 			// Detect which declarations have been used
 			if (ts.isImportDeclaration(node)) {
 				// We only care about imports from the special virtual module
+				// Omit import declarations that don't import anything
+				if (!node.importClause) return;
 				// Get the module specifier without quotes
 				const module = node.moduleSpecifier.getFullText(sourceFile).trim().slice(1, -1);
 				// Append a slash to the virtual module name to avoid matching modules with a coincidental
 				// common prefix
 				if (!module.startsWith(`${this.virtualModuleName}/`)) return;
-				// Omit imports declarations that don't import anything
-				if (!node.importClause) return;
 
 				// The call to `slice` removes virtual module prefix,
 				// i.e. @vmodule/path/to/file.ts -> path/to/file.ts
