@@ -9,6 +9,7 @@ import { S3Config } from "~/apps/repo-server/src/config/S3Config";
 import { RepositoryManagerPostgres } from "~/apps/repo-server/src/services/RepositoryManagerPostgres";
 import { sh } from "~/dev/sh";
 import { DrizzleGlobalSchema } from "~/drizzle/DrizzleSchema";
+import { MIGRATION_SCHEMA_NAME } from "~/drizzle/schema/migrations";
 import { parseEnvFile } from "~/lib/utils/parseEnvFile";
 
 const rmp: RepositoryManagerPostgres[] = [];
@@ -116,7 +117,11 @@ async function main(args: string[]) {
 	const globalSchemaName = new DrizzleGlobalSchema().global.schemaName;
 	await rmpTarget.db().execute(sql.raw(`drop schema if exists "${globalSchemaName}" cascade;`));
 
-	const schemaArgs = [globalSchemaName, ...repos.map((repo) => rmpSource.schemaName(repo))]
+	const schemaArgs = [
+		MIGRATION_SCHEMA_NAME,
+		globalSchemaName,
+		...repos.map((repo) => rmpSource.schemaName(repo)),
+	]
 		.map((n) => `--schema="${n}"`)
 		.join(" ");
 

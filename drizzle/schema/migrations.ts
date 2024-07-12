@@ -2,7 +2,9 @@ import { pgSchema } from "drizzle-orm/pg-core";
 import { varchar } from "drizzle-orm/pg-core";
 import { serial, char, timestamp } from "drizzle-orm/pg-core";
 
-export const Migration = pgSchema("adacta_migrations").table("Migration", {
+export const MIGRATION_SCHEMA_NAME = "adacta_migrations";
+
+export const Migration = pgSchema(MIGRATION_SCHEMA_NAME).table("Migration", {
 	id: serial("migration_id").primaryKey().notNull(),
 
 	/**
