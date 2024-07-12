@@ -29,6 +29,13 @@ const ImportDeviceSelectionGraphQLQuery = graphql`
 	query ImportDeviceSelectionQuery($deviceId: ID!, $timeFrame: TimeFrameInput, $repositoryId: ID!) {
 		repository(id: $repositoryId) {
 			device(id: $deviceId) {
+				id
+				name
+				displayName
+				definition {
+					acceptsUnit
+				}
+
 				...ComponentNodeTreeProviderFragment @arguments(timeFrame: $timeFrame)
 				components(timeFrame: $timeFrame, includeOverlaps: true) {
 					component {
@@ -58,6 +65,11 @@ interface IProps {
 
 const PATH_DELIMITER = "__ADACTA_PATH_DELIMITER__";
 
+// Used to identify the root device (in this case the device the data is imported to) in the
+// dropdown. All other devices are identified by their path from the root device (which is not
+// feasible for the root device itself)
+const ROOT_DEVICE_MARKER = "__ROOT__";
+
 export function ImportDeviceSelection(props: IProps) {
 	const { deviceId, begin, end } = props;
 	const data = useLazyLoadQuery<ImportDeviceSelectionQuery>(ImportDeviceSelectionGraphQLQuery, {
@@ -79,6 +91,21 @@ export function ImportDeviceSelection(props: IProps) {
 
 function ImportDeviceSelectionPure(props: IProps & { data: ImportDeviceSelectionQuery$data }) {
 	const { components } = useTree();
+
+	// Insert the root device into the list of components
+	const { device: rootDevice } = props.data.repository;
+	components.push({
+		component: {
+			__typename: "Device",
+			id: rootDevice.id,
+			displayName: rootDevice.displayName,
+			name: rootDevice.name,
+			usagesAsProperty: [],
+			definition: { acceptsUnit: rootDevice.definition.acceptsUnit },
+		},
+		pathFromTopLevelDevice: [ROOT_DEVICE_MARKER],
+	});
+
 	const { acceptsUnit } = props;
 
 	const getDeviceOptions = (): EuiSuperSelectOption<string>[] => {
@@ -116,10 +143,15 @@ function ImportDeviceSelectionPure(props: IProps & { data: ImportDeviceSelection
 			options={getDeviceOptions()}
 			valueOfSelected={props.valueOfSelected.join(PATH_DELIMITER)}
 			onChange={(id) => {
-				const path = id.split(PATH_DELIMITER);
+				let path = id.split(PATH_DELIMITER);
+
 				const componentByPath = components.find((c) =>
 					lodash.isEqual(c.pathFromTopLevelDevice, path)
 				);
+
+				if (path[0] == ROOT_DEVICE_MARKER) {
+					path = [];
+				}
 
 				assertDefined(componentByPath, "Error while resolving devicePath to deviceId");
 				assert(
