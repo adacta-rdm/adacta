@@ -79,7 +79,7 @@ export class TSRC {
 	private readonly outDirectory: string;
 
 	/**
-	 * List of absolute paths of files to ignore.
+	 * List of absolute paths of files or directories to ignore.
 	 */
 	private ignore: string[];
 
@@ -98,8 +98,7 @@ export class TSRC {
 		virtualModuleName: string,
 		ignore: string[] = []
 	) {
-		// Interpret relative paths as being relative to projectDirectory.
-		// Calling `resolve` has no effect if `ignorePath` is absolute, so it's safe to call it unconditionally.
+		// Get consistent and absolute paths from user arguments.
 		this.outDirectory = resolveAndNormalize(projectDirectory, virtualModuleName);
 		this.ignore = ignore.map((path) => resolveAndNormalize(projectDirectory, path));
 		// Normalize the virtual module name to not have leading or trailing slashes.
