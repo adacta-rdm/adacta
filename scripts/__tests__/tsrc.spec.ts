@@ -12,6 +12,15 @@ import {
 	isUnion,
 } from "@/tsrc/scripts/__tests__/tsrc.spec";
 
+export interface ITest {
+	a: string;
+	b: number;
+}
+
+export type Intersection = ITest & { c: boolean };
+
+export type Union = ITest | { c: boolean };
+
 describe("tsrc", () => {
 	test("generated 'is'-Function returns false if input is invalid", () => {
 		// missing properties
@@ -70,11 +79,3 @@ describe("tsrc", () => {
 		expect(castIntersection(arg3)).toBe(arg3);
 	});
 });
-
-export interface ITest {
-	a: string;
-	b: number;
-}
-
-export type Intersection = ITest & { c: boolean };
-export type Union = ITest | { c: boolean };
