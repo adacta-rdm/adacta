@@ -1,3 +1,3 @@
 import type { RouteDef } from "../routes";
 
-export const redirect: RouteDef = "/repositories/:repositoryId/samples/";
+export const redirect: RouteDef = "/repositories/:repositoryId/devices/";
