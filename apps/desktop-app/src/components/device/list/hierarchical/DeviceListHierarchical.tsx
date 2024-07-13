@@ -277,7 +277,7 @@ function HierarchicalDeviceTableRowToplevel(props: {
 						<EuiButtonIcon iconType={"empty"} aria-label={" "} />
 					)}
 					<DevicePreviewImage data={fragmentData.device} />
-					<DeviceLink data={fragmentData.device} showShortId={true} underlineOnHover={true} />
+					<DeviceLink data={fragmentData.device} underlineOnHover={true} />
 				</EuiTableRowCell>
 				<EuiTableRowCell>
 					<UserLink user={fragmentData.device.metadata.creator} />
@@ -348,7 +348,7 @@ function HierarchicalDeviceTableRowProperties(props: {
 									<EuiFlexItem>
 										{props.child.name}
 										<br />
-										<DeviceLink data={childComponent} showShortId={true} />
+										<DeviceLink data={childComponent} />
 									</EuiFlexItem>
 								</>
 							) : (
