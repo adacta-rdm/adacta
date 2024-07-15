@@ -428,7 +428,7 @@ export async function safeWriteGeneratedFile(
  */
 function resolveAndNormalize(projectDirectory: string, path: string) {
 	// resolve() normalizes the path and removes trailing slashes
-	const resolvedPath = resolve(projectDirectory, ...path);
+	const resolvedPath = resolve(projectDirectory, path);
 	const stat = statSync(resolvedPath, { throwIfNoEntry: false });
 	if (!stat || stat.isFile()) return resolvedPath;
 
