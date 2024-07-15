@@ -408,22 +408,27 @@ export async function safeWriteGeneratedFile(
 }
 
 /**
- * The right-most parameter is considered {to}. Other parameters are considered an array of {from}.
+ * Returns a normalized path, and if the path is a directory returned with a trailing slash.
+ * If the path is a file or does not exist, the path is returned without a trailing slash.
  *
- * Starting from leftmost {from} parameter, resolves {to} to an absolute path.
- * If {to} isn't already absolute, {from} arguments are prepended in right to left order, until an absolute path is
- * found. If after using all {from} paths still no absolute path is found, the current working directory is used as
- * well.
+ * If `pathSegments` contains a relative path, it is resolved relative to `projectDirectory`.
+ * If `pathSegments` contains an absolute path, the absolute path is returned.
  *
+ * Example:
+ * - `resolveAndNormalize("/path/to/project", "src")` -> "/path/to/project/src/" (if src is a
+ * 	  directory)
  *
- * The resulting path is normalized, and if the path is a directory returned with a trailing slash. If the path is a
- * file or does not exist, the path is returned without a trailing slash.
+ * - `resolveAndNormalize("/path/to/project", "src/Test.ts")` -> "/path/to/project/src/Test.ts" (if
+ *    src/Test.ts is not a directory)
  *
- * @param paths - A sequence of paths.
+ * - `resolveAndNormalize("/path/to/project", "/other/path/Test.ts")` -> "/other/path/Test.ts"
+ *
+ * @param projectDirectory - Absolute path to the project directory.
+ * @param pathSegments - A sequence of path segments
  */
-function resolveAndNormalize(...paths: string[]) {
+function resolveAndNormalize(projectDirectory: string, ...pathSegments: string[]) {
 	// resolve() normalizes the path and removes trailing slashes
-	const path = resolve(...paths);
+	const path = resolve(projectDirectory, ...pathSegments);
 	const stat = statSync(path, { throwIfNoEntry: false });
 	if (!stat || stat.isFile()) return path;
 
