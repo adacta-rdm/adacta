@@ -6,6 +6,7 @@ import { DeviceDefinition } from "~/drizzle/schema/repo.DeviceDefinition";
 import { Sample } from "~/drizzle/schema/repo.Sample";
 import type { IPgSchemas } from "~/drizzle/schemaHelpers/IPgSchemas";
 import { idType } from "~/drizzle/schemaHelpers/idType";
+import { MAX_SPECIFICATION_VALUE_LENGTH } from "~/lib/maxSpecificationValueLength";
 
 export function DeviceSpecification(schemas: IPgSchemas) {
 	return specifications("DeviceSpecification", () => Device(schemas).id, schemas);
@@ -32,7 +33,7 @@ function specifications<T>(
 		name,
 		{
 			name: varchar("name", { length: 255 }).notNull(),
-			value: varchar("value", { length: 255 }).notNull(),
+			value: varchar("value", { length: MAX_SPECIFICATION_VALUE_LENGTH }).notNull(),
 			ownerId: idType<T>("owner_id").references(ownerReference).notNull(),
 		},
 		(t) => ({ pk: primaryKey({ columns: [t.ownerId, t.name] }) })

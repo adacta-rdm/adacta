@@ -48,6 +48,7 @@ import type { AdactaTimelineResource$data } from "@/relay/AdactaTimelineResource
 import type { AdactaTimelineSample$data } from "@/relay/AdactaTimelineSample.graphql";
 import type { AdactaTimelineUsage$data } from "@/relay/AdactaTimelineUsage.graphql";
 import type { DeviceOverview$key } from "@/relay/DeviceOverview.graphql";
+import type { specialMeaningSpecificationsKeys } from "~/apps/desktop-app/src/components/specifications/SpecialMeaningSpecifications";
 import { createDate, createMaybeDate } from "~/lib/createDate";
 import type { IDeviceId } from "~/lib/database/Ids";
 import { convertDeviceToTraversalResult } from "~/lib/inheritance/convertToTraversalResult";
@@ -184,6 +185,21 @@ export function DeviceOverview(props: IProps) {
 		return <>Device is not completely synced</>;
 	}
 
+	/**
+	 * Helper that renders a specification if it exists, or a fallback if it doesn't.
+	 */
+	function renderSpecification(
+		propertyName: (typeof specialMeaningSpecificationsKeys)[number],
+		fn: (propertyValue: string) => React.ReactNode | string,
+		fallback = null
+	) {
+		const property = device.specifications.find((p) => p.name === propertyName);
+		if (!property) {
+			return fallback;
+		}
+		return fn(property.value);
+	}
+
 	const printTimeInterval = (start: string, end?: string) => {
 		const endElement = end ? <DateTime date={createDate(end)} /> : <>now</>;
 		return (
@@ -223,10 +239,12 @@ export function DeviceOverview(props: IProps) {
 	const specification: EuiDescriptionListProps["listItems"] = [
 		...device.specifications,
 		...derivedSpecifications,
-	].map((s) => ({
-		title: s.name,
-		description: s.value,
-	}));
+	]
+		.map((s) => ({
+			title: s.name,
+			description: s.value,
+		}))
+		.sort((a, b) => a.title.localeCompare(b.title));
 
 	if (device.definition.acceptsUnit.length) {
 		specification.push({
@@ -297,7 +315,7 @@ export function DeviceOverview(props: IProps) {
 				pageHeader={{
 					pageTitle: (
 						<>
-							Device {device.name} <OriginRepoIndicator metadata={device} />
+							{device.name} <OriginRepoIndicator metadata={device} />
 						</>
 					),
 					rightSideItems: !props.popoverMode
@@ -316,46 +334,72 @@ export function DeviceOverview(props: IProps) {
 						  ]
 						: [],
 					description: (
-						<EuiFlexGroup>
-							<EuiFlexItem grow={false}>
-								<DeviceImageList device={device} />
-							</EuiFlexItem>
-							<EuiFlexItem>
-								<span>
-									{device.shortId && <>Short ID: {device.shortId}</>}
-									<br />
-									Created by: <UserLink user={device.metadata.creator} /> at{" "}
-									<DateTime date={createDate(device.metadata.creationTimestamp)} />
-									{device.topLevelDevice && (
-										<>
-											<br />
-											Currently installed in setup: <DeviceLink data={device.topLevelDevice} />
-										</>
-									)}
-									{historyMode && (
-										<>
-											<span>
+						<>
+							<EuiFlexGroup>
+								{renderSpecification("Description", (description) => (
+									<EuiFlexItem
+										grow={true}
+										style={{
+											whiteSpace: "pre-line", // Don't collapse newlines
+										}}
+									>
+										{description}
+									</EuiFlexItem>
+								))}
+							</EuiFlexGroup>
+							<EuiFlexGroup>
+								<EuiFlexItem grow={false}>
+									<DeviceImageList device={device} />
+								</EuiFlexItem>
+								<EuiFlexItem>
+									<span>
+										{device.shortId && <>Short ID: {device.shortId}</>}
+										<br />
+										{renderSpecification("Responsible (primary)", (v) => (
+											<>
+												Responsible (primary): <strong>{v}</strong>
 												<br />
-												Viewing device at <DateTime date={viewTimestamp} />
-											</span>{" "}
-											<EuiLink
-												href="#"
-												onClick={() =>
-													router.push("/repositories/:repositoryId/devices/:deviceId/", {
-														repositoryId: repositoryIdVariable.repositoryId,
-														deviceId: device.id,
-													})
-												}
-											>
-												Jump to present
-											</EuiLink>
-										</>
-									)}
-									<br />
-									<ProjectEditorAsHeaderElement data={device} listOnly={popoverMode} />
-								</span>
-							</EuiFlexItem>
-						</EuiFlexGroup>
+											</>
+										))}
+										{renderSpecification("Responsible (secondary)", (v) => (
+											<>
+												Responsible (secondary): <strong>{v}</strong>
+												<br />
+											</>
+										))}
+										Created by: <UserLink user={device.metadata.creator} /> at{" "}
+										<DateTime date={createDate(device.metadata.creationTimestamp)} />
+										{device.topLevelDevice && (
+											<>
+												<br />
+												Currently installed in setup: <DeviceLink data={device.topLevelDevice} />
+											</>
+										)}
+										{historyMode && (
+											<>
+												<span>
+													<br />
+													Viewing device at <DateTime date={viewTimestamp} />
+												</span>{" "}
+												<EuiLink
+													href="#"
+													onClick={() =>
+														router.push("/repositories/:repositoryId/devices/:deviceId/", {
+															repositoryId: repositoryIdVariable.repositoryId,
+															deviceId: device.id,
+														})
+													}
+												>
+													Jump to present
+												</EuiLink>
+											</>
+										)}
+										<br />
+										<ProjectEditorAsHeaderElement data={device} listOnly={popoverMode} />
+									</span>
+								</EuiFlexItem>
+							</EuiFlexGroup>
+						</>
 					),
 					tabs: [
 						{

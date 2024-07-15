@@ -2,14 +2,17 @@ import {
 	EuiButton,
 	EuiButtonEmpty,
 	EuiButtonIcon,
+	EuiCallOut,
 	EuiComboBox,
 	EuiDescriptionList,
 	EuiEmptyPrompt,
 	EuiFieldText,
 	EuiFlexGroup,
 	EuiFlexItem,
+	EuiSpacer,
 	EuiText,
 } from "@elastic/eui";
+import { EuiTextArea } from "@elastic/eui";
 import type { EuiDescriptionListProps } from "@elastic/eui/src/components/description_list/description_list_types";
 import { assertDefined } from "@omegadot/assert";
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from "react";
@@ -19,6 +22,7 @@ import { useDeviceSpecificationKeys, useSampleSpecificationKeys } from "./Specif
 
 import { wrapWithSuspense } from "~/apps/desktop-app/src/utils/wrapWithSuspense";
 import type { ISpecification } from "~/lib/database/documents/interfaces/ISpecification";
+import { MAX_SPECIFICATION_VALUE_LENGTH } from "~/lib/maxSpecificationValueLength";
 
 interface IProps {
 	specifications: ISpecification[];
@@ -172,67 +176,88 @@ const SpecificationEditor = forwardRef<
 
 	// Create a list of all specifications with the possibility to edit them as required
 	// for the DescriptionList
-	const existingSpecificationsItems = props.specifications.map((s) => {
-		const updateSpecification = () => {
-			props.setSpecifications(
-				props.specifications.map((specification) => {
-					if (specification.name !== s.name) {
-						return specification;
-					}
-					return { ...specification, value: editValue };
-				})
-			);
-			setEditMode(false);
-			setEditKey(undefined);
-			setEditValue("");
-		};
+	const existingSpecificationsItems = props.specifications
+		.sort((a, b) => a.name.localeCompare(b.name))
+		.map((s) => {
+			const updateSpecification = () => {
+				props.setSpecifications(
+					props.specifications.map((specification) => {
+						if (specification.name !== s.name) {
+							return specification;
+						}
+						return { ...specification, value: editValue };
+					})
+				);
+				setEditMode(false);
+				setEditKey(undefined);
+				setEditValue("");
+			};
 
-		return {
-			title: s.name,
-			description:
-				s.name !== editKey?.label ? (
-					<EuiFlexGroup>
-						<EuiFlexItem>{s.value}</EuiFlexItem>
-						<EuiFlexItem grow={false}>
-							<EuiButtonIcon
-								iconType="pencil"
-								aria-label="Edit"
-								onClick={() => {
-									setEditMode(false);
-									setEditKey({ label: s.name });
-									setEditValue(s.value);
-								}}
-							/>
-						</EuiFlexItem>
-						<EuiFlexItem grow={false}>
-							<EuiButtonIcon
-								iconType="cross"
-								aria-label="Delete"
-								onClick={() => deleteProperty(s.name)}
-							/>
-						</EuiFlexItem>
-					</EuiFlexGroup>
-				) : (
-					<EuiFlexGroup>
-						<EuiFlexItem>
-							<EuiFieldText
-								value={editValue}
-								autoFocus={true}
-								onChange={(e) => setEditValue(e.target.value)}
-								onKeyDown={(e) => {
-									if (e.key === "Enter") {
-										updateSpecification();
-									}
-								}}
-							/>
-						</EuiFlexItem>
-						<EuiFlexItem grow={false}>
-							<EuiButtonIcon iconType="save" aria-label="Save" onClick={updateSpecification} />
-						</EuiFlexItem>
-					</EuiFlexGroup>
-				),
-		};
-	});
+			return {
+				title: s.name,
+				description:
+					s.name !== editKey?.label ? (
+						<EuiFlexGroup>
+							<EuiFlexItem>{s.value}</EuiFlexItem>
+							<EuiFlexItem grow={false}>
+								<EuiButtonIcon
+									iconType="pencil"
+									aria-label="Edit"
+									onClick={() => {
+										setEditMode(false);
+										setEditKey({ label: s.name });
+										setEditValue(s.value);
+									}}
+								/>
+							</EuiFlexItem>
+							<EuiFlexItem grow={false}>
+								<EuiButtonIcon
+									iconType="cross"
+									aria-label="Delete"
+									onClick={() => deleteProperty(s.name)}
+								/>
+							</EuiFlexItem>
+						</EuiFlexGroup>
+					) : (
+						<EuiFlexGroup>
+							<EuiFlexItem>
+								{editKey.label !== "Description" ? (
+									<EuiFieldText
+										value={editValue}
+										autoFocus={true}
+										onChange={(e) => setEditValue(e.target.value)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												updateSpecification();
+											}
+										}}
+										maxLength={2000}
+									/>
+								) : (
+									<EuiTextArea
+										value={editValue}
+										autoFocus={true}
+										onChange={(e) => setEditValue(e.target.value)}
+										maxLength={2000}
+									/>
+								)}
+								{editValue.length == MAX_SPECIFICATION_VALUE_LENGTH && (
+									<>
+										<EuiSpacer />
+										<EuiCallOut color={"warning"}>
+											Specification values can only contain {MAX_SPECIFICATION_VALUE_LENGTH}{" "}
+											characters.
+										</EuiCallOut>
+									</>
+								)}
+							</EuiFlexItem>
+							<EuiFlexItem grow={false}>
+								<EuiButtonIcon iconType="save" aria-label="Save" onClick={updateSpecification} />
+							</EuiFlexItem>
+						</EuiFlexGroup>
+					),
+			};
+		});
 
 	const endOfListAction: ArrayElement<EuiDescriptionListProps["listItems"]> = editMode
 		? {
@@ -300,6 +325,7 @@ const SpecificationEditor = forwardRef<
 				type={"column"}
 				columnGutterSize={"m"}
 				listItems={[...existingSpecificationsItems, endOfListAction]}
+				columnWidths={[1, 3]} // 1/4 width for the title, 3/4 for values + actions
 			/>
 		</>
 	);
