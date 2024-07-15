@@ -1,11 +1,11 @@
 import { S3StorageEngine } from "@omegadot/storage-engine";
 import { StatusCodes } from "http-status-codes";
 
-import { isIDownsamplingTaskArgs } from "../../interface/type_checks/isIDownsamplingTaskArgs";
 import { S3Config } from "../config/S3Config";
 import { downsample as doDownsample } from "../services/downsampler/downsample";
 import type { Point } from "../services/downsampler/downsampleLTTBRowMajorAsync";
 
+import { isIDownsamplingTaskArgs } from "@/tsrc/apps/repo-server/interface/IDownsamplingTaskArgs";
 import type { IHTTPEndpointArgs } from "~/lib/interface/IHTTPEndpointArgs";
 import type { IHTTPEndpointReturnType } from "~/lib/interface/IHTTPEndpointReturnType";
 import { LOG_LEVEL, Logger } from "~/lib/logger/Logger";

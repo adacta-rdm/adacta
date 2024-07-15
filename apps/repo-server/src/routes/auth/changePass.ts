@@ -1,6 +1,7 @@
 import type express from "express";
 import { StatusCodes } from "http-status-codes";
 
+import { isIChangePasswordRequest } from "@/tsrc/lib/interface/IChangePasswordRequest";
 import { AuthenticatedUserInfo } from "~/apps/repo-server/src/graphql/AuthenticatedUserInfo";
 import type { EntityLoader } from "~/apps/repo-server/src/services/EntityLoader";
 import { DrizzleGlobalSchema } from "~/drizzle/DrizzleSchema";
@@ -12,7 +13,6 @@ import {
 } from "~/lib/interface/IChangePasswordResponseStatusCode";
 import type { IHTTPEndpointArgs } from "~/lib/interface/IHTTPEndpointArgs";
 import type { IHTTPEndpointReturnType } from "~/lib/interface/IHTTPEndpointReturnType";
-import { isIChangePasswordRequest } from "~/lib/interface/type_checks/isIChangePasswordRequest";
 import type { Logger } from "~/lib/logger/Logger";
 
 export async function changePass(

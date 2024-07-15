@@ -11,6 +11,7 @@ import { decode } from "jsonwebtoken";
 import WebSocket from "ws";
 
 import type { Insert_DeviceInput } from "@/relay/DeviceAddMutation.graphql";
+import { assertILoginResponse } from "@/tsrc/lib/interface/ILoginResponse";
 import { uploadFile } from "~/apps/desktop-app/src/utils/uploadFile";
 import type {
 	IAddSampleInput,
@@ -30,7 +31,6 @@ import { createIDatetime } from "~/lib/createDate";
 import type { IResourceId } from "~/lib/database/Ids";
 import type { ILoginRequest } from "~/lib/interface/ILoginRequest";
 import type { ILoginResponse } from "~/lib/interface/ILoginResponse";
-import { assertILoginResponse } from "~/lib/interface/type_checks/assertILoginResponse";
 import { AuthURL } from "~/lib/url/AuthURL";
 import { RepoURL } from "~/lib/url/RepoURL";
 

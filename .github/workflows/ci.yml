@@ -23,8 +23,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      # The repo-server build is done here mainly to ensure that @/drizzle/migrations.ts is
-      # generated before the type-check runs
+      # Ensures that the run-time type checks are built before the type-check runs
+      - name: Build run-time type checks
+        run: yarn build:tsrc
+
+      # Ensures that @/drizzle/migrations.ts is generated before the type-check runs
       - name: Build repo-server
         run: yarn build:repo-server
 

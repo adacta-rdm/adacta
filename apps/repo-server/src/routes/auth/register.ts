@@ -5,6 +5,7 @@ import isEmail from "validator/es/lib/isEmail";
 import type { AuthConfig } from "../../config/AuthConfig";
 import { getAccessTokenForUser } from "../../utils/getAccessTokenForUser";
 
+import { isIRegisterRequest } from "@/tsrc/lib/interface/IRegisterRequest";
 import type { EntityLoader } from "~/apps/repo-server/src/services/EntityLoader";
 import { DrizzleGlobalSchema } from "~/drizzle/DrizzleSchema";
 import { createPasswordHash } from "~/lib/Authentication";
@@ -14,7 +15,6 @@ import { NEW_PASSWORD_TOO_WEAK } from "~/lib/interface/IChangePasswordResponseSt
 import type { IHTTPEndpointArgs } from "~/lib/interface/IHTTPEndpointArgs";
 import type { IHTTPEndpointReturnType } from "~/lib/interface/IHTTPEndpointReturnType";
 import type { IRegisterResponse } from "~/lib/interface/IRegisterResponse";
-import { isIRegisterRequest } from "~/lib/interface/type_checks/isIRegisterRequest";
 import type { Logger } from "~/lib/logger/Logger";
 import { getDefaultTimeSettings } from "~/lib/utils/getDefaultTimeSettings";
 

@@ -3,9 +3,9 @@ import type { AxiosRequestConfig } from "axios";
 import axios from "axios";
 import FormData from "form-data";
 
+import { isIUploadResourceAttachmentResponse } from "@/tsrc/lib/interface/IUploadResourceAttachmentResponse";
 import type { IResourceId } from "~/lib/database/Ids";
 import type { StrictArrayBuffer } from "~/lib/interface/StrictArrayBuffer";
-import { isIUploadResourceAttachmentResponse } from "~/lib/interface/type_checks/isIUploadResourceAttachmentResponse";
 import { calculateResourceAttachmentHash } from "~/lib/resources/calculateResourceAttachmentHash";
 
 export async function uploadFile(

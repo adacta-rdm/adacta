@@ -15,7 +15,7 @@ import { buildTimeConstantsObject } from "./dev/build-utils";
 export default defineConfig(({ mode }) => ({
 	test: {
 		root: ".",
-		exclude: ["node_modules/**", "temp/**"],
+		exclude: ["node_modules/**", "temp/**", "@/**"],
 	},
 	root: "apps/desktop-app/src",
 	publicDir: "../public",

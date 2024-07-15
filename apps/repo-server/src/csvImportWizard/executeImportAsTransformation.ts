@@ -10,12 +10,12 @@ import type { ICreateAndRunImportTransformationInput } from "../graphql/generate
 import type { Downsampling } from "../services/downsampler/Downsampling";
 import { createTransformationContext } from "../transformations/createTransformationContext";
 
+import { assertIImportWizardPreset } from "@/tsrc/lib/interface/IImportWizardPreset";
 import type { EntityLoader } from "~/apps/repo-server/src/services/EntityLoader";
 import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
 import type { DrizzleSchema } from "~/drizzle/DrizzleSchema";
 import { EntityFactory } from "~/lib/database/EntityFactory";
 import type { IResourceId, IUserId } from "~/lib/database/Ids";
-import { assertIImportWizardPreset } from "~/lib/interface/type_checks/assertIImportWizardPreset";
 import type { Logger } from "~/lib/logger/Logger";
 import { createProgressReporter } from "~/lib/progress/createProgressReporter";
 
