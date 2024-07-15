@@ -408,7 +408,7 @@ export async function safeWriteGeneratedFile(
 }
 
 /**
- * Returns a normalized path, and if the path is a directory returned with a trailing slash.
+ * Returns a normalized path, where paths to directories are returned with a trailing slash.
  * If the path is a file or does not exist, the path is returned without a trailing slash.
  *
  * If `pathSegments` contains a relative path, it is resolved relative to `projectDirectory`.
@@ -424,14 +424,14 @@ export async function safeWriteGeneratedFile(
  * - `resolveAndNormalize("/path/to/project", "/other/path/Test.ts")` -> "/other/path/Test.ts"
  *
  * @param projectDirectory - Absolute path to the project directory.
- * @param pathSegments - A sequence of path segments
+ * @param path - Absolute or relative path to resolve and normalize
  */
-function resolveAndNormalize(projectDirectory: string, ...pathSegments: string[]) {
+function resolveAndNormalize(projectDirectory: string, path: string) {
 	// resolve() normalizes the path and removes trailing slashes
-	const path = resolve(projectDirectory, ...pathSegments);
-	const stat = statSync(path, { throwIfNoEntry: false });
-	if (!stat || stat.isFile()) return path;
+	const normalizedPath = resolve(projectDirectory, ...path);
+	const stat = statSync(normalizedPath, { throwIfNoEntry: false });
+	if (!stat || stat.isFile()) return normalizedPath;
 
 	// If the path is a directory, add a trailing slash
-	return path + sep;
+	return normalizedPath + sep;
 }
