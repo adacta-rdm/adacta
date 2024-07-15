@@ -428,10 +428,10 @@ export async function safeWriteGeneratedFile(
  */
 function resolveAndNormalize(projectDirectory: string, path: string) {
 	// resolve() normalizes the path and removes trailing slashes
-	const normalizedPath = resolve(projectDirectory, ...path);
-	const stat = statSync(normalizedPath, { throwIfNoEntry: false });
-	if (!stat || stat.isFile()) return normalizedPath;
+	const resolvedPath = resolve(projectDirectory, ...path);
+	const stat = statSync(resolvedPath, { throwIfNoEntry: false });
+	if (!stat || stat.isFile()) return resolvedPath;
 
 	// If the path is a directory, add a trailing slash
-	return normalizedPath + sep;
+	return resolvedPath + sep;
 }
