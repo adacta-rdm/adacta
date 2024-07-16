@@ -904,20 +904,14 @@ export const RepositoryMutation: IResolvers["RepositoryMutation"] = {
 	async deleteNameComposition(
 		_,
 		{ id },
-		{ services: { el, drizzle }, schema: { NameComposition, NameCompositionVariableUsage } }
+		{ services: { drizzle }, schema: { NameComposition, NameCompositionVariableUsage } }
 	) {
-		const entity = await el.one(NameComposition, id as INameCompositionId);
-		// await em.nativeDelete(NameCompositionVariableUsageEntity, { nameCompositions: entity.id });
-
+		assert(isEntityId(id, "NameComposition"));
 		await drizzle
 			.delete(NameCompositionVariableUsage)
-			.where(eq(NameCompositionVariableUsage.nameCompositionId, entity.id))
-			.execute();
+			.where(eq(NameCompositionVariableUsage.nameCompositionId, id));
 
-		entity.metadataDeletedAt = new Date();
-
-		await drizzle.update(NameComposition).set(entity).execute();
-
+		await drizzle.update(NameComposition).set({ metadataDeletedAt: new Date() });
 		return { deletedId: id };
 	},
 

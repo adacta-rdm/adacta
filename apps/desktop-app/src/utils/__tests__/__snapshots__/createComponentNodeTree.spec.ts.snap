@@ -101,7 +101,7 @@ exports[`createComponentNodeTree 1`] = `
         },
       ],
     },
-    "name": "Mfc 1",
+    "name": "Mfc1",
     "tag": "2",
   },
 ]

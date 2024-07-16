@@ -9,6 +9,11 @@ import { connectionToArray } from "../../utils/connectionToArray";
 import type { SpecificationKeyProviderDeviceQuery } from "@/relay/SpecificationKeyProviderDeviceQuery.graphql";
 import type { SpecificationKeyProviderSampleQuery } from "@/relay/SpecificationKeyProviderSampleQuery.graphql";
 
+/**
+ * Provides a list of all specification keys for samples in the repository.
+ * IMPORTANT: This hook suspends the component. Wrap the component with a Suspense boundary to
+ * avoid loosing state.
+ */
 export function useSampleSpecificationKeys() {
 	const variable = useRepositoryIdVariable();
 	const { repository: data } = useLazyLoadQuery<SpecificationKeyProviderSampleQuery>(
@@ -41,6 +46,11 @@ export function useSampleSpecificationKeys() {
 	}, [variable.repositoryId, data]);
 }
 
+/**
+ * Provides a list of all specification keys for devices in the repository.
+ * IMPORTANT: This hook suspends the component. Wrap the component with a Suspense boundary to
+ * avoid loosing state.
+ */
 export function useDeviceSpecificationKeys() {
 	const variable = useRepositoryIdVariable();
 	const { repository: data } = useLazyLoadQuery<SpecificationKeyProviderDeviceQuery>(

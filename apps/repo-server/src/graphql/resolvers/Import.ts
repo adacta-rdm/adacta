@@ -8,11 +8,11 @@ import { paginateDocuments } from "./utils/paginateDocuments";
 import { executeImportAsTransformation } from "../../csvImportWizard/executeImportAsTransformation";
 import type { IImportPreset, IResolvers } from "../generated/resolvers";
 
+import { assertIImportWizardPreset } from "@/tsrc/lib/interface/IImportWizardPreset";
 import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
 import { EntityFactory } from "~/lib/database/EntityFactory";
 import type { IDeviceId } from "~/lib/database/Ids";
-import { assertIImportWizardPreset } from "~/lib/interface/type_checks/assertIImportWizardPreset";
 import { uuid } from "~/lib/uuid";
 
 export const ImportMutations: IResolvers["RepositoryMutation"] = {

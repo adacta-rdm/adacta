@@ -9,11 +9,5 @@ export function propertyNameToReadableString(name: string) {
 		return "";
 	}
 
-	return (
-		name[0].toUpperCase() +
-		name
-			.slice(1)
-			.split(/(?<=[a-zA-Z])(?=\d)|(?<=\d)(?=[a-zA-Z])|(?<=[a-z])(?=[A-Z])/g)
-			.join(" ")
-	);
+	return name[0].toUpperCase() + name.slice(1);
 }

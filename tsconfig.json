@@ -17,6 +17,7 @@
 		"jsxImportSource": "@emotion/react",
 		"types": ["vite/client"],
 		"baseUrl": ".",
+		"incremental": true,
 		"paths": {
 			"@/*": ["./@/*"],
 			"~/*": ["./*"]

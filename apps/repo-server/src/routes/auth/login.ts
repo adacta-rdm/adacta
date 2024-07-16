@@ -5,20 +5,19 @@ import type { AuthConfig } from "../../config/AuthConfig";
 import type { EntityLoader } from "../../services/EntityLoader";
 import { getAccessTokenForUser } from "../../utils/getAccessTokenForUser";
 
+import { isILoginRequest } from "@/tsrc/lib/interface/ILoginRequest";
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
 import { DrizzleGlobalSchema } from "~/drizzle/DrizzleSchema";
 import { verifyPassword } from "~/lib/Authentication";
 import type { IHTTPEndpointArgs } from "~/lib/interface/IHTTPEndpointArgs";
 import type { IHTTPEndpointReturnType } from "~/lib/interface/IHTTPEndpointReturnType";
 import type { ILoginResponse } from "~/lib/interface/ILoginResponse";
-import { isILoginRequest } from "~/lib/interface/type_checks/isILoginRequest";
 import type { Logger } from "~/lib/logger/Logger";
 
 export async function login(
 	args: IHTTPEndpointArgs,
 	logger: Logger,
 	el: EntityLoader,
-
 	cfg: AuthConfig
 ): Promise<IHTTPEndpointReturnType<ILoginResponse>> {
 	// Explicitly extract all parameters because the validation function will

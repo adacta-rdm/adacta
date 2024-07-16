@@ -690,7 +690,8 @@ export class CSVImportWizard {
 							: { begin: new Date(begin), end: endDate };
 
 					// If begin is still infinity by now then no time could be parsed out of the
-					// datetime column. In this case we can't really continue (for now)
+					// datetime column. In this case we can only continue if the user has provided
+					// manual time information
 					if (CSVImportWizard.timeColumnConfigured(columnMetadata)) {
 						if (begin == Infinity) {
 							return resolve(
@@ -727,6 +728,13 @@ export class CSVImportWizard {
 							for (const [name, config] of columns) {
 								let pathFound = false;
 								let deviceFound: IDeviceId | undefined = undefined;
+
+								// Special treatment for the case where the device path is set to []
+								// as this indicates that the root device is the source of the data
+								if (isEqual(config.devicePath, [])) {
+									pathFound = true;
+									deviceFound = deviceReferenceCheck.deviceId;
+								}
 
 								for (const device of devices) {
 									deviceFound =
@@ -786,6 +794,16 @@ export class CSVImportWizard {
 										}
 									}
 								}
+							}
+
+							if (
+								!tabularDataColumnDescription.some(
+									(column) => column.independentVariables.length > 0
+								)
+							) {
+								warnings.push(
+									"No dependent variables found. If all columns contain independent data, it is possible to import such files, but there is no way to visualize the data."
+								);
 							}
 
 							return resolve(
