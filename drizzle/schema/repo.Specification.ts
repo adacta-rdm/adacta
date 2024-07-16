@@ -6,7 +6,7 @@ import { DeviceDefinition } from "~/drizzle/schema/repo.DeviceDefinition";
 import { Sample } from "~/drizzle/schema/repo.Sample";
 import type { IPgSchemas } from "~/drizzle/schemaHelpers/IPgSchemas";
 import { idType } from "~/drizzle/schemaHelpers/idType";
-import { MAX_SPECIFICATION_VALUE_LENGTH } from "~/lib/maxSpecificationValueLength";
+import { MAX_SPECIFICATION_VALUE_LENGTH } from "~/lib/MAX_SPECIFICATION_VALUE_LENGTH";
 
 export function DeviceSpecification(schemas: IPgSchemas) {
 	return specifications("DeviceSpecification", () => Device(schemas).id, schemas);

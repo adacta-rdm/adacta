@@ -48,7 +48,7 @@ import type { AdactaTimelineResource$data } from "@/relay/AdactaTimelineResource
 import type { AdactaTimelineSample$data } from "@/relay/AdactaTimelineSample.graphql";
 import type { AdactaTimelineUsage$data } from "@/relay/AdactaTimelineUsage.graphql";
 import type { DeviceOverview$key } from "@/relay/DeviceOverview.graphql";
-import type { specialMeaningSpecificationsKeys } from "~/apps/desktop-app/src/components/specifications/SpecialMeaningSpecifications";
+import type { specialMeaningSpecificationsKeys } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
 import { createDate, createMaybeDate } from "~/lib/createDate";
 import type { IDeviceId } from "~/lib/database/Ids";
 import { convertDeviceToTraversalResult } from "~/lib/inheritance/convertToTraversalResult";
@@ -344,6 +344,7 @@ export function DeviceOverview(props: IProps) {
 										}}
 									>
 										{description}
+										<EuiSpacer />
 									</EuiFlexItem>
 								))}
 							</EuiFlexGroup>
@@ -357,13 +358,13 @@ export function DeviceOverview(props: IProps) {
 										<br />
 										{renderSpecification("Responsible (primary)", (v) => (
 											<>
-												Responsible (primary): <strong>{v}</strong>
+												Responsible (primary): {v}
 												<br />
 											</>
 										))}
 										{renderSpecification("Responsible (secondary)", (v) => (
 											<>
-												Responsible (secondary): <strong>{v}</strong>
+												Responsible (secondary): {v}
 												<br />
 											</>
 										))}

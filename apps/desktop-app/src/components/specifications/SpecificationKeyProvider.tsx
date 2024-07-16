@@ -8,7 +8,7 @@ import { connectionToArray } from "../../utils/connectionToArray";
 
 import type { SpecificationKeyProviderDeviceQuery } from "@/relay/SpecificationKeyProviderDeviceQuery.graphql";
 import type { SpecificationKeyProviderSampleQuery } from "@/relay/SpecificationKeyProviderSampleQuery.graphql";
-import { specialMeaningSpecificationsKeys } from "~/apps/desktop-app/src/components/specifications/SpecialMeaningSpecifications";
+import { specialMeaningSpecificationsKeys } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
 
 /**
  * Provides a list of all specification keys for samples in the repository.

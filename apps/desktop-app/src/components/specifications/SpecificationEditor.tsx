@@ -21,8 +21,8 @@ import type { ArrayElement } from "type-fest/source/internal";
 import { useDeviceSpecificationKeys, useSampleSpecificationKeys } from "./SpecificationKeyProvider";
 
 import { wrapWithSuspense } from "~/apps/desktop-app/src/utils/wrapWithSuspense";
+import { MAX_SPECIFICATION_VALUE_LENGTH } from "~/lib/MAX_SPECIFICATION_VALUE_LENGTH";
 import type { ISpecification } from "~/lib/database/documents/interfaces/ISpecification";
-import { MAX_SPECIFICATION_VALUE_LENGTH } from "~/lib/maxSpecificationValueLength";
 
 interface IProps {
 	specifications: ISpecification[];
@@ -241,7 +241,7 @@ const SpecificationEditor = forwardRef<
 										maxLength={2000}
 									/>
 								)}
-								{editValue.length == MAX_SPECIFICATION_VALUE_LENGTH && (
+								{editValue.length === MAX_SPECIFICATION_VALUE_LENGTH && (
 									<>
 										<EuiSpacer />
 										<EuiCallOut color={"warning"}>
