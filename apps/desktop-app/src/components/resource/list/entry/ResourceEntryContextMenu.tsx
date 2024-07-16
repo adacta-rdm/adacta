@@ -12,6 +12,8 @@ export interface IResourceComparisonOptions {
 }
 
 interface IProps {
+	entryType: "raw" | "merged";
+
 	addManual?: () => void;
 	import?: () => void;
 
@@ -81,7 +83,7 @@ export function ResourceEntryContextMenu(props: PropsWithConnections<IProps>) {
 						Import
 					</EuiContextMenuItem>
 				)}
-				{props.comparison && (
+				{props.entryType == "merged" && props.comparison && (
 					<>
 						{!selectedResources?.includes(props.resourceId) ? (
 							<EuiContextMenuItem

@@ -6,7 +6,6 @@ import {
 	EuiPageTemplate,
 	EuiSpacer,
 } from "@elastic/eui";
-import { isNonNullish } from "@omegadot/assert";
 import React, { useMemo, useState } from "react";
 import { graphql, usePaginationFragment, useSubscription } from "react-relay";
 import type { PreloadedQuery } from "react-relay/hooks";
@@ -41,7 +40,6 @@ const ResourceListGraphQLFragment = graphql`
 				edges {
 					node {
 						...ResourceListTableFragment
-						...ResourceComparisonViewFragment
 					}
 				}
 			}
@@ -133,7 +131,6 @@ export function ResourceList(props: { queryRef: PreloadedQuery<ResourceListQuery
 					<ResourceComparisonView
 						onLeaveComparisonView={() => setShowComparison(false)}
 						selectedResources={selectedResources}
-						resources={data.resources.edges.map((n) => n.node).filter(isNonNullish)}
 					/>
 				) : (
 					<>
