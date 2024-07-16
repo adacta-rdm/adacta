@@ -8,6 +8,7 @@ import { connectionToArray } from "../../utils/connectionToArray";
 
 import type { SpecificationKeyProviderDeviceQuery } from "@/relay/SpecificationKeyProviderDeviceQuery.graphql";
 import type { SpecificationKeyProviderSampleQuery } from "@/relay/SpecificationKeyProviderSampleQuery.graphql";
+import { specialMeaningSpecificationsKeys } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
 
 /**
  * Provides a list of all specification keys for samples in the repository.
@@ -95,7 +96,9 @@ export function useDeviceSpecificationKeys() {
 			.flat()
 			.map((s) => s.name);
 
-		const keys = propertyKeysFromDevices.concat(propertyKeysFromDeviceDefinitions);
+		const keys = propertyKeysFromDevices
+			.concat(propertyKeysFromDeviceDefinitions)
+			.concat(specialMeaningSpecificationsKeys);
 		return lodash.sortedUniq(keys.filter(isNonNullish).sort());
 	}, [data]);
 }

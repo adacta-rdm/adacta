@@ -116,6 +116,9 @@ async function main(args: string[]) {
 	);
 	const globalSchemaName = new DrizzleGlobalSchema().global.schemaName;
 	await rmpTarget.db().execute(sql.raw(`drop schema if exists "${globalSchemaName}" cascade;`));
+	await rmpTarget
+		.db()
+		.execute(sql.raw(`drop schema if exists "${MIGRATION_SCHEMA_NAME}" cascade;`));
 
 	const schemaArgs = [
 		MIGRATION_SCHEMA_NAME,
