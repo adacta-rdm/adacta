@@ -1,4 +1,4 @@
-import { EuiImage } from "@elastic/eui";
+import { EuiIcon, EuiImage } from "@elastic/eui";
 import { isNonNullish } from "@omegadot/assert";
 import React from "react";
 import { graphql } from "react-relay";
@@ -38,5 +38,8 @@ export function DevicePreviewImage(props: { data: DevicePreviewImage$key }) {
 			alt={`${data.name} preview`}
 			src={dataURI}
 		/>
-	) : null;
+	) : (
+		// Empty icon to keep the indentation of the layout consistent
+		<EuiIcon type="empty" style={{ marginRight: 10, width: 25 }} />
+	);
 }
