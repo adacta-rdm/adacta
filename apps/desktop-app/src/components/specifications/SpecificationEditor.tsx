@@ -176,7 +176,7 @@ const SpecificationEditor = forwardRef<
 
 	// Create a list of all specifications with the possibility to edit them as required
 	// for the DescriptionList
-	const existingSpecificationsItems = props.specifications
+	const existingSpecificationsItems = [...props.specifications]
 		.sort((a, b) => a.name.localeCompare(b.name))
 		.map((s) => {
 			const updateSpecification = () => {
