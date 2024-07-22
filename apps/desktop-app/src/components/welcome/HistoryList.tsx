@@ -69,10 +69,10 @@ interface IProps {
 }
 
 function HistoryListRaw({ ids, favorites }: IProps) {
-	const data = useLazyLoadQuery<HistoryListQuery>(HistoryListGraphQLQuery, {
-		ids: ids.map((i) => i.id),
-	});
 	const repositoryId = useRepositoryIdMaybe();
+	const data = useLazyLoadQuery<HistoryListQuery>(HistoryListGraphQLQuery, {
+		ids: ids.filter((i) => i.repositoryId === repositoryId).map((i) => i.id),
+	});
 
 	if (!repositoryId) {
 		return (

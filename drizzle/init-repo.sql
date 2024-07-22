@@ -39,14 +39,14 @@ CREATE TABLE IF NOT EXISTS "SQL_SCHEMA_PLACEHOLDER"."DeviceDefinitionPaths" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "SQL_SCHEMA_PLACEHOLDER"."DeviceDefinitionSpecification" (
 	"name" varchar(255) NOT NULL,
-	"value" varchar(255) NOT NULL,
+	"value" varchar(2000) NOT NULL,
 	"owner_id" uuid NOT NULL,
 	CONSTRAINT "DeviceDefinitionSpecification_owner_id_name_pk" PRIMARY KEY("owner_id","name")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "SQL_SCHEMA_PLACEHOLDER"."DeviceSpecification" (
 	"name" varchar(255) NOT NULL,
-	"value" varchar(255) NOT NULL,
+	"value" varchar(2000) NOT NULL,
 	"owner_id" uuid NOT NULL,
 	CONSTRAINT "DeviceSpecification_owner_id_name_pk" PRIMARY KEY("owner_id","name")
 );
@@ -185,7 +185,7 @@ CREATE TABLE IF NOT EXISTS "SQL_SCHEMA_PLACEHOLDER"."Sample" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "SQL_SCHEMA_PLACEHOLDER"."SampleSpecification" (
 	"name" varchar(255) NOT NULL,
-	"value" varchar(255) NOT NULL,
+	"value" varchar(2000) NOT NULL,
 	"owner_id" uuid NOT NULL,
 	CONSTRAINT "SampleSpecification_owner_id_name_pk" PRIMARY KEY("owner_id","name")
 );

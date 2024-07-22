@@ -328,7 +328,7 @@ function ComponentEuiTreePure(props: IPropsPure) {
 
 			const treeEntryId =
 				node.component.__typename == "virtualGroup"
-					? depthString // virtualGroup does not have an ID. Not sure if this is the best way to handle it
+					? depthString + String(i + 1) // virtualGroup does not have an ID. Not sure if this is the best way to handle it
 					: node.component.id;
 
 			return {
