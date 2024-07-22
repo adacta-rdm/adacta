@@ -73,6 +73,7 @@ export function RawEntry(
 			{props.showContextMenu && data.uploadDeviceId && (
 				<EuiTableRowCell align={"right"}>
 					<ResourceEntryContextMenu
+						entryType={"raw"}
 						connections={props.connections}
 						resourceId={data.id}
 						import={handleImport}

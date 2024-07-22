@@ -105,9 +105,11 @@ export function RawTabularMergedEntry(
 					<UserLink user={data.metadata.creator} />
 				</EuiTableRowCell>
 				<EuiTableRowCell align={"right"}>
-					{props.showContextMenu && data.parent?.id && (
+					{props.showContextMenu && (
 						<ResourceEntryContextMenu
-							resourceId={data.parent?.id}
+							entryType={"merged"}
+							resourceId={data.id}
+							resourceIdParentId={data.parent?.id}
 							addManual={() => setShowAddManualTransformationModal(true)}
 							connections={[...props.connections, data.children.__id]}
 							comparison={props.comparison}
@@ -132,6 +134,7 @@ export function RawTabularMergedEntry(
 									connections={[...props.connections, data.children.__id]}
 									parents={[...props.parents, ...(data.parent?.id ? [data.parent?.id] : []), s]}
 									showContextMenu={props.showContextMenu}
+									comparison={props.comparison}
 								/>
 							</Suspense>
 						);

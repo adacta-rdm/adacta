@@ -302,6 +302,12 @@ export class Downsampling {
 			)
 		).filter(isNonNullish);
 
+		// It is possible that all requested resources aren't downsampled yet
+		// In this case we return an empty array
+		if (downsampled.length === 0) {
+			return [];
+		}
+
 		// Find x axes which aren't of type datetime
 		const nonDatePairs = downsampled.filter((d) => d.x.type !== "datetime");
 

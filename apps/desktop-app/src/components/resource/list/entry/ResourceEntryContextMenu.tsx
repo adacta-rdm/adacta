@@ -12,8 +12,19 @@ export interface IResourceComparisonOptions {
 }
 
 interface IProps {
+	entryType: "raw" | "merged";
+
 	addManual?: () => void;
 	import?: () => void;
+
+	/**
+	 * Parent resource ID (if used in the context of a RawTabularMergedEntry)
+	 */
+	resourceIdParentId?: string;
+
+	/**
+	 * Resource ID. Used for comparision
+	 */
 	resourceId: string;
 
 	// Comparison
@@ -42,7 +53,10 @@ export function ResourceEntryContextMenu(props: PropsWithConnections<IProps>) {
 			<EuiContextMenuItem icon={"download"} size={"s"} key={"exportFile"}>
 				<ResourceFileDownloadButton
 					renderAsLink
-					resourceId={props.resourceId}
+					resourceId={
+						props.resourceIdParentId ?? // For merged entries this is set
+						props.resourceId // For other entries the resource ID is used
+					}
 					fileName={props.fileName}
 				/>
 			</EuiContextMenuItem>
@@ -69,7 +83,7 @@ export function ResourceEntryContextMenu(props: PropsWithConnections<IProps>) {
 						Import
 					</EuiContextMenuItem>
 				)}
-				{props.comparison && (
+				{props.entryType == "merged" && props.comparison && (
 					<>
 						{!selectedResources?.includes(props.resourceId) ? (
 							<EuiContextMenuItem

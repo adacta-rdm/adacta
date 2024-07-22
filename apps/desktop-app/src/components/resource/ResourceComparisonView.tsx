@@ -8,8 +8,7 @@ import {
 } from "@elastic/eui";
 import { assertDefined } from "@omegadot/assert";
 import React, { Suspense, useState } from "react";
-import { graphql } from "react-relay";
-import { useFragment } from "react-relay/hooks";
+import { graphql, useLazyLoadQuery } from "react-relay";
 
 import { MultiTimeSelector } from "./MultiTimeSelector";
 import { ResourceLink } from "./ResourceLink";
@@ -17,26 +16,30 @@ import { secondsToHMS } from "../../utils/secondsToHMS";
 import { ChartLoading } from "../chart/ChartLoading";
 import { MultipleResourceChart } from "../chart/MultipleResourceChart";
 
-import type { ResourceComparisonViewFragment$key } from "@/relay/ResourceComparisonViewFragment.graphql";
+import type { ResourceComparisonViewQuery } from "@/relay/ResourceComparisonViewQuery.graphql";
+import { useRepositoryIdVariable } from "~/apps/desktop-app/src/services/router/UseRepoId";
 
-const ResourceComparisonViewGraphQLFragment = graphql`
-	fragment ResourceComparisonViewFragment on ResourceTimed @relay(plural: true) {
-		children {
-			edges {
-				node {
-					id
-					...ResourceLink
-				}
-			}
-		}
-	}
-`;
 export function ResourceComparisonView(props: {
 	onLeaveComparisonView: () => void;
-	resources: ResourceComparisonViewFragment$key;
 	selectedResources: string[];
 }) {
-	const resources = useFragment(ResourceComparisonViewGraphQLFragment, props.resources);
+	const {
+		repository: { nodes: resources },
+	} = useLazyLoadQuery<ResourceComparisonViewQuery>(
+		graphql`
+			query ResourceComparisonViewQuery($repositoryId: ID!, $resourceIds: [ID!]!) {
+				repository(id: $repositoryId) {
+					nodes(ids: $resourceIds) {
+						... on ResourceTabularData {
+							id
+							...ResourceLink
+						}
+					}
+				}
+			}
+		`,
+		{ ...useRepositoryIdVariable(), resourceIds: props.selectedResources }
+	);
 	const [showComparisonAlignStart, setShowComparisonAlignStart] = useState(false);
 	const [offsets, setOffsets] = useState<number[]>(
 		new Array(props.selectedResources.length).fill(0)
@@ -69,30 +72,25 @@ export function ResourceComparisonView(props: {
 			</EuiFlexGroup>
 			<EuiSpacer />
 			<EuiFlexGroup direction={"column"}>
-				{resources
-					.flatMap((r) => r.children.edges.map((e) => e.node))
-					.filter((r) => r !== null && selectedResources.includes(r.id))
-					.map((r) => {
-						assertDefined(r?.id);
-						const index = selectedResources.findIndex((s) => s === r.id);
-						const [h, m, s] = secondsToHMS(offsets[index]).map((n) => String(n).padStart(2, "0"));
-						return (
-							<EuiFlexItem key={r.id}>
-								<ResourceLink resource={r} />
-								Offset: {h}:{m}:{s}
-								{offsetEditMode && (
-									<MultiTimeSelector
-										value={offsets[index]}
-										onChange={(vNew) => {
-											setOffsets((offsets) =>
-												offsets.map((vOld, i) => (i === index ? vNew : vOld))
-											);
-										}}
-									/>
-								)}
-							</EuiFlexItem>
-						);
-					})}
+				{resources.map((r) => {
+					assertDefined(r?.id);
+					const index = selectedResources.findIndex((s) => s === r.id);
+					const [h, m, s] = secondsToHMS(offsets[index]).map((n) => String(n).padStart(2, "0"));
+					return (
+						<EuiFlexItem key={r.id}>
+							<ResourceLink resource={r} />
+							Offset: {h}:{m}:{s}
+							{offsetEditMode && (
+								<MultiTimeSelector
+									value={offsets[index]}
+									onChange={(vNew) => {
+										setOffsets((offsets) => offsets.map((vOld, i) => (i === index ? vNew : vOld)));
+									}}
+								/>
+							)}
+						</EuiFlexItem>
+					);
+				})}
 			</EuiFlexGroup>
 			<EuiSpacer />
 			<Suspense fallback={<ChartLoading />}>
