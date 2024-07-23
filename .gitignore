@@ -61,3 +61,4 @@ temp
 # Generated files
 @
 tsconfig.tsbuildinfo
+*storybook.log

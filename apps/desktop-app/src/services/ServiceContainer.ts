@@ -15,7 +15,7 @@ export class ServiceContainer<T extends Record<string, object> = {}> {
 	private byId: T;
 	private byType = new Map<Function, unknown[]>();
 
-	private constructor(services: T) {
+	public constructor(services: T) {
 		this.byId = services;
 
 		for (const service of Object.values(services)) {

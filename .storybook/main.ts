@@ -1,43 +1,17 @@
-import { join } from "path";
-
 import type { StorybookConfig } from "@storybook/react-vite";
-import { mergeConfig } from "vite";
 
 const config: StorybookConfig = {
-	stories: [
-		"../apps/desktop-app/src/**/*.mdx",
-		"../apps/desktop-app/src/**/*.stories.@(js|jsx|ts|tsx)",
-	],
+	stories: ["../apps/desktop-app/src/**/*.stories.@(js|jsx|ts|tsx)"],
 	addons: [
+		"@storybook/addon-onboarding",
 		"@storybook/addon-links",
 		"@storybook/addon-essentials",
+		"@chromatic-com/storybook",
 		"@storybook/addon-interactions",
-		{
-			name: "storybook-addon-manual-mocks/vite",
-			options: {
-				mocksFolder: "__mocks__",
-			},
-		},
 	],
 	framework: {
 		name: "@storybook/react-vite",
 		options: {},
 	},
-	viteFinal(config) {
-		return mergeConfig(config, {
-			assetsInclude: ["/sb-preview/runtime.js"],
-			resolve: {
-				alias: {
-					found: join(__dirname, "mocks/found"),
-				},
-			},
-		});
-	},
-	typescript: {
-		// react-docgen-typescript causes issues as it tries to traverse the temp folder (where the
-		// permissions cause issues)
-		reactDocgen: "react-docgen",
-	},
 };
-
 export default config;

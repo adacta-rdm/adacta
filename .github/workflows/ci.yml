@@ -46,6 +46,9 @@ jobs:
       - name: Run prettier
         run: yarn code-style-check
 
+      - name: Build storybook
+        run: yarn build:storybook
+
   build:
     name: Build
     runs-on: ubuntu-latest

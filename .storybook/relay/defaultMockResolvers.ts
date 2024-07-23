@@ -1,8 +1,6 @@
 import seedrandom from "seedrandom";
 
-import type { TypedMockResolvers } from "./RelayMockedDataProvider";
-import { getSeededRandomElement, getSeededRandomInt } from "./seededRandomUtils";
-
+import type { TypedMockResolvers } from "~/.storybook/relay/withRelay";
 import { createIDatetime } from "~/lib/createDate";
 import { uuid } from "~/lib/uuid";
 export const pseudoRandom = seedrandom("ADACTA_STATIC_SEED");
@@ -41,7 +39,7 @@ function getAcceptsUnit() {
  * Resolvers which are only applicable to a specific test (i.e. amount of Devices returned by a
  * DeviceEdge) should not be added here.
  */
-export const defaultMocks: TypedMockResolvers = {
+export const defaultMockResolvers: TypedMockResolvers = {
 	// DateTime is a scalar which only works if operation is tagged with @relay_test_operation
 	DateTime() {
 		return createIDatetime(new Date());
@@ -60,6 +58,12 @@ export const defaultMocks: TypedMockResolvers = {
 		return {
 			name: getDeviceName(),
 			freeComponents: new Array(5).fill(""),
+		};
+	},
+	Sample() {
+		return {
+			name: "Sample",
+			devices: new Array(5).fill(""),
 		};
 	},
 	ID() {
@@ -101,3 +105,13 @@ export const defaultMocks: TypedMockResolvers = {
 		return { values, unit: "°C", label: "Test" };
 	},
 };
+
+export function getSeededRandomElement<T>(items: T[]): T {
+	return items[Math.floor(pseudoRandom() * items.length)];
+}
+
+export function getSeededRandomInt(min: number, max: number) {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(pseudoRandom() * (max + 1 - min) + min);
+}

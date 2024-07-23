@@ -3,15 +3,18 @@ import { graphql } from "react-relay";
 
 import { Chart } from "../components/chart/Chart";
 
-import type { ChartsQuery } from "@/relay/ChartsQuery.graphql";
-import type { RelayMockedFragmentHelperStory } from "~/.storybook/helpers/RelayMockedFragmentHelper";
-import { RelayMockedFragmentHelper } from "~/.storybook/helpers/RelayMockedFragmentHelper";
+import type { ChartsStoriesQuery } from "@/relay/ChartsStoriesQuery.graphql";
+import type { AdactaStoryObj } from "~/.storybook/types";
 
 // More on default export: https://storybook.js.org/docs/react/writing-stories/introduction#default-export
-export default {
+const meta = {
 	title: "Chart",
-	component: RelayMockedFragmentHelper,
-} as Meta<typeof RelayMockedFragmentHelper>;
+	component: Chart,
+} satisfies Meta<typeof Chart>;
+
+export default meta;
+
+type Story = AdactaStoryObj<typeof meta, ChartsStoriesQuery>;
 
 let dataSeriesCounter = 0;
 
@@ -33,12 +36,12 @@ function getDataSeries() {
 	return d;
 }
 
-export const Basic: RelayMockedFragmentHelperStory<ChartsQuery> = {
-	args: {
-		query: graphql`
-			query ChartsQuery {
-				repository(id: "foo") {
-					resource(id: "bar") {
+export const Basic: Story = {
+	parameters: {
+		relay: {
+			query: graphql`
+				query ChartsStoriesQuery {
+					node(id: "bar") {
 						... on ResourceTabularData {
 							downSampled(dataPoints: 100) {
 								...ChartFragment
@@ -46,18 +49,15 @@ export const Basic: RelayMockedFragmentHelperStory<ChartsQuery> = {
 						}
 					}
 				}
-			}
-		`,
-		mockResolvers: {
-			DataSeries() {
-				return { values: getDataSeries(), unit: "°C", label: "Test" };
+			`,
+			props: {
+				chart: (queryResult) => queryResult.node!.downSampled!,
+			},
+			mockResolvers: {
+				DataSeries() {
+					return { values: getDataSeries(), unit: "°C", label: "Test" };
+				},
 			},
 		},
-		renderTestSubject: (data) =>
-			data.repository.resource?.downSampled != null ? (
-				<Chart chart={data.repository.resource.downSampled} />
-			) : (
-				<></>
-			),
 	},
 };

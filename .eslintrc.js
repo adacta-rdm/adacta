@@ -35,6 +35,7 @@ const config = {
 		// Note that this config only turns rules off, so it only makes sense using it together with some other config.
 		// Make sure to put it last, so it gets the chance to override other configs.
 		"prettier",
+		"plugin:storybook/recommended",
 	],
 	overrides: [
 		{

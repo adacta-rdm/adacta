@@ -15,7 +15,7 @@ import type { PropertyType } from "@/relay/AddOrEditComponentUsageModalFragment.
 import type { FreeComponentSelectionQuery } from "@/relay/FreeComponentSelectionQuery.graphql";
 import { createDate, createIDatetime, createMaybeIDatetime } from "~/lib/createDate";
 
-const FreeComponentSelectionGraphQLQuery = graphql`
+export const FreeComponentSelectionGraphQLQuery = graphql`
 	query FreeComponentSelectionQuery(
 		$deviceId: ID!
 		$begin: DateTime!
