@@ -1,3 +1,4 @@
+import { isNonNullish } from "@omegadot/assert";
 import {
 	and,
 	asc,
@@ -17,6 +18,7 @@ import {
 
 import { CONSTANT_NODE_IDS } from "./ConstantNodeIds";
 import { ImportResolvers } from "./Import";
+import { Node } from "./Node";
 import { paginateDocuments } from "./utils/paginateDocuments";
 import { DuplicateNameHandling } from "../../utils/repositoryConfigValues/DuplicateNameHandling";
 import type { IDefinedResolver } from "../IDefinedResolver";
@@ -56,8 +58,29 @@ export const RepositoryQuery: IDefinedResolver<"RepositoryQuery"> = {
 		return { id };
 	},
 
-	nodes(_, { ids }) {
-		return ids.map((id) => ({ id }));
+	async nodes(_, { ids }, ctx, info) {
+		return (
+			(
+				await Promise.all(
+					ids.map(async (id: string) => {
+						// This resolver can be called with any ID (even IDs for entities that are marked as deleted)
+						// Therefore, we check if the ID is valid (by calling __resolveType)
+						// For IDs where __resolveType throws an error, we return nothing in the result array.
+						try {
+							const type = await Node.__resolveType({ id }, ctx, info);
+							return type ? { id: id, __typename: type } : undefined;
+						} catch {
+							return undefined;
+						}
+					})
+				)
+			)
+				// This type assertion is necessary because otherwise type of nodes() would require
+				// us to return an ID with opaque type which matches __typename. While that might be
+				// possible, it wouldn't add much type-safety as long as Node.__resolveType
+				// is typed correctly
+				.filter(isNonNullish) as { id: string }[]
+		);
 	},
 
 	/**

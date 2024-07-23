@@ -1,10 +1,10 @@
 import { CONSTANT_NODE_IDS } from "./ConstantNodeIds";
 import { decodeEntityId } from "../../utils/decodeEntityId";
-import type { IResolvers } from "../generated/resolvers";
 
+import type { IDefinedResolver } from "~/apps/repo-server/src/graphql/IDefinedResolver";
 import { NameCompositionVariableType } from "~/apps/repo-server/src/graphql/resolvers/NameCompositionVariable";
 
-export const Node: IResolvers["Node"] = {
+export const Node: IDefinedResolver<"Node"> = {
 	async __resolveType({ id }, ctx) {
 		if (CONSTANT_NODE_IDS[id] !== undefined) {
 			return CONSTANT_NODE_IDS[id].type;
