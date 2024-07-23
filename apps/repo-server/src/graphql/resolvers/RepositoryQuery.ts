@@ -1,4 +1,4 @@
-import { assertDefined, isNonNullish } from "@omegadot/assert";
+import { isNonNullish } from "@omegadot/assert";
 import {
 	and,
 	asc,
@@ -67,7 +67,6 @@ export const RepositoryQuery: IDefinedResolver<"RepositoryQuery"> = {
 						// Therefore, we check if the ID is valid (by calling __resolveType)
 						// For IDs where __resolveType throws an error, we return nothing in the result array.
 						try {
-							assertDefined(Node);
 							const type = await Node.__resolveType({ id }, ctx, info);
 							return type ? { id: id, __typename: type } : undefined;
 						} catch {
