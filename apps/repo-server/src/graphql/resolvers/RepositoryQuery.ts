@@ -60,21 +60,28 @@ export const RepositoryQuery: IDefinedResolver<"RepositoryQuery"> = {
 
 	async nodes(_, { ids }, ctx, info) {
 		return (
-			await Promise.all(
-				ids.map(async (id: string) => {
-					// This resolver can be called with any ID (even IDs for entities that are marked as deleted)
-					// Therefore, we check if the ID is valid (by calling __resolveType)
-					// For IDs where __resolveType throws an error, we return nothing in the result array.
-					try {
-						assertDefined(Node);
-						const type = await Node.__resolveType({ id }, ctx, info);
-						return type ? { id: id, __typename: type } : undefined;
-					} catch {
-						return undefined;
-					}
-				})
+			(
+				await Promise.all(
+					ids.map(async (id: string) => {
+						// This resolver can be called with any ID (even IDs for entities that are marked as deleted)
+						// Therefore, we check if the ID is valid (by calling __resolveType)
+						// For IDs where __resolveType throws an error, we return nothing in the result array.
+						try {
+							assertDefined(Node);
+							const type = await Node.__resolveType({ id }, ctx, info);
+							return type ? { id: id, __typename: type } : undefined;
+						} catch {
+							return undefined;
+						}
+					})
+				)
 			)
-		).filter(isNonNullish) as { id: string }[]; // is typed correctly // While that might be possible, it wouldn't add much type-safety as long as Node.__resolveType // an ID with opaque type which matches __typename // This type assertion is necessary because otherwise type of nodes() would require us to return
+				// This type assertion is necessary because otherwise type of nodes() would require
+				// us to return an ID with opaque type which matches __typename. While that might be
+				// possible, it wouldn't add much type-safety as long as Node.__resolveType
+				// is typed correctly
+				.filter(isNonNullish) as { id: string }[]
+		);
 	},
 
 	/**
