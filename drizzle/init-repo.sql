@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS "SQL_SCHEMA_PLACEHOLDER"."Device" (
 	"image_resources" uuid[] NOT NULL,
 	"setup_description" jsonb NOT NULL,
 	"specifications" jsonb,
-	"search" tsvector generated always as (to_tsvector('simple', name || ' ' || short_id)) stored,
+	"search" "tsvector" GENERATED ALWAYS AS (to_tsvector('simple', name || ' ' || short_id)) STORED,
 	"metadata_creator_id" uuid NOT NULL,
 	"metadata_creation_timestamp" timestamp NOT NULL,
 	"metadata_deleted_at" timestamp,
@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS "SQL_SCHEMA_PLACEHOLDER"."Project" (
 	"project_id" uuid PRIMARY KEY NOT NULL,
 	"couch_id" uuid,
 	"name" varchar(255) NOT NULL,
-	"search" tsvector generated always as (to_tsvector('simple', name)) stored,
+	"search" "tsvector" GENERATED ALWAYS AS (to_tsvector('simple', name)) STORED,
 	"metadata_creator_id" uuid NOT NULL,
 	"metadata_creation_timestamp" timestamp NOT NULL,
 	"metadata_deleted_at" timestamp,
@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS "SQL_SCHEMA_PLACEHOLDER"."Resource" (
 	"couch_id" uuid,
 	"name" varchar(255) NOT NULL,
 	"attachment" jsonb NOT NULL,
-	"search" tsvector generated always as (to_tsvector('simple', name)) stored,
+	"search" "tsvector" GENERATED ALWAYS AS (to_tsvector('simple', name)) STORED,
 	"metadata_creator_id" uuid NOT NULL,
 	"metadata_creation_timestamp" timestamp NOT NULL,
 	"metadata_deleted_at" timestamp,
@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS "SQL_SCHEMA_PLACEHOLDER"."Sample" (
 	"metadata_creator_id" uuid NOT NULL,
 	"metadata_creation_timestamp" timestamp NOT NULL,
 	"metadata_deleted_at" timestamp,
-	"search" tsvector generated always as (to_tsvector('simple', name)) stored,
+	"search" "tsvector" GENERATED ALWAYS AS (to_tsvector('simple', name)) STORED,
 	CONSTRAINT "Sample_couch_id_unique" UNIQUE("couch_id")
 );
 --> statement-breakpoint
