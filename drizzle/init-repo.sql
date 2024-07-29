@@ -389,3 +389,11 @@ DO $$ BEGIN
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_search_device" ON "SQL_SCHEMA_PLACEHOLDER"."Device" USING gin ("search");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_search_project" ON "SQL_SCHEMA_PLACEHOLDER"."Project" USING gin ("search");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_search_resource" ON "SQL_SCHEMA_PLACEHOLDER"."Resource" USING gin ("search");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_search_sample" ON "SQL_SCHEMA_PLACEHOLDER"."Sample" USING gin ("search");
