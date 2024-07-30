@@ -4,6 +4,7 @@ import * as path from "node:path";
 import * as util from "node:util";
 
 import { ICON_TYPES } from "@elastic/eui";
+import { scandirSync } from "@nodelib/fs.scandir";
 import react from "@vitejs/plugin-react";
 import relay from "vite-plugin-relay";
 import tsconfigPaths from "vite-tsconfig-paths";
@@ -578,8 +579,12 @@ export const typeToPathMap = {
 	tokenVectorSparse: "tokenVectorSparse",
 };
 
+const icons = scandirSync(resolve("node_modules/@elastic/eui/es/components/icon/assets")).map(
+	(icon) => icon.name.slice(0, -3)
+);
+
 const iconImportStatements = Object.entries(typeToPathMap).map(([icon, path]) =>
-	!(icon.startsWith("logo") || icon == "stats" || icon === "securityAnalyticsApp")
+	icons.includes(path)
 		? `import { icon as _${icon} } from "@elastic/eui/es/components/icon/assets/${path as string}";`
 		: `
 		// Skipped Icon (icons result in issues with storybook/dynamic imports)
