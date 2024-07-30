@@ -92,13 +92,13 @@ export function RawTabularMergedEntry(
 					<DateTime date={createMaybeDate(data.begin)} /> -{" "}
 					<DateTime date={createMaybeDate(data.end)} />
 				</EuiTableRowCell>
-				<EuiTableRowCell>
+				<EuiTableRowCell truncateText={true} textOnly={false}>
 					<ProjectListCollapsible data={data} />
 				</EuiTableRowCell>
 				<EuiTableRowCell>
 					<ResourceDevices devices={data.devices.filter(isNonNullish)} />
 				</EuiTableRowCell>
-				<EuiTableRowCell>
+				<EuiTableRowCell truncateText={true} textOnly={false}>
 					<Sparklines resource={data} />
 				</EuiTableRowCell>
 				<EuiTableRowCell>
