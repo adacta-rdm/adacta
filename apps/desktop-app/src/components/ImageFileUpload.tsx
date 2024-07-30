@@ -1,4 +1,8 @@
 import { EuiFilePicker } from "@elastic/eui";
+import type {
+	EuiFilePickerClass,
+	EuiFilePickerProps,
+} from "@elastic/eui/src/components/form/file_picker/file_picker";
 import { assertDefined } from "@omegadot/assert";
 import React, { useRef } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
@@ -35,7 +39,7 @@ interface IProps {
 }
 
 export function ImageFileUpload(props: IProps) {
-	const filePickerRef = useRef<EuiFilePicker>(null);
+	const filePickerRef = useRef<Omit<EuiFilePickerProps, "stylesMemoizer">>(null);
 
 	const repositoryIdVariable = useRepositoryIdVariable();
 
@@ -70,7 +74,7 @@ export function ImageFileUpload(props: IProps) {
 				void uploadFileBrowser(file, url)
 					.then(() => {
 						if (filePickerRef.current) {
-							filePickerRef.current.removeFiles();
+							(filePickerRef.current as EuiFilePickerClass).removeFiles();
 						}
 						importImageResource(uploadId);
 					})
