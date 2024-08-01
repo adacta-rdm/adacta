@@ -72,16 +72,19 @@ export function SampleTable(props: {
 	);
 }
 
-function SampleTableHeader(props: { disableActions?: boolean }) {
-	const columns = ["Name", "Creator", "Projects", "Currently installed in"];
+const columns = ["Name", "Creator", "Projects", "Currently installed in"];
+export const columnCount = columns.length;
+
+export function SampleTableHeader(props: { disableActions?: boolean }) {
+	const cols = [...columns]; // copy columns so "Actions" can be pushed
 
 	if (!props.disableActions) {
-		columns.push("Actions");
+		cols.push("Actions");
 	}
 
 	return (
 		<EuiTableHeader>
-			{columns.map((c) => (
+			{cols.map((c) => (
 				<EuiTableHeaderCell key={c} align={"center"}>
 					{c}
 				</EuiTableHeaderCell>

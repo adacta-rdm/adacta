@@ -105,7 +105,8 @@ export function DeviceListHierarchical(props: {
 	queryRef: PreloadedQuery<DeviceListHierarchicalQuery>;
 }) {
 	const [deviceAddDialogOpen, setDeviceAddDialogOpen] = useState(false);
-	const [isExpanded, setIsExpanded] = useState<boolean | undefined>();
+	const [isExpanded, setIsExpanded] = useState<boolean>(); // New state variable
+
 	const data = usePreloadedQuery(DeviceListHierarchicalGraphQLQuery, props.queryRef);
 
 	if (data === null) {
@@ -178,9 +179,8 @@ export function DeviceListHierarchical(props: {
 			</EuiFlexGroup>
 			<EuiTable>
 				<HierarchicalDeviceTableHeader />
-
+				{/*Own root devices are shown on top of the table*/}
 				<EuiTableBody>
-					{/*Own root devices are shown on top of the table*/}
 					{currentUsersTopLevelDevices.map((d, i) =>
 						d.node ? (
 							<HierarchicalDeviceTableRowToplevel
@@ -193,8 +193,10 @@ export function DeviceListHierarchical(props: {
 							/>
 						) : null
 					)}
-					{/* This is a hack to make the border thicker */}
-					<td colSpan={2} style={{ borderWidth: "thick" }} />{" "}
+				</EuiTableBody>
+				{/* This is a hack to make the border thicker */}
+				<td colSpan={2} style={{ borderWidth: "thick" }} />{" "}
+				<EuiTableBody>
 					{toplevelDevices.map((d, i) =>
 						d.node ? (
 							<HierarchicalDeviceTableRowToplevel
@@ -283,14 +285,7 @@ function HierarchicalDeviceTableRowToplevel(props: {
 					<UserLink user={fragmentData.device.metadata.creator} />
 				</EuiTableRowCell>
 			</EuiTableRow>
-			{showChildren && (
-				<DeviceTree
-					nodeChildren={tree}
-					path={[]}
-					isExpanded={props.isExpanded}
-					setIsExpanded={props.setIsExpanded}
-				/>
-			)}
+			{showChildren && <DeviceTree nodeChildren={tree} path={[]} isExpanded={props.isExpanded} />}
 		</>
 	);
 }

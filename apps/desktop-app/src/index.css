@@ -332,10 +332,12 @@ The following files still use the Sass version:
 	background-color: transparent;
 }
 .react-datepicker__time-list:focus {
-	outline: none; /* 1 */
+	outline: none;
+	/* 1 */
 }
 .react-datepicker__time-list[tabindex="0"]:focus:focus-visible {
-	outline-style: auto; /* 2 */
+	outline-style: auto;
+	/* 2 */
 }
 
 .react-datepicker__time-list-item {
@@ -360,10 +362,14 @@ The following files still use the Sass version:
 	font-weight: 500;
 	text-decoration: none;
 	outline-offset: -1px;
-	transform: none !important; /* 1 */
-	animation: none !important; /* 1 */
-	transition-timing-function: ease-in; /* 2 */
-	transition-duration: 150ms; /* 2 */
+	transform: none !important;
+	/* 1 */
+	animation: none !important;
+	/* 1 */
+	transition-timing-function: ease-in;
+	/* 2 */
+	transition-duration: 150ms;
+	/* 2 */
 	padding: 0 8px;
 	height: 24px;
 	line-height: 24px;
@@ -618,12 +624,14 @@ The following files still use the Sass version:
 }
 .react-datepicker__year-dropdown-container > div:not([class*="read-view"]):focus,
 .react-datepicker__month-dropdown:focus {
-	outline: none; /* 1 */
+	outline: none;
+	/* 1 */
 }
 .react-datepicker__year-dropdown-container
 	> div:not([class*="read-view"])[tabindex="0"]:focus:focus-visible,
 .react-datepicker__month-dropdown[tabindex="0"]:focus:focus-visible {
-	outline-style: auto; /* 2 */
+	outline-style: auto;
+	/* 2 */
 }
 
 .react-datepicker__year-dropdown-container
@@ -812,6 +820,7 @@ The following files still use the Sass version:
 	.react-datepicker {
 		flex-direction: column;
 	}
+
 	.react-datepicker__time-box {
 		margin-top: 0;
 	}
@@ -1022,10 +1031,10 @@ The following files still use the Sass version:
 	border-radius: 3px;
 }
 .euiSaturation .euiSaturation__lightness {
-	background: linear-gradient(to right, rgb(255, 255, 255), rgba(255, 255, 255, 0));
+	background: linear-gradient(to right, white, rgba(255, 255, 255, 0));
 }
 .euiSaturation .euiSaturation__saturation {
-	background: linear-gradient(to top, rgb(0, 0, 0), rgba(0, 0, 0, 0));
+	background: linear-gradient(to top, black, rgba(0, 0, 0, 0));
 }
 .euiSaturation .euiSaturation__indicator {
 	position: absolute;
@@ -1169,10 +1178,12 @@ The following files still use the Sass version:
 	height: 100%;
 }
 .euiComboBox--compressed:not(.euiComboBox--appended, .euiComboBox--prepended) {
-	height: auto; /* 3 */
+	height: auto;
+	/* 3 */
 }
 .euiComboBox:not(.euiComboBox--appended, .euiComboBox--prepended) .euiFormControlLayout {
-	height: auto; /* 3 */
+	height: auto;
+	/* 3 */
 }
 .euiComboBox .euiComboBox__inputWrap {
 	max-width: 400px;
@@ -1199,8 +1210,10 @@ The following files still use the Sass version:
 	width: 100%;
 	height: auto;
 	padding: 4px 8px;
-	padding-right: var(--eui-form-control-layout-icons-padding, 8px); /* 2 */
-	display: flex; /* 1 */
+	padding-right: var(--eui-form-control-layout-icons-padding, 8px);
+	/* 2 */
+	display: flex;
+	/* 1 */
 	outline: none;
 }
 .euiComboBox .euiComboBox__inputWrap--fullWidth {
@@ -1272,8 +1285,10 @@ The following files still use the Sass version:
 	padding-top: 4px;
 	padding-bottom: 4px;
 	padding-left: 4px;
-	height: auto; /* 3 */
-	flex-wrap: wrap; /* 1 */
+	height: auto;
+	/* 3 */
+	flex-wrap: wrap;
+	/* 1 */
 	align-content: flex-start;
 	cursor: text;
 }
@@ -1287,7 +1302,8 @@ The following files still use the Sass version:
 .euiComboBox .euiComboBox__inputWrap .euiComboBoxPlainTextSelection__append {
 	flex-shrink: 0;
 	margin-inline: 2px;
-	display: flex; /* Vertically centers any icons */
+	display: flex;
+	/* Vertically centers any icons */
 }
 .euiComboBox .euiComboBox__inputWrap .euiComboBoxPlainTextSelection__prepend {
 	margin-inline-start: 4px;
@@ -1296,7 +1312,8 @@ The following files still use the Sass version:
 	margin-inline-end: 4px;
 }
 .euiComboBox .euiComboBox__input {
-	block-size: 24px; /* 2 */
+	block-size: 24px;
+	/* 2 */
 	min-inline-size: 2px;
 	max-inline-size: 100%;
 	margin: 4px;
@@ -1420,7 +1437,8 @@ The following files still use the Sass version:
 	cursor: not-allowed;
 }
 .euiComboBox.euiComboBox--compressed .euiComboBox__inputWrap {
-	line-height: 32px; /* 2 */
+	line-height: 32px;
+	/* 2 */
 	padding-block: 0;
 }
 .euiComboBox.euiComboBox--compressed .euiComboBox__inputWrap--plainText {
@@ -1567,7 +1585,8 @@ The following files still use the Sass version:
  */
 .euiComboBoxTitle {
 	font-size: 12px;
-	padding: 11px 8px 4px; /* 1 */
+	padding: 11px 8px 4px;
+	/* 1 */
 	width: 100%;
 	font-weight: 700;
 	color: #000;
@@ -1772,7 +1791,7 @@ The following files still use the Sass version:
 	display: flex;
 	gap: 8px;
 	max-width: 100%;
-	min-width: min(326px, 100%);
+	min-width: MIN(326px, 100%);
 	width: 606px;
 }
 @media only screen and (max-width: 574px) {
@@ -1786,11 +1805,11 @@ The following files still use the Sass version:
 	}
 }
 .euiSuperDatePicker--isAutoRefreshOnly {
-	min-width: min(200px, 100%);
+	min-width: MIN(200px, 100%);
 	width: 400px;
 }
 .euiSuperDatePicker--noUpdateButton {
-	min-width: min(200px, 100%);
+	min-width: MIN(200px, 100%);
 	width: 480px;
 }
 .euiSuperDatePicker--fullWidth {
@@ -2575,10 +2594,12 @@ The following files still use the Sass version:
 	background-color: transparent;
 }
 .euiDataGrid__controlScroll:focus {
-	outline: none; /* 1 */
+	outline: none;
+	/* 1 */
 }
 .euiDataGrid__controlScroll[tabindex="0"]:focus:focus-visible {
-	outline-style: auto; /* 2 */
+	outline-style: auto;
+	/* 2 */
 }
 
 .euiDataGridColumnSelector__item {
@@ -2621,10 +2642,12 @@ The following files still use the Sass version:
 	background-color: transparent;
 }
 .euiDataGridColumnSelector__columnList:focus {
-	outline: none; /* 1 */
+	outline: none;
+	/* 1 */
 }
 .euiDataGridColumnSelector__columnList[tabindex="0"]:focus:focus-visible {
-	outline-style: auto; /* 2 */
+	outline-style: auto;
+	/* 2 */
 }
 
 .euiDataGridColumnSelector__itemLabel {
@@ -2671,10 +2694,12 @@ The following files still use the Sass version:
 	background-color: transparent;
 }
 .euiDataGridColumnSorting__fieldList:focus {
-	outline: none; /* 1 */
+	outline: none;
+	/* 1 */
 }
 .euiDataGridColumnSorting__fieldList[tabindex="0"]:focus:focus-visible {
-	outline-style: auto; /* 2 */
+	outline-style: auto;
+	/* 2 */
 }
 
 .euiDataGridColumnSorting__field {
@@ -2759,9 +2784,12 @@ The following files still use the Sass version:
 	height: 16px;
 	top: 3px;
 	cursor: pointer;
-	position: absolute; /* 1 */
-	opacity: 0; /* 1 */
-	z-index: 1; /* 1 */
+	position: absolute;
+	/* 1 */
+	opacity: 0;
+	/* 1 */
+	z-index: 1;
+	/* 1 */
 }
 .euiCheckbox .euiCheckbox__input ~ .euiCheckbox__label {
 	display: inline-block;
@@ -3298,7 +3326,8 @@ The following files still use the Sass version:
 	border-radius: 6px;
 	padding: 12px;
 	padding-left: 40px;
-	-webkit-appearance: textfield; /* 1 */
+	-webkit-appearance: textfield;
+	/* 1 */
 }
 .euiFieldSearch--fullWidth {
 	max-width: 100%;
@@ -3473,7 +3502,8 @@ The following files still use the Sass version:
 
 .euiFieldSearch::-webkit-search-decoration,
 .euiFieldSearch::-webkit-search-cancel-button {
-	-webkit-appearance: none; /* 1, 2 */
+	-webkit-appearance: none;
+	/* 1, 2 */
 }
 
 .euiFieldSearch--compressed {
@@ -3749,7 +3779,8 @@ The following files still use the Sass version:
 	padding-top: 12px;
 	padding-right: 12px;
 	padding-bottom: 12px;
-	pointer-events: none; /* 1 */
+	pointer-events: none;
+	/* 1 */
 	border: 2px dashed #d3dae6;
 	border-radius: 6px;
 	transition: border-color 150ms ease-in, background-color 150ms ease-in;
@@ -3775,7 +3806,8 @@ The following files still use the Sass version:
 	}
 }
 .euiFilePicker--large .euiFilePicker__prompt {
-	height: 128px; /* 4 */
+	height: 128px;
+	/* 4 */
 	padding: 0 24px;
 	display: flex;
 	flex-direction: column;
@@ -3783,7 +3815,8 @@ The following files still use the Sass version:
 	justify-content: center;
 }
 .euiFilePicker--large.euiFilePicker--compressed .euiFilePicker__prompt {
-	height: 104px; /* 4 */
+	height: 104px;
+	/* 4 */
 }
 .euiFilePicker-isInvalid:not(.euiFilePicker__showDrop)
 	.euiFilePicker__input:not(:disabled):not(:focus)
@@ -3823,7 +3856,8 @@ The following files still use the Sass version:
   * 1. Undo the pointer-events: none applied to the enclosing prompt.
   */
 .euiFilePicker__clearButton {
-	pointer-events: auto; /* 1 */
+	pointer-events: auto;
+	/* 1 */
 }
 .euiFilePicker:not(.euiFilePicker--large) .euiFilePicker__clearButton {
 	width: 16px;
@@ -3962,9 +3996,12 @@ The following files still use the Sass version:
 	border-radius: 6px;
 	padding: 12px;
 	appearance: none;
-	line-height: 40px; /* 1 */
-	padding-top: 0; /* 1 */
-	padding-bottom: 0; /* 1 */
+	line-height: 40px;
+	/* 1 */
+	padding-top: 0;
+	/* 1 */
+	padding-bottom: 0;
+	/* 1 */
 }
 .euiSelect--fullWidth {
 	max-width: 100%;
@@ -4130,15 +4167,20 @@ The following files still use the Sass version:
 	border-radius: 0;
 }
 .euiSelect--compressed {
-	line-height: 32px; /* 1 */
-	padding-top: 0; /* 1 */
-	padding-bottom: 0; /* 1 */
+	line-height: 32px;
+	/* 1 */
+	padding-top: 0;
+	/* 1 */
+	padding-bottom: 0;
+	/* 1 */
 }
 .euiSelect--inGroup {
-	line-height: 38px; /* 1 */
+	line-height: 38px;
+	/* 1 */
 }
 .euiSelect--inGroup.euiSelect--compressed {
-	line-height: 30px; /* 1 */
+	line-height: 30px;
+	/* 1 */
 }
 .euiSelect::-ms-expand {
 	display: none;
@@ -4224,11 +4266,15 @@ The following files still use the Sass version:
 	border: none;
 	border-radius: 6px;
 	padding: 12px;
-	display: block; /* 2 */
+	display: block;
+	/* 2 */
 	text-align: left;
-	line-height: 40px; /* 1 */
-	padding-top: 0; /* 1 */
-	padding-bottom: 0; /* 1 */
+	line-height: 40px;
+	/* 1 */
+	padding-top: 0;
+	/* 1 */
+	padding-bottom: 0;
+	/* 1 */
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -4407,9 +4453,12 @@ The following files still use the Sass version:
 	background-size: 100%;
 }
 .euiSuperSelectControl--compressed {
-	line-height: 32px; /* 1 */
-	padding-top: 0; /* 1 */
-	padding-bottom: 0; /* 1 */
+	line-height: 32px;
+	/* 1 */
+	padding-top: 0;
+	/* 1 */
+	padding-bottom: 0;
+	/* 1 */
 }
 .euiSuperSelectControl__placeholder {
 	color: #98a2b3;
@@ -4495,7 +4544,8 @@ The following files still use the Sass version:
 		background-size 150ms ease-in, background-color 150ms ease-in;
 	display: flex;
 	align-items: stretch;
-	padding: 1px; /* 1 */
+	padding: 1px;
+	/* 1 */
 }
 @supports (-moz-appearance: none) {
 	.euiFormControlLayout--group {
@@ -4511,7 +4561,8 @@ The following files still use the Sass version:
 }
 .euiFormControlLayout--group .euiFormControlLayout__childrenWrapper {
 	flex-grow: 1;
-	overflow: hidden; /* 2 */
+	overflow: hidden;
+	/* 2 */
 }
 .euiFormControlLayout--group .euiFormControlLayout__prepend,
 .euiFormControlLayout--group .euiFormControlLayout__append {
@@ -4659,7 +4710,8 @@ The following files still use the Sass version:
 		background-size 150ms ease-in, background-color 150ms ease-in;
 	display: flex;
 	align-items: stretch;
-	padding: 1px; /* 1 */
+	padding: 1px;
+	/* 1 */
 }
 @supports (-moz-appearance: none) {
 	.euiFormControlLayoutDelimited {
@@ -4933,16 +4985,20 @@ The following files still use the Sass version:
 	transition: all 150ms cubic-bezier(0.694, 0.0482, 0.335, 1);
 }
 .euiFormLabel.euiFormLabel-isInvalid {
-	color: #bd271e; /* 1 */
+	color: #bd271e;
+	/* 1 */
 }
 .euiFormLabel.euiFormLabel-isFocused {
-	color: #07c; /* 1 */
+	color: #07c;
+	/* 1 */
 }
 .euiFormLabel[for] {
-	cursor: pointer; /* 2 */
+	cursor: pointer;
+	/* 2 */
 }
 .euiFormLabel[for].euiFormLabel-isDisabled {
-	cursor: default; /* 2 */
+	cursor: default;
+	/* 2 */
 }
 
 /**
@@ -4950,8 +5006,10 @@ The following files still use the Sass version:
  * 2. For inline forms, we need to add margin if the label doesn't exist.
  */
 .euiFormRow {
-	display: flex; /* 1 */
-	flex-direction: column; /* 1 */
+	display: flex;
+	/* 1 */
+	flex-direction: column;
+	/* 1 */
 	max-width: 400px;
 }
 .euiFormRow + .euiFormRow,
@@ -4964,7 +5022,8 @@ The following files still use the Sass version:
 }
 
 .euiFormRow--hasEmptyLabelSpace {
-	margin-top: 20px; /* 2 */
+	margin-top: 20px;
+	/* 2 */
 	min-height: 40px;
 	padding-bottom: 0;
 	justify-content: center;
@@ -5040,9 +5099,12 @@ The following files still use the Sass version:
 	height: 16px;
 	top: 3px;
 	cursor: pointer;
-	position: absolute; /* 1 */
-	opacity: 0; /* 1 */
-	z-index: 1; /* 1 */
+	position: absolute;
+	/* 1 */
+	opacity: 0;
+	/* 1 */
+	z-index: 1;
+	/* 1 */
 }
 .euiRadio .euiRadio__input ~ .euiRadio__label {
 	display: inline-block;
@@ -6114,7 +6176,8 @@ The following files still use the Sass version:
 .euiSelectableMessage {
 	padding: 8px;
 	text-align: center;
-	word-wrap: break-word; /* 1 */
+	word-wrap: break-word;
+	/* 1 */
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -6356,10 +6419,13 @@ The following files still use the Sass version:
  *    the cell.
  */
 .euiTableCellContent {
-	overflow: hidden; /* 4 */
+	overflow: hidden;
+	/* 4 */
 	display: flex;
-	align-items: center; /* 1 */
-	padding: 8px; /* 2 */
+	align-items: center;
+	/* 1 */
+	padding: 8px;
+	/* 2 */
 }
 
 .euiTableCellContent__text {
@@ -7009,6 +7075,7 @@ The following files still use the Sass version:
 		justify-content: flex-end;
 		padding: 8px 0;
 	}
+
 	.euiTableSortMobile {
 		display: block;
 	}
@@ -7019,6 +7086,7 @@ The following files still use the Sass version:
 		justify-content: flex-end;
 		padding: 8px 0;
 	}
+
 	.euiTableSortMobile {
 		display: block;
 	}
@@ -7340,6 +7408,10 @@ body {
 
 .searchResultUser .euiPopover__anchor {
 	width: 100%;
+}
+
+html {
+	overflow-y: scroll;
 }
 
 /*# sourceMappingURL=index.css.map */

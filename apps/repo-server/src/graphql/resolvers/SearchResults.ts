@@ -42,7 +42,7 @@ export const SearchResults: IResolvers["SearchResults"] = {
 	},
 };
 
-function preProcessQuery(query: string) {
+export function preProcessQuery(query: string) {
 	const parts = `"${query
 		.split(" ")
 		.map((s) => `"${s}":*`) // Make each word a wildcard

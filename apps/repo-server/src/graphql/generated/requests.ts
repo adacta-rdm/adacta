@@ -31,6 +31,7 @@ export type IRepositoryQuery = {
 	 */
 	user?: Maybe<IUser>;
 	currentUser: ICurrentUser;
+	users: Array<IUser>;
 	devices: IDeviceConnection;
 	device: IDevice;
 	resources: IResourceConnection;
@@ -78,8 +79,8 @@ export type IRepositoryQueryDevicesArgs = {
 	first?: InputMaybe<Scalars["Int"]>;
 	after?: InputMaybe<Scalars["String"]>;
 	order_by?: InputMaybe<IDeviceOrder>;
-	filter?: InputMaybe<IDevicesFilter>;
-	showOnlyOwnDevices?: InputMaybe<Scalars["Boolean"]>;
+	usage?: InputMaybe<IDevicesUsage>;
+	filter?: InputMaybe<IDevicesFilterInput>;
 };
 
 export type IRepositoryQueryDeviceArgs = {
@@ -91,6 +92,7 @@ export type IRepositoryQueryResourcesArgs = {
 	after?: InputMaybe<Scalars["String"]>;
 	rootsOnly?: InputMaybe<Scalars["Boolean"]>;
 	order_by?: InputMaybe<IResourceOrder>;
+	filter?: InputMaybe<IResourcesFilterInput>;
 };
 
 export type IRepositoryQueryResourceArgs = {
@@ -107,6 +109,7 @@ export type IRepositoryQuerySamplesArgs = {
 	first?: InputMaybe<Scalars["Int"]>;
 	after?: InputMaybe<Scalars["String"]>;
 	rootsOnly?: InputMaybe<Scalars["Boolean"]>;
+	filter?: InputMaybe<ISamplesFilterInput>;
 };
 
 export type IRepositoryQuerySampleArgs = {
@@ -1066,7 +1069,7 @@ export enum IDeviceOrder {
 	NameDesc = "NAME_DESC",
 }
 
-export enum IDevicesFilter {
+export enum IDevicesUsage {
 	/**
 	 * rootsOnly will only show devices which have properties and were never used as a device.
 	 * The idea behind this flag is that it tries to display only setups/reactors.
@@ -1076,12 +1079,30 @@ export enum IDevicesFilter {
 	UnusedOnly = "UNUSED_ONLY",
 }
 
+export type IDevicesFilterInput = {
+	searchValue?: InputMaybe<Scalars["String"]>;
+	userIds?: InputMaybe<Array<Scalars["ID"]>>;
+	projectIds?: InputMaybe<Array<Scalars["ID"]>>;
+};
+
 export enum IResourceOrder {
 	Name = "NAME",
 	NameDesc = "NAME_DESC",
 	CreationDate = "CREATION_DATE",
 	CreationDateDesc = "CREATION_DATE_DESC",
 }
+
+export type IResourcesFilterInput = {
+	searchValue?: InputMaybe<Scalars["String"]>;
+	projectIds?: InputMaybe<Array<Scalars["ID"]>>;
+	userIds?: InputMaybe<Array<Scalars["ID"]>>;
+};
+
+export type ISamplesFilterInput = {
+	searchValue?: InputMaybe<Scalars["String"]>;
+	projectIds?: InputMaybe<Array<Scalars["ID"]>>;
+	userIds?: InputMaybe<Array<Scalars["ID"]>>;
+};
 
 export type IConnection_DeviceDefinition = {
 	__typename?: "Connection_DeviceDefinition";

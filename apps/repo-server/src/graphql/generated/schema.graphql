@@ -16,15 +16,13 @@ type RepositoryQuery {
 	"""
 	user(id: ID!): User
 	currentUser: CurrentUser!
+	users: [User!]!
 	devices(
 		first: Int
 		after: String
 		order_by: DeviceOrder
-		filter: DevicesFilter
-		"""
-		If true, only devices that are created by the current user are returned
-		"""
-		showOnlyOwnDevices: Boolean
+		usage: DevicesUsage
+		filter: DevicesFilterInput
 	): DeviceConnection!
 	device(id: ID!): Device!
 	resources(
@@ -32,10 +30,16 @@ type RepositoryQuery {
 		after: String
 		rootsOnly: Boolean
 		order_by: ResourceOrder
+		filter: ResourcesFilterInput
 	): ResourceConnection!
 	resource(id: ID!): Resource!
 	mergedResourceChart(ids: [ID!]!, alignStart: Boolean, offsets: [Int!]): [Data!]!
-	samples(first: Int, after: String, rootsOnly: Boolean): SampleConnection!
+	samples(
+		first: Int
+		after: String
+		rootsOnly: Boolean
+		filter: SamplesFilterInput
+	): SampleConnection!
 	sample(id: ID!): Sample!
 	"""
 	Request for a single device definition
@@ -778,7 +782,7 @@ enum DeviceOrder {
 	NAME_DESC
 }
 
-enum DevicesFilter {
+enum DevicesUsage {
 	"""
 	rootsOnly will only show devices which have properties and were never used as a device.
 	The idea behind this flag is that it tries to display only setups/reactors.
@@ -790,11 +794,29 @@ enum DevicesFilter {
 	UNUSED_ONLY
 }
 
+input DevicesFilterInput {
+	searchValue: String
+	userIds: [ID!]
+	projectIds: [ID!]
+}
+
 enum ResourceOrder {
 	NAME
 	NAME_DESC
 	CREATION_DATE
 	CREATION_DATE_DESC
+}
+
+input ResourcesFilterInput {
+	searchValue: String
+	projectIds: [ID!]
+	userIds: [ID!]
+}
+
+input SamplesFilterInput {
+	searchValue: String
+	projectIds: [ID!]
+	userIds: [ID!]
 }
 
 type Connection_DeviceDefinition {

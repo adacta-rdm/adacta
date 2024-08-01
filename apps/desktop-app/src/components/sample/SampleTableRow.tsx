@@ -6,11 +6,11 @@ import { graphql, useLazyLoadQuery } from "react-relay";
 import { useFragment } from "react-relay/hooks";
 
 import { SampleLink } from "./SampleLink";
+import { columnCount } from "./SampleTable";
 import { useRepositoryId } from "../../services/router/UseRepoId";
 import { DeviceLink } from "../device/DeviceLink";
 import { ProjectListCollapsible } from "../project/ProjectListCollapsible";
 import { ResourceListEntryLoading } from "../resource/list/ResourceListEntryLoading";
-import { columnCount } from "../resource/list/ResourceListTable";
 import { UserLink } from "../user/UserLink";
 import { LoadChildrenRowsOnDemand } from "../utils/LoadChildrenRowsOnDemand";
 
