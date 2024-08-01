@@ -193,10 +193,8 @@ export function DeviceListHierarchical(props: {
 							/>
 						) : null
 					)}
-				</EuiTableBody>
-				{/* This is a hack to make the border thicker */}
-				<td colSpan={2} style={{ borderWidth: "thick" }} />{" "}
-				<EuiTableBody>
+					{/* This is a hack to make the border thicker */}
+					<td colSpan={2} style={{ borderWidth: "thick" }} />{" "}
 					{toplevelDevices.map((d, i) =>
 						d.node ? (
 							<HierarchicalDeviceTableRowToplevel
