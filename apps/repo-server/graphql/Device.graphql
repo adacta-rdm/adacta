@@ -45,7 +45,7 @@ type Device implements Node & SupportsUsageAsProperty & SupportsNotes & HasMetad
 		includeOverlaps: Boolean
 	): [ComponentWithPathAndTime!]!
 	# Can be undefined if the device is not installed anywhere
-	topLevelDevice(timestamp: DateTime): Device
+	topLevelDevice(timestamp: DateTime): TopLevelDevice
 
 	"""
 	Returns the components that are available for use in the given time frame.

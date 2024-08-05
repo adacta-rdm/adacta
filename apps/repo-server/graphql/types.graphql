@@ -1120,8 +1120,8 @@ type Sample implements Node & SupportsUsageAsProperty & SupportsNotes & HasProje
 	"""
 	resources: [ResourceTabularData!]!
 
-	# Can be undefined if the device is not installed anywhere
-	topLevelDevice(timestamp: DateTime): Device
+	# Can be undefined if the sample is not installed anywhere
+	topLevelDevice(timestamp: DateTime): TopLevelDevice
 
 	notes: NoteConnection!
 	projects(first: Int, after: String): ProjectConnection!
@@ -1129,6 +1129,12 @@ type Sample implements Node & SupportsUsageAsProperty & SupportsNotes & HasProje
 	specifications: [Specification!]!
 	specificationsCollected: [SpecificationsGraphElement!]!
 }
+
+type TopLevelDevice {
+	device: Device!
+	path: [String!]!
+}
+
 
 type Specification {
 	name: String!

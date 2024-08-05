@@ -185,7 +185,7 @@ export type IDevice = INode &
 		 * now".
 		 */
 		components: Array<IComponentWithPathAndTime>;
-		topLevelDevice?: Maybe<IDevice>;
+		topLevelDevice?: Maybe<ITopLevelDevice>;
 		/**
 		 * Returns the components that are available for use in the given time frame.
 		 * This resolver is used to find possible components to be used as sub-components of a device.
@@ -284,7 +284,7 @@ export type ISample = INode &
 		device?: Maybe<IDevice>;
 		/** Data that was recorded with this sample */
 		resources: Array<IResourceTabularData>;
-		topLevelDevice?: Maybe<IDevice>;
+		topLevelDevice?: Maybe<ITopLevelDevice>;
 		notes: INoteConnection;
 		projects: IProjectConnection;
 		specifications: Array<ISpecification>;
@@ -823,6 +823,12 @@ export type ISampleRelation = INode & {
 	id: Scalars["ID"];
 	type: Scalars["String"];
 	sample: ISample;
+};
+
+export type ITopLevelDevice = {
+	__typename?: "TopLevelDevice";
+	device: IDevice;
+	path: Array<Scalars["String"]>;
 };
 
 export type ISpecificationsGraphElement = {
@@ -2181,6 +2187,7 @@ export type IResolversTypes = {
 		ResolverReturnType<Omit<IProperty, "value"> & { value: IResolversTypes["PropertyValue"] }>
 	>;
 	SampleRelation: ResolverTypeWrapper<ResolverReturnType<ISampleRelation>>;
+	TopLevelDevice: ResolverTypeWrapper<ResolverReturnType<ITopLevelDevice>>;
 	SpecificationsGraphElement: ResolverTypeWrapper<ResolverReturnType<ISpecificationsGraphElement>>;
 	SetupDescription: ResolverTypeWrapper<ResolverReturnType<ISetupDescription>>;
 	SetupLabel: ResolverTypeWrapper<ResolverReturnType<ISetupLabel>>;
@@ -2552,6 +2559,7 @@ export type IResolversParentTypes = {
 		Omit<IProperty, "value"> & { value: IResolversParentTypes["PropertyValue"] }
 	>;
 	SampleRelation: ResolverReturnType<ISampleRelation>;
+	TopLevelDevice: ResolverReturnType<ITopLevelDevice>;
 	SpecificationsGraphElement: ResolverReturnType<ISpecificationsGraphElement>;
 	SetupDescription: ResolverReturnType<ISetupDescription>;
 	SetupLabel: ResolverReturnType<ISetupLabel>;
@@ -2916,7 +2924,7 @@ export type IDeviceResolvers<
 		Partial<IDeviceComponentsArgs>
 	>;
 	topLevelDevice?: Resolver<
-		Maybe<IResolversTypes["Device"]>,
+		Maybe<IResolversTypes["TopLevelDevice"]>,
 		ParentType,
 		ContextType,
 		Partial<IDeviceTopLevelDeviceArgs>
@@ -2985,7 +2993,7 @@ export type ISampleResolvers<
 	>;
 	resources?: Resolver<Array<IResolversTypes["ResourceTabularData"]>, ParentType, ContextType>;
 	topLevelDevice?: Resolver<
-		Maybe<IResolversTypes["Device"]>,
+		Maybe<IResolversTypes["TopLevelDevice"]>,
 		ParentType,
 		ContextType,
 		Partial<ISampleTopLevelDeviceArgs>
@@ -3709,6 +3717,15 @@ export type ISampleRelationResolvers<
 	id?: Resolver<IResolversTypes["ID"], ParentType, ContextType>;
 	type?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
 	sample?: Resolver<IResolversTypes["Sample"], ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ITopLevelDeviceResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["TopLevelDevice"] = IResolversParentTypes["TopLevelDevice"]
+> = {
+	device?: Resolver<IResolversTypes["Device"], ParentType, ContextType>;
+	path?: Resolver<Array<IResolversTypes["String"]>, ParentType, ContextType>;
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -4741,6 +4758,7 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	UserConnection?: IUserConnectionResolvers<ContextType>;
 	Property?: IPropertyResolvers<ContextType>;
 	SampleRelation?: ISampleRelationResolvers<ContextType>;
+	TopLevelDevice?: ITopLevelDeviceResolvers<ContextType>;
 	SpecificationsGraphElement?: ISpecificationsGraphElementResolvers<ContextType>;
 	SetupDescription?: ISetupDescriptionResolvers<ContextType>;
 	SetupLabel?: ISetupLabelResolvers<ContextType>;

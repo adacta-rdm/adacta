@@ -183,11 +183,9 @@ export const Device: IResolvers["Device"] = {
 
 	async topLevelDevice({ id }, { timestamp }, { services: { el }, schema: { Property } }) {
 		const time = createMaybeDate(timestamp) ?? new Date();
-		const topLevelDeviceId = (
-			await findRootDevicesWithinTimeframe(id, el, Property, time, time)
-		)[0];
-		if (topLevelDeviceId !== id) {
-			return { id: topLevelDeviceId };
+		const topLevelDevice = (await findRootDevicesWithinTimeframe(id, el, Property, time, time))[0];
+		if (topLevelDevice.device !== id) {
+			return { device: { id: topLevelDevice.device }, path: topLevelDevice.path };
 		}
 		return null;
 	},
@@ -232,7 +230,9 @@ export const Device: IResolvers["Device"] = {
 
 		// Determine all root devices within the given timeframe.
 		// These must be excluded from the list of free components to prevent loops.
-		const exclude = await findRootDevicesWithinTimeframe(id, el, Property, begin, end);
+		const exclude = (await findRootDevicesWithinTimeframe(id, el, Property, begin, end)).map(
+			(roots) => roots.device
+		);
 
 		// Exclude the device itself
 		exclude.push(id);
