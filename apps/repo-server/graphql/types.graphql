@@ -1135,7 +1135,6 @@ type TopLevelDevice {
 	path: [String!]!
 }
 
-
 type Specification {
 	name: String!
 	value: String!
