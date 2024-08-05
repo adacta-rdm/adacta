@@ -78,7 +78,10 @@ function GroupedByDevice(props: {
 	const otherDevices = devices.slice(1); // Other devices (hidden by default)
 
 	return (
-		<EuiDescriptionList type={props.compact ? "responsiveColumn" : "row"}>
+		<EuiDescriptionList
+			type={props.compact ? "responsiveColumn" : "row"}
+			titleProps={{ className: "eui-textTruncate" }}
+		>
 			<EuiDescriptionListTitle>
 				<small>{groupCaption}</small>
 			</EuiDescriptionListTitle>
