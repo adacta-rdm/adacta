@@ -1,4 +1,4 @@
-import { varchar } from "drizzle-orm/pg-core";
+import { index, varchar } from "drizzle-orm/pg-core";
 
 import type {
 	IResourceDocumentAttachmentImage,
@@ -29,28 +29,34 @@ export function Resource(schemas: IPgSchemas) {
 	 * this allows to trace back to the origin of the resource or data. Furthermore, this approach
 	 * allows us to easily extend the program to be able to deal with other data formats.
 	 */
-	return schemas.repo.table("Resource", {
-		id: idType<IResourceId>("resource_id").primaryKey().notNull(),
+	return schemas.repo.table(
+		"Resource",
+		{
+			id: idType<IResourceId>("resource_id").primaryKey().notNull(),
 
-		/**
-		 * The couch_id is the unique identifier of the document in the CouchDB database.
-		 */
-		couchId: idType<string>("couch_id").unique(),
+			/**
+			 * The couch_id is the unique identifier of the document in the CouchDB database.
+			 */
+			couchId: idType<string>("couch_id").unique(),
 
-		/**
-		 * A textual label.
-		 */
-		name: varchar("name", { length: 255 }).notNull(),
+			/**
+			 * A textual label.
+			 */
+			name: varchar("name", { length: 255 }).notNull(),
 
-		/**
-		 * Metadata of the resource contents.
-		 */
-		attachment: customJsonb("attachment").$type<IResourceDocumentAttachment>().notNull(),
+			/**
+			 * Metadata of the resource contents.
+			 */
+			attachment: customJsonb("attachment").$type<IResourceDocumentAttachment>().notNull(),
 
-		search: tsvector("search", { sources: ["name"] }),
+			search: tsvector("search", { sources: ["name"] }),
 
-		...metadata(schemas),
-	});
+			...metadata(schemas),
+		},
+		(t) => ({
+			idx_search: index("idx_search_resource").using("gin", t.search),
+		})
+	);
 }
 
 export type IResourceDocumentAttachment =
