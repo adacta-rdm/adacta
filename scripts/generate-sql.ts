@@ -76,7 +76,10 @@ function generateSQL(out?: string) {
 	const sqlPathsBefore = new Set(readdirSync(out).filter((file) => file.endsWith(".sql")));
 
 	// Run the command to generate the SQL.
-	sh(`yarn drizzle-kit generate --config ${configPath}`);
+	// Print the output to make it easier to see what is happening, in case there are warnings or errors.
+	console.log("--- Running drizzle-kit ---");
+	console.log(sh(`yarn drizzle-kit generate --config ${configPath}`));
+	console.log("---------------------------");
 
 	// Get the path of the generated SQL file.
 	const sqlPathsAfter = new Set(readdirSync(out).filter((file) => file.endsWith(".sql")));
@@ -99,9 +102,7 @@ function generateSQL(out?: string) {
 	const global: string[] = [];
 	const statementBreakpoint = "--> statement-breakpoint";
 
-	for (let statement of fileContents.split(statementBreakpoint)) {
-		statement = patchPostgresGeneratedTypes(statement);
-
+	for (const statement of fileContents.split(statementBreakpoint)) {
 		// In this part, we separate the statements by which schema they apply to: global or repo.
 		// This is done by checking if the statement contains the placeholder for the repo schema. We can't just check
 		// if the statement contains the placeholder for the global schema, because the repo schema can reference the
@@ -136,16 +137,6 @@ function generateSQL(out?: string) {
 function writeFile(path: string, content: string) {
 	writeFileSync(path, content);
 	console.log(`Wrote ${path}`);
-}
-
-function patchPostgresGeneratedTypes(statement: string) {
-	// drizzle-kit generates a string for the tsvector column type
-	// This replace call removes the quotes around that string
-	return statement.replaceAll(
-		/"(tsvector generated always as \(to_tsvector\('simple', (.+)\)\) stored)"/g,
-
-		"$1"
-	);
 }
 
 //

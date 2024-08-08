@@ -1,3 +1,4 @@
+import type { SQLWrapper } from "drizzle-orm";
 import { and, eq, getTableName, inArray, isNull, isSQLWrapper } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core/columns";
 import type { PgUpdateSetSource } from "drizzle-orm/pg-core/query-builders/update";
@@ -18,7 +19,7 @@ interface IBatch {
 	promise: Promise<DrizzleEntity[]>;
 }
 
-type Where<T> = ((aliases: T) => SQL | undefined) | SQL | undefined;
+type Where<T> = ((aliases: T) => SQLWrapper | undefined) | SQLWrapper | undefined;
 
 type OrderBy<T> = (aliases: T) => ValueOrArray<PgColumn | SQL | SQL.Aliased>;
 
@@ -29,22 +30,22 @@ interface IFindOpts<TTable extends DrizzleTablePK> {
 }
 
 export class EntityLoader {
+	private batch = new Map<string, IBatch>();
+	private cache = new Map<string, DrizzleEntity>();
+
 	/**
 	 * @param drizzle - The drizzle database instance to use for fetching entities.
 	 */
 	constructor(public drizzle: DrizzleDb) {}
 
-	private batch = new Map<string, IBatch>();
-	private cache = new Map<string, DrizzleEntity>();
-
 	/**
-	 * Returns all entities, optionally matching the `where` condition.
-	 *
-	 * Further filtering can be applied using the `orderBy` and `limit` options.
+     * Returns all entities, optionally matching the `where` condition.
+     *
+     * Further filtering can be applied using the `orderBy` and `limit` options.
 
-	 * @param table - The drizzle table configuration.
-	 * @param opts - The options to apply to the query. Optional.
-	 */
+     * @param table - The drizzle table configuration.
+     * @param opts - The options to apply to the query. Optional.
+     */
 	async find<TTable extends DrizzleTablePK>(
 		table: TTable,
 		opts: IFindOpts<TTable> | Where<TTable> = {}
@@ -54,7 +55,7 @@ export class EntityLoader {
 		let q;
 		q = this.drizzle.select().from(table);
 
-		const conditions: (SQL | undefined)[] = [];
+		const conditions: (SQLWrapper | undefined)[] = [];
 
 		if ("metadataDeletedAt" in table) {
 			conditions.push(isNull(table.metadataDeletedAt));
