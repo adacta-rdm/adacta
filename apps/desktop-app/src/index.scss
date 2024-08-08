@@ -35,3 +35,8 @@ body {
 		width: 100%;
 	}
 }
+
+// Prevent layout shift for loading states, by ensuring that the body always has a scrollbar.
+html {
+	overflow-y: scroll;
+}

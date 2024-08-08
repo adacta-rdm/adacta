@@ -129,7 +129,6 @@ The following files still use the Sass version:
 	background-color: #f0faf7;
 }
 
-/* Unfortunately vis-selected is not applied to vis-background on click */
 .vis-item.vis-background,
 .vis-item-resource {
 	z-index: 0;

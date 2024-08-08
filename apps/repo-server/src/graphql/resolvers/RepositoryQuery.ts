@@ -1,4 +1,7 @@
+import assert from "assert";
+
 import { isNonNullish } from "@omegadot/assert";
+import { assertDefined } from "@omegadot/assert";
 import {
 	and,
 	asc,
@@ -14,7 +17,9 @@ import {
 	not,
 	notExists,
 	or,
+	sql,
 } from "drizzle-orm";
+import type { SQL } from "drizzle-orm/sql/sql";
 
 import { CONSTANT_NODE_IDS } from "./ConstantNodeIds";
 import { ImportResolvers } from "./Import";
@@ -34,8 +39,11 @@ import type {
 import { IConflictResolution, IDeviceOrder, IResourceOrder } from "../generated/resolvers";
 
 import type { IResourceDocumentAttachmentRaw } from "~/apps/repo-server/interface/IResourceDocumentAttachment";
+import { preProcessQuery } from "~/apps/repo-server/src/graphql/resolvers/SearchResults";
+import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
 import { pickJsonbField } from "~/drizzle/queryHelpers/pickJsonField";
+import { CURRENT_USER_ID_PLACEHOLDER } from "~/lib/CURRENT_USER_ID_PLACEHOLDER";
 import type {
 	IDeviceDefinitionId,
 	IDeviceId,
@@ -92,16 +100,47 @@ export const RepositoryQuery: IDefinedResolver<"RepositoryQuery"> = {
 		return { id: vars.id as IDeviceId };
 	},
 
-	async devices(_, vars, { services: { el, drizzle }, schema: { Device, Property }, userId }) {
+	async devices(
+		_,
+		vars,
+		{ services: { el, drizzle }, schema: { Device, ProjectToDevice, Property }, userId }
+	) {
+		const { filter } = vars;
 		const time = new Date();
 
-		let sqlFilter;
-		if (vars.filter === "ROOTS_ONLY") {
+		const sqlFilter: Array<SQL<unknown> | undefined> = [];
+		if (vars.usage === "ROOTS_ONLY") {
 			// We consider a device as a root device if it matches the following criteria:
 			// 1. It has never been used as a subcomponent of another device
 			// 2. It has had properties in the past
-			sqlFilter = and(
-				// Condition 1
+			sqlFilter.push(
+				and(
+					// Condition 1
+					notExists(
+						drizzle
+							.select()
+							.from(Property)
+							.where(
+								and(
+									// The "join" between the outer and inner query
+									eq(Property.deviceId, Device.id),
+									// A device is installed somewhere if it has ownerDeviceId set
+									isNotNull(Property.ownerDeviceId)
+								)
+							)
+					),
+					// Condition 2
+					exists(
+						drizzle.select().from(Property).where(
+							// The "join" between the outer and inner query
+							eq(Property.ownerDeviceId, Device.id)
+						)
+					)
+				)
+			);
+		} else if (vars.usage === "UNUSED_ONLY") {
+			// Exclude devices that are already installed somewhere
+			sqlFilter.push(
 				notExists(
 					drizzle
 						.select()
@@ -111,43 +150,51 @@ export const RepositoryQuery: IDefinedResolver<"RepositoryQuery"> = {
 								// The "join" between the outer and inner query
 								eq(Property.deviceId, Device.id),
 								// A device is installed somewhere if it has ownerDeviceId set
-								isNotNull(Property.ownerDeviceId)
+								isNotNull(Property.ownerDeviceId),
+								lte(Property.begin, time),
+								or(isNull(Property.end), gt(Property.end, time))
 							)
 						)
-				),
-				// Condition 2
-				exists(
-					drizzle.select().from(Property).where(
-						// The "join" between the outer and inner query
-						eq(Property.ownerDeviceId, Device.id)
-					)
 				)
-			);
-		} else if (vars.filter === "UNUSED_ONLY") {
-			// Exclude devices that are already installed somewhere
-			sqlFilter = notExists(
-				drizzle
-					.select()
-					.from(Property)
-					.where(
-						and(
-							// The "join" between the outer and inner query
-							eq(Property.deviceId, Device.id),
-							// A device is installed somewhere if it has ownerDeviceId set
-							isNotNull(Property.ownerDeviceId),
-							lte(Property.begin, time),
-							or(isNull(Property.end), gt(Property.end, time))
-						)
-					)
 			);
 		}
 
-		if (vars.showOnlyOwnDevices) {
-			sqlFilter = and(sqlFilter, eq(Device.metadataCreatorId, userId));
+		// Filter by project
+		if (filter?.projectIds && filter?.projectIds.length > 0) {
+			assert(isEntityId(filter?.projectIds, "Project"));
+			sqlFilter.push(
+				exists(
+					drizzle
+						.select()
+						.from(ProjectToDevice)
+						.where(
+							and(
+								eq(ProjectToDevice.deviceId, Device.id),
+								inArray(ProjectToDevice.projectId, filter?.projectIds)
+							)
+						)
+				)
+			);
+		}
+
+		// Filter by user
+		if (filter?.userIds && filter?.userIds.length > 0) {
+			// currentUserIdPlaceholder is a special value that refers to the currently logged-in user
+			const filterUserIds = filter.userIds.map((id) =>
+				id === CURRENT_USER_ID_PLACEHOLDER ? userId : id
+			);
+			assert(isEntityId(filterUserIds, "User"));
+			sqlFilter.push(inArray(Device.metadataCreatorId, filterUserIds));
+		}
+
+		// Filter by search value
+		if (filter?.searchValue) {
+			const tsQuery = preProcessQuery(filter?.searchValue);
+			sqlFilter.push(and(sql`search @@ ${tsQuery}`));
 		}
 
 		const devices = await el.find(Device, {
-			where: sqlFilter,
+			where: and(...sqlFilter),
 			orderBy: (t) => (vars.order_by === IDeviceOrder.Name ? asc(t.name) : desc(t.name)),
 		});
 
@@ -169,31 +216,72 @@ export const RepositoryQuery: IDefinedResolver<"RepositoryQuery"> = {
 
 	async resources(
 		_,
-		{ rootsOnly, first, after, order_by },
-		{ services: { el }, schema: { Resource, Transformation } }
+		{ rootsOnly, first, after, order_by, filter },
+		{ services: { el, drizzle }, schema: { Resource, ProjectToResource, Transformation }, userId }
 	) {
 		const getResources = async (rootsOnly: boolean) => {
+			const sqlFilter: Array<SQL<unknown> | undefined> = [isNull(Resource.metadataDeletedAt)];
+
+			// Filter by search value
+			if (
+				filter?.searchValue !== undefined &&
+				filter?.searchValue !== null &&
+				filter?.searchValue.trim() !== ""
+			) {
+				const tsQuery = preProcessQuery(filter?.searchValue);
+				sqlFilter.push(
+					and(
+						sql`search @@
+					${tsQuery}`
+					)
+				);
+			}
+
+			// Filter by project
+			if (filter?.projectIds && filter?.projectIds.length > 0) {
+				assert(isEntityId(filter?.projectIds, "Project"));
+				sqlFilter.push(
+					exists(
+						drizzle
+							.select()
+							.from(ProjectToResource)
+							.where(
+								and(
+									eq(ProjectToResource.resourceId, Resource.id),
+									inArray(ProjectToResource.projectId, filter?.projectIds)
+								)
+							)
+					)
+				);
+			}
+
+			// Filter by user
+			if (filter?.userIds && filter?.userIds.length > 0) {
+				// currentUserIdPlaceholder is a special value that refers to the currently logged-in user
+				const filterUserIds = filter.userIds.map((id) =>
+					id === CURRENT_USER_ID_PLACEHOLDER ? userId : id
+				);
+				assert(isEntityId(filterUserIds, "User"));
+				sqlFilter.push(inArray(Resource.metadataCreatorId, filterUserIds));
+			}
+
+			// TODO: This query filter is not tested
 			if (rootsOnly) {
 				const transformationResults = (await el.find(Transformation)).flatMap((o) =>
 					Object.values(o.output)
 				);
-
-				const resources = el.find(Resource, (t) =>
-					and(
-						transformationResults.length > 0 // inArray requires at least one value therefore we need to check if there are any transformation results first
-							? not(inArray(t.id, transformationResults))
-							: undefined, // Select only resources which are not transformation results
-						eq(
-							pickJsonbField(t.attachment, "type"),
-							"Raw" satisfies IResourceDocumentAttachmentRaw["type"]
-						) // Select only resources which are of type raw
+				sqlFilter.push(
+					not(inArray(Resource.id, transformationResults)),
+					eq(
+						pickJsonbField(Resource.attachment, "type"),
+						"Raw" satisfies IResourceDocumentAttachmentRaw["type"]
 					)
 				);
-
-				return resources;
-			} else {
-				return el.find(Resource);
 			}
+
+			return el.find(Resource, {
+				where: and(...sqlFilter),
+			});
 		};
 
 		const resources = await getResources(rootsOnly ?? false);
@@ -249,13 +337,70 @@ export const RepositoryQuery: IDefinedResolver<"RepositoryQuery"> = {
 		return { id: vars.id as ISampleId };
 	},
 
-	async samples(_, vars, { services: { el, drizzle }, schema: { Sample, SampleToSample } }) {
+	async samples(
+		_,
+		vars,
+		{ services: { el, drizzle }, schema: { Sample, SampleToSample, ProjectToSample }, userId }
+	) {
+		const { filter } = vars;
+		const sqlFilter: Array<SQL<unknown> | undefined> = [];
+		if (vars.rootsOnly === true) {
+			sqlFilter.push(isNull(SampleToSample.id));
+		}
+
+		// Filter by search value
+		if (
+			filter?.searchValue !== undefined &&
+			filter?.searchValue !== null &&
+			filter?.searchValue.trim() !== ""
+		) {
+			const tsQuery = preProcessQuery(filter.searchValue);
+			sqlFilter.push(
+				and(
+					sql`search @@
+			${tsQuery}`
+				)
+			);
+		}
+
+		//Filter by project
+		if (
+			filter?.projectIds !== undefined &&
+			filter?.projectIds !== null &&
+			filter.projectIds.length > 0
+		) {
+			assert(isEntityId(filter.projectIds, "Project"));
+			sqlFilter.push(
+				exists(
+					drizzle
+						.select()
+						.from(ProjectToSample)
+						.where(
+							and(
+								eq(ProjectToSample.sampleId, Sample.id),
+								inArray(ProjectToSample.projectId, filter.projectIds)
+							)
+						)
+				)
+			);
+		}
+
+		// Filter by user
+		if (filter?.userIds !== undefined && filter?.userIds !== null && filter.userIds.length > 0) {
+			// currentUserIdPlaceholder is a special value that refers to the currently logged-in user
+			const filterUserIds = filter.userIds.map((id) =>
+				id === CURRENT_USER_ID_PLACEHOLDER ? userId : id
+			);
+			assert(isEntityId(filterUserIds, "User"));
+			sqlFilter.push(inArray(Sample.metadataCreatorId, filterUserIds));
+		}
+
 		if (vars.rootsOnly == true) {
 			const rootsOnly = await drizzle
 				.select()
 				.from(Sample)
 				.leftJoin(SampleToSample, eq(Sample.id, SampleToSample.sample2))
-				.where((s) => isNull(s.SampleToSample.id)); // Select only samples which are not in the SamplesToSample table (on the child side)
+				.where(and(...sqlFilter)); // Select only samples which are not in the SamplesToSample table (on the child side)
 
 			return paginateDocuments<ISample>(
 				rootsOnly.map((s) => ({ id: s.Sample.id })),
@@ -298,7 +443,7 @@ export const RepositoryQuery: IDefinedResolver<"RepositoryQuery"> = {
 		};
 	},
 
-	async deviceDefinitions(_, vars, { services: { el }, schema: { DeviceDefinition } }) {
+	async deviceDefinitions(_, __, { services: { el }, schema: { DeviceDefinition } }) {
 		const deviceDefinitions = await el.find(DeviceDefinition, (t) => isNull(t.metadataDeletedAt));
 
 		return paginateDocuments<IDeviceDefinition>(deviceDefinitions.map(({ id }) => ({ id })));
@@ -445,5 +590,16 @@ export const RepositoryQuery: IDefinedResolver<"RepositoryQuery"> = {
 			level: r.level,
 			definition: { id: r.definition },
 		}));
+	},
+
+	async users(_, __, { services: { drizzle }, schema: { User, UserRepository }, repositoryName }) {
+		assertDefined(repositoryName);
+		const users = await drizzle
+			.select({ id: User.id })
+			.from(User)
+			.leftJoin(UserRepository, eq(UserRepository.userId, User.id))
+			.where(eq(UserRepository.repositoryName, repositoryName))
+			.orderBy(asc(User.firstName), asc(User.lastName));
+		return users.map((u) => ({ id: u.id }));
 	},
 };

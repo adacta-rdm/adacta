@@ -1,10 +1,6 @@
 import {
-	EuiButtonGroup,
-	EuiFlexGroup,
-	EuiFlexItem,
 	EuiLink,
 	EuiSpacer,
-	EuiSwitch,
 	EuiTable,
 	EuiTableBody,
 	EuiTableHeader,
@@ -32,13 +28,10 @@ import { DeviceLink } from "../../DeviceLink";
 import { DevicePreviewImage } from "../../DevicePreviewImage";
 
 import type { DeviceList$key } from "@/relay/DeviceList.graphql";
-import type {
-	DeviceListFragment,
-	DeviceOrder,
-	DevicesFilter,
-} from "@/relay/DeviceListFragment.graphql";
+import type { DeviceListFragment, DeviceOrder } from "@/relay/DeviceListFragment.graphql";
 import type { DeviceTable_devices$key } from "@/relay/DeviceTable_devices.graphql";
-import { IDevicesFilter } from "~/apps/repo-server/src/graphql/generated/resolvers";
+import { SearchEmptyPrompt } from "~/apps/desktop-app/src/components/search/list/SearchEmptyPrompt";
+import { IDevicesUsage } from "~/apps/repo-server/src/graphql/generated/resolvers";
 import type { ArrayElementType } from "~/lib/interface/ArrayElementType";
 
 const DeviceTableDevicesGraphQLFragment = graphql`
@@ -69,8 +62,7 @@ const DeviceTableDevicesGraphQLFragment = graphql`
 export function DeviceTable(
 	props: PropsWithConnections<{
 		devices: DeviceTable_devices$key;
-		refetch?: RefetchFnDynamic<DeviceListFragment, DeviceList$key, Options>;
-
+		refetch?: RefetchFnDynamic<DeviceListFragment, DeviceList$key, Options>; //refetch is not taking from Context because DeviceTable component is also used without SearchBar
 		disableActions?: boolean;
 	}>
 ) {
@@ -78,8 +70,6 @@ export function DeviceTable(
 	const { router, repositoryId } = useRepoRouterHook();
 
 	const [sortDirection, setSortDirection] = useState<Direction>("asc");
-	const [filter, setFilter] = useState<"all" | "root" | "unused">("all");
-	const [myDevicesOnly, setMyDevicesOnly] = useState(false);
 
 	const { euiTheme } = useEuiTheme();
 
@@ -99,28 +89,10 @@ export function DeviceTable(
 		assertDefined(props.refetch);
 		if (sort) {
 			const { field, direction } = sort;
-			// Fetch policy store-and-network means that the data from the store (cache) is used
-			// first and then later replaced with the response from the network.
-			// This is necessary because the order can become unsorted by the added edges from the
-			// subscriptions. If the connection is freshly fetched from the server,
-			// then the correct order returns from there
-			const [f] = filterStringToFilter(filter);
 			if (direction === "asc" && field === "displayName") {
-				props.refetch(
-					{
-						order_by: constructDeviceOrder(field, direction),
-						filter: f,
-					},
-					{ fetchPolicy: "store-and-network" }
-				);
+				props.refetch({ order_by: constructDeviceOrder(field, direction) });
 			} else if (direction === "desc" && field === "displayName") {
-				props.refetch(
-					{
-						order_by: constructDeviceOrder(field, direction),
-						filter: f,
-					},
-					{ fetchPolicy: "store-and-network" }
-				);
+				props.refetch({ order_by: constructDeviceOrder(field, direction) });
 			}
 			setSortDirection(direction);
 		}
@@ -133,156 +105,123 @@ export function DeviceTable(
 
 	type IDevice = ArrayElementType<typeof devices>;
 
-	function filterStringToFilter(
-		optionId: string
-	): ["ROOTS_ONLY" | "UNUSED_ONLY" | undefined, "all" | "root" | "unused"] {
-		let filter: DevicesFilter | undefined;
-
-		switch (optionId) {
-			case "all":
-				filter = undefined;
-				break;
-			case "root":
-				filter = IDevicesFilter.RootsOnly;
-				break;
-			case "unused":
-				filter = IDevicesFilter.UnusedOnly;
-				break;
-			default:
-				throw new Error("Invalid filter value");
-		}
-		return [filter, optionId];
-	}
-
 	return (
 		<>
-			<EuiFlexGroup justifyContent={"flexEnd"} alignItems={"center"} direction={"row"}>
-				{props.refetch && (
-					<EuiSwitch
-						label={"My devices only"}
-						checked={myDevicesOnly}
-						onChange={(e) => {
-							setMyDevicesOnly(e.target.checked);
-							if (props.refetch) {
-								const [filterGraphQL] = filterStringToFilter(filter);
-								props.refetch(
-									{
-										filter: filterGraphQL,
-										order_by: constructDeviceOrder("displayName", sortDirection),
-										showOnlyOwnDevices: e.target.checked,
-									},
-									{ fetchPolicy: "store-and-network" }
-								);
-							}
-						}}
-					/>
-				)}
-				{props.refetch !== undefined && (
-					<EuiFlexItem grow={false}>
-						<EuiButtonGroup
-							legend={"Select Devices Filter"}
-							name={"Name"}
-							idSelected={filter}
-							onChange={(optionId) => {
-								if (props.refetch) {
-									const [filterGraphQL, filter] = filterStringToFilter(optionId);
-									props.refetch(
-										{
-											filter: filterGraphQL,
-											order_by: constructDeviceOrder("displayName", sortDirection),
-											showOnlyOwnDevices: myDevicesOnly,
-										},
-										{ fetchPolicy: "store-and-network" }
-									);
-									setFilter(filter);
-								}
-							}}
-							options={[
-								{
-									id: "all",
-									label: "All",
-								},
-								{
-									id: "root",
-									label: "Roots only",
-								},
-								{
-									id: "unused",
-									label: "Currently unused",
-								},
-							]}
-						/>
-					</EuiFlexItem>
-				)}
-			</EuiFlexGroup>
 			<EuiSpacer size={"m"} />
 			<EuiTable>
-				<EuiTableHeader>
-					<EuiTableHeaderCell>#</EuiTableHeaderCell>
-					<EuiTableHeaderCell
-						onSort={() => onSort()}
-						isSortAscending={sortDirection === "asc"}
-						isSorted={true}
-					>
-						Name
-					</EuiTableHeaderCell>
-					<EuiTableHeaderCell>Manufacturer</EuiTableHeaderCell>
-					<EuiTableHeaderCell>Projects</EuiTableHeaderCell>
-					<EuiTableHeaderCell>Creator</EuiTableHeaderCell>
-					<EuiTableHeaderCell>Currently installed in</EuiTableHeaderCell>
-					{!props.disableActions && <EuiTableHeaderCell align="right">Actions</EuiTableHeaderCell>}
-				</EuiTableHeader>
-				<EuiTableBody>
-					{devices.map((d) => {
-						const { node, isNewlyCreated } = d;
+				{devices.length === 0 ? (
+					<SearchEmptyPrompt />
+				) : (
+					<>
+						<DeviceTableHeader
+							onSort={props.refetch ? onSort : undefined} //Sorting is not possible without refetch
+							sortDirection={sortDirection}
+							disableActions={props.disableActions}
+						/>
+						<EuiTableBody>
+							{devices.map((d) => {
+								const { node, isNewlyCreated } = d;
 
-						return (
-							<EuiTableRow
-								key={d.node.id}
-								style={isNewlyCreated ? { backgroundColor: euiTheme.colors.highlight } : undefined}
-							>
-								<EuiTableRowCell>
-									{node.shortId ?? (
-										<AssignShortIdButton
-											deviceId={node.id}
-											currentShortId={node.shortId ?? undefined}
-											buttonStyle={"icon"}
-										/>
-									)}
-								</EuiTableRowCell>
-								<EuiTableRowCell>
-									<DevicePreviewImage data={node} />
-									<EuiLink
-										onClick={() => {
-											router.push("/repositories/:repositoryId/devices/:deviceId/", {
-												repositoryId,
-												deviceId: d.node.id,
-											});
-										}}
+								return (
+									<EuiTableRow
+										key={d.node.id}
+										style={
+											isNewlyCreated ? { backgroundColor: euiTheme.colors.highlight } : undefined
+										}
 									>
-										{node.displayName}
-									</EuiLink>
-								</EuiTableRowCell>
-								<EuiTableRowCell>
-									{node.specifications.length > 0 ? node.specifications[0].value : <></>}
-								</EuiTableRowCell>
-								<EuiTableRowCell>
-									<ProjectListCollapsible data={node} />
-								</EuiTableRowCell>
-								<EuiTableRowCell>{<UserLink user={node.metadata.creator} />}</EuiTableRowCell>
-								<EuiTableRowCell>
-									{node.parent ? <DeviceLink data={node.parent} /> : <></>}
-								</EuiTableRowCell>
-								{!props.disableActions && (
-									<EuiTableRowCell align="right">
-										<DeviceDelete device={node} connections={props.connections} />
-									</EuiTableRowCell>
-								)}
-							</EuiTableRow>
-						);
-					})}
-				</EuiTableBody>
+										<EuiTableRowCell>
+											{node.shortId ?? (
+												<AssignShortIdButton
+													deviceId={node.id}
+													currentShortId={node.shortId ?? undefined}
+													buttonStyle={"icon"}
+												/>
+											)}
+										</EuiTableRowCell>
+										<EuiTableRowCell>
+											<DevicePreviewImage data={node} />
+											<EuiLink
+												onClick={() => {
+													router.push("/repositories/:repositoryId/devices/:deviceId/", {
+														repositoryId,
+														deviceId: d.node.id,
+													});
+												}}
+											>
+												{node.displayName}
+											</EuiLink>
+										</EuiTableRowCell>
+										<EuiTableRowCell>
+											{node.specifications.length > 0 ? node.specifications[0].value : <></>}
+										</EuiTableRowCell>
+										<EuiTableRowCell>
+											<ProjectListCollapsible data={node} />
+										</EuiTableRowCell>
+										<EuiTableRowCell>{<UserLink user={node.metadata.creator} />}</EuiTableRowCell>
+										<EuiTableRowCell>
+											{node.parent ? <DeviceLink data={node.parent} /> : <></>}
+										</EuiTableRowCell>
+										{!props.disableActions && (
+											<EuiTableRowCell align="right">
+												<DeviceDelete device={node} connections={props.connections} />
+											</EuiTableRowCell>
+										)}
+									</EuiTableRow>
+								);
+							})}
+						</EuiTableBody>
+					</>
+				)}
 			</EuiTable>
 		</>
+	);
+}
+
+export function filterStringToFilter(
+	optionId: string
+): ["ROOTS_ONLY" | "UNUSED_ONLY" | undefined, "all" | "root" | "unused"] {
+	let filter: IDevicesUsage | undefined;
+
+	switch (optionId) {
+		case "all":
+			filter = undefined;
+			break;
+		case "root":
+			filter = IDevicesUsage.RootsOnly;
+			break;
+		case "unused":
+			filter = IDevicesUsage.UnusedOnly;
+			break;
+		default:
+			throw new Error("Invalid filter value");
+	}
+	return [filter, optionId];
+}
+
+export function DeviceTableHeader({
+	sortDirection,
+	onSort,
+	disableActions,
+}: {
+	sortDirection: "asc" | "desc";
+	onSort?: () => void;
+	disableActions?: boolean;
+}) {
+	return (
+		<EuiTableHeader>
+			<EuiTableHeaderCell>#</EuiTableHeaderCell>
+			<EuiTableHeaderCell
+				onSort={onSort ? () => onSort() : undefined}
+				isSortAscending={sortDirection === "asc"}
+				isSorted={true}
+			>
+				Name
+			</EuiTableHeaderCell>
+			<EuiTableHeaderCell>Manufacturer</EuiTableHeaderCell>
+			<EuiTableHeaderCell>Projects</EuiTableHeaderCell>
+			<EuiTableHeaderCell>Creator</EuiTableHeaderCell>
+			<EuiTableHeaderCell>Currently installed in</EuiTableHeaderCell>
+			{!disableActions && <EuiTableHeaderCell align="right">Actions</EuiTableHeaderCell>}
+		</EuiTableHeader>
 	);
 }

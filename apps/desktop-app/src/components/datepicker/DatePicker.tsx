@@ -8,6 +8,7 @@ import {
 	EuiTextAlign,
 } from "@elastic/eui";
 import type { EuiDatePickerProps } from "@elastic/eui/src/components/date_picker/date_picker";
+import type { TextAlignment } from "@elastic/eui/src/components/text/text_align";
 import moment from "moment";
 import React from "react";
 import { graphql, useLazyLoadQuery } from "react-relay";
@@ -134,7 +135,7 @@ function DatePickerPure(props: TPropsPure) {
 					</EuiFlexItem>
 					{!props.disabled && (
 						<EuiFlexItem>
-							<EuiTextAlign textAlign={partOfRange ? "center" : "right"}>
+							<EuiTextAlign textAlign={"right"}>
 								<EuiFlexGroup>
 									{props.allowClear && (
 										<EuiFlexItem>
@@ -144,7 +145,7 @@ function DatePickerPure(props: TPropsPure) {
 										</EuiFlexItem>
 									)}
 									<EuiFlexItem>
-										<UserCurrentDateLink showTime={showTime} onChangeTime={onChange} />
+										<UserCurrentDateLink showTime={showTime} onChangeDate={onChange} />
 									</EuiFlexItem>
 								</EuiFlexGroup>
 							</EuiTextAlign>
@@ -158,8 +159,8 @@ function DatePickerPure(props: TPropsPure) {
 
 type TPropsRange = Omit<
 	TProps<Date | undefined> & {
-		rangeValueStart: Date;
-		rangeValueEnd: Date;
+		rangeValueStart?: Date;
+		rangeValueEnd?: Date;
 		onChangeRangeStart: (start: Date) => void;
 		onChangeRangeEnd: (end: Date) => void;
 	},
@@ -176,10 +177,7 @@ type TPropsRange = Omit<
  */
 export function DatePickerRange(props: TPropsRange) {
 	const { rangeValueStart, rangeValueEnd, onChangeRangeStart, onChangeRangeEnd, ...rest } = props;
-
 	const showTime = props.showTimeSelect == undefined ? true : props.showTimeSelect;
-	const datesAreInvalid = rangeValueStart > rangeValueEnd;
-
 	return (
 		<EuiFlexGroup direction={"column"} gutterSize={"xs"}>
 			<EuiFlexGroup alignItems={"center"} gutterSize={"none"}>
@@ -189,7 +187,7 @@ export function DatePickerRange(props: TPropsRange) {
 						value={rangeValueStart}
 						onChange={onChangeRangeStart}
 						partOfRange={true}
-						isInvalid={datesAreInvalid}
+						isInvalid={rangeValueStart && rangeValueEnd && rangeValueStart > rangeValueEnd}
 						{...rest}
 					/>
 				</EuiFlexItem>
@@ -203,7 +201,7 @@ export function DatePickerRange(props: TPropsRange) {
 						aria-label={"End date"}
 						value={rangeValueEnd}
 						onChange={onChangeRangeEnd}
-						isInvalid={datesAreInvalid}
+						isInvalid={rangeValueStart && rangeValueEnd && rangeValueStart > rangeValueEnd}
 						partOfRange={true}
 						{...rest}
 					/>
@@ -211,15 +209,19 @@ export function DatePickerRange(props: TPropsRange) {
 			</EuiFlexGroup>
 			<EuiFlexGroup alignItems={"center"} gutterSize={"none"}>
 				<EuiFlexItem grow={5}>
-					<EuiTextAlign textAlign={"center"}>
-						<UserCurrentDateLink showTime={showTime} onChangeTime={onChangeRangeStart} />
-					</EuiTextAlign>
+					<UserCurrentDateLink
+						showTime={showTime}
+						onChangeDate={onChangeRangeStart}
+						textAlign={"center"}
+					/>
 				</EuiFlexItem>
 				<EuiFlexItem grow={1} />
 				<EuiFlexItem grow={5}>
-					<EuiTextAlign textAlign={"center"}>
-						<UserCurrentDateLink showTime={showTime} onChangeTime={onChangeRangeEnd} />
-					</EuiTextAlign>
+					<UserCurrentDateLink
+						showTime={showTime}
+						onChangeDate={onChangeRangeEnd}
+						textAlign={"center"}
+					/>
 				</EuiFlexItem>
 			</EuiFlexGroup>
 		</EuiFlexGroup>
@@ -231,31 +233,35 @@ export function DatePickerRange(props: TPropsRange) {
  */
 function UserCurrentDateLink({
 	showTime,
-	onChangeTime,
+	onChangeDate,
+	textAlign = "right",
 }: {
 	showTime: boolean;
-	onChangeTime: (date: Date) => void;
+	onChangeDate: (date: Date) => void;
+	textAlign?: TextAlignment;
 }) {
 	return (
-		<EuiText size={"xs"}>
-			<EuiLink
-				onClick={() => {
-					if (showTime) {
-						onChangeTime(new Date());
-					} else {
-						const d = new Date();
-						// setUTCHours(0, 0, 0, 0) sets the time to
-						// 00:00:00.000 in UTC.
-						// Additional timezone offsets may be
-						// applied while parsing the time string
-						d.setUTCHours(0, 0, 0, 0);
+		<EuiTextAlign textAlign={textAlign}>
+			<EuiText size={"xs"}>
+				<EuiLink
+					onClick={() => {
+						if (showTime) {
+							onChangeDate(new Date());
+						} else {
+							const d = new Date();
+							// setUTCHours(0, 0, 0, 0) sets the time to
+							// 00:00:00.000 in UTC.
+							// Additional timezone offsets may be
+							// applied while parsing the time string
+							d.setUTCHours(0, 0, 0, 0);
 
-						onChangeTime(d);
-					}
-				}}
-			>
-				Use current {showTime ? "time" : "date"}
-			</EuiLink>
-		</EuiText>
+							onChangeDate(d);
+						}
+					}}
+				>
+					Use current {showTime ? "time" : "date"}
+				</EuiLink>
+			</EuiText>
+		</EuiTextAlign>
 	);
 }

@@ -33,6 +33,7 @@ export type IRepositoryQuery = {
 	 */
 	user?: Maybe<IUser>;
 	currentUser: ICurrentUser;
+	users: Array<IUser>;
 	devices: IDeviceConnection;
 	device: IDevice;
 	resources: IResourceConnection;
@@ -80,8 +81,8 @@ export type IRepositoryQueryDevicesArgs = {
 	first?: InputMaybe<Scalars["Int"]>;
 	after?: InputMaybe<Scalars["String"]>;
 	order_by?: InputMaybe<IDeviceOrder>;
-	filter?: InputMaybe<IDevicesFilter>;
-	showOnlyOwnDevices?: InputMaybe<Scalars["Boolean"]>;
+	usage?: InputMaybe<IDevicesUsage>;
+	filter?: InputMaybe<IDevicesFilterInput>;
 };
 
 export type IRepositoryQueryDeviceArgs = {
@@ -93,6 +94,7 @@ export type IRepositoryQueryResourcesArgs = {
 	after?: InputMaybe<Scalars["String"]>;
 	rootsOnly?: InputMaybe<Scalars["Boolean"]>;
 	order_by?: InputMaybe<IResourceOrder>;
+	filter?: InputMaybe<IResourcesFilterInput>;
 };
 
 export type IRepositoryQueryResourceArgs = {
@@ -109,6 +111,7 @@ export type IRepositoryQuerySamplesArgs = {
 	first?: InputMaybe<Scalars["Int"]>;
 	after?: InputMaybe<Scalars["String"]>;
 	rootsOnly?: InputMaybe<Scalars["Boolean"]>;
+	filter?: InputMaybe<ISamplesFilterInput>;
 };
 
 export type IRepositoryQuerySampleArgs = {
@@ -1068,7 +1071,7 @@ export enum IDeviceOrder {
 	NameDesc = "NAME_DESC",
 }
 
-export enum IDevicesFilter {
+export enum IDevicesUsage {
 	/**
 	 * rootsOnly will only show devices which have properties and were never used as a device.
 	 * The idea behind this flag is that it tries to display only setups/reactors.
@@ -1078,12 +1081,30 @@ export enum IDevicesFilter {
 	UnusedOnly = "UNUSED_ONLY",
 }
 
+export type IDevicesFilterInput = {
+	searchValue?: InputMaybe<Scalars["String"]>;
+	userIds?: InputMaybe<Array<Scalars["ID"]>>;
+	projectIds?: InputMaybe<Array<Scalars["ID"]>>;
+};
+
 export enum IResourceOrder {
 	Name = "NAME",
 	NameDesc = "NAME_DESC",
 	CreationDate = "CREATION_DATE",
 	CreationDateDesc = "CREATION_DATE_DESC",
 }
+
+export type IResourcesFilterInput = {
+	searchValue?: InputMaybe<Scalars["String"]>;
+	projectIds?: InputMaybe<Array<Scalars["ID"]>>;
+	userIds?: InputMaybe<Array<Scalars["ID"]>>;
+};
+
+export type ISamplesFilterInput = {
+	searchValue?: InputMaybe<Scalars["String"]>;
+	projectIds?: InputMaybe<Array<Scalars["ID"]>>;
+	userIds?: InputMaybe<Array<Scalars["ID"]>>;
+};
 
 export type IConnection_DeviceDefinition = {
 	__typename?: "Connection_DeviceDefinition";
@@ -2195,8 +2216,11 @@ export type IResolversTypes = {
 	SearchResults: ResolverTypeWrapper<ResolverReturnType<ISearchResults>>;
 	SearchResult: ResolverTypeWrapper<ResolverReturnType<ISearchResult>>;
 	DeviceOrder: ResolverTypeWrapper<ResolverReturnType<IDeviceOrder>>;
-	DevicesFilter: ResolverTypeWrapper<ResolverReturnType<IDevicesFilter>>;
+	DevicesUsage: ResolverTypeWrapper<ResolverReturnType<IDevicesUsage>>;
+	DevicesFilterInput: ResolverTypeWrapper<ResolverReturnType<IDevicesFilterInput>>;
 	ResourceOrder: ResolverTypeWrapper<ResolverReturnType<IResourceOrder>>;
+	ResourcesFilterInput: ResolverTypeWrapper<ResolverReturnType<IResourcesFilterInput>>;
+	SamplesFilterInput: ResolverTypeWrapper<ResolverReturnType<ISamplesFilterInput>>;
 	Connection_DeviceDefinition: ResolverTypeWrapper<
 		ResolverReturnType<IConnection_DeviceDefinition>
 	>;
@@ -2554,6 +2578,9 @@ export type IResolversParentTypes = {
 	Transformation: ResolverReturnType<ITransformation>;
 	SearchResults: ResolverReturnType<ISearchResults>;
 	SearchResult: ResolverReturnType<ISearchResult>;
+	DevicesFilterInput: ResolverReturnType<IDevicesFilterInput>;
+	ResourcesFilterInput: ResolverReturnType<IResourcesFilterInput>;
+	SamplesFilterInput: ResolverReturnType<ISamplesFilterInput>;
 	Connection_DeviceDefinition: ResolverReturnType<IConnection_DeviceDefinition>;
 	Edge_DeviceDefinition: ResolverReturnType<IEdge_DeviceDefinition>;
 	Connection_ImportPreset: ResolverReturnType<IConnection_ImportPreset>;
@@ -2699,6 +2726,7 @@ export type IRepositoryQueryResolvers<
 		RequireFields<IRepositoryQueryUserArgs, "id">
 	>;
 	currentUser?: Resolver<IResolversTypes["CurrentUser"], ParentType, ContextType>;
+	users?: Resolver<Array<IResolversTypes["User"]>, ParentType, ContextType>;
 	devices?: Resolver<
 		IResolversTypes["DeviceConnection"],
 		ParentType,

@@ -1,4 +1,5 @@
 import { EuiTable, EuiTableBody, EuiTableHeader, EuiTableHeaderCell } from "@elastic/eui";
+import React from "react";
 import { graphql, useFragment } from "react-relay";
 
 import { ResourceListEntry } from "./ResourceListEntry";
@@ -57,7 +58,7 @@ const columns = [
 // Export column count to be able to automatically adjust colSpan in all components
 export const columnCount = columns.length;
 
-function ResourceListHeader() {
+export function ResourceListHeader() {
 	return (
 		<EuiTableHeader>
 			{columns.map((c) => (
@@ -71,7 +72,6 @@ function ResourceListHeader() {
 
 function columnWidth(columnName: (typeof columns)[number]) {
 	if (columnName == "Projects") return 100;
-	if (columnName == "Creator") return 150;
 	if (columnName == "") return 50; // Context menu
 	return undefined;
 }

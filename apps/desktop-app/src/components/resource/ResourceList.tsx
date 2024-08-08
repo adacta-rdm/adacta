@@ -1,29 +1,27 @@
 import {
 	EuiButton,
-	EuiButtonIcon,
 	EuiFlexGroup,
 	EuiFlexItem,
-	EuiPageTemplate,
+	EuiSkeletonText,
 	EuiSpacer,
+	EuiTable,
 } from "@elastic/eui";
 import React, { useMemo, useState } from "react";
+import type { RefetchFnDynamic } from "react-relay";
 import { graphql, usePaginationFragment, useSubscription } from "react-relay";
 import type { PreloadedQuery } from "react-relay/hooks";
 import { usePreloadedQuery } from "react-relay/hooks";
 import type { GraphQLSubscriptionConfig } from "relay-runtime";
 
 import { ResourceComparisonView } from "./ResourceComparisonView";
-import { ResourceListTable } from "./list/ResourceListTable";
-import { EDocId } from "../../interfaces/EDocId";
-import { useService } from "../../services/ServiceProvider";
-import { DocFlyoutService } from "../../services/toaster/FlyoutService";
-import { AdactaPageTemplate } from "../layout/AdactaPageTemplate";
+import { ResourceListHeader, ResourceListTable } from "./list/ResourceListTable";
 
 import type { ResourceList$key } from "@/relay/ResourceList.graphql";
 import type { ResourceListAddedOrUpdatedSubscription } from "@/relay/ResourceListAddedOrUpdatedSubscription.graphql";
 import type { ResourceListFragment } from "@/relay/ResourceListFragment.graphql";
 import type { ResourceListQuery } from "@/relay/ResourceListQuery.graphql";
 import type { ResourceListRemovedSubscription } from "@/relay/ResourceListRemovedSubscription.graphql";
+import { SearchEmptyPrompt } from "~/apps/desktop-app/src/components/search/list/SearchEmptyPrompt";
 
 const ResourceListGraphQLFragment = graphql`
 	fragment ResourceList on RepositoryQuery
@@ -34,8 +32,13 @@ const ResourceListGraphQLFragment = graphql`
 		order_by: { type: "ResourceOrder" }
 	) {
 		repository(id: $repositoryId) {
-			resources(first: $first, after: $after, rootsOnly: true, order_by: $order_by)
-				@connection(key: "ResourceList_resources") {
+			resources(
+				first: $first
+				after: $after
+				rootsOnly: true
+				order_by: $order_by
+				filter: $filter
+			) @connection(key: "ResourceList_resources") {
 				__id
 				edges {
 					node {
@@ -48,8 +51,8 @@ const ResourceListGraphQLFragment = graphql`
 `;
 
 export const ResourceListGraphQLQuery = graphql`
-	query ResourceListQuery($repositoryId: ID!) {
-		...ResourceList @arguments(first: 500)
+	query ResourceListQuery($repositoryId: ID!, $filter: ResourcesFilterInput) {
+		...ResourceList @arguments(first: 50)
 	}
 `;
 
@@ -73,17 +76,25 @@ const resourceRemovedGraphQLSubscription = graphql`
 	}
 `;
 
-export function ResourceList(props: { queryRef: PreloadedQuery<ResourceListQuery> }) {
+export function ResourceList(props: {
+	queryRef: PreloadedQuery<ResourceListQuery>;
+	setRefetch: (refetch: () => RefetchFnDynamic<ResourceListFragment, ResourceList$key>) => void;
+}) {
 	const query = usePreloadedQuery(ResourceListGraphQLQuery, props.queryRef);
-	const { data: fullData } = usePaginationFragment<ResourceListFragment, ResourceList$key>(
+	const {
+		refetch,
+		data: fullData,
+		hasNext,
+		loadNext,
+		isLoadingNext,
+	} = usePaginationFragment<ResourceListFragment, ResourceList$key>(
 		ResourceListGraphQLFragment,
 		query
 	);
+	props.setRefetch(() => refetch);
 
 	const data = fullData.repository;
 	const connectionId = data.resources.__id;
-
-	const docFlyoutService = useService(DocFlyoutService);
 
 	// IMPORTANT: your config should be memoized, or at least not re-computed
 	// every render. Otherwise, useSubscription will re-render too frequently.
@@ -109,55 +120,63 @@ export function ResourceList(props: { queryRef: PreloadedQuery<ResourceListQuery
 	const [selectedResources, setSelectedResources] = useState<string[]>([]);
 	const [showComparison, setShowComparison] = useState(false);
 
-	return (
-		<AdactaPageTemplate>
-			<EuiPageTemplate.Header
-				pageTitle={
-					<EuiFlexGroup alignItems="baseline" gutterSize="xs">
-						<EuiFlexItem grow={false}>Resources</EuiFlexItem>
+	return showComparison ? (
+		<ResourceComparisonView
+			onLeaveComparisonView={() => setShowComparison(false)}
+			selectedResources={selectedResources}
+		/>
+	) : (
+		<>
+			{selectedResources.length > 0 && (
+				<>
+					<EuiFlexGroup justifyContent={"flexEnd"}>
 						<EuiFlexItem grow={false}>
-							<EuiButtonIcon
-								aria-label={"Open Documentation"}
-								color="text"
-								iconType="questionInCircle"
-								onClick={() => docFlyoutService.showDoc(EDocId.RESOURCES)}
-							/>
+							<EuiButton onClick={() => setShowComparison(true)}>
+								Compare {selectedResources.length} resources
+							</EuiButton>
+						</EuiFlexItem>
+						<EuiFlexItem grow={false}>
+							<EuiButton onClick={() => setSelectedResources([])}>Clear selection</EuiButton>
 						</EuiFlexItem>
 					</EuiFlexGroup>
-				}
-			/>
-			<EuiPageTemplate.Section>
-				{showComparison ? (
-					<ResourceComparisonView
-						onLeaveComparisonView={() => setShowComparison(false)}
-						selectedResources={selectedResources}
-					/>
-				) : (
-					<>
-						{selectedResources.length > 0 && (
-							<>
-								<EuiFlexGroup justifyContent={"flexEnd"}>
-									<EuiFlexItem grow={false}>
-										<EuiButton onClick={() => setShowComparison(true)}>
-											Compare {selectedResources.length} resources
-										</EuiButton>
-									</EuiFlexItem>
-									<EuiFlexItem grow={false}>
-										<EuiButton onClick={() => setSelectedResources([])}>Clear selection</EuiButton>
-									</EuiFlexItem>
-								</EuiFlexGroup>
-								<EuiSpacer />
-							</>
-						)}
-						<ResourceListTable
-							resources={data.resources.edges.flatMap((e) => e.node ?? [])}
-							connections={[data.resources.__id]}
-							comparison={{ selectedResources, setSelectedResources }}
-							showContextMenu={true}
-						/>
-					</>
-				)}
-			</EuiPageTemplate.Section>
-		</AdactaPageTemplate>
+					<EuiSpacer />
+				</>
+			)}
+			{data.resources.edges.length === 0 ? (
+				<SearchEmptyPrompt />
+			) : (
+				<ResourceListTable
+					resources={data.resources.edges.flatMap((e) => e.node ?? [])}
+					connections={[data.resources.__id]}
+					comparison={{ selectedResources, setSelectedResources }}
+					showContextMenu={true}
+				/>
+			)}
+			<EuiSpacer />
+			{hasNext && (
+				<EuiFlexGroup justifyContent="center">
+					<EuiFlexItem grow={false}>
+						<EuiButton onClick={() => loadNext(50)} isLoading={isLoadingNext}>
+							Load More
+						</EuiButton>
+					</EuiFlexItem>
+				</EuiFlexGroup>
+			)}
+		</>
+	);
+}
+
+export function ResourceListLoading() {
+	return (
+		<>
+			<EuiTable>
+				<ResourceListHeader />
+			</EuiTable>
+			<EuiSkeletonText lines={4} />
+			<EuiSpacer />
+			<EuiSkeletonText lines={4} />
+			<EuiSpacer />
+			<EuiSkeletonText lines={4} />
+		</>
 	);
 }
