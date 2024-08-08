@@ -110,7 +110,7 @@ type Device implements Node & SupportsUsageAsProperty & SupportsNotes & HasMetad
 		time: DateTime
 		includeOverlaps: Boolean
 	): [ComponentWithPathAndTime!]!
-	topLevelDevice(timestamp: DateTime): Device
+	topLevelDevice(timestamp: DateTime): TopLevelDevice
 	"""
 	Returns the components that are available for use in the given time frame.
 	This resolver is used to find possible components to be used as sub-components of a device.
@@ -165,7 +165,7 @@ type Sample implements Node & SupportsUsageAsProperty & SupportsNotes & HasProje
 	Data that was recorded with this sample
 	"""
 	resources: [ResourceTabularData!]!
-	topLevelDevice(timestamp: DateTime): Device
+	topLevelDevice(timestamp: DateTime): TopLevelDevice
 	notes: NoteConnection!
 	projects(first: Int, after: String): ProjectConnection!
 	specifications: [Specification!]!
@@ -598,6 +598,11 @@ type SampleRelation implements Node {
 	id: ID!
 	type: String!
 	sample: Sample!
+}
+
+type TopLevelDevice {
+	device: Device!
+	path: [String!]!
 }
 
 type SpecificationsGraphElement {

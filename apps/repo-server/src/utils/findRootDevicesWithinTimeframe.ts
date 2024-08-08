@@ -13,21 +13,27 @@ export async function findRootDevicesWithinTimeframe(
 	el: EntityLoader,
 	Property: DrizzleSchema["Property"],
 	begin?: Date,
-	end?: Date
-): Promise<IDeviceId[]> {
+	end?: Date,
+	path: string[] = []
+): Promise<{ device: IDeviceId; path: string[] }[]> {
 	const usages = await getUsagesAsProperty2(el, Property, id, { begin, end });
 
 	if (usages.length === 0) {
 		// If there are no usages, then the device is the root device.
 		// Samples cannot be root devices, so we return an empty array.
-		return isEntityId(id, "Device") ? [id] : [];
+		if (isEntityId(id, "Device")) {
+			return [{ device: id, path }];
+		}
 	}
 
 	return (
 		await Promise.all(
 			usages.map((u) => {
 				const t = narrowTimeframe([u.begin, begin], [u.end, end]);
-				return findRootDevicesWithinTimeframe(u.ownerDeviceId, el, Property, t[0], t[1]);
+				return findRootDevicesWithinTimeframe(u.ownerDeviceId, el, Property, t[0], t[1], [
+					u.name,
+					...path,
+				]);
 			})
 		)
 	).flat();

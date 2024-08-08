@@ -183,7 +183,7 @@ export type IDevice = INode &
 		 * now".
 		 */
 		components: Array<IComponentWithPathAndTime>;
-		topLevelDevice?: Maybe<IDevice>;
+		topLevelDevice?: Maybe<ITopLevelDevice>;
 		/**
 		 * Returns the components that are available for use in the given time frame.
 		 * This resolver is used to find possible components to be used as sub-components of a device.
@@ -282,7 +282,7 @@ export type ISample = INode &
 		device?: Maybe<IDevice>;
 		/** Data that was recorded with this sample */
 		resources: Array<IResourceTabularData>;
-		topLevelDevice?: Maybe<IDevice>;
+		topLevelDevice?: Maybe<ITopLevelDevice>;
 		notes: INoteConnection;
 		projects: IProjectConnection;
 		specifications: Array<ISpecification>;
@@ -821,6 +821,12 @@ export type ISampleRelation = INode & {
 	id: Scalars["ID"];
 	type: Scalars["String"];
 	sample: ISample;
+};
+
+export type ITopLevelDevice = {
+	__typename?: "TopLevelDevice";
+	device: IDevice;
+	path: Array<Scalars["String"]>;
 };
 
 export type ISpecificationsGraphElement = {
