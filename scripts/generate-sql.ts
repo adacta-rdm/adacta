@@ -76,8 +76,7 @@ function generateSQL(out?: string) {
 	const sqlPathsBefore = new Set(readdirSync(out).filter((file) => file.endsWith(".sql")));
 
 	// Run the command to generate the SQL.
-	// The `generate' command sometimes prints errors, or becomes interactive and waits for user
-	// input. To make it easier to see what is happening, we log the output.
+	// Print the output to make it easier to see what is happening, in case there are warnings or errors.
 	console.log("--- Running drizzle-kit ---");
 	console.log(sh(`yarn drizzle-kit generate --config ${configPath}`));
 	console.log("---------------------------");
