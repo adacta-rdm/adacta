@@ -43,9 +43,9 @@
 	},
 	"dependencies": {
 		"@babel/core": "^7.24.5",
-		"@elastic/charts": "^64.1.0",
+		"@elastic/charts": "^66.1.0",
 		"@elastic/datemath": "^5.0.3",
-		"@elastic/eui": "93.5.1",
+		"@elastic/eui": "^95.5.0",
 		"@electric-sql/pglite": "^0.1.5",
 		"@emotion/css": "^11.11.2",
 		"@emotion/react": "^11.11.1",

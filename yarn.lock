@@ -2894,12 +2894,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.16.5, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.22.5, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.9.2":
+"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.16.5, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.9.2":
   version: 7.22.15
   resolution: "@babel/runtime@npm:7.22.15"
   dependencies:
     regenerator-runtime: "npm:^0.14.0"
   checksum: 10c0/96b74adfd1db812d06ed56d9db12acecfc844d252b93994ce4901433957bd28affba725622a4dc9e7f76384c4cb6cadc3d620d07817c8be9156eaedba5eea059
+  languageName: node
+  linkType: hard
+
+"@babel/runtime@npm:^7.24.1":
+  version: 7.25.0
+  resolution: "@babel/runtime@npm:7.25.0"
+  dependencies:
+    regenerator-runtime: "npm:^0.14.0"
+  checksum: 10c0/bd3faf246170826cef2071a94d7b47b49d532351360ecd17722d03f6713fd93a3eb3dbd9518faa778d5e8ccad7392a7a604e56bd37aaad3f3aa68d619ccd983d
   languageName: node
   linkType: hard
 
@@ -3002,9 +3011,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@elastic/charts@npm:^64.1.0":
-  version: 64.1.0
-  resolution: "@elastic/charts@npm:64.1.0"
+"@elastic/charts@npm:^66.1.0":
+  version: 66.1.0
+  resolution: "@elastic/charts@npm:66.1.0"
   dependencies:
     "@popperjs/core": "npm:^2.11.8"
     bezier-easing: "npm:^2.1.0"
@@ -3030,7 +3039,7 @@ __metadata:
     moment-timezone: ^0.5.32
     react: ^16.12 || ^17.0 || ^18.0
     react-dom: ^16.12 || ^17.0 || ^18.0
-  checksum: 10c0/b00cdbb900b9e26c208dd046177c1740c42274e2aa12f484e0ae7ca64032aaaae943bc0cbe5955c5dcccdec26b6fc0a2dbae017699d8271c4c0303fc3af03537
+  checksum: 10c0/83ffc0d2b5d473ad58517627f9ad35a8b9b229db485778109ec08dce0929ac56c2c2c211e1c7c6502d73fbc9a484cbe4d22986ca32772708414b87e9c377fab6
   languageName: node
   linkType: hard
 
@@ -3045,11 +3054,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@elastic/eui@npm:93.5.1":
-  version: 93.5.1
-  resolution: "@elastic/eui@npm:93.5.1"
+"@elastic/eui@npm:^95.5.0":
+  version: 95.5.0
+  resolution: "@elastic/eui@npm:95.5.0"
   dependencies:
-    "@hello-pangea/dnd": "npm:^16.3.0"
+    "@hello-pangea/dnd": "npm:^16.6.0"
     "@types/lodash": "npm:^4.14.202"
     "@types/numeral": "npm:^2.0.5"
     "@types/react-window": "npm:^1.8.8"
@@ -3065,8 +3074,8 @@ __metadata:
     react-focus-on: "npm:^3.9.1"
     react-is: "npm:^17.0.2"
     react-remove-scroll-bar: "npm:^2.3.4"
-    react-virtualized-auto-sizer: "npm:^1.0.20"
-    react-window: "npm:^1.8.9"
+    react-virtualized-auto-sizer: "npm:^1.0.24"
+    react-window: "npm:^1.8.10"
     refractor: "npm:^3.6.0"
     rehype-raw: "npm:^5.1.0"
     rehype-react: "npm:^6.2.1"
@@ -3074,7 +3083,7 @@ __metadata:
     remark-breaks: "npm:^2.0.2"
     remark-emoji: "npm:^2.1.0"
     remark-parse-no-trim: "npm:^8.0.4"
-    remark-rehype: "npm:^8.0.0"
+    remark-rehype: "npm:^8.1.0"
     tabbable: "npm:^5.3.3"
     text-diff: "npm:^1.0.1"
     unified: "npm:^9.2.2"
@@ -3092,58 +3101,7 @@ __metadata:
     react: ^16.12 || ^17.0 || ^18.0
     react-dom: ^16.12 || ^17.0 || ^18.0
     typescript: ~4.5.3
-  checksum: 10c0/acba5378d86f19116fd17df8571fd7ff8a477c2eea2a1e778cb5a358ddb301d2153f0ddab93cba5bcf696411773afa368c8c1f92f434fbc437e90dd88398af10
-  languageName: node
-  linkType: hard
-
-"@elastic/eui@patch:@elastic/eui@npm:93.5.1#.yarn/patches/@elastic-eui-npm-93.5.1-18c5327494.patch::locator=%40omegadot%2Fadacta%40workspace%3A.":
-  version: 93.5.1
-  resolution: "@elastic/eui@patch:@elastic/eui@npm%3A93.5.1#.yarn/patches/@elastic-eui-npm-93.5.1-18c5327494.patch::version=93.5.1&hash=92be83&locator=%40omegadot%2Fadacta%40workspace%3A."
-  dependencies:
-    "@hello-pangea/dnd": "npm:^16.3.0"
-    "@types/lodash": "npm:^4.14.202"
-    "@types/numeral": "npm:^2.0.5"
-    "@types/react-window": "npm:^1.8.8"
-    "@types/refractor": "npm:^3.4.0"
-    chroma-js: "npm:^2.4.2"
-    classnames: "npm:^2.5.1"
-    lodash: "npm:^4.17.21"
-    mdast-util-to-hast: "npm:^10.2.0"
-    numeral: "npm:^2.0.6"
-    prop-types: "npm:^15.8.1"
-    react-dropzone: "npm:^11.7.1"
-    react-element-to-jsx-string: "npm:^15.0.0"
-    react-focus-on: "npm:^3.9.1"
-    react-is: "npm:^17.0.2"
-    react-remove-scroll-bar: "npm:^2.3.4"
-    react-virtualized-auto-sizer: "npm:^1.0.20"
-    react-window: "npm:^1.8.9"
-    refractor: "npm:^3.6.0"
-    rehype-raw: "npm:^5.1.0"
-    rehype-react: "npm:^6.2.1"
-    rehype-stringify: "npm:^8.0.0"
-    remark-breaks: "npm:^2.0.2"
-    remark-emoji: "npm:^2.1.0"
-    remark-parse-no-trim: "npm:^8.0.4"
-    remark-rehype: "npm:^8.0.0"
-    tabbable: "npm:^5.3.3"
-    text-diff: "npm:^1.0.1"
-    unified: "npm:^9.2.2"
-    unist-util-visit: "npm:^2.0.3"
-    url-parse: "npm:^1.5.10"
-    uuid: "npm:^8.3.0"
-    vfile: "npm:^4.2.1"
-  peerDependencies:
-    "@elastic/datemath": ^5.0.2
-    "@emotion/css": 11.x
-    "@emotion/react": 11.x
-    "@types/react": ^16.9 || ^17.0 || ^18.0
-    "@types/react-dom": ^16.9 || ^17.0 || ^18.0
-    moment: ^2.13.0
-    react: ^16.12 || ^17.0 || ^18.0
-    react-dom: ^16.12 || ^17.0 || ^18.0
-    typescript: ~4.5.3
-  checksum: 10c0/dfb437320a5d80328dfeb14fdc75bf015b079b13a8ef339222ef39f1f2e9a6b50571d1e69d56017b950658807500e0520a187da07659f76e80f968b87f95a4cb
+  checksum: 10c0/a4e7de7b2b5843ba2daa3762536ef12173991ee50e23ae78726694e1b59b288332cc00b9165d3d5dc8fa75a401df69c1a65e9fe9cf62454b826b04a2ab37dbf1
   languageName: node
   linkType: hard
 
@@ -4512,21 +4470,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hello-pangea/dnd@npm:^16.3.0":
-  version: 16.3.0
-  resolution: "@hello-pangea/dnd@npm:16.3.0"
+"@hello-pangea/dnd@npm:^16.6.0":
+  version: 16.6.0
+  resolution: "@hello-pangea/dnd@npm:16.6.0"
   dependencies:
-    "@babel/runtime": "npm:^7.22.5"
+    "@babel/runtime": "npm:^7.24.1"
     css-box-model: "npm:^1.2.1"
     memoize-one: "npm:^6.0.0"
     raf-schd: "npm:^4.0.3"
-    react-redux: "npm:^8.1.1"
+    react-redux: "npm:^8.1.3"
     redux: "npm:^4.2.1"
     use-memo-one: "npm:^1.1.3"
   peerDependencies:
     react: ^16.8.5 || ^17.0.0 || ^18.0.0
     react-dom: ^16.8.5 || ^17.0.0 || ^18.0.0
-  checksum: 10c0/f46aa3549a3a1681b6f9b3d329d9d509f96f192b453dec78ae46f6f0cbaa31c62726e81d6a69b5834824f562ae68dc2aa0ea370e510d1f8208c6fb32a028cfb0
+  checksum: 10c0/ef43ba21f063f6497f399b457452d45be456b1f28405b148d9683d2ca65e5f77e2685a0b7e9998aaca4f8676b1642ba2c277fc78643ea59fd6b9f71a56ffc5e0
   languageName: node
   linkType: hard
 
@@ -4902,9 +4860,9 @@ __metadata:
   resolution: "@omegadot/adacta@workspace:."
   dependencies:
     "@babel/core": "npm:^7.24.5"
-    "@elastic/charts": "npm:^64.1.0"
+    "@elastic/charts": "npm:^66.1.0"
     "@elastic/datemath": "npm:^5.0.3"
-    "@elastic/eui": "npm:93.5.1"
+    "@elastic/eui": "npm:^95.5.0"
     "@electric-sql/pglite": "npm:^0.1.5"
     "@emotion/css": "npm:^11.11.2"
     "@emotion/react": "npm:^11.11.1"
@@ -14039,7 +13997,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mdast-util-to-hast@npm:^10.0.0, mdast-util-to-hast@npm:^10.2.0":
+"mdast-util-to-hast@npm:^10.2.0":
   version: 10.2.0
   resolution: "mdast-util-to-hast@npm:10.2.0"
   dependencies:
@@ -16016,7 +15974,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-redux@npm:^8.0.2, react-redux@npm:^8.1.1":
+"react-redux@npm:^8.0.2":
   version: 8.1.2
   resolution: "react-redux@npm:8.1.2"
   dependencies:
@@ -16045,6 +16003,38 @@ __metadata:
     redux:
       optional: true
   checksum: 10c0/779b911dc2121cf589adfbc31c4cba4357f952c58ec3ea37b13d229e5abf347d50e1439fdb182de77b0eab71bc1c91f94a78292d332d4db68c9a004739ad729d
+  languageName: node
+  linkType: hard
+
+"react-redux@npm:^8.1.3":
+  version: 8.1.3
+  resolution: "react-redux@npm:8.1.3"
+  dependencies:
+    "@babel/runtime": "npm:^7.12.1"
+    "@types/hoist-non-react-statics": "npm:^3.3.1"
+    "@types/use-sync-external-store": "npm:^0.0.3"
+    hoist-non-react-statics: "npm:^3.3.2"
+    react-is: "npm:^18.0.0"
+    use-sync-external-store: "npm:^1.0.0"
+  peerDependencies:
+    "@types/react": ^16.8 || ^17.0 || ^18.0
+    "@types/react-dom": ^16.8 || ^17.0 || ^18.0
+    react: ^16.8 || ^17.0 || ^18.0
+    react-dom: ^16.8 || ^17.0 || ^18.0
+    react-native: ">=0.59"
+    redux: ^4 || ^5.0.0-beta.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+    redux:
+      optional: true
+  checksum: 10c0/64c8be2765568dc66a3c442a41dd0ed74fe048d5ceb7a4fe72e5bac3d3687996a7115f57b5156af7406521087065a0e60f9194318c8ca99c55e9ce48558980ce
   languageName: node
   linkType: hard
 
@@ -16122,13 +16112,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-virtualized-auto-sizer@npm:^1.0.20":
-  version: 1.0.20
-  resolution: "react-virtualized-auto-sizer@npm:1.0.20"
+"react-virtualized-auto-sizer@npm:^1.0.24":
+  version: 1.0.24
+  resolution: "react-virtualized-auto-sizer@npm:1.0.24"
   peerDependencies:
-    react: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0-rc
-    react-dom: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0-rc
-  checksum: 10c0/af8cc202a9f8d0d4bc21470d57a970455262cb27784811b3a813790361aa60f790acd304efdd8e8b380d46d3eed66309abecc7e5d6aecbec93f60844028d10cb
+    react: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0
+    react-dom: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0
+  checksum: 10c0/d400489e5005a2ad0635228958379aa26b66fdae62a5b9fbf4dcb5fecd4e99454990b1cd59fe55ff277419b37bdf098c26e7185e0ef1b6ca775a477f913bb763
   languageName: node
   linkType: hard
 
@@ -16153,16 +16143,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-window@npm:^1.8.9":
-  version: 1.8.9
-  resolution: "react-window@npm:1.8.9"
+"react-window@npm:^1.8.10":
+  version: 1.8.10
+  resolution: "react-window@npm:1.8.10"
   dependencies:
     "@babel/runtime": "npm:^7.0.0"
     memoize-one: "npm:>=3.1.1 <6"
   peerDependencies:
     react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
     react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: 10c0/8c87980e1906235ca3a550c37bc2958f979a928ae3f71dc2efeb77e5a60a9036c9d5d1148b90ebeac0d2858054da97604fa3b89522219ed0a8dfa933846ca0b4
+  checksum: 10c0/eda9afb667d9784513dcc2755b65edf3a1412e7877975322993c1382908aaef0c0b948b7e3b2d705e353306556274d90f7ab19ac40aef2184fa39d4c1e2232ea
   languageName: node
   linkType: hard
 
@@ -16497,12 +16487,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remark-rehype@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "remark-rehype@npm:8.0.0"
+"remark-rehype@npm:^8.1.0":
+  version: 8.1.0
+  resolution: "remark-rehype@npm:8.1.0"
   dependencies:
-    mdast-util-to-hast: "npm:^10.0.0"
-  checksum: 10c0/182ab0fe2f54a139acc343cf60ab3970bc1eb0e09b773a0d4047be49703ef8cc9ca1a69fa514260454ef5b46bbb9b99c694eddc7d2005977a71478a1c679c662
+    mdast-util-to-hast: "npm:^10.2.0"
+  checksum: 10c0/e8261d3922433408632c39f351e923114e4cfeab9ad1f9f8a3501b6f9b8d0456762e4078b58211a80d54d9b14cd14d57a4ce20981c4534eb56c3e17e06d98312
   languageName: node
   linkType: hard
 
