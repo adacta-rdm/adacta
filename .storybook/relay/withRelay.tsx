@@ -1,5 +1,5 @@
 import { makeDecorator } from "@storybook/preview-api";
-import type { ComponentProps, ComponentType, JSX } from "react";
+import { ComponentProps, ComponentType, JSX, Suspense } from "react";
 import { RelayEnvironmentProvider, useLazyLoadQuery } from "react-relay";
 import type {
 	GraphQLSingularResponse,
@@ -17,6 +17,7 @@ import type { PartialDeep } from "type-fest";
 
 import { defaultMockResolvers } from "~/.storybook/relay/defaultMockResolvers";
 import type { IResolversTypes } from "~/apps/repo-server/src/graphql/generated/resolvers";
+import { OperationMockResolver } from "relay-test-utils/lib/RelayModernMockEnvironment";
 
 export type TypeMockResolverContext = MockResolverContext & {
 	random: ReturnType<typeof getRandomNumberHelpers>;
@@ -66,6 +67,12 @@ export interface IWithRelayParameters<
 	) => GraphQLSingularResponse;
 
 	/**
+	 * Optional. If specified, the story will suspend for the specified number of milliseconds.
+	 * Useful for testing loading states.
+	 */
+	delay?: number;
+
+	/**
 	 * If specified, issues a lazy load query and passes the result to the story. The object's
 	 * keys are the story's args, and the values are functions that return the corresponding
 	 * values from the query result.
@@ -113,19 +120,24 @@ export const withRelay = makeDecorator({
 		const environment = createMockEnvironment();
 
 		const setupNextGraphQLResponse = () => {
-			environment.mock.queueOperationResolver((operation) => {
+			environment.mock.queueOperationResolver(((operation) => {
 				// A response must be explicitly configured for each graphql operation. To enable multiple
 				// operations in a single story (e.g., due to user interaction), we queue up the same
 				// response each time a new operation is requested, hence the recursive call here.
 				setupNextGraphQLResponse();
 
-				if (parameters.generateFunction) {
-					return parameters.generateFunction(operation, resolvers);
-				}
-				return MockPayloadGenerator.generate(operation, resolvers);
-			});
+				const response = parameters.generateFunction
+					? parameters.generateFunction(operation, resolvers)
+					: MockPayloadGenerator.generate(operation, resolvers);
 
-			environment.mock.queuePendingOperation(query, variables);
+				if (parameters.delay === undefined) return response;
+
+				// In case `delay` is set, we wrap the response in a promise that resolves after the
+				// specified number of milliseconds.
+				return new Promise((resolve) => {
+					setTimeout(() => resolve(response), parameters.delay);
+				});
+			}) as OperationMockResolver);
 		};
 
 		setupNextGraphQLResponse();
