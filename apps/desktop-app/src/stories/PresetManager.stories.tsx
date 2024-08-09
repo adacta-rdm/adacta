@@ -7,7 +7,6 @@ import {
 
 import type { PresetManagerQuery } from "@/relay/PresetManagerQuery.graphql";
 import type { IWithRouterParameters } from "~/.storybook/found/withRouter";
-import { getSeededRandomInt } from "~/.storybook/relay/defaultMockResolvers";
 import type { AdactaStoryObj } from "~/.storybook/types";
 import { HistoryService } from "~/apps/desktop-app/src/services/history/HistoryService";
 
@@ -32,10 +31,8 @@ export const Basic: Story = {
 			query: PresetManagerGraphQLQuery,
 			mockResolvers: {
 				ResourceConnection: () => ({ edges: new Array(5).fill(undefined) }),
-				ImportPreset: () => ({
-					columns: new Array(getSeededRandomInt(20, 50))
-						.fill(undefined)
-						.map((_, i) => `Column ${i}`),
+				ImportPreset: ({ random }) => ({
+					columns: random.array(20, 50).map((_, i) => `Column ${i}`),
 				}),
 			},
 		},

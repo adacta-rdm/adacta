@@ -16,26 +16,6 @@ export default meta;
 
 type Story = AdactaStoryObj<typeof meta, ChartsStoriesQuery>;
 
-let dataSeriesCounter = 0;
-
-function getDataSeries() {
-	// Tuples of X,Y Values
-	const data = [
-		[0, 0],
-		[0, 3],
-		[1.5, 5],
-		[3, 3],
-		[0, 3],
-		[3, 0],
-		[0, 0],
-		[3, 1],
-	];
-
-	const d = data.map((d) => d[dataSeriesCounter % 2]);
-	dataSeriesCounter++;
-	return d;
-}
-
 export const Basic: Story = {
 	parameters: {
 		relay: {
@@ -52,11 +32,6 @@ export const Basic: Story = {
 			`,
 			props: {
 				chart: (queryResult) => queryResult.node!.downSampled!,
-			},
-			mockResolvers: {
-				DataSeries() {
-					return { values: getDataSeries(), unit: "°C", label: "Test" };
-				},
 			},
 		},
 	},

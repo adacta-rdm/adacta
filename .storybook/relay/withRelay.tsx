@@ -1,6 +1,5 @@
 import { makeDecorator } from "@storybook/preview-api";
-import type { ComponentProps, ComponentType } from "react";
-import type { JSX } from "react";
+import type { ComponentProps, ComponentType, JSX } from "react";
 import { RelayEnvironmentProvider, useLazyLoadQuery } from "react-relay";
 import type {
 	GraphQLSingularResponse,
@@ -10,14 +9,18 @@ import type {
 } from "relay-runtime";
 import { createMockEnvironment, MockPayloadGenerator } from "relay-test-utils";
 import type {
-	MockResolver,
 	MockResolverContext,
 	MockResolvers,
 } from "relay-test-utils/lib/RelayMockPayloadGenerator";
+import seedrandom from "seedrandom";
 import type { PartialDeep } from "type-fest";
 
 import { defaultMockResolvers } from "~/.storybook/relay/defaultMockResolvers";
 import type { IResolversTypes } from "~/apps/repo-server/src/graphql/generated/resolvers";
+
+export type TypeMockResolverContext = MockResolverContext & {
+	random: ReturnType<typeof getRandomNumberHelpers>;
+};
 
 /**
  * Replacement type for relay's MockResolvers type with more type-safeness from the generated
@@ -25,7 +28,7 @@ import type { IResolversTypes } from "~/apps/repo-server/src/graphql/generated/r
  */
 export type TypedMockResolvers = {
 	[K in keyof IResolversTypes]?: (
-		context: MockResolverContext,
+		context: TypeMockResolverContext,
 		generateId: () => number
 	) =>
 		| (PartialDeep<Omit<IResolversTypes[K], "id">> & { id?: string })
@@ -135,32 +138,60 @@ export const withRelay = makeDecorator({
 	},
 });
 
-function mergeResolvers(mockResolvers: TypedMockResolvers = {}) {
-	const merged: MockResolvers = defaultMockResolvers;
+function mergeResolvers(mockResolvers: TypedMockResolvers = {}): MockResolvers {
+	const resolvers: MockResolvers = {};
 
-	for (const type of Object.keys(mockResolvers)) {
-		const fnCustom = mockResolvers[type as keyof TypedMockResolvers];
-		if (!fnCustom) continue;
+	const random = getRandomNumberHelpers();
+	const defaultResolvers: TypedMockResolvers = defaultMockResolvers();
 
-		const fnDefault = merged[type] as MockResolver | undefined;
-		if (!fnDefault) {
-			merged[type] = fnCustom;
-			continue;
+	for (const type of new Set([
+		...Object.keys(defaultResolvers),
+		...Object.keys(mockResolvers),
+	] as (keyof TypedMockResolvers)[])) {
+		const fnCustom = mockResolvers[type];
+		const fnDefault = defaultResolvers[type];
+
+		if (fnDefault && fnCustom) {
+			resolvers[type] = (ctxPristine, id) => {
+				const ctx = { ...ctxPristine, random };
+
+				const resultDefault = fnDefault(ctx, id);
+				const resultCustom = fnCustom(ctx, id);
+
+				if (!(typeof resultDefault === "object" && typeof resultCustom === "object")) {
+					throw new Error(
+						"One of the Mock resolvers (default/custom) didn't return an object. Currently there is no merging logic for this case."
+					);
+				}
+
+				return { ...resultDefault, ...resultCustom };
+			};
+		} else if (fnDefault) {
+			resolvers[type] = (ctx, id) => fnDefault({ ...ctx, random }, id);
+		} else if (fnCustom) {
+			resolvers[type] = (ctx, id) => fnCustom({ ...ctx, random }, id);
 		}
-
-		merged[type] = (ctx, id) => {
-			const resultDefault = fnDefault(ctx, id);
-			const resultCustom = fnCustom(ctx, id);
-
-			if (!(typeof resultDefault === "object" && typeof resultCustom === "object")) {
-				throw new Error(
-					"One of the Mock resolvers (default/custom) didn't return an object. Currently there is no merging logic for this case."
-				);
-			}
-
-			return { ...resultDefault, ...resultCustom };
-		};
 	}
 
-	return merged;
+	return resolvers;
+}
+
+function getRandomNumberHelpers() {
+	const random = seedrandom("ADACTA_STATIC_SEED");
+
+	return Object.assign(random, {
+		intBetween(min: number, max: number) {
+			min = Math.ceil(min);
+			max = Math.floor(max);
+			return Math.floor(random() * (max + 1 - min) + min);
+		},
+
+		itemFrom<T>(items: T[]): T {
+			return items[Math.floor(random() * items.length)];
+		},
+
+		array<T>(min: number, max: number, fill: T = {} as T) {
+			return Array(this.intBetween(min, max)).fill(fill) as T[];
+		},
+	});
 }

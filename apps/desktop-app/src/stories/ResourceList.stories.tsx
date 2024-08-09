@@ -3,7 +3,6 @@ import { graphql } from "react-relay";
 import { ResourceListTable } from "../components/resource/list/ResourceListTable";
 
 import type { ResourceListStoryQuery } from "@/relay/ResourceListStoryQuery.graphql";
-import { getSeededRandomInt } from "~/.storybook/relay/defaultMockResolvers";
 import type { AdactaStoryMeta, AdactaStoryObj } from "~/.storybook/types";
 import { HistoryService } from "~/apps/desktop-app/src/services/history/HistoryService";
 
@@ -35,16 +34,16 @@ const meta = {
 					queryResult.repository.resources.edges.flatMap((e) => e?.node ?? []),
 			},
 			mockResolvers: {
-				ResourceConnection: (ctx) => {
+				ResourceConnection: ({ name, random }) => {
 					return {
-						edges: Array(ctx.name === "children" ? getSeededRandomInt(1, 4) : 10).fill({}),
+						edges: Array(name === "children" ? random.intBetween(1, 4) : 10).fill({}),
 					};
 				},
-				Resource: () => ({ __typename: getType() }),
+				Resource: (_, id) => ({ __typename: getType(id()) }),
 				ResourceGeneric: () => ({ name: "Raw.txt" }),
-				ResourceTabularData: () => ({
+				ResourceTabularData: ({ random }) => ({
 					name: "Tab.csv",
-					devices: Array(getSeededRandomInt(1, 4)).fill({}),
+					devices: random.array(1, 4),
 				}),
 			},
 		},
@@ -54,10 +53,8 @@ export default meta;
 
 type Story = AdactaStoryObj<typeof meta, ResourceListStoryQuery>;
 
-let typeCounter = 0;
-const getType = () => {
-	typeCounter++;
-	const types: ("ResourceGeneric" | "ResourceTabularData")[] = [
+const getType = (typeCounter: number) => {
+	const types = [
 		"ResourceGeneric",
 		"ResourceGeneric",
 		"ResourceGeneric",
@@ -77,9 +74,9 @@ export const ManyDevices: Story = {
 	parameters: {
 		relay: {
 			mockResolvers: {
-				ResourceTabularData: () => ({
+				ResourceTabularData: ({ random }) => ({
 					name: "Tab.csv",
-					devices: Array(getSeededRandomInt(8, 10)).fill(undefined),
+					devices: random.array(8, 10),
 				}),
 			},
 		},
