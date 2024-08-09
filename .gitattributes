@@ -7,3 +7,6 @@
 **/generated/*.ts linguist-generated=true
 **/generated/*.graphql linguist-generated=true
 **/__generated__/*.graphql.ts linguist-generated=true
+
+# Generated type checks
+**/type_checks/*.ts linguist-generated=true

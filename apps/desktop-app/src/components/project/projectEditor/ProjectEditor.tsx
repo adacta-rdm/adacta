@@ -323,18 +323,19 @@ export function ProjectEditor(props: { data: ProjectEditor$key; listOnly?: boole
 				{assignedProjects.projects.edges.length > 0 ? (
 					assignedProjects.projects.edges.flatMap((e) =>
 						e.node !== null ? (
-							<EuiFlexItem
-								key={e.node.id}
-								grow={false}
-								onClick={() => {
-									assertDefined(e.node?.id);
-									router.push("/repositories/:repositoryId/projects/:projectId", {
-										repositoryId,
-										projectId: e.node.id,
-									});
-								}}
-							>
-								<EuiBadge>{e.node.name}</EuiBadge>
+							<EuiFlexItem key={e.node.id} grow={false}>
+								<EuiBadge
+									onClick={() => {
+										assertDefined(e.node?.id);
+										router.push("/repositories/:repositoryId/projects/:projectId", {
+											repositoryId,
+											projectId: e.node.id,
+										});
+									}}
+									onClickAriaLabel={`Click to view the ${e.node.name} project`}
+								>
+									{e.node.name}
+								</EuiBadge>
 							</EuiFlexItem>
 						) : (
 							[]

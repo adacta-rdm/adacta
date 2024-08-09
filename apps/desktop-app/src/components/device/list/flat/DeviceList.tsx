@@ -1,13 +1,20 @@
-import { EuiButton, EuiFlexGroup, EuiFlexItem, EuiSpacer } from "@elastic/eui";
-import React, { useMemo, useState } from "react";
+import {
+	EuiButton,
+	EuiFlexGroup,
+	EuiFlexItem,
+	EuiSkeletonText,
+	EuiSpacer,
+	EuiTable,
+} from "@elastic/eui";
+import React, { useMemo } from "react";
+import type { RefetchFnDynamic } from "react-relay";
 import { graphql, usePaginationFragment, useSubscription } from "react-relay";
 import type { PreloadedQuery } from "react-relay/hooks";
 import { usePreloadedQuery } from "react-relay/hooks";
 import type { GraphQLSubscriptionConfig } from "relay-runtime";
 
-import { DeviceTable } from "./DeviceTable";
+import { DeviceTable, DeviceTableHeader } from "./DeviceTable";
 import { DeviceAdd } from "../../DeviceAdd";
-import { DeviceListTemplate } from "../DeviceListTemplate";
 
 import type { DeviceList$key } from "@/relay/DeviceList.graphql";
 import type { DeviceListAddedOrUpdatedSubscription } from "@/relay/DeviceListAddedOrUpdatedSubscription.graphql";
@@ -15,24 +22,18 @@ import type { DeviceListFragment } from "@/relay/DeviceListFragment.graphql";
 import type { DeviceListQuery } from "@/relay/DeviceListQuery.graphql";
 import type { DeviceListRemovedSubscription } from "@/relay/DeviceListRemovedSubscription.graphql";
 
-const DeviceListGraphQLFragment = graphql`
+export const DeviceListGraphQLFragment = graphql`
 	fragment DeviceList on RepositoryQuery
 	@refetchable(queryName: "DeviceListFragment")
 	@argumentDefinitions(
 		first: { type: "Int!" }
 		after: { type: "String" }
 		order_by: { type: "DeviceOrder" }
-		filter: { type: "DevicesFilter" }
-		showOnlyOwnDevices: { type: "Boolean" }
+		usage: { type: "DevicesUsage" }
 	) {
 		repository(id: $repositoryId) {
-			devices(
-				first: $first
-				after: $after
-				order_by: $order_by
-				filter: $filter
-				showOnlyOwnDevices: $showOnlyOwnDevices
-			) @connection(key: "DeviceList_devices") {
+			devices(first: $first, after: $after, order_by: $order_by, usage: $usage, filter: $filter)
+				@connection(key: "DeviceList_devices") {
 				__id
 				edges {
 					...DeviceTable_devices
@@ -43,7 +44,7 @@ const DeviceListGraphQLFragment = graphql`
 `;
 
 export const DeviceListGraphQLQuery = graphql`
-	query DeviceListQuery($repositoryId: ID!) {
+	query DeviceListQuery($repositoryId: ID!, $filter: DevicesFilterInput) {
 		...DeviceList @arguments(first: 25, order_by: NAME)
 	}
 `;
@@ -66,7 +67,12 @@ const deviceRemovedGraphQLSubscription = graphql`
 	}
 `;
 
-export function DeviceList(props: { queryRef: PreloadedQuery<DeviceListQuery> }) {
+export function DeviceList(props: {
+	queryRef: PreloadedQuery<DeviceListQuery>;
+	deviceAddDialogOpen: boolean;
+	setDeviceAddDialogOpen: (e: boolean) => void;
+	setRefetch: (refetch: () => RefetchFnDynamic<DeviceListFragment, DeviceList$key>) => void;
+}) {
 	const query = usePreloadedQuery(DeviceListGraphQLQuery, props.queryRef);
 	const {
 		data: oldData,
@@ -75,10 +81,9 @@ export function DeviceList(props: { queryRef: PreloadedQuery<DeviceListQuery> })
 		hasNext,
 		isLoadingNext,
 	} = usePaginationFragment<DeviceListFragment, DeviceList$key>(DeviceListGraphQLFragment, query);
+	props.setRefetch(() => refetch);
 
 	const data = oldData.repository;
-
-	const [deviceAddDialogOpen, setDeviceAddDialogOpen] = useState(false);
 
 	const connectionId = data.devices.__id;
 
@@ -99,17 +104,15 @@ export function DeviceList(props: { queryRef: PreloadedQuery<DeviceListQuery> })
 		}),
 		[connectionId]
 	);
+
 	useSubscription(addOrUpdateConfig);
 	useSubscription(removeConfig);
 
 	return (
-		<DeviceListTemplate
-			mainAction={{ type: "addDevice", onAddAddDevice: () => setDeviceAddDialogOpen(true) }}
-			selectedTab={"flat"}
-		>
-			{deviceAddDialogOpen && (
+		<>
+			{props.deviceAddDialogOpen && (
 				<DeviceAdd
-					closeModal={() => setDeviceAddDialogOpen(false)}
+					closeModal={() => props.setDeviceAddDialogOpen(false)}
 					connections={{ connectionIdFlat: [connectionId] }}
 				/>
 			)}
@@ -128,6 +131,21 @@ export function DeviceList(props: { queryRef: PreloadedQuery<DeviceListQuery> })
 					</EuiFlexItem>
 				</EuiFlexGroup>
 			)}
-		</DeviceListTemplate>
+		</>
+	);
+}
+export function DeviceListLoading({ disableActions }: { disableActions?: boolean }) {
+	return (
+		<>
+			<EuiSpacer size={"m"} />
+			<EuiTable>
+				<DeviceTableHeader sortDirection={"asc"} disableActions={disableActions} />
+			</EuiTable>
+			<EuiSkeletonText lines={4} />
+			<EuiSpacer />
+			<EuiSkeletonText lines={4} />
+			<EuiSpacer />
+			<EuiSkeletonText lines={4} />
+		</>
 	);
 }

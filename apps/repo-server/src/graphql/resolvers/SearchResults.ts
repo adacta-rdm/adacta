@@ -42,7 +42,9 @@ export const SearchResults: IResolvers["SearchResults"] = {
 	},
 };
 
-function preProcessQuery(query: string) {
+export function preProcessQuery(query: string) {
+	// NOTE: There is a postgres function called `websearch_to_tsquery` that could be used here,
+	// but it does not support partial words, so we have to build the query manually.
 	const parts = `"${query
 		.split(" ")
 		.map((s) => `"${s}":*`) // Make each word a wildcard
