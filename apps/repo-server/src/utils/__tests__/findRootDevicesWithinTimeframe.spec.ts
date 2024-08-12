@@ -96,13 +96,15 @@ describe("Link reactor to samples", () => {
 				await el.insert(Property, property);
 			}
 
-			const narrowedDown = await findRootDevicesWithinTimeframe(
-				a.id,
-				el,
-				Property,
-				integerToDate(1),
-				integerToDate(10)
-			);
+			const narrowedDown = (
+				await findRootDevicesWithinTimeframe(
+					a.id,
+					el,
+					Property,
+					integerToDate(1),
+					integerToDate(10)
+				)
+			).map((x) => x.device);
 
 			// console.log(narrowedDown, [x.id, y.id]);
 			expect(sortIds(narrowedDown)).toEqual(sortIds([x.id, y.id]));
@@ -167,13 +169,15 @@ describe("Link reactor to samples", () => {
 				await el.insert(Property, property);
 			}
 
-			const narrowedDown = await findRootDevicesWithinTimeframe(
-				a.id,
-				el,
-				Property,
-				integerToDate(1),
-				integerToDate(10)
-			);
+			const narrowedDown = (
+				await findRootDevicesWithinTimeframe(
+					a.id,
+					el,
+					Property,
+					integerToDate(1),
+					integerToDate(10)
+				)
+			).map((x) => x.device);
 
 			expect(sortIds(narrowedDown)).toEqual(sortIds([z.id, y.id]));
 		});

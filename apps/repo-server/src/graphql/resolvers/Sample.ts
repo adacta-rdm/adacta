@@ -120,11 +120,11 @@ export const Sample: IResolvers["Sample"] = {
 	async topLevelDevice({ id }, { timestamp }, { services: { el }, schema: { Property } }) {
 		const time = createMaybeDate(timestamp) ?? new Date();
 
-		const topLevelDeviceId = (
-			await findRootDevicesWithinTimeframe(id, el, Property, time, time)
-		).at(0);
+		const topLevelDevice = (await findRootDevicesWithinTimeframe(id, el, Property, time, time)).at(
+			0
+		);
 
-		if (topLevelDeviceId) return { id: topLevelDeviceId };
+		if (topLevelDevice) return { device: { id: topLevelDevice.device }, path: topLevelDevice.path };
 
 		return null;
 	},

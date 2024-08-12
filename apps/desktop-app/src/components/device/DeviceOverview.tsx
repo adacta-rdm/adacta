@@ -19,7 +19,6 @@ import { ComponentEuiTree } from "./ComponentEuiTree";
 import { DeviceDelete } from "./DeviceDelete";
 import { DeviceEdit } from "./DeviceEdit";
 import { DeviceImageList } from "./DeviceImageList";
-import { DeviceLink } from "./DeviceLink";
 import { SetupDescriptionComponent } from "./SetupDescriptionComponent";
 import { useRepoRouterHook } from "../../services/router/RepoRouterHook";
 import { useRepositoryIdVariable } from "../../services/router/UseRepoId";
@@ -48,6 +47,7 @@ import type { AdactaTimelineResource$data } from "@/relay/AdactaTimelineResource
 import type { AdactaTimelineSample$data } from "@/relay/AdactaTimelineSample.graphql";
 import type { AdactaTimelineUsage$data } from "@/relay/AdactaTimelineUsage.graphql";
 import type { DeviceOverview$key } from "@/relay/DeviceOverview.graphql";
+import { TopLevelDevice } from "~/apps/desktop-app/src/components/device/TopLevelDevice";
 import type { specialMeaningSpecificationsKeys } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
 import { createDate, createMaybeDate } from "~/lib/createDate";
 import type { IDeviceId } from "~/lib/database/Ids";
@@ -127,9 +127,6 @@ const DeviceOverViewGraphQLFragment = graphql`
 				...AdactaTimelineSample @relay(mask: false)
 			}
 		}
-		topLevelDevice {
-			...DeviceLink
-		}
 		usageInResource {
 			begin
 			end
@@ -153,6 +150,7 @@ const DeviceOverViewGraphQLFragment = graphql`
 		...ChangelogWithNotes
 		...ProjectEditorAsHeaderElement
 		...DeviceDelete
+		...TopLevelDevice
 	}
 `;
 
@@ -370,12 +368,7 @@ export function DeviceOverview(props: IProps) {
 										))}
 										Created by: <UserLink user={device.metadata.creator} /> at{" "}
 										<DateTime date={createDate(device.metadata.creationTimestamp)} />
-										{device.topLevelDevice && (
-											<>
-												<br />
-												Currently installed in setup: <DeviceLink data={device.topLevelDevice} />
-											</>
-										)}
+										<TopLevelDevice data={device} />
 										{historyMode && (
 											<>
 												<span>

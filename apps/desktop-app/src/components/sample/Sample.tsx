@@ -19,7 +19,6 @@ import { usePreloadedQuery } from "react-relay/hooks";
 import { SampleEdit } from "./SampleEdit";
 import { SampleLink } from "./SampleLink";
 import { useRepoRouterHook } from "../../services/router/RepoRouterHook";
-import { Link } from "../Link";
 import { ChangelogWithNotes } from "../changelog/ChangelogWithNotes";
 import { DateTime } from "../datetime/DateTime";
 import { TabbedPageLayout } from "../layout/TabbedPageLayout";
@@ -36,6 +35,7 @@ import type { AdactaTimelineNotes$data } from "@/relay/AdactaTimelineNotes.graph
 import type { AdactaTimelineResource$data } from "@/relay/AdactaTimelineResource.graphql";
 import type { AdactaTimelineUsage$data } from "@/relay/AdactaTimelineUsage.graphql";
 import type { SampleQuery } from "@/relay/SampleQuery.graphql";
+import { TopLevelDevice } from "~/apps/desktop-app/src/components/device/TopLevelDevice";
 import { createDate, createMaybeDate } from "~/lib/createDate";
 import type { IResourceId, ISampleId } from "~/lib/database/Ids";
 import { convertSampleToTraversalResult } from "~/lib/inheritance/convertToTraversalResult";
@@ -96,10 +96,6 @@ export const SampleGraphQLQuery = graphql`
 					}
 					...ResourceListTableFragment
 				}
-				topLevelDevice {
-					id
-					name
-				}
 				notes {
 					__id
 					edges {
@@ -113,6 +109,7 @@ export const SampleGraphQLQuery = graphql`
 				...OriginRepoIndicator
 				...ChangelogWithNotes
 				...ProjectEditorAsHeaderElement
+				...TopLevelDevice
 			}
 		}
 	}
@@ -225,20 +222,7 @@ export function Sample(props: { queryRef: PreloadedQuery<SampleQuery> }) {
 						<span>
 							Created by <UserLink user={data.sample.metadata.creator} /> at{" "}
 							<DateTime date={createDate(data.sample.metadata.creationTimestamp)} />
-							{data.sample.topLevelDevice && (
-								<>
-									<br />
-									Currently installed in setup:{" "}
-									<Link
-										to={[
-											"/repositories/:repositoryId/devices/:deviceId/",
-											{ repositoryId, deviceId: data.sample.topLevelDevice.id },
-										]}
-									>
-										<EuiLink>{data.sample.topLevelDevice.name}</EuiLink>
-									</Link>
-								</>
-							)}
+							<TopLevelDevice data={data.sample} />
 							{match.params.sampleTimestamp ? (
 								<>
 									<span>
