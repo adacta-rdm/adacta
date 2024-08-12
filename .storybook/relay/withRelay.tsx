@@ -1,5 +1,5 @@
 import { makeDecorator } from "@storybook/preview-api";
-import { ComponentProps, ComponentType, JSX, Suspense } from "react";
+import type { ComponentProps, ComponentType, JSX } from "react";
 import { RelayEnvironmentProvider, useLazyLoadQuery } from "react-relay";
 import type {
 	GraphQLSingularResponse,
@@ -12,12 +12,12 @@ import type {
 	MockResolverContext,
 	MockResolvers,
 } from "relay-test-utils/lib/RelayMockPayloadGenerator";
+import type { OperationMockResolver } from "relay-test-utils/lib/RelayModernMockEnvironment";
 import seedrandom from "seedrandom";
 import type { PartialDeep } from "type-fest";
 
 import { defaultMockResolvers } from "~/.storybook/relay/defaultMockResolvers";
 import type { IResolversTypes } from "~/apps/repo-server/src/graphql/generated/resolvers";
-import { OperationMockResolver } from "relay-test-utils/lib/RelayModernMockEnvironment";
 
 export type TypeMockResolverContext = MockResolverContext & {
 	random: ReturnType<typeof getRandomNumberHelpers>;
