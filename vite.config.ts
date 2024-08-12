@@ -4,6 +4,7 @@ import * as path from "node:path";
 import * as util from "node:util";
 
 import { ICON_TYPES } from "@elastic/eui";
+import { scandirSync } from "@nodelib/fs.scandir";
 import react from "@vitejs/plugin-react";
 import relay from "vite-plugin-relay";
 import tsconfigPaths from "vite-tsconfig-paths";
@@ -77,6 +78,8 @@ export const typeToPathMap = {
 	aggregate: "aggregate",
 	analyzeEvent: "analyzeEvent",
 	annotation: "annotation",
+	anomalyChart: "anomaly_chart",
+	anomalySwimLane: "anomaly_swim_lane",
 	apmApp: "app_apm",
 	apmTrace: "apm_trace",
 	appSearchApp: "app_app_search",
@@ -107,11 +110,15 @@ export const typeToPathMap = {
 	calendar: "calendar",
 	canvasApp: "app_canvas",
 	casesApp: "app_cases",
+	changePointDetection: "change_point_detection",
 	check: "check",
 	checkInCircleFilled: "checkInCircleFilled",
 	cheer: "cheer",
 	classificationJob: "ml_classification_job",
+	clickLeft: "clickLeft",
+	clickRight: "clickRight",
 	clock: "clock",
+	clockCounter: "clockCounter",
 	cloudDrizzle: "cloudDrizzle",
 	cloudStormy: "cloudStormy",
 	cloudSunny: "cloudSunny",
@@ -192,6 +199,7 @@ export const typeToPathMap = {
 	eql: "eql",
 	eraser: "eraser",
 	error: "error",
+	errorFilled: "errorFilled",
 	esqlVis: "esqlVis",
 	exit: "exit",
 	expand: "expand",
@@ -202,6 +210,7 @@ export const typeToPathMap = {
 	faceHappy: "face_happy",
 	faceNeutral: "face_neutral",
 	faceSad: "face_sad",
+	fieldStatistics: "field_statistics",
 	filebeatApp: "app_filebeat",
 	filter: "filter",
 	filterExclude: "filterExclude",
@@ -277,6 +286,8 @@ export const typeToPathMap = {
 	listAdd: "list_add",
 	lock: "lock",
 	lockOpen: "lockOpen",
+	logPatternAnalysis: "log_pattern_analysis",
+	logRateAnalysis: "log_rate_analysis",
 	logoAWS: "logo_aws",
 	logoAWSMono: "logo_aws_mono",
 	logoAerospike: "logo_aerospike",
@@ -361,9 +372,11 @@ export const typeToPathMap = {
 	minus: "minus",
 	minusInCircle: "minus_in_circle",
 	minusInCircleFilled: "minus_in_circle_filled",
+	minusInSquare: "minus_in_square",
 	mobile: "mobile",
 	monitoringApp: "app_monitoring",
 	moon: "moon",
+	move: "move",
 	namespace: "namespace",
 	nested: "nested",
 	newChat: "new_chat",
@@ -395,6 +408,7 @@ export const typeToPathMap = {
 	plus: "plus",
 	plusInCircle: "plus_in_circle",
 	plusInCircleFilled: "plus_in_circle_filled",
+	plusInSquare: "plus_in_square",
 	popout: "popout",
 	push: "push",
 	questionInCircle: "question_in_circle",
@@ -418,6 +432,7 @@ export const typeToPathMap = {
 	sessionViewer: "sessionViewer",
 	shard: "shard",
 	share: "share",
+	singleMetricViewer: "single_metric_viewer",
 	snowflake: "snowflake",
 	sortAscending: "sortAscending",
 	sortDescending: "sortDescending",
@@ -498,6 +513,7 @@ export const typeToPathMap = {
 	visualizeApp: "app_visualize",
 	vulnerabilityManagementApp: "app_vulnerability_management",
 	warning: "warning",
+	warningFilled: "warningFilled",
 	alert: "warning", // NOTE: This is an undocumented alias for `warning`, added for legacy compatability with Elastic Charts
 	watchesApp: "app_watches",
 	wordWrap: "wordWrap",
@@ -514,6 +530,7 @@ export const typeToPathMap = {
 	tokenCompletionSuggester: "tokenCompletionSuggester",
 	tokenConstant: "tokenConstant",
 	tokenDate: "tokenDate",
+	tokenDimension: "tokenDimension",
 	tokenElement: "tokenElement",
 	tokenEnum: "tokenEnum",
 	tokenEnumMember: "tokenEnumMember",
@@ -562,8 +579,12 @@ export const typeToPathMap = {
 	tokenVectorSparse: "tokenVectorSparse",
 };
 
+const icons = scandirSync(resolve("node_modules/@elastic/eui/es/components/icon/assets")).map(
+	(icon) => icon.name.slice(0, -3)
+);
+
 const iconImportStatements = Object.entries(typeToPathMap).map(([icon, path]) =>
-	!(icon.startsWith("logo") || icon == "stats" || icon === "securityAnalyticsApp")
+	icons.includes(path)
 		? `import { icon as _${icon} } from "@elastic/eui/es/components/icon/assets/${path as string}";`
 		: `
 		// Skipped Icon (icons result in issues with storybook/dynamic imports)

@@ -1,9 +1,6 @@
 import { Axis, Chart, LineSeries, niceTimeFormatter, Settings } from "@elastic/charts";
+import { LIGHT_THEME } from "@elastic/charts";
 import { euiPaletteForLightBackground, EuiStat } from "@elastic/eui";
-import {
-	EUI_CHARTS_THEME_LIGHT,
-	EUI_SPARKLINE_THEME_PARTIAL,
-} from "@elastic/eui/dist/eui_charts_theme";
 import { assertDefined } from "@omegadot/assert";
 import React from "react";
 import { graphql } from "react-relay";
@@ -64,7 +61,25 @@ export function Sparklines(props: { resource: Sparkline$key }) {
 		v == data.x.values[0] || v === data.x.values[data.x.values.length - 1] ? dateFormat(v) : "";
 
 	const colors = euiPaletteForLightBackground();
-	const theme = [EUI_SPARKLINE_THEME_PARTIAL, EUI_CHARTS_THEME_LIGHT.theme];
+	const theme = {
+		...LIGHT_THEME,
+		...{
+			lineSeriesStyle: {
+				point: {
+					visible: false,
+					strokeWidth: 1,
+					radius: 1,
+				},
+			},
+			areaSeriesStyle: {
+				point: {
+					visible: false,
+					strokeWidth: 1,
+					radius: 1,
+				},
+			},
+		},
+	};
 
 	const dataSlices = groupMonotonic(sparklineData, true).map((s) => s.sort((a, b) => a.x - b.x));
 

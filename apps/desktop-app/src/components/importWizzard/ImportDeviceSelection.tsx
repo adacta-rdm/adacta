@@ -1,7 +1,7 @@
 import assert from "assert";
 
 import { EuiFlexGroup, EuiFlexItem, EuiSuperSelect } from "@elastic/eui";
-import type { EuiSuperSelectOption } from "@elastic/eui/src/components/form/super_select/super_select_control";
+import type { EuiSuperSelectOption } from "@elastic/eui/src/components/form/super_select/super_select_item";
 import { assertDefined } from "@omegadot/assert";
 import type { UnitKind } from "@omegadot/einheiten/dist/types/quantities/kind";
 import lodash from "lodash";
