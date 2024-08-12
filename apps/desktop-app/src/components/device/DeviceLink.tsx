@@ -1,5 +1,4 @@
-import { EuiFlexGroup, EuiFlexItem, EuiPopover } from "@elastic/eui";
-import { css } from "@emotion/react";
+import { EuiFlexGroup, EuiFlexItem, EuiLink, EuiPopover } from "@elastic/eui";
 import React, { Suspense, useEffect, useState } from "react";
 import { graphql, useFragment, useQueryLoader } from "react-relay";
 
@@ -18,7 +17,6 @@ const DeviceLinkGraphQLFragment = graphql`
 	fragment DeviceLink on Device {
 		id
 		displayName
-		shortId
 	}
 `;
 
@@ -33,11 +31,6 @@ interface IProps {
 
 	prependIcon?: boolean;
 	repositoryId?: string;
-
-	/**
-	 * Controls if the shortId should be shown in the link text.
-	 */
-	showShortId?: boolean;
 
 	/**
 	 * If true, the link text will be underlined on hover.
@@ -66,21 +59,8 @@ function DeviceLinkCore(props: IProps) {
 
 	const [leaveDelayHandler, setLeaveDelayHandler] = useState<NodeJS.Timeout | undefined>(undefined);
 
-	const underLineOnHoverCss = props.underlineOnHover
-		? css`
-				:hover {
-					text-decoration: underline;
-				}
-		  `
-		: undefined;
-	let linkText = <span css={underLineOnHoverCss}>{textOverwrite ?? device.displayName}</span>;
-	if (props.showShortId && device.shortId) {
-		linkText = (
-			<span css={underLineOnHoverCss}>
-				id:<i>{device.shortId}</i> - {linkText}
-			</span>
-		);
-	}
+	const baseLink = <EuiLink>{textOverwrite ?? device.displayName}</EuiLink>;
+
 	const removeHoverHandler = () => {
 		if (hoverDelayHandler) {
 			clearTimeout(hoverDelayHandler);
@@ -138,6 +118,7 @@ function DeviceLinkCore(props: IProps) {
 	// Render link with hover popover
 	const link = (
 		<Link
+			className={"euiLink"}
 			to={["/repositories/:repositoryId/devices/:deviceId/", { repositoryId, deviceId: device.id }]}
 			onMouseEnter={() => {
 				addHoverHandler();
@@ -150,7 +131,7 @@ function DeviceLinkCore(props: IProps) {
 						<AdactaIcon type={"Device"} />
 					</EuiFlexItem>
 				)}
-				<EuiFlexItem>{linkText}</EuiFlexItem>
+				<EuiFlexItem>{baseLink}</EuiFlexItem>
 			</EuiFlexGroup>
 		</Link>
 	);
@@ -159,12 +140,13 @@ function DeviceLinkCore(props: IProps) {
 	if (props.popoverMode) {
 		return (
 			<Link
+				className={"euiLink"}
 				to={[
 					"/repositories/:repositoryId/devices/:deviceId/",
 					{ repositoryId, deviceId: device.id },
 				]}
 			>
-				{linkText}
+				{baseLink}
 			</Link>
 		);
 	}
@@ -179,7 +161,6 @@ function DeviceLinkCore(props: IProps) {
 			onClick={(e) => e.stopPropagation()}
 			style={{
 				verticalAlign: "inherit",
-				height: 24, // Set height explicitly to avoid larger than all the other Links
 			}}
 		>
 			<div onMouseEnter={removeLeaveHandler} onMouseLeave={closePopover}>
