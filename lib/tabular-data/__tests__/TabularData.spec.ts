@@ -2,23 +2,23 @@ import { describe, expect, test, vi } from "vitest";
 
 import { TabularData } from "../TabularData";
 
+import { S3Config } from "~/apps/repo-server/src/config/S3Config";
+import { readTestEnv } from "~/apps/repo-server/testUtils";
 import { mkdirTmp } from "~/lib/fs";
 import type { StorageEngine } from "~/lib/storage-engine";
 import { FileNotFoundError, FileSystemStorageEngine, S3StorageEngine } from "~/lib/storage-engine";
 import type { Writable } from "~/lib/streams";
 import { createDuplex } from "~/lib/streams";
-import { readEnvVar } from "~/lib/utils/readEnvVar";
+
+readTestEnv();
 
 describe("TabularData", () => {
 	function getStorageEngine() {
-		return new S3StorageEngine({
-			endpoint: readEnvVar("S3_ENDPOINT"),
-			region: readEnvVar("S3_REGION"),
-			accessKeyId: readEnvVar("S3_ACCESS_KEY"),
-			secretAccessKey: readEnvVar("S3_SECRET_ACCESS_KEY"),
-			bucket: readEnvVar("S3_BUCKET"),
-			prefix: `tests/tabular-data/${Date.now()}`,
-		});
+		return new S3StorageEngine(
+			new S3Config({
+				prefix: `tests/tabular-data/${Date.now()}`,
+			})
+		);
 	}
 
 	async function setupWithNewFile() {

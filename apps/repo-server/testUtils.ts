@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+
 import { PGlite } from "@electric-sql/pglite";
 import { assertDefined } from "@omegadot/assert";
 import { PgDialect } from "drizzle-orm/pg-core";
@@ -14,6 +16,7 @@ import { EntityFactory } from "~/lib/database/EntityFactory";
 import type { IDeviceId, ISampleId, IUserId } from "~/lib/database/Ids";
 import { SilentLogger } from "~/lib/logger/SilentLogger";
 import { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
+import { parseEnvFile } from "~/lib/utils/parseEnvFile";
 import { uuid } from "~/lib/uuid";
 
 /**
@@ -150,4 +153,12 @@ export function debugRawQuery(query: SQL<unknown>) {
 	const pgDialect = new PgDialect();
 	// eslint-disable-next-line no-console
 	console.log(pgDialect.sqlToQuery(query.inlineParams()).sql);
+}
+
+export function readTestEnv() {
+	const testEnvFile = "env/test.env";
+
+	if (!existsSync(testEnvFile)) return;
+
+	process.env = parseEnvFile(readFileSync(testEnvFile, "utf-8"));
 }
