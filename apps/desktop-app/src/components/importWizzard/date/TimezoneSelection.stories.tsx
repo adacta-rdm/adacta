@@ -1,29 +1,22 @@
-import type { ComponentStory, ComponentMeta } from "@storybook/react";
-import React from "react";
-
 import "@elastic/eui/dist/eui_theme_light.css";
+
+import type { Meta, StoryObj } from "@storybook/react";
 
 import { TimezoneSelection } from "./TimezoneSelection";
 
 // More on default export: https://storybook.js.org/docs/react/writing-stories/introduction#default-export
-
-export default {
+const meta = {
 	title: "Utils/TimezoneSelection",
 	component: TimezoneSelection,
-	// More on argTypes: https://storybook.js.org/docs/react/api/argtypes
-	// argTypes: {
-	// 	backgroundColor: { control: "color" },
-	// },
-} as ComponentMeta<typeof TimezoneSelection>;
+} satisfies Meta<typeof TimezoneSelection>;
 
-// More on component templates: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Template: ComponentStory<typeof TimezoneSelection> = (args) => (
-	<TimezoneSelection {...args} />
-);
+export default meta;
 
-export const Simple = Template.bind({});
-// More on args: https://storybook.js.org/docs/react/writing-stories/args
-Simple.args = {
-	timezone: "Europe/Berlin",
-	setTimezone: () => {},
+type Story = StoryObj<typeof meta>;
+
+export const Simple: Story = {
+	args: {
+		timezone: "Europe/Berlin",
+		setTimezone: () => {},
+	},
 };

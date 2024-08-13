@@ -23,16 +23,11 @@ import type { IDeviceId } from "~/lib/database/Ids";
 import { parseTimeInformation } from "~/lib/datetime/parseTimeInformation";
 import type { NormalizerId } from "~/lib/importWizard/normalizer";
 import { applyNormalizer } from "~/lib/importWizard/normalizer";
+import type { IGenericTable } from "~/lib/interface/CSVImportWizzard/IGenericTable";
 import type { IColumnConfig } from "~/lib/interface/IImportWizardPreset";
 import type { ITabularDataColumnDescription } from "~/lib/interface/ITabularDataColumnDescription";
 import type { IProgressFn } from "~/lib/progress/IProgressReporterFn";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";
-
-export interface IGenericTable {
-	header: string[];
-	headerInternal: string[];
-	body: string[][];
-}
 
 interface IImportError {
 	error: string;

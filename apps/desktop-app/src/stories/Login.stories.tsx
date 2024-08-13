@@ -1,12 +1,30 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta } from "@storybook/react";
 
 import LoginPage from "../routes/login";
 
-export default {
+import type { AdactaStoryObj } from "~/.storybook/types";
+import { HistoryService } from "~/apps/desktop-app/src/services/history/HistoryService";
+import { GraphQLHeaderService } from "~/apps/desktop-app/src/services/repositoryId/GraphQLHeaderService";
+import { RepoURL } from "~/lib/url/RepoURL";
+
+const meta = {
 	title: "Login",
 	component: LoginPage,
-} as Meta<typeof LoginPage>;
+} satisfies Meta<typeof LoginPage>;
 
-type Story = StoryObj<typeof LoginPage>;
+export default meta;
 
-export const Default: Story = {};
+type Story = AdactaStoryObj<typeof meta>;
+
+export const Default: Story = {
+	parameters: {
+		services: [
+			new GraphQLHeaderService(),
+			new HistoryService(),
+			new RepoURL("https://example.com"),
+		],
+		router: {
+			location: ["/login"],
+		},
+	},
+};

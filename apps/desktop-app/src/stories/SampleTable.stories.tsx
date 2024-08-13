@@ -1,43 +1,51 @@
-import type { Meta } from "@storybook/react";
-import React from "react";
 import { graphql } from "react-relay";
 
 import { SampleTable } from "../components/sample/SampleTable";
 
-import type { SampleTableQuery } from "@/relay/SampleTableQuery.graphql";
-import type { RelayMockedFragmentHelperStory } from "~/.storybook/helpers/RelayMockedFragmentHelper";
-import { RelayMockedFragmentHelper } from "~/.storybook/helpers/RelayMockedFragmentHelper";
+import type { SampleTableStoriesQuery } from "@/relay/SampleTableStoriesQuery.graphql";
+import type { AdactaStoryMeta, AdactaStoryObj } from "~/.storybook/types";
+import { HistoryService } from "~/apps/desktop-app/src/services/history/HistoryService";
 
 // More on default export: https://storybook.js.org/docs/react/writing-stories/introduction#default-export
-export default {
+const meta = {
 	title: "SampleTable",
-	component: RelayMockedFragmentHelper,
-} as Meta<typeof RelayMockedFragmentHelper>;
-
-export const Basic: RelayMockedFragmentHelperStory<SampleTableQuery> = {
-	args: {
-		addDelayToNonInitialOperations: 1000,
-		query: graphql`
-			query SampleTableQuery {
-				repository(id: "foo") {
-					samples {
-						edges {
-							node {
-								...SampleTable_samples
+	component: SampleTable,
+	parameters: {
+		services: [new HistoryService()],
+		router: {
+			location: ["/repositories/:repositoryId", { repositoryId: "foo" }],
+		},
+		relay: {
+			query: graphql`
+				query SampleTableStoriesQuery {
+					repository(id: "foo") {
+						samples {
+							edges {
+								node {
+									...SampleTable_samples
+								}
 							}
 						}
 					}
 				}
-			}
-		`,
-		mockResolvers: {
-			SampleConnection: () => ({
-				// Request 5 samples
-				edges: Array(5).fill(undefined),
-			}),
+			`,
+			mockResolvers: {
+				SampleConnection: () => ({
+					// Request 5 samples
+					edges: Array(5).fill(undefined),
+				}),
+			},
+			props: {
+				samples: (queryResult) => queryResult.repository.samples.edges.map((edge) => edge.node),
+			},
 		},
-		renderTestSubject: (data) => (
-			<SampleTable samples={data.repository.samples.edges.map((e) => e.node)} />
-		),
 	},
+} satisfies AdactaStoryMeta<typeof SampleTable, SampleTableStoriesQuery>;
+
+export default meta;
+
+type Story = AdactaStoryObj<typeof meta>;
+
+export const Basic: Story = {
+	args: {},
 };

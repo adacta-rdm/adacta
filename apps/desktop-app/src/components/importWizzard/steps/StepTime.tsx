@@ -6,7 +6,7 @@ import { Spreadsheet } from "../../spreadsheet/Spreadsheet";
 import type { IImportWizardFormControls } from "../ImportWizard";
 import { HeuristicDateExtraction } from "../date/extraction/DateExtractionWizard";
 
-import type { IGenericTable } from "~/apps/repo-server/src/csvImportWizard/CSVImportWizard";
+import type { IGenericTable } from "~/lib/interface/CSVImportWizzard/IGenericTable";
 import type { IColumnConfig } from "~/lib/interface/IImportWizardPreset";
 
 export function StepTime(props: {

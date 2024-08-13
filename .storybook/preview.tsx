@@ -1,33 +1,35 @@
-import "../apps/desktop-app/src/euiIcons";
+import { EuiProvider } from "@elastic/eui";
+import type { Preview } from "@storybook/react";
+
+import { withRouter } from "~/.storybook/found/withRouter";
+import { withRelay } from "~/.storybook/relay/withRelay";
+import { withServices } from "~/.storybook/services/withServices";
+
+import "@/euiIcons";
+import "~/apps/desktop-app/src/tailwind-output.css";
 import "@elastic/eui/dist/eui_theme_light.css";
 import "@elastic/charts/dist/theme_light.css";
-import { EuiProvider } from "@elastic/eui";
-import type { ElementType } from "react";
-import { RelayEnvironmentProvider } from "react-relay";
-import { createMockEnvironment } from "relay-test-utils";
-import "~/apps/desktop-app/src/tailwind-output.css";
 
-export const parameters = {
-	actions: { argTypesRegex: "^on[A-Z].*" },
-	controls: {
-		matchers: {
-			color: /(background|color)$/i,
-			date: /Date$/,
+const preview: Preview = {
+	parameters: {
+		controls: {
+			matchers: {
+				color: /(background|color)$/i,
+				date: /Date$/i,
+			},
 		},
 	},
-};
 
-//(relay as Writable<typeof relay>).useFragment = useFragment;
-//(relay as Writable<typeof relay>).useLazyLoadQuery = useLazyLoadQuery;
-
-const relayEnvironment = createMockEnvironment();
-
-export const decorators = [
-	(Story: ElementType) => (
-		<RelayEnvironmentProvider environment={relayEnvironment}>
+	decorators: [
+		withServices,
+		withRelay,
+		withRouter,
+		(Story) => (
 			<EuiProvider colorMode="light">
 				<Story />
 			</EuiProvider>
-		</RelayEnvironmentProvider>
-	),
-];
+		),
+	],
+};
+
+export default preview;

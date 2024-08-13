@@ -47,15 +47,13 @@ import type { ImportWizardToGenericTableMutation } from "@/relay/ImportWizardToG
 import type { ImportWizardToTabularDataArrayBufferMutation } from "@/relay/ImportWizardToTabularDataArrayBufferMutation.graphql";
 import { assertTToCellArrayOutput } from "@/tsrc/lib/interface/CSVImportWizzard/TToCellArrayOutput";
 import { assertTToGenericTableOutput } from "@/tsrc/lib/interface/CSVImportWizzard/TToGenericTableOutput";
-import type {
-	IGenericTable,
-	IToTabularDataOptions,
-} from "~/apps/repo-server/src/csvImportWizard/CSVImportWizard";
+import type { IToTabularDataOptions } from "~/apps/repo-server/src/csvImportWizard/CSVImportWizard";
 import { createDate, createIDatetime, createMaybeDate } from "~/lib/createDate";
 import type { IDeviceId, IResourceId } from "~/lib/database/Ids";
 import type { TUnit } from "~/lib/importWizard/ImportWizardUnit";
 import { UnitlessMarker } from "~/lib/importWizard/ImportWizardUnit";
 import type { NormalizerId } from "~/lib/importWizard/normalizer";
+import type { IGenericTable } from "~/lib/interface/CSVImportWizzard/IGenericTable";
 import type { IToCellArrayInput } from "~/lib/interface/CSVImportWizzard/IToCellArrayInput";
 import type { IToGenericTableInput } from "~/lib/interface/CSVImportWizzard/IToGenericTableInput";
 import type { TToCellArrayOutput } from "~/lib/interface/CSVImportWizzard/TToCellArrayOutput";

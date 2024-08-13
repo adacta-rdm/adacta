@@ -50,26 +50,25 @@ interface IProps {
 	openerPresetConnectionId: string;
 }
 
-export function PresetManager(props: IProps) {
-	const repositoryId = useRepositoryIdVariable();
-	const data = useLazyLoadQuery<PresetManagerQuery>(
-		graphql`
-			query PresetManagerQuery($repositoryId: ID!) {
-				repository(id: $repositoryId) {
-					importPresets(first: 100) {
-						__id
-						edges {
-							node {
-								id
-								...PresetManagerEntry
-							}
-						}
+export const PresetManagerGraphQLQuery = graphql`
+	query PresetManagerQuery($repositoryId: ID!) {
+		repository(id: $repositoryId) {
+			importPresets(first: 100) {
+				__id
+				edges {
+					node {
+						id
+						...PresetManagerEntry
 					}
 				}
 			}
-		`,
-		{ ...repositoryId }
-	);
+		}
+	}
+`;
+
+export function PresetManager(props: IProps) {
+	const repositoryId = useRepositoryIdVariable();
+	const data = useLazyLoadQuery<PresetManagerQuery>(PresetManagerGraphQLQuery, { ...repositoryId });
 
 	return (
 		<EuiModal maxWidth={"60vw"} onClose={props.onClose} style={{ minWidth: "600px" }}>

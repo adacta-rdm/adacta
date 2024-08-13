@@ -4,13 +4,14 @@ import type { StoryObj } from "@storybook/react";
 import { RenderChanges } from "../components/note/diff/RenderChanges";
 
 // More on default export: https://storybook.js.org/docs/react/writing-stories/introduction#default-export
-
-export default {
+const meta = {
 	title: "RenderDiff",
 	component: RenderChanges,
-} as Meta<typeof RenderChanges>;
+} satisfies Meta<typeof RenderChanges>;
 
-export type Story = StoryObj<typeof RenderChanges>;
+export default meta;
+
+export type Story = StoryObj<typeof meta>;
 
 export const Markdown: Story = {
 	args: { renderMode: "markdown", beforeText: "Test-Note **Foo**", afterText: "Test-Event Bar" },

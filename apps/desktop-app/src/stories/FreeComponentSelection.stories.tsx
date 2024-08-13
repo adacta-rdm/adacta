@@ -1,34 +1,46 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import React, { Suspense } from "react";
+import type { Meta } from "@storybook/react";
 
-import { FreeComponentSelection } from "../components/device/FreeComponentSelection";
+import {
+	FreeComponentSelection,
+	FreeComponentSelectionGraphQLQuery,
+} from "../components/device/FreeComponentSelection";
 
-import { RelayMockedDataProvider } from "~/.storybook/helpers/RelayMockedDataProvider";
+import type { FreeComponentSelectionQuery } from "@/relay/FreeComponentSelectionQuery.graphql";
+import type { IWithRouterParameters } from "~/.storybook/found/withRouter";
+import type { AdactaStoryObj } from "~/.storybook/types";
+import { createIDatetime } from "~/lib/createDate";
 
 // More on default export: https://storybook.js.org/docs/react/writing-stories/introduction#default-export
 
-export default {
+const meta = {
 	title: "Utils/FreeComponentSelection",
-	component: FreeComponentSelectionWrapper,
-} as Meta<typeof FreeComponentSelectionWrapper>;
+	component: FreeComponentSelection,
+} satisfies Meta<typeof FreeComponentSelection>;
 
-type Story = StoryObj<typeof FreeComponentSelectionWrapper>;
+export default meta;
 
-function FreeComponentSelectionWrapper() {
-	return (
-		<RelayMockedDataProvider>
-			<Suspense fallback={<>Suspended</>}>
-				<FreeComponentSelection
-					deviceId={"123"}
-					begin={new Date()}
-					valueOfSelected={"123"}
-					onChange={() => {}}
-				/>
-			</Suspense>
-		</RelayMockedDataProvider>
-	);
-}
+type Story = AdactaStoryObj<typeof meta, FreeComponentSelectionQuery>;
+
+const now = new Date();
 
 export const Basic: Story = {
-	args: {},
+	parameters: {
+		router: {
+			location: ["/repositories/:repositoryId", { repositoryId: "foo" }],
+		} satisfies IWithRouterParameters,
+		relay: {
+			query: FreeComponentSelectionGraphQLQuery,
+			variables: {
+				deviceId: "123",
+				repositoryId: "foo",
+				begin: createIDatetime(now),
+			},
+		},
+	},
+	args: {
+		deviceId: "123",
+		begin: now,
+		valueOfSelected: "123",
+		onChange: () => {},
+	},
 };

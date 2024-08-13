@@ -5,23 +5,14 @@ import { NoteComparison } from "../components/note/comparison/NoteComparison";
 
 // More on default export: https://storybook.js.org/docs/react/writing-stories/introduction#default-export
 
-export default {
-	title: "Uils/NoteComparison",
+const meta = {
+	title: "Utils/NoteComparison",
 	component: NoteComparison,
+} satisfies Meta<typeof NoteComparison>;
 
-	argTypes: {
-		size: {
-			options: ["s", "m", "l", "xl"],
-			control: { type: "select" },
-		},
-		iconType: {
-			options: ["gear", "cross", "push", "pull"],
-			control: { type: "select" },
-		},
-	},
-} as Meta<typeof NoteComparison>;
+export default meta;
 
-type Story = StoryObj<typeof NoteComparison>;
+type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
 	args: {

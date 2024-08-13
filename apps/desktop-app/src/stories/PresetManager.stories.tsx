@@ -1,39 +1,41 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import React, { Suspense } from "react";
+import type { Meta } from "@storybook/react";
 
-import { PresetManager } from "../components/importWizzard/preset/PresetManager";
+import {
+	PresetManager,
+	PresetManagerGraphQLQuery,
+} from "../components/importWizzard/preset/PresetManager";
 
-import { RelayMockedDataProvider } from "~/.storybook/helpers/RelayMockedDataProvider";
-import { getSeededRandomInt } from "~/.storybook/helpers/seededRandomUtils";
+import type { PresetManagerQuery } from "@/relay/PresetManagerQuery.graphql";
+import type { IWithRouterParameters } from "~/.storybook/found/withRouter";
+import type { AdactaStoryObj } from "~/.storybook/types";
+import { HistoryService } from "~/apps/desktop-app/src/services/history/HistoryService";
 
 // More on default export: https://storybook.js.org/docs/react/writing-stories/introduction#default-export
 
-export default {
+const meta = {
 	title: "Utils/PresetManager",
-	component: FreeComponentSelectionWrapper,
-} as Meta<typeof FreeComponentSelectionWrapper>;
+	component: PresetManager,
+} satisfies Meta<typeof PresetManager>;
 
-type Story = StoryObj<typeof FreeComponentSelectionWrapper>;
+export default meta;
 
-function FreeComponentSelectionWrapper() {
-	return (
-		<RelayMockedDataProvider
-			mockResolvers={{
-				ResourceConnection: () => ({ edges: new Array(5).fill(undefined) }),
-				ImportPreset: () => ({
-					columns: new Array(getSeededRandomInt(20, 50))
-						.fill(undefined)
-						.map((_, i) => `Column ${i}`),
-				}),
-			}}
-		>
-			<Suspense fallback={<>Suspended</>}>
-				<PresetManager openerPresetConnectionId={"123"} onClose={() => {}} />
-			</Suspense>
-		</RelayMockedDataProvider>
-	);
-}
+type Story = AdactaStoryObj<typeof meta, PresetManagerQuery>;
 
 export const Basic: Story = {
+	parameters: {
+		services: [new HistoryService()],
+		router: {
+			location: ["/repositories/:repositoryId", { repositoryId: "foo" }],
+		} satisfies IWithRouterParameters,
+		relay: {
+			query: PresetManagerGraphQLQuery,
+			mockResolvers: {
+				ResourceConnection: () => ({ edges: new Array(5).fill(undefined) }),
+				ImportPreset: ({ random }) => ({
+					columns: random.array(20, 50).map((_, i) => `Column ${i}`),
+				}),
+			},
+		},
+	},
 	args: {},
 };
