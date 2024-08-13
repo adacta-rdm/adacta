@@ -38,7 +38,10 @@ jobs:
         run: yarn type-check
 
       - name: Run tests
-        run: yarn test
+        run: |
+          mkdir -p env
+          echo "${{ secrets.TEST_ENV_CONTENTS }}" > env/test.env
+          yarn test
 
       - name: Run ESLint
         run: yarn eslint
