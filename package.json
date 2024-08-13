@@ -44,9 +44,9 @@
 	},
 	"dependencies": {
 		"@aws-sdk/abort-controller": "^3.257.0",
-		"@aws-sdk/client-s3": "^3.257.0",
-		"@aws-sdk/lib-storage": "^3.264.0",
-		"@aws-sdk/s3-request-presigner": "^3.264.0",
+		"@aws-sdk/client-s3": "^3.267",
+		"@aws-sdk/lib-storage": "^3.267",
+		"@aws-sdk/s3-request-presigner": "^3.267",
 		"@babel/core": "^7.24.5",
 		"@chromatic-com/storybook": "^1.6.1",
 		"@elastic/charts": "^64.1.0",
@@ -176,6 +176,7 @@
 	},
 	"resolutions": {
 		"@aws-sdk/client-s3": "3.267.0",
+		"@aws-sdk/s3-request-presigner": "3.267.0",
 		"@types/react": "^18",
 		"vis-data": "^7.0.0",
 		"@elastic/eui@93.5.1": "patch:@elastic/eui@npm:93.5.1#.yarn/patches/@elastic-eui-npm-93.5.1-18c5327494.patch"
