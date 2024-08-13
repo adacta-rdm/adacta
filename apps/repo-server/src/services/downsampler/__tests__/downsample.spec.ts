@@ -1,12 +1,12 @@
-import { mkdirTmp } from "@omegadot/fs";
-import { FileSystemStorageEngine } from "@omegadot/storage-engine";
-import type { Writable } from "@omegadot/streams";
-import { TabularData } from "@omegadot/tabular-data";
 import { describe, test, expect } from "vitest";
 
 import { downsample } from "../downsample";
 
+import { mkdirTmp } from "~/lib/fs";
 import { SilentLogger } from "~/lib/logger/SilentLogger";
+import { FileSystemStorageEngine } from "~/lib/storage-engine";
+import type { Writable } from "~/lib/streams";
+import { TabularData } from "~/lib/tabular-data";
 
 function fillTable(stream: Writable<number[]>) {
 	stream.write([0, 2, 9]);

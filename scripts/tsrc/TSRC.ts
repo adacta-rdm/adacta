@@ -2,7 +2,6 @@ import { statSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { basename, dirname, join, resolve, sep, normalize } from "node:path";
 
-import type { PathArg } from "@omegadot/fs";
 import Ajv from "ajv";
 import standalone from "ajv/dist/standalone";
 import {
@@ -19,6 +18,7 @@ import ts, {
 	type TypeAliasDeclaration,
 } from "typescript";
 
+import type { PathArg } from "~/lib/fs";
 import { GeneratedFilesReporter } from "~/scripts/utils/fileGenerator/GeneratedFilesReporter";
 import { GENERATED_HEADER_TS } from "~/scripts/utils/fileGenerator/generatorConsts";
 import { safeWriteGeneratedFile as safeWriteGeneratedFile_ } from "~/scripts/utils/fileGenerator/safeWriteGeneratedFile";

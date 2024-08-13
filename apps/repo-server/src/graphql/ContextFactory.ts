@@ -1,4 +1,3 @@
-import { S3StorageEngine, StorageEngine } from "@omegadot/storage-engine";
 import { and, eq } from "drizzle-orm";
 
 import type { AuthenticatedUserInfo } from "./AuthenticatedUserInfo";
@@ -26,6 +25,7 @@ import { DrizzleGlobalSchema } from "~/drizzle/DrizzleSchema";
 import { EntityFactory } from "~/lib/database/EntityFactory";
 import { Logger } from "~/lib/logger/Logger";
 import { Service, ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
+import { S3StorageEngine, StorageEngine } from "~/lib/storage-engine";
 
 /**
  * Creates dedicated per-request GraphQL context objects, ensuring that each repository gets its own DatabaseManager

@@ -1,7 +1,6 @@
 import assert from "assert";
 
 import { assertDefined } from "@omegadot/assert";
-import type { StorageEngine } from "@omegadot/storage-engine";
 
 import { CSVImportWizardTransformation } from "./CSVImportWizardTransformation";
 import type { ResourceAttachmentManager } from "../graphql/context/ResourceAttachmentManager";
@@ -18,6 +17,7 @@ import { EntityFactory } from "~/lib/database/EntityFactory";
 import type { IResourceId, IUserId } from "~/lib/database/Ids";
 import type { Logger } from "~/lib/logger/Logger";
 import { createProgressReporter } from "~/lib/progress/createProgressReporter";
+import type { StorageEngine } from "~/lib/storage-engine";
 
 /**
  * Utility function which saves the preset as Resource and executes the ImportWizard-Transformation

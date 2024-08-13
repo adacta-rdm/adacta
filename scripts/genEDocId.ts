@@ -1,8 +1,8 @@
 import { parse } from "path";
 
-import { isDir } from "@omegadot/fs";
-import { readdir } from "@omegadot/fs";
-import { writeFile } from "@omegadot/fs";
+import { isDir } from "~/lib/fs";
+import { readdir } from "~/lib/fs";
+import { writeFile } from "~/lib/fs";
 
 async function fun() {
 	const enumStringFragments = [

@@ -1,9 +1,8 @@
-import { StorageEngine } from "@omegadot/storage-engine";
-
 import type { IKeyValueDocument, KeyValueDatabase } from "./KeyValueDatabase";
 
 import { RawTextReader } from "~/lib/rawTextReader/RawTextReader";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";
+import { StorageEngine } from "~/lib/storage-engine";
 import { sha256 } from "~/lib/utils/sha256";
 
 type TypeStringToTypename<T> = Extract<IKeyValueDocument, { type: T }>;

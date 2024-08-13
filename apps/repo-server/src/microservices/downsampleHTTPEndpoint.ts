@@ -1,4 +1,3 @@
-import { S3StorageEngine } from "@omegadot/storage-engine";
 import { StatusCodes } from "http-status-codes";
 
 import { S3Config } from "../config/S3Config";
@@ -9,6 +8,7 @@ import { isIDownsamplingTaskArgs } from "@/tsrc/apps/repo-server/interface/IDown
 import type { IHTTPEndpointArgs } from "~/lib/interface/IHTTPEndpointArgs";
 import type { IHTTPEndpointReturnType } from "~/lib/interface/IHTTPEndpointReturnType";
 import { LOG_LEVEL, Logger } from "~/lib/logger/Logger";
+import { S3StorageEngine } from "~/lib/storage-engine";
 
 export async function downsampleHTTPEndpoint(
 	args: IHTTPEndpointArgs

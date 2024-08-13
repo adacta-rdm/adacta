@@ -1,9 +1,9 @@
 import assert from "assert";
 
 import { assertUnreachable } from "@omegadot/assert";
-import { StorageEngine } from "@omegadot/storage-engine";
-import type { Readable, Writable } from "@omegadot/streams";
-import { createDuplex, createPipeline } from "@omegadot/streams";
+import { StorageEngine } from "~/lib/storage-engine";
+import type { Readable, Writable } from "~/lib/streams";
+import { createDuplex, createPipeline } from "~/lib/streams";
 import { isEqual } from "lodash";
 import type { Result } from "neverthrow";
 import { err, ok } from "neverthrow";

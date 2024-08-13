@@ -1,6 +1,3 @@
-import type { Duplex } from "@omegadot/streams";
-import { createDuplex } from "@omegadot/streams";
-
 import { ResourceAttachmentManager } from "../../context/ResourceAttachmentManager";
 import type { IResolvers } from "../../generated/resolvers";
 
@@ -9,6 +6,8 @@ import { assertIToGenericTableInput } from "@/tsrc/lib/interface/CSVImportWizzar
 import { assertIToTabularDataArrayBufferInput } from "@/tsrc/lib/interface/CSVImportWizzard/IToTabularDataArrayBufferInput";
 import { createIDatetime } from "~/lib/createDate";
 import type { IDeviceId, IResourceId } from "~/lib/database/Ids";
+import { createDuplex } from "~/lib/streams";
+import type { Duplex } from "~/lib/streams";
 
 export const CSVImportWizardMutations: IResolvers["RepositoryMutation"] = {
 	async toCellArray(_, vars, { services: { el, importWizard }, schema: { Resource } }) {
