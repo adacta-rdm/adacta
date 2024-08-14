@@ -1,5 +1,6 @@
-import { normalizePath } from "@omegadot/fs";
 import * as prettier from "prettier";
+
+import { normalizePath } from "~/lib/fs";
 
 export async function formatWithPrettier(filePath: string | string[], fileContents: string) {
 	// Prettify outputs

@@ -1,11 +1,10 @@
-import type { StorageEngine } from "@omegadot/storage-engine";
-import { TabularData } from "@omegadot/tabular-data";
-
 import type { Point } from "./downsampleLTTBRowMajorAsync";
 import { downsampleLTTBRowMajorAsync } from "./downsampleLTTBRowMajorAsync";
 import type { IDownsamplingTaskArgs } from "../../../interface/IDownsamplingTaskArgs";
 
 import type { Logger } from "~/lib/logger/Logger";
+import type { StorageEngine } from "~/lib/storage-engine";
+import { TabularData } from "~/lib/tabular-data";
 
 /**
  * Produces downsampled data from a given TabularData input.

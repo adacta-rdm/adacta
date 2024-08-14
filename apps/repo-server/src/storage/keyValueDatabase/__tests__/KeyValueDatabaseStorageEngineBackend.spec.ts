@@ -1,9 +1,10 @@
-import { mkdirTmp } from "@omegadot/fs";
-import { FileSystemStorageEngine } from "@omegadot/storage-engine";
 import { describe, test, expect, beforeEach } from "vitest";
 
 import type { IKeyValueDocument, KeyValueDatabase } from "../KeyValueDatabase";
 import { KeyValueDatabaseStorageEngineBackend } from "../KeyValueDatabaseStorageEngineBackend";
+
+import { mkdirTmp } from "~/lib/fs";
+import { FileSystemStorageEngine } from "~/lib/storage-engine";
 
 describe("KeyValueDatabaseStorageEngine", () => {
 	let kvDatabase: KeyValueDatabase;

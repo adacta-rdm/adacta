@@ -1,7 +1,6 @@
 import assert from "assert";
 
 import { isNonNullish } from "@omegadot/assert";
-import { FileSystemStorageEngine } from "@omegadot/storage-engine";
 import type { Opaque } from "type-fest";
 
 import { ResourceAttachmentManager } from "../../graphql/context/ResourceAttachmentManager";
@@ -19,6 +18,7 @@ import type { IDownsampledColumn } from "~/lib/interface/IDownsampledColumn";
 import type { IDownsampledXColumn } from "~/lib/interface/IDownsampledXColumn";
 import { Logger } from "~/lib/logger/Logger";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";
+import { FileSystemStorageEngine } from "~/lib/storage-engine";
 
 type DownsamplingCacheKey = Opaque<string, "DownsamplingCacheKey">;
 

@@ -1,9 +1,10 @@
 import { Readable } from "stream";
 
-import { createDuplex, createPipeline, createReadable } from "@omegadot/streams";
 import { describe, test, expect } from "vitest";
 
 import { calculateResourceAttachmentHashStream } from "../calculateResourceAttachmentHash";
+
+import { createDuplex, createPipeline, createReadable } from "~/lib/streams";
 
 describe("calculateResourceAttachmentHashStream", () => {
 	test("readable stream (native node)", async () => {

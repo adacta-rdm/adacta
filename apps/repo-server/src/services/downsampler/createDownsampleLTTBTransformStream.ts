@@ -1,7 +1,7 @@
-import type { Duplex } from "@omegadot/streams";
-import { createDuplex } from "@omegadot/streams";
-
 import type { IOptions, Point } from "./downsampleLTTBRowMajorAsync";
+
+import type { Duplex } from "~/lib/streams";
+import { createDuplex } from "~/lib/streams";
 
 /**
  * Largest-Triangle-Three-Buckets

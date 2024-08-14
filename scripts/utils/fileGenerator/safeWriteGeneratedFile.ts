@@ -1,9 +1,9 @@
-import type { PathArg } from "@omegadot/fs";
-import { readUTF8File, rmrf, writeFile } from "@omegadot/fs";
-
 import type { GeneratedFilesReporter } from "./GeneratedFilesReporter";
 import { formatWithPrettier } from "./formatWithPrettier";
 import { isGenerated } from "./isGenerated";
+
+import { readUTF8File, rmrf, writeFile } from "~/lib/fs";
+import type { PathArg } from "~/lib/fs";
 
 /**
  * Utility function to write a generated file to disk.

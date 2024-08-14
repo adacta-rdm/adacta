@@ -1,5 +1,3 @@
-import type { StorageEngine } from "@omegadot/storage-engine";
-
 import { ResourceAttachmentManager } from "../graphql/context/ResourceAttachmentManager";
 import type { ResourceManager } from "../graphql/context/ResourceManager";
 import type { Downsampling } from "../services/downsampler/Downsampling";
@@ -9,6 +7,7 @@ import type { DrizzleEntity, DrizzleSchema } from "~/drizzle/DrizzleSchema";
 import type { IUserId } from "~/lib/database/Ids";
 import type { ITransformationContext } from "~/lib/interface/ITransformationContext";
 import type { Logger } from "~/lib/logger/Logger";
+import type { StorageEngine } from "~/lib/storage-engine";
 
 export function createTransformationContext(
 	userId: IUserId,

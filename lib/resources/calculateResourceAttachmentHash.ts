@@ -2,11 +2,10 @@ import type { BinaryLike } from "crypto";
 import crypto from "crypto";
 import type { Readable as NodeReadable } from "stream";
 
-import type { Readable } from "@omegadot/streams";
-
 import { sha256 } from "../utils/sha256";
 
 import type { IFileHash } from "~/apps/repo-server/interface/IFileHash";
+import type { Readable } from "~/lib/streams";
 
 export function calculateResourceAttachmentHash(resourceData: BinaryLike): IFileHash {
 	return { type: "sha256", value: sha256(resourceData) };

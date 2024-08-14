@@ -1,9 +1,10 @@
 import { resolve } from "path";
 
-import { FileSystemStorageEngine } from "@omegadot/storage-engine";
 import { describe, test, expect } from "vitest";
 
 import { readLastLines } from "../readLastLines";
+
+import { FileSystemStorageEngine } from "~/lib/storage-engine";
 
 describe("readLastLines", function () {
 	const path = resolve("apps/repo-server/src/utils/readLastLines/__tests__/cases");

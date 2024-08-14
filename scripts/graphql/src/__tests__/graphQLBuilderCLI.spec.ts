@@ -1,11 +1,12 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "path";
 
-import { mkdirp, mkdirTmp, readdir, readUTF8File, rmrf, writeFile } from "@omegadot/fs";
 import { describe, test, expect, afterEach } from "vitest";
 import { vi as jest } from "vitest";
 
 import { graphQLBuilderCLI } from "../graphQLBuilderCLI";
+
+import { mkdirp, mkdirTmp, readdir, readUTF8File, rmrf, writeFile } from "~/lib/fs";
 
 const MyType2 = readFileSync(join(__dirname, "./typeDefs/MyType2.graphql"), "utf-8");
 const queries = readFileSync(join(__dirname, "./typeDefs/queries.graphql"), "utf-8");

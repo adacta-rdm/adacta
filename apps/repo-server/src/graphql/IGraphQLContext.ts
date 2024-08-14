@@ -1,5 +1,3 @@
-import type { StorageEngine } from "@omegadot/storage-engine";
-
 import type { RepositoryInfo } from "./RepositoryInfo";
 import type { DynamicNameComposition } from "./context/DynamicNameComposition";
 import type { RepositoryConfig } from "./context/RepositoryConfig";
@@ -18,6 +16,7 @@ import type { DrizzleSchema } from "~/drizzle/DrizzleSchema";
 import type { EntityFactory } from "~/lib/database/EntityFactory";
 import type { IUserId } from "~/lib/database/Ids";
 import type { Logger } from "~/lib/logger/Logger";
+import type { StorageEngine } from "~/lib/storage-engine";
 
 export interface IGraphQLContext {
 	// Services are implemented as getters so that they can be instantiated on demand. However, ApolloServer performs a

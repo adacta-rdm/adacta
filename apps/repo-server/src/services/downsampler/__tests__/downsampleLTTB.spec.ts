@@ -1,13 +1,14 @@
-import { mkdirTmp } from "@omegadot/fs";
-import { FileSystemStorageEngine } from "@omegadot/storage-engine";
-import { createDuplex, createPipeline, createReadable } from "@omegadot/streams";
-import { TabularData } from "@omegadot/tabular-data";
 import downsampler from "downsample-lttb";
 import { zip } from "lodash";
 import { describe, test, expect } from "vitest";
 
 import { createDownsampleLTTBTransformStream } from "../createDownsampleLTTBTransformStream";
 import { downsampleLTTBRowMajorAsync } from "../downsampleLTTBRowMajorAsync";
+
+import { mkdirTmp } from "~/lib/fs";
+import { FileSystemStorageEngine } from "~/lib/storage-engine";
+import { createDuplex, createPipeline, createReadable } from "~/lib/streams";
+import { TabularData } from "~/lib/tabular-data";
 
 describe("LTTB", () => {
 	function setup(options: { input: number; output: number } = { input: 500, output: 20 }) {

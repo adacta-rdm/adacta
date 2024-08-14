@@ -1,5 +1,5 @@
-import type { PathArg } from "@omegadot/fs";
-import { normalizePath } from "@omegadot/fs";
+import type { PathArg } from "~/lib/fs";
+import { normalizePath } from "~/lib/fs";
 
 /**
  * A simple class to keep track of the files that have been generated.

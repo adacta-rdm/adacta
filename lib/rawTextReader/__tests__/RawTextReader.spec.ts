@@ -1,12 +1,13 @@
 import { copyFile } from "fs/promises";
 import { resolve } from "path";
 
-import { mkdirTmp, readUTF8File, rmrf } from "@omegadot/fs";
-import type { StorageEngine } from "@omegadot/storage-engine";
-import { FileSystemStorageEngine } from "@omegadot/storage-engine";
 import { describe, test, expect, beforeAll, afterAll } from "vitest";
 
 import { RawTextReader } from "../RawTextReader";
+
+import { mkdirTmp, readUTF8File, rmrf } from "~/lib/fs";
+import type { StorageEngine } from "~/lib/storage-engine";
+import { FileSystemStorageEngine } from "~/lib/storage-engine";
 
 describe("RawTextReader", () => {
 	let testDir: string;

@@ -1,10 +1,9 @@
-import { StorageEngine } from "@omegadot/storage-engine";
-import { TabularData } from "@omegadot/tabular-data";
-
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
 import type { IResourceId } from "~/lib/database/Ids";
 import { RawTextReader } from "~/lib/rawTextReader/RawTextReader";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";
+import { StorageEngine } from "~/lib/storage-engine";
+import { TabularData } from "~/lib/tabular-data";
 
 @Service(StorageEngine)
 export class ResourceAttachmentManager {

@@ -1,4 +1,4 @@
-import type { StorageEngine } from "@omegadot/storage-engine";
+import type { StorageEngine } from "~/lib/storage-engine";
 
 interface IReadLastLinesOptions {
 	nLines?: number;

@@ -1,6 +1,6 @@
 import assert from "assert";
 
-import type { StorageEngine } from "@omegadot/storage-engine";
+import type { StorageEngine } from "~/lib/storage-engine";
 
 export class RawTextReader {
 	private path: string;

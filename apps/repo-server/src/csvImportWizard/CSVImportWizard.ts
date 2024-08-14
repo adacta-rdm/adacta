@@ -1,9 +1,6 @@
 import assert from "assert";
 
 import { assertUnreachable } from "@omegadot/assert";
-import { StorageEngine } from "@omegadot/storage-engine";
-import type { Readable, Writable } from "@omegadot/streams";
-import { createDuplex, createPipeline } from "@omegadot/streams";
 import { isEqual } from "lodash";
 import type { Result } from "neverthrow";
 import { err, ok } from "neverthrow";
@@ -28,6 +25,9 @@ import type { IColumnConfig } from "~/lib/interface/IImportWizardPreset";
 import type { ITabularDataColumnDescription } from "~/lib/interface/ITabularDataColumnDescription";
 import type { IProgressFn } from "~/lib/progress/IProgressReporterFn";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";
+import { StorageEngine } from "~/lib/storage-engine";
+import { createDuplex, createPipeline } from "~/lib/streams";
+import type { Readable, Writable } from "~/lib/streams";
 
 interface IImportError {
 	error: string;

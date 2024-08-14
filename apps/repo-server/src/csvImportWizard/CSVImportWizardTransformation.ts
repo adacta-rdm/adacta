@@ -1,6 +1,5 @@
 import assert from "assert";
 
-import { TabularData } from "@omegadot/tabular-data";
 import type { Result } from "neverthrow";
 import { err, ok } from "neverthrow";
 
@@ -13,6 +12,7 @@ import type { IDeviceId, IResourceId } from "~/lib/database/Ids";
 import type { ITransformationContext } from "~/lib/interface/ITransformationContext";
 import type { IProgressReporterFn } from "~/lib/progress/IProgressReporterFn";
 import { createProgressReporter } from "~/lib/progress/createProgressReporter";
+import { TabularData } from "~/lib/tabular-data";
 
 export async function CSVImportWizardTransformation(
 	context: ITransformationContext,
