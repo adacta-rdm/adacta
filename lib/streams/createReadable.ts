@@ -2,7 +2,7 @@ import type stream from "node:stream";
 
 import { Minipass } from "minipass";
 
-import type { EventDef } from "./EventDef";
+import type { IEventDef } from "./IEventDef";
 import { async } from "./async";
 import type { Writable } from "./createWritable";
 
@@ -56,18 +56,19 @@ export function createReadable(arg: unknown): unknown {
 	}
 }
 
-type Events<TOut> = EventDef<"error", [Error]> &
+type Events<TOut> = IEventDef<"error", [Error]> &
 	/**
 	 * Emitted when there's data to read. Argument is the data to read. This is never emitted while not flowing. If a
 	 * listener is attached, that will resume the stream.
 	 */
-	EventDef<"data", [TOut]> &
+	IEventDef<"data", [TOut]> &
 	/**
 	 * An indication that an underlying resource has been released. Minipass does not emit this event, but will defer it
 	 * until after end has been emitted, since it throws off some stream libraries otherwise.
 	 */
-	EventDef<"close", []> &
-	EventDef<"end", []>;
+	IEventDef<"close", []> &
+	IEventDef<"end", []>;
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface Readable<TOut> extends Events<TOut> {
 	// read(): TOut;
 

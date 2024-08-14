@@ -72,7 +72,7 @@ export class ReusableFileHandle {
 						// broken fileHandle.
 
 						// Ignore closing errors but print them for debugging
-
+						// eslint-disable-next-line no-console
 						this.fileHandle?.close().catch((e) => console.error(e));
 						this.fileHandle = undefined;
 					}, this.timeout);

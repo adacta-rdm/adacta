@@ -9,7 +9,7 @@ export async function isDir(path: PathArg) {
 		return stats.isDirectory();
 	} catch (e: any) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		if (e.code && e.code === "ENOENT") {
+		if (e !== undefined && e !== null && e.code === "ENOENT") {
 			return false;
 		}
 		throw e;

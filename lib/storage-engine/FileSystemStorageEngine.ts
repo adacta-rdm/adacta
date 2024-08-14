@@ -261,5 +261,7 @@ export class FileSystemStorageEngine extends StorageEngine {
 }
 
 function isENOENTError(e: unknown): boolean {
-	return Boolean(e && typeof e === "object" && "code" in e && e.code === "ENOENT");
+	return Boolean(
+		e !== undefined && e !== null && typeof e === "object" && "code" in e && e.code === "ENOENT"
+	);
 }

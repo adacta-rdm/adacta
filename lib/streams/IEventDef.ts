@@ -1,6 +1,6 @@
 import type { EventEmitter } from "events";
 
-export interface EventDef<TEvent extends string, TPayload extends any[]> extends EventEmitter {
+export interface IEventDef<TEvent extends string, TPayload extends any[]> extends EventEmitter {
 	/**
 	 * Alias for `emitter.on(eventName, listener)`.
 	 * @since v0.1.26

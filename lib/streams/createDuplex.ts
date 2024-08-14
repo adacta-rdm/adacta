@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unified-signatures */
 import { Minipass } from "minipass";
 
 import { async } from "./async";
@@ -6,31 +7,31 @@ import type { Writable } from "./createWritable";
 
 import { assertInstanceof } from "~/lib/assert";
 
-interface Transform<TIn, TOut> {
+interface ITransform<TIn, TOut> {
 	(chunk: TIn): TOut;
 }
 
-interface TransformCb<TIn, TOut> {
+interface ITransformCb<TIn, TOut> {
 	(chunk: TIn, cb: (error: Error | null | undefined, data?: TOut) => void): void | undefined;
 }
 
-interface AsyncGenFn<TIn, TOut> {
+interface IAsyncGenFn<TIn, TOut> {
 	(source: AsyncIterable<TIn>): AsyncGenerator<TOut>;
 }
 
 export function createDuplex<TIn = unknown, TOut = unknown>(): Duplex<TIn, TOut>;
 export function createDuplex<TIn, TOut>(arg: {
-	transform: TransformCb<TIn, TOut>;
+	transform: ITransformCb<TIn, TOut>;
 }): Duplex<TIn, TOut>;
 export function createDuplex<TIn, TOut>(arg: {
-	transform: Transform<TIn, TOut>;
+	transform: ITransform<TIn, TOut>;
 }): Duplex<TIn, TOut>;
 export function createDuplex<TIn, TOut>(arg: {
-	asyncGen: AsyncGenFn<TIn, TOut>;
+	asyncGen: IAsyncGenFn<TIn, TOut>;
 }): Duplex<TIn, TOut>;
 export function createDuplex<TIn, TOut>(arg?: {
-	transform?: TransformCb<TIn, TOut> | Transform<TIn, TOut>;
-	asyncGen?: AsyncGenFn<TIn, TOut>;
+	transform?: ITransformCb<TIn, TOut> | ITransform<TIn, TOut>;
+	asyncGen?: IAsyncGenFn<TIn, TOut>;
 }): unknown {
 	if (!arg) {
 		return new Minipass({ async: async });

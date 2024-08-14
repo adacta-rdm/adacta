@@ -1,6 +1,6 @@
 import type { Writable as NodeWritable } from "node:stream";
 
-import type { EventDef } from "./EventDef";
+import type { IEventDef } from "./IEventDef";
 import { createPipeline } from "./createPipeline";
 
 export function createWritable(writable: NodeWritable): Writable<Buffer> {
@@ -9,17 +9,18 @@ export function createWritable(writable: NodeWritable): Writable<Buffer> {
 	return (createPipeline as any)(writable);
 }
 
-type Events = EventDef<"error", [Error]> &
+type Events = IEventDef<"error", [Error]> &
 	/**
 	 * Emitted when the internal buffer empties, and it is again suitable to
 	 * write() into the stream.
 	 */
-	EventDef<"drain", []> &
+	IEventDef<"drain", []> &
 	/**
 	 * Emitted after the stream.end() method has been called, and all data has been flushed to the underlying system.
 	 */
-	EventDef<"finish", []>;
+	IEventDef<"finish", []>;
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface Writable<TIn> extends Events {
 	end(data?: TIn): this;
 
