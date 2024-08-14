@@ -160,5 +160,5 @@ export function readTestEnv() {
 
 	if (!existsSync(testEnvFile)) return;
 
-	process.env = parseEnvFile(readFileSync(testEnvFile, "utf-8"));
+	process.env = Object.assign(parseEnvFile(readFileSync(testEnvFile, "utf-8")), process.env);
 }
