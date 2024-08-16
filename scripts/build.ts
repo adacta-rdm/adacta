@@ -1,6 +1,7 @@
 import { writeFile, cp } from "fs/promises";
 import { join } from "node:path";
 
+import bmpJsPackage from "@vingle/bmp-js/package.json";
 import type { BuildOptions } from "esbuild";
 import { build as esbuild } from "esbuild";
 import heicDecodePackage from "heic-decode/package.json";
@@ -78,6 +79,7 @@ async function main(args: string[]) {
 							dependencies: {
 								sharp: sharpPackage.version,
 								"heic-decode": heicDecodePackage.version,
+								"@vingle/bmp-js": bmpJsPackage.version,
 								...Object.fromEntries(
 									Object.entries(sharpPackage.optionalDependencies).filter(([key]) =>
 										key.includes("linux-x64")
