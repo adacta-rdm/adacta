@@ -33,3 +33,20 @@ packages:
           # Roughly 3MB/s, so this limits the files that can be processed to about 360MB
           timeout: 120e3
           memory: 384
+
+  - name: images
+    shared: false
+    environment: {}
+    parameters: {}
+    annotations: {}
+    functions:
+      - name: prepare
+        binary: false
+        runtime: nodejs:18
+        web: true
+        parameters: {}
+        environment: {}
+        annotations: {}
+        limits:
+          timeout: 15e3
+          memory: 384

@@ -67,7 +67,7 @@ const SetupDescriptionGraphQLFragment = graphql`
 			end
 			imageResource {
 				id
-				dataURI
+				imageURI(preset: REGULAR)
 				height
 				width
 			}
@@ -144,7 +144,7 @@ const LinkSetupDescriptionImageGraphQLMutation: GraphQLTaggedNode = graphql`
 					begin
 					end
 					imageResource {
-						dataURI
+						imageURI(preset: REGULAR)
 						height
 						width
 					}
@@ -426,6 +426,7 @@ function SetupDescriptionComponentPure(props: IProps & { data: SetupDescriptionC
 									}
 								/>
 								<ImageFileUpload
+									disableAutoClear={true} // We want to keep the file in the input field as this file is part of a form with multiple inputs
 									callback={(r) => {
 										setImageResourceId(r);
 									}}
@@ -466,7 +467,7 @@ function SetupDescriptionComponentPure(props: IProps & { data: SetupDescriptionC
 							<EuiFlexGroup>
 								<EuiFlexItem>
 									<ImageAnnotationComponent
-										imageSource={s.imageResource.dataURI}
+										imageSource={s.imageResource.imageURI}
 										imageHeight={s.imageResource.height}
 										imageWidth={s.imageResource.width}
 										annotations={annotations}

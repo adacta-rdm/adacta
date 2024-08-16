@@ -4,8 +4,15 @@ import type { IDownsamplingTaskArgs } from "../../../interface/IDownsamplingTask
 import { RemoteServicesConfig } from "../../config/RemoteServicesConfig";
 import type { Point } from "../downsampler/downsampleLTTBRowMajorAsync";
 
+import type { IPrepareImageTaskArgs } from "~/apps/repo-server/interface/IPrepareImageTaskArgs";
+import type { KeyOf } from "~/lib/interface/KeyOf";
 import { Logger } from "~/lib/logger/Logger";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";
+
+interface ITasks {
+	"resources/downsample": { args: IDownsamplingTaskArgs; result: Point[][] | undefined };
+	"images/prepare": { args: IPrepareImageTaskArgs; result: undefined };
+}
 
 @Service(RemoteServicesConfig, Logger)
 export class TaskDispatcher {
@@ -27,15 +34,15 @@ export class TaskDispatcher {
 	 * Creates and dispatches task from given args. The dispatcher may choose to queue the task's execution when there
 	 * are not enough computational resources available.
 	 */
-	async dispatch(
-		type: "resources/downsample",
-		args: IDownsamplingTaskArgs
-	): Promise<Point[][] | undefined> {
+	async dispatch<T extends KeyOf<ITasks>>(
+		type: T,
+		args: ITasks[T]["args"]
+	): Promise<ITasks[T]["result"]> {
 		// MUST END WITH A SLASH!
 		const base = this.rsConfig.baseURL.toString();
 		const url = `${base}${type}`;
 		const key = JSON.stringify(args);
-		const logger = this.logger.bind({ type, url, input: args.input.path });
+		const logger = this.logger.bind({ type, url }); // TODO: Re-add {input: args.input.path };
 
 		logger.bind({ args: key }).trace("");
 		logger.info(`Dispatching task`);
@@ -60,11 +67,15 @@ export class TaskDispatcher {
 
 				const json: unknown = await response.json();
 
-				if (!Array.isArray(json) || !Array.isArray(json[0]) || !Array.isArray(json[0][0])) {
-					throw new Error("Invalid response from server: Expected array of arrays of points.");
-				}
+				if (type === "resources/downsample") {
+					if (!Array.isArray(json) || !Array.isArray(json[0]) || !Array.isArray(json[0][0])) {
+						throw new Error("Invalid response from server: Expected array of arrays of points.");
+					}
 
-				return json as Point[][];
+					return json as Point[][];
+				} else if (type === "images/prepare") {
+					return;
+				}
 			} catch (e) {
 				this.history.delete(key);
 

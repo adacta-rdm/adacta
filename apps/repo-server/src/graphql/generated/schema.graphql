@@ -463,13 +463,20 @@ type ResourceImage implements Node & Resource & HasProjects & HasMetadata {
 	parent: Resource
 	children: ResourceConnection!
 	devices: [Device!]!
-	type: ResourceType
+	type: ResourceType @deprecated(reason: "Use the imageURI field instead")
 	dataURI: String!
+	imageURI(preset: ImagePreset!): String!
 	height: Float!
 	width: Float!
 }
 
 scalar ResourceType
+
+enum ImagePreset {
+	ICON
+	THUMBNAIL
+	REGULAR
+}
 
 type PropertyDefinition {
 	name: String!
@@ -906,7 +913,7 @@ type RepositoryMutation {
 	"""
 	importRawResourceRequest: ImportRawResourceRequestResponse!
 	importRawResource(input: ImportRawResourceInput!): ID!
-	importImageResource(input: ImportImageResourceInput!): ID!
+	importImageResource(input: ImportImageResourceInput!): ErrorMessageOr_ResourceImage!
 	createAndRunImportTransformation(
 		input: CreateAndRunImportTransformationInput!
 	): CreateAndRunImportTransformationResponse!
@@ -1011,6 +1018,15 @@ input ImportRawResourceInput {
 
 input ImportImageResourceInput {
 	uploadId: ID!
+}
+
+type ErrorMessageOr_ResourceImage {
+	data: ResourceImage
+	error: ErrorMessage
+}
+
+type ErrorMessage {
+	message: String!
 }
 
 input CreateAndRunImportTransformationInput {

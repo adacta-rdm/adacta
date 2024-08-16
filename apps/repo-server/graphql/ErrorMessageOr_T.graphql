@@ -1,0 +1,8 @@
+interface ErrorMessageOr_T {
+  data: T
+  error: ErrorMessage
+}
+
+type ErrorMessage {
+  message: String!
+}

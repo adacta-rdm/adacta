@@ -2,8 +2,8 @@ import { shSync as sh } from "../sh";
 
 const args = process.argv.slice(2);
 
-if (args.length < 2) {
-	process.stderr.write(`Usage ${process.argv[1]} [app-name] [...paths]`);
+if (args.length < 1) {
+	process.stderr.write(`Usage ${process.argv[1]} [...paths]`);
 	process.exit(1);
 }
 

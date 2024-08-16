@@ -11,6 +11,7 @@ import type { IdPoolManager } from "../services/IdPoolManager";
 import type { Downsampling } from "../services/downsampler/Downsampling";
 import type { StorageEngineRemoteAccess } from "../storage/storageEngine/remoteAccess/StorageEngineRemoteAccess";
 
+import type { ImagePreparation } from "~/apps/repo-server/src/services/ImagePreparation";
 import type { DrizzleDb } from "~/drizzle/DrizzleDb";
 import type { DrizzleSchema } from "~/drizzle/DrizzleSchema";
 import type { EntityFactory } from "~/lib/database/EntityFactory";
@@ -43,6 +44,8 @@ export interface IGraphQLContext {
 		ipm: IdPoolManager;
 
 		nameComposition: DynamicNameComposition;
+
+		image: ImagePreparation;
 	};
 	schema: DrizzleSchema;
 

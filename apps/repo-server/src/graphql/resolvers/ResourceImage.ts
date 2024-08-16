@@ -1,9 +1,8 @@
 import assert from "assert";
 
-import { assertDefined } from "@omegadot/assert";
-
-import { ResourceAttachmentManager } from "../context/ResourceAttachmentManager";
 import type { IResolvers } from "../generated/resolvers";
+
+import { ResourceAttachmentManager } from "~/apps/repo-server/src/graphql/context/ResourceAttachmentManager";
 
 export const ResourceImage: IResolvers["ResourceImage"] = {
 	async dataURI({ id }, _, { services: { el, stoRemote }, schema: { Resource } }) {
@@ -12,10 +11,21 @@ export const ResourceImage: IResolvers["ResourceImage"] = {
 		assert(resource.attachment.type === "Image");
 
 		const path = ResourceAttachmentManager.getPath(resource);
-		assertDefined(path);
 
 		// Return Image URL
 		return stoRemote.getDownloadLink(path);
+	},
+
+	async imageURI(
+		{ id },
+		{ preset },
+		{ services: { el, sto, stoRemote, image }, schema: { Resource } }
+	) {
+		// Load resource
+		const resource = await el.one(Resource, id);
+		assert(resource.attachment.type === "Image");
+
+		return (await image.getImage(resource, sto, stoRemote, preset)).url;
 	},
 
 	async height({ id }, _, { services: { el }, schema: { Resource } }) {

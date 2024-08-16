@@ -1,14 +1,15 @@
 import { EuiFilePicker } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
-import { graphql, useMutation } from "react-relay";
+import { graphql } from "react-relay";
 
 import { useRepositoryIdVariable } from "../services/router/UseRepoId";
 import { uploadFileBrowser } from "../utils/uploadFileBrowser";
 
 import type { ImageFileUploadMutation } from "@/relay/ImageFileUploadMutation.graphql";
 import type { ImageFileUploadRequestMutation } from "@/relay/ImageFileUploadRequestMutation.graphql";
+import { useMutationErrorHandler } from "~/apps/desktop-app/src/utils/useMutationErrorHandler";
+import { useMutationPromise } from "~/apps/desktop-app/src/utils/useMutationPromise";
 import type { IResourceId } from "~/lib/database/Ids";
 
 const ImageFileUploadGraphQLMutationRequest: GraphQLTaggedNode = graphql`
@@ -25,63 +26,78 @@ const ImageFileUploadGraphQLMutationRequest: GraphQLTaggedNode = graphql`
 const ImageFileUploadGraphQLMutation: GraphQLTaggedNode = graphql`
 	mutation ImageFileUploadMutation($input: ImportImageResourceInput!, $repositoryId: ID!) {
 		repository(id: $repositoryId) {
-			importImageResource(input: $input)
+			importImageResource(input: $input) {
+				error {
+					message
+				}
+				data {
+					id
+				}
+			}
 		}
 	}
 `;
 
 interface IProps {
-	callback: (resourceId: IResourceId) => void;
+	/**
+	 * If true, the file picker will not be cleared after a file is uploaded
+	 */
+	disableAutoClear?: boolean;
+	callback: (resourceId: IResourceId) => void | Promise<void>;
 }
 
 export function ImageFileUpload(props: IProps) {
+	const [uploading, setUploading] = useState(false);
+
 	const filePickerRef = useRef<EuiFilePicker>(null);
 
 	const repositoryIdVariable = useRepositoryIdVariable();
 
-	const [importImageResourceRequestMutation] = useMutation<ImageFileUploadRequestMutation>(
+	const [importImageResourceRequestMutation] = useMutationPromise<ImageFileUploadRequestMutation>(
 		ImageFileUploadGraphQLMutationRequest
 	);
 
-	const [importImageResourceMutation] = useMutation<ImageFileUploadMutation>(
+	const [importImageResourceMutation] = useMutationPromise<ImageFileUploadMutation>(
 		ImageFileUploadGraphQLMutation
 	);
 
-	const importImageResource = (uploadId: string) => {
-		importImageResourceMutation({
-			variables: {
-				input: { uploadId: uploadId },
-				...repositoryIdVariable,
-			},
-			onCompleted: (result) => {
-				assertDefined(result);
+	const [errorHandler, ErrorCallout] = useMutationErrorHandler({
+		autoCallout: true,
+	});
 
-				props.callback(result.repository.importImageResource as IResourceId);
-			},
-		});
-	};
+	const importFile = async (file: File) => {
+		setUploading(true);
 
-	const importImageResourceRequest = (file: File) => {
-		importImageResourceRequestMutation({
-			variables: repositoryIdVariable,
-			onCompleted: (result) => {
-				const { url, id: uploadId } = result.repository.importRawResourceRequest;
+		// Request upload URL + Upload ID
+		const uploadRequestResponse = (
+			await importImageResourceRequestMutation({
+				variables: repositoryIdVariable,
+			})
+		).repository.importRawResourceRequest;
 
-				void uploadFileBrowser(file, url)
-					.then(() => {
-						if (filePickerRef.current) {
-							filePickerRef.current.removeFiles();
-						}
-						importImageResource(uploadId);
-					})
-					.catch((e) => {
-						throw e;
-					});
-			},
-			onError: (e) => {
-				throw e;
-			},
-		});
+		// Upload the actual file
+		await uploadFileBrowser(file, uploadRequestResponse.url);
+
+		if (filePickerRef.current && !props.disableAutoClear) {
+			filePickerRef.current.removeFiles();
+		}
+
+		// Import the uploaded file as a (Image-)Resource
+		const uploadResponse = errorHandler(
+			(
+				await importImageResourceMutation({
+					variables: {
+						input: { uploadId: uploadRequestResponse.id },
+						...repositoryIdVariable,
+					},
+				})
+			).repository.importImageResource
+		);
+
+		if (uploadResponse !== null) {
+			await props.callback(uploadResponse.id as IResourceId);
+			setUploading(false);
+		}
 	};
 
 	const handleFilePickerChange = (files: FileList | null) => {
@@ -91,13 +107,16 @@ export function ImageFileUpload(props: IProps) {
 		if (files.length === 0) {
 			return;
 		}
-		importImageResourceRequest(files[0]);
+		setUploading(true);
+		importFile(files[0]).finally(() => setUploading(false));
 	};
 
 	return (
 		<>
+			<ErrorCallout />
 			<div style={{ width: 300, position: "relative" }}>
 				<EuiFilePicker
+					isLoading={uploading}
 					ref={filePickerRef}
 					initialPromptText="Select or drag and drop an image file"
 					onChange={handleFilePickerChange}

@@ -3,7 +3,6 @@ import {
 	EuiBadge,
 	EuiBasicTable,
 	EuiButton,
-	EuiImage,
 	EuiModal,
 	EuiModalBody,
 	EuiModalFooter,
@@ -26,6 +25,7 @@ import type { DeviceImageEditor$key } from "@/relay/DeviceImageEditor.graphql";
 import type { DeviceImageEditorAddMutation } from "@/relay/DeviceImageEditorAddMutation.graphql";
 import type { DeviceImageEditorDeleteMutation } from "@/relay/DeviceImageEditorDeleteMutation.graphql";
 import type { DeviceImageEditorMakePrimaryMutation } from "@/relay/DeviceImageEditorMakePrimaryMutation.graphql";
+import { AdactaImage } from "~/apps/desktop-app/src/components/image/AdactaImage";
 import type { ArrayElementType } from "~/lib/interface/ArrayElementType";
 
 const DeviceImageEditorGraphQLFragment = graphql`
@@ -34,7 +34,7 @@ const DeviceImageEditorGraphQLFragment = graphql`
 		id
 		imageResource {
 			id
-			dataURI
+			...AdactaImageFragment @arguments(preset: THUMBNAIL)
 		}
 	}
 `;
@@ -105,12 +105,15 @@ export function DeviceImageEditor({ deviceOrDeviceDefinition, closeModal }: IPro
 		});
 	};
 
-	const addImage = (imageId: string) => {
-		addImageMutation({
-			variables: { input: { imageOwnerId: data.id, imageId }, ...repositoryIdVariable },
-			onError: (e) => {
-				throw e;
-			},
+	const addImage = async (imageId: string) => {
+		await new Promise((resolve) => {
+			addImageMutation({
+				variables: { input: { imageOwnerId: data.id, imageId }, ...repositoryIdVariable },
+				onError: (e) => {
+					throw e;
+				},
+				onCompleted: resolve,
+			});
 		});
 	};
 
@@ -128,7 +131,7 @@ export function DeviceImageEditor({ deviceOrDeviceDefinition, closeModal }: IPro
 			field: "image",
 			name: "Image",
 			render: function ImageColumn(_, item) {
-				return <EuiImage alt={`picture #${item.index}`} size="m" src={item.dataURI} />;
+				return <AdactaImage alt={`picture #${item.index}`} image={item} />;
 			},
 		},
 		{

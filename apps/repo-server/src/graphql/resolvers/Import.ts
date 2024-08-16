@@ -9,6 +9,7 @@ import { executeImportAsTransformation } from "../../csvImportWizard/executeImpo
 import type { IImportPreset, IResolvers } from "../generated/resolvers";
 
 import { assertIImportWizardPreset } from "@/tsrc/lib/interface/IImportWizardPreset";
+import { ImagePreparation } from "~/apps/repo-server/src/services/ImagePreparation";
 import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
 import { EntityFactory } from "~/lib/database/EntityFactory";
@@ -39,21 +40,49 @@ export const ImportMutations: IResolvers["RepositoryMutation"] = {
 	async importImageResource(_, { input }, { userId, services: { rm, sto } }) {
 		const uploadPath = input.uploadId;
 
+		// While sharp is used for image processing, probe-image-size is used to get the image
+		// metadata. This is because sharp does not support some of the image formats we try to
+		// support (e.g. HEIC, BMP).
 		const fileContentsStream = sto.readFileStream(uploadPath);
-		const imageMetadata = await probe(fileContentsStream as any);
 
-		return createResourceFromUpload(
-			input.uploadId,
-			"Image",
-			{
-				type: "Image",
-				mimeType: imageMetadata.mime,
-				height: imageMetadata.height,
-				width: imageMetadata.width,
+		let imageMetadata: Awaited<ReturnType<typeof probe>>;
+		try {
+			imageMetadata = await probe(fileContentsStream as any);
+		} catch (e) {
+			return {
+				error: { __typename: "ErrorMessage", message: "Unsupported image format" },
+			};
+		}
+		fileContentsStream.destroy();
+
+		if (!ImagePreparation.isSupportedMimeType(imageMetadata.mime)) {
+			return { error: { __typename: "ErrorMessage", message: "Unsupported image format" } };
+		}
+
+		let height = imageMetadata.height;
+		let width = imageMetadata.width;
+
+		// Swap height and width if the image is rotated
+		if ((imageMetadata.orientation ?? 0) >= 5) {
+			[height, width] = [width, height];
+		}
+
+		return {
+			data: {
+				id: await createResourceFromUpload(
+					input.uploadId,
+					"Image",
+					{
+						type: "Image",
+						mimeType: imageMetadata.mime,
+						height,
+						width,
+					},
+					rm,
+					userId
+				),
 			},
-			rm,
-			userId
-		);
+		};
 	},
 
 	createAndRunImportTransformation(
