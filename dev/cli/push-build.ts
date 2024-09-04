@@ -15,7 +15,7 @@ let origin = "origin";
 
 for (let i = 0; i < args.length; i++) {
 	const arg = args[i];
-	if (arg === "-ds" || arg === "--deploy-staging") {
+	if (arg === "-s" || arg === "--deploy-staging") {
 		deployStaging = true;
 		continue;
 	}
