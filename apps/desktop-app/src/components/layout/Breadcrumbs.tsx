@@ -9,7 +9,7 @@ import { LazyNameLoader } from "./LazyNameLoader";
 import { LazyUserNameLoader } from "./LazyUserNameLoader";
 import type { RouteParams } from "../../RouteParams";
 import { useRouter } from "../../hooks/useRouter";
-import { isRouterArgs } from "../../routes/utils/isRouterArgs";
+import { isRouterArgs } from "../../utils/isRouterArgs";
 import { RepositoryPicker } from "../repositoryPicker/RepositoryPicker";
 
 import type { BreadcrumbsFragment$key } from "@/relay/BreadcrumbsFragment.graphql";

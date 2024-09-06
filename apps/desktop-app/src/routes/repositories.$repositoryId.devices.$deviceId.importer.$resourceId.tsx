@@ -1,14 +1,17 @@
 import React, { Suspense } from "react";
 import { loadQuery } from "react-relay";
 
-import type { IRouteComponentProps, IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { ImportWizard, ImportWizardGraphQLQuery } from "../components/importWizzard/ImportWizard";
 import { ImportWizardLoading } from "../components/importWizzard/ImportWizardLoading";
 
 import type { ImportWizardQuery } from "@/relay/ImportWizardQuery.graphql";
+import type {
+	GetDataArgs,
+	Props,
+} from "@/routes/repositories.$repositoryId.devices.$deviceId.importer.$resourceId";
 import type { IDeviceId, IResourceId } from "~/lib/database/Ids";
 
-export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) {
+function getData({ match, relayEnvironment }: GetDataArgs) {
 	return loadQuery<ImportWizardQuery>(
 		relayEnvironment,
 		ImportWizardGraphQLQuery,
@@ -20,7 +23,7 @@ export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) 
 	);
 }
 
-export default function (props: IRouteComponentProps<typeof getData>) {
+export default function Route(props: Props<typeof getData>) {
 	const resourceId = props.match.params.resourceId as IResourceId;
 
 	const deviceId = props.match.params.deviceId as IDeviceId;
