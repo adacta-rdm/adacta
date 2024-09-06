@@ -85,9 +85,9 @@ export async function prepareImageHTTPEndpoint(
 					height: options.maxDimensions.height,
 					fit: sharp.fit.inside, // Keep aspect ratio with width and height as maximum values
 				})
-				.rotate(),
+				.rotate(), // Auto-rotate based on EXIF data
 			options.type
-		); // Auto-rotate based on EXIF data
+		);
 
 		await uploadFile(
 			sliceBufferAndCopyToNewArrayBuffer(await transformer.toBuffer()),
