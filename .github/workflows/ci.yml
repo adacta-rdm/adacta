@@ -25,7 +25,7 @@ jobs:
 
       # Ensures that the run-time type checks are built before the type-check runs
       - name: Build run-time type checks
-        run: yarn build:tsrc
+        run: yarn build:routes && yarn build:tsrc
 
       # Ensures that @/drizzle/migrations.ts is generated before the type-check runs
       - name: Build repo-server
