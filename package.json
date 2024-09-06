@@ -27,6 +27,7 @@
 		"code-style-check": "prettier --check .",
 		"prettier": "prettier --write . '!./temp'",
 		"push-build": "tsx dev/cli/push-build.ts dist",
+		"push-build:staging": "tsx dev/cli/push-build.ts --deploy-staging dist",
 		"app-spec:get:staging": "tsx dev/cli/get-app-spec.ts repo-server-staging > staging.spec.json",
 		"app-spec:get:prod": "tsx dev/cli/get-app-spec.ts adacta-repo > prod.spec.json",
 		"app-spec:deploy:staging": "doctl apps create --upsert --spec staging.spec.json",
