@@ -60,7 +60,11 @@ export async function prepareImageHTTPEndpoint(
 				},
 			});
 		} else {
-			sharpInstance = sharp(data, { failOn: "none" });
+			sharpInstance = sharp(data, {
+				// failOn controls when to abort processing of invalid pixel data
+				// This is set to "none" to process the image "as is" without throwing an error
+				failOn: "none",
+			});
 		}
 
 		const selectType = (sharp: sharp.Sharp, type: "jpg" | "png" | "webp") => {
