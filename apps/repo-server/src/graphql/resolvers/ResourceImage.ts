@@ -25,7 +25,7 @@ export const ResourceImage: IResolvers["ResourceImage"] = {
 		const resource = await el.one(Resource, id);
 		assert(resource.attachment.type === "Image");
 
-		return (await image.getImage(resource, sto, stoRemote, preset)).url;
+		return image.getImage(resource, preset, sto, stoRemote);
 	},
 
 	async height({ id }, _, { services: { el }, schema: { Resource } }) {

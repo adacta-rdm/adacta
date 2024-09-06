@@ -61,49 +61,19 @@ export class ImagePreparation {
 		regular: { width: 1920, height: 1080 },
 	};
 
+	/**
+	 * Prepare an image for display (@see {@link ImagePreparation})
+	 * @param resource The image resource
+	 * @param preset The preset that describes the desired image size
+	 * @param sto
+	 * @param stoRemote
+	 * @returns The link to the prepared image
+	 */
 	public async getImage(
 		resource: DrizzleEntity<"Resource">,
+		preset: IImagePreset,
 		sto: StorageEngine,
-		stoRemote: StorageEngineRemoteAccess,
-		preset: IImagePreset
-	) {
-		return {
-			url: await this.requestImage(resource, sto, stoRemote, preset),
-			fallbackURL: await this.requestImage(resource, sto, stoRemote, preset),
-		};
-	}
-
-	private static isPictureType(type: string) {
-		const t = type.toLowerCase();
-		return t === "jpg" || t === "jpeg" || t === "heic";
-	}
-
-	public static isSupportedMimeType(mime: string) {
-		return ImagePreparation.supportedMimeTypes.includes(mime);
-	}
-
-	private static getOptions(preset: IImagePreset, extension: string): IImageOptions {
-		switch (preset) {
-			case IImagePreset.Icon:
-				return { type: "png", maxDimensions: ImagePreparation.IMAGE_SIZES["icon"] };
-			case IImagePreset.Thumbnail:
-				if (ImagePreparation.isPictureType(extension))
-					return { type: "jpg", maxDimensions: ImagePreparation.IMAGE_SIZES["thumbnail"] };
-				return { type: "png", maxDimensions: ImagePreparation.IMAGE_SIZES["thumbnail"] };
-			case IImagePreset.Regular:
-				if (ImagePreparation.isPictureType(extension))
-					return { type: "jpg", maxDimensions: ImagePreparation.IMAGE_SIZES["regular"] };
-				return { type: "png", maxDimensions: ImagePreparation.IMAGE_SIZES["regular"] };
-			default:
-				assertUnreachable(preset);
-		}
-	}
-
-	public async requestImage(
-		resource: DrizzleEntity<"Resource">,
-		sto: StorageEngine,
-		stoRemote: StorageEngineRemoteAccess,
-		preset: IImagePreset
+		stoRemote: StorageEngineRemoteAccess
 	) {
 		assert(resource.attachment.type === "Image");
 		const options = ImagePreparation.getOptions(preset, resource.attachment.mimeType.split("/")[1]);
@@ -141,6 +111,32 @@ export class ImagePreparation {
 		this.map.add(imagePath);
 
 		return getImageLink(imagePath);
+	}
+
+	private static isPictureType(type: string) {
+		const t = type.toLowerCase();
+		return t === "jpg" || t === "jpeg" || t === "heic";
+	}
+
+	public static isSupportedMimeType(mime: string) {
+		return ImagePreparation.supportedMimeTypes.includes(mime);
+	}
+
+	private static getOptions(preset: IImagePreset, extension: string): IImageOptions {
+		switch (preset) {
+			case IImagePreset.Icon:
+				return { type: "png", maxDimensions: ImagePreparation.IMAGE_SIZES["icon"] };
+			case IImagePreset.Thumbnail:
+				if (ImagePreparation.isPictureType(extension))
+					return { type: "jpg", maxDimensions: ImagePreparation.IMAGE_SIZES["thumbnail"] };
+				return { type: "png", maxDimensions: ImagePreparation.IMAGE_SIZES["thumbnail"] };
+			case IImagePreset.Regular:
+				if (ImagePreparation.isPictureType(extension))
+					return { type: "jpg", maxDimensions: ImagePreparation.IMAGE_SIZES["regular"] };
+				return { type: "png", maxDimensions: ImagePreparation.IMAGE_SIZES["regular"] };
+			default:
+				assertUnreachable(preset);
+		}
 	}
 
 	private static getPath(resourceId: IResourceId, options: IImageOptions) {

@@ -77,8 +77,10 @@ export class ContextFactory {
 		contextContainer.set(new EntityLoader(drizzle));
 		let schema = new DrizzleGlobalSchema() as DrizzleSchema;
 
-		// This service is not instantiated in the global ServiceContainer because it keeps track
-		// of already prepared images and should not be reset for each request.
+		// The ImagePreparation service is used to prepare images for display in the UI.
+		// Since it contains a cache of already prepared images, it should not be reset for each
+		// request. For this reason, it is accessed through the global ServiceContainer (which
+		// ensures that the same instance is used for all requests).
 		const image = this.services.get(ImagePreparation);
 
 		const context: IGraphQLContext = {
