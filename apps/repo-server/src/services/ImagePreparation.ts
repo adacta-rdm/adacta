@@ -16,8 +16,12 @@ import type { StorageEngine } from "~/lib/storage-engine";
  * This service is responsible for preparing images for display.
  * It will take an image resource and does the following:
  *    - Resize the image to the desired size
- *    - Convert the image to suitable format
+ *    - Convert the image to suitable format (JPG or PNG, depending on the source image and the
+ *    	desired size)
  *    - If necessary the image is rotated to the correct orientation (provided by the EXIF data)
+ *
+ * The actual image processing is delegated to the `images/prepare` microservice using the
+ * TaskDispatcher.
  */
 @Service(TaskDispatcher)
 export class ImagePreparation {
