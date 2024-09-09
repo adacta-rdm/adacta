@@ -49,6 +49,7 @@ import type { AdactaTimelineUsage$data } from "@/relay/AdactaTimelineUsage.graph
 import type { DeviceOverview$key } from "@/relay/DeviceOverview.graphql";
 import { TopLevelDevice } from "~/apps/desktop-app/src/components/device/TopLevelDevice";
 import type { specialMeaningSpecificationsKeys } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
+import { specialMeaningSpecificationsValueValidator } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
 import { createDate, createMaybeDate } from "~/lib/createDate";
 import type { IDeviceId } from "~/lib/database/Ids";
 import { convertDeviceToTraversalResult } from "~/lib/inheritance/convertToTraversalResult";
@@ -188,14 +189,19 @@ export function DeviceOverview(props: IProps) {
 	 */
 	function renderSpecification(
 		propertyName: (typeof specialMeaningSpecificationsKeys)[number],
-		fn: (propertyValue: string) => React.ReactNode | string,
 		fallback = null
 	) {
 		const property = device.specifications.find((p) => p.name === propertyName);
 		if (!property) {
 			return fallback;
 		}
-		return fn(property.value);
+
+		const renderFn = specialMeaningSpecificationsValueValidator[propertyName]?.render;
+		if (renderFn !== undefined) {
+			return renderFn(property.value);
+		}
+
+		throw new Error(`No render function for property ${propertyName}`);
 	}
 
 	const printTimeInterval = (start: string, end?: string) => {
@@ -333,19 +339,7 @@ export function DeviceOverview(props: IProps) {
 						: [],
 					description: (
 						<>
-							<EuiFlexGroup>
-								{renderSpecification("Description", (description) => (
-									<EuiFlexItem
-										grow={true}
-										style={{
-											whiteSpace: "pre-line", // Don't collapse newlines
-										}}
-									>
-										{description}
-										<EuiSpacer />
-									</EuiFlexItem>
-								))}
-							</EuiFlexGroup>
+							<EuiFlexGroup>{renderSpecification("Description")}</EuiFlexGroup>
 							<EuiFlexGroup>
 								<EuiFlexItem grow={false}>
 									<DeviceImageList device={device} />
@@ -354,18 +348,10 @@ export function DeviceOverview(props: IProps) {
 									<span>
 										{device.shortId && <>Short ID: {device.shortId}</>}
 										<br />
-										{renderSpecification("Responsible (primary)", (v) => (
-											<>
-												Responsible (primary): {v}
-												<br />
-											</>
-										))}
-										{renderSpecification("Responsible (secondary)", (v) => (
-											<>
-												Responsible (secondary): {v}
-												<br />
-											</>
-										))}
+										{renderSpecification("Responsible (primary)")}
+										{renderSpecification("Responsible (secondary)")}
+										{renderSpecification("DOI")}
+										{renderSpecification("Chemotion")}
 										Created by: <UserLink user={device.metadata.creator} /> at{" "}
 										<DateTime date={createDate(device.metadata.creationTimestamp)} />
 										<TopLevelDevice data={device} />

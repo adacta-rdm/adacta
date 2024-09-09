@@ -9,6 +9,7 @@ import {
 	EuiFieldText,
 	EuiFlexGroup,
 	EuiFlexItem,
+	EuiFormRow,
 	EuiSpacer,
 	EuiText,
 } from "@elastic/eui";
@@ -20,6 +21,10 @@ import type { ArrayElement } from "type-fest/source/internal";
 
 import { useDeviceSpecificationKeys, useSampleSpecificationKeys } from "./SpecificationKeyProvider";
 
+import {
+	isSpecialMeaningLabel,
+	specialMeaningSpecificationsValueValidator,
+} from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
 import { wrapWithSuspense } from "~/apps/desktop-app/src/utils/wrapWithSuspense";
 import { MAX_SPECIFICATION_VALUE_LENGTH } from "~/lib/MAX_SPECIFICATION_VALUE_LENGTH";
 import type { ISpecification } from "~/lib/database/documents/interfaces/ISpecification";
@@ -222,17 +227,30 @@ const SpecificationEditor = forwardRef<
 						<EuiFlexGroup>
 							<EuiFlexItem>
 								{editKey.label !== "Description" ? (
-									<EuiFieldText
-										value={editValue}
-										autoFocus={true}
-										onChange={(e) => setEditValue(e.target.value)}
-										onKeyDown={(e) => {
-											if (e.key === "Enter") {
-												updateSpecification();
+									<EuiFormRow
+										helpText={
+											isSpecialMeaningLabel(editKey.label) &&
+											specialMeaningSpecificationsValueValidator[editKey.label]?.validationHint
+										}
+									>
+										<EuiFieldText
+											isInvalid={
+												isSpecialMeaningLabel(editKey.label) &&
+												!specialMeaningSpecificationsValueValidator[editKey.label]?.validationFn?.(
+													editValue
+												)
 											}
-										}}
-										maxLength={2000}
-									/>
+											value={editValue}
+											autoFocus={true}
+											onChange={(e) => setEditValue(e.target.value)}
+											onKeyDown={(e) => {
+												if (e.key === "Enter") {
+													updateSpecification();
+												}
+											}}
+											maxLength={2000}
+										/>
+									</EuiFormRow>
 								) : (
 									<EuiTextArea
 										value={editValue}
@@ -252,7 +270,17 @@ const SpecificationEditor = forwardRef<
 								)}
 							</EuiFlexItem>
 							<EuiFlexItem grow={false}>
-								<EuiButtonIcon iconType="save" aria-label="Save" onClick={updateSpecification} />
+								<EuiButtonIcon
+									iconType="save"
+									aria-label="Save"
+									onClick={updateSpecification}
+									isDisabled={
+										isSpecialMeaningLabel(editKey.label) &&
+										!specialMeaningSpecificationsValueValidator[editKey.label]?.validationFn?.(
+											editValue
+										)
+									}
+								/>
 							</EuiFlexItem>
 						</EuiFlexGroup>
 					),
@@ -291,7 +319,14 @@ const SpecificationEditor = forwardRef<
 								<EuiButtonIcon
 									iconType="save"
 									aria-label="Save"
-									disabled={editKey === undefined || customKeyInvalid}
+									disabled={
+										editKey === undefined ||
+										customKeyInvalid ||
+										(isSpecialMeaningLabel(editKey.label) &&
+											!specialMeaningSpecificationsValueValidator[editKey.label]?.validationFn?.(
+												editValue
+											))
+									}
 									onClick={saveNewSpecification}
 								/>
 							</EuiFlexItem>
