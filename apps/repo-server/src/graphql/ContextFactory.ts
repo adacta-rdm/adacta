@@ -18,7 +18,7 @@ import { StorageEngineRemoteAccess } from "../storage/storageEngine/remoteAccess
 
 import { S3Config } from "~/apps/repo-server/src/config/S3Config";
 import { REPO_UPLOAD_S3_PREFIX_DOWNSAMPLING } from "~/apps/repo-server/src/reposerverConfig";
-import { ImagePreparation } from "~/apps/repo-server/src/services/ImagePreparation";
+import { ImagePreparation } from "~/apps/repo-server/src/services/ImagePreparation/ImagePreparation";
 import { KeyValueDatabaseStorageEngineBackend } from "~/apps/repo-server/src/storage/keyValueDatabase/KeyValueDatabaseStorageEngineBackend";
 import { S3RemoteAccess } from "~/apps/repo-server/src/storage/storageEngine/remoteAccess/S3RemoteAccess";
 import type { DrizzleSchema } from "~/drizzle/DrizzleSchema";

@@ -9,7 +9,7 @@ import { executeImportAsTransformation } from "../../csvImportWizard/executeImpo
 import type { IImportPreset, IResolvers } from "../generated/resolvers";
 
 import { assertIImportWizardPreset } from "@/tsrc/lib/interface/IImportWizardPreset";
-import { ImagePreparation } from "~/apps/repo-server/src/services/ImagePreparation";
+import { ImagePreparation } from "~/apps/repo-server/src/services/ImagePreparation/ImagePreparation";
 import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
 import { EntityFactory } from "~/lib/database/EntityFactory";
