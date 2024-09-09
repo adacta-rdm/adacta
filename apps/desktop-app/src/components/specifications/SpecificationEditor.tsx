@@ -80,8 +80,10 @@ function SpecificationValue(props: {
 	specificationValue: string;
 	setEditValue: (value: ((prevState: string) => string) | string) => void;
 	updateSpecification: () => void;
+	valueInvalid: boolean;
 }) {
-	const { specificationKey, specificationValue, setEditValue, updateSpecification } = props;
+	const { specificationKey, specificationValue, setEditValue, updateSpecification, valueInvalid } =
+		props;
 
 	return (
 		<>
@@ -93,17 +95,12 @@ function SpecificationValue(props: {
 					}
 				>
 					<EuiFieldText
-						isInvalid={
-							isSpecialMeaningLabel(specificationKey) &&
-							!specialMeaningSpecificationsValueValidator[specificationKey]?.validationFn?.(
-								specificationValue
-							)
-						}
+						isInvalid={valueInvalid}
 						value={specificationValue}
 						autoFocus={true}
 						onChange={(e) => setEditValue(e.target.value)}
 						onKeyDown={(e) => {
-							if (e.key === "Enter") {
+							if (!valueInvalid && e.key === "Enter") {
 								updateSpecification();
 							}
 						}}
@@ -173,6 +170,10 @@ const SpecificationEditor = forwardRef<
 	const [editKey, setEditKey] = useState<undefined | { label: string }>(undefined);
 	const [editValue, setEditValue] = useState("");
 	const [customKeyInvalid, setCustomKeyInvalid] = useState(false);
+
+	const valueInvalid =
+		isSpecialMeaningLabel(editKey?.label) &&
+		specialMeaningSpecificationsValueValidator[editKey.label]?.validationFn?.(editValue) === false;
 
 	const onCreateOption = (searchValue: string) => {
 		const normalizedSearchValue = searchValue.trim();
@@ -281,12 +282,12 @@ const SpecificationEditor = forwardRef<
 					) : (
 						<EuiFlexGroup>
 							<EuiFlexItem>
-								{/*getEuiFlexItem(editKey, editValue, setEditValue, updateSpecification)}*/}
 								<SpecificationValue
 									specificationKey={editKey.label}
 									specificationValue={editValue}
 									setEditValue={setEditValue}
 									updateSpecification={updateSpecification}
+									valueInvalid={valueInvalid}
 								/>
 							</EuiFlexItem>
 							<EuiFlexItem grow={false}>
@@ -294,12 +295,7 @@ const SpecificationEditor = forwardRef<
 									iconType="save"
 									aria-label="Save"
 									onClick={updateSpecification}
-									isDisabled={
-										isSpecialMeaningLabel(editKey.label) &&
-										specialMeaningSpecificationsValueValidator[editKey.label]?.validationFn?.(
-											editValue
-										) !== false
-									}
+									isDisabled={valueInvalid}
 								/>
 							</EuiFlexItem>
 						</EuiFlexGroup>
@@ -331,20 +327,14 @@ const SpecificationEditor = forwardRef<
 								specificationValue={editValue}
 								setEditValue={setEditValue}
 								updateSpecification={saveNewSpecification}
+								valueInvalid={valueInvalid}
 							/>
 
 							<EuiFlexItem grow={false}>
 								<EuiButtonIcon
 									iconType="save"
 									aria-label="Save"
-									disabled={
-										editKey === undefined ||
-										customKeyInvalid ||
-										(isSpecialMeaningLabel(editKey.label) &&
-											specialMeaningSpecificationsValueValidator[editKey.label]?.validationFn?.(
-												editValue
-											)) !== false
-									}
+									disabled={editKey === undefined || customKeyInvalid || valueInvalid}
 									onClick={saveNewSpecification}
 								/>
 							</EuiFlexItem>
@@ -352,7 +342,6 @@ const SpecificationEditor = forwardRef<
 								<EuiButtonIcon
 									iconType="cross"
 									aria-label="Delete"
-									disabled={editKey === undefined || customKeyInvalid}
 									onClick={() => {
 										setEditKey(undefined);
 										setEditMode(false);
