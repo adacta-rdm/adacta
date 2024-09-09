@@ -1,0 +1,6 @@
+# @generated
+
+type ErrorMessageOr_ResourceImage {
+	data: ResourceImage
+	error: ErrorMessage
+}

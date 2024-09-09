@@ -6,6 +6,8 @@ import type { ISearchResultProps } from "./SearchResult";
 import { SearchResult } from "./SearchResult";
 
 import type { SearchResultsDevices$key } from "@/relay/SearchResultsDevices.graphql";
+import { DevicePreviewImage } from "~/apps/desktop-app/src/components/device/DevicePreviewImage";
+import { AdactaIconOrEuiToken } from "~/apps/desktop-app/src/components/icons/AdactaIcon";
 
 const SearchResultsDevicesGraphQLFragment = graphql`
 	fragment SearchResultsDevices on Node {
@@ -13,11 +15,6 @@ const SearchResultsDevicesGraphQLFragment = graphql`
 			__typename
 			id
 			name
-			definition {
-				imageResource {
-					dataURI
-				}
-			}
 			parent {
 				id
 				name
@@ -31,6 +28,7 @@ const SearchResultsDevicesGraphQLFragment = graphql`
 					name
 				}
 			}
+			...DevicePreviewImage
 			...SearchResult
 		}
 	}
@@ -53,7 +51,12 @@ export function SearchResultsDevices(props: {
 				"/repositories/:repositoryId/devices/:deviceId/",
 				{ repositoryId: props.repositoryId, deviceId: node.id },
 			]}
-			imagePath={node.definition?.imageResource[0]?.dataURI}
+			renderImage={
+				<DevicePreviewImage
+					data={node}
+					fallback={<AdactaIconOrEuiToken iconType={"Device"} size={"l"} />}
+				/>
+			}
 			iconType={"Device"}
 			close={props.close}
 			metadata={node}

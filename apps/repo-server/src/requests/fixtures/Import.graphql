@@ -10,7 +10,14 @@ mutation ImportRawResource($input: ImportRawResourceInput!) {
 }
 
 mutation ImportImageResource($input: ImportImageResourceInput!) {
-	importImageResource(input: $input)
+	importImageResource(input: $input) {
+		data {
+			id
+		}
+		error {
+			message
+		}
+	}
 }
 
 mutation CreateAndRunImportTransformation($input: CreateAndRunImportTransformationInput!) {

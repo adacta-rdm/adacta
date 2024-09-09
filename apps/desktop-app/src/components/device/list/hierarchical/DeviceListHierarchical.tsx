@@ -335,9 +335,7 @@ function HierarchicalDeviceTableRowProperties(props: {
 							</EuiFlexItem>
 							{childComponent.__typename === "Device" ? (
 								<>
-									<EuiFlexItem grow={false}>
-										<DevicePreviewImage data={childComponent} />
-									</EuiFlexItem>
+									<DevicePreviewImage data={childComponent} asFlexItem />
 									<EuiFlexItem>
 										{props.child.name}
 										<br />

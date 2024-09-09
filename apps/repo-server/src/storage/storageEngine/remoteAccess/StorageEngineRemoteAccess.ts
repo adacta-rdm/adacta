@@ -13,8 +13,11 @@ export abstract class StorageEngineRemoteAccess {
 	 *
 	 * @param path The path to the file
 	 * @param filename The filename to be used in the 'Content-Disposition' header
+	 * @param cache Amount of time in seconds the file can be cached by the client (note this value
+	 * is treated as an upper bound and the actual cache time may be lower). Maximum value when used
+	 * with S3 is 7 days.
 	 */
-	abstract getDownloadLink(path: string, filename?: string): Promise<string>;
+	abstract getDownloadLink(path: string, filename?: string, cache?: number): Promise<string>;
 
 	abstract getUploadLink(uploadId: string): Promise<string>;
 }

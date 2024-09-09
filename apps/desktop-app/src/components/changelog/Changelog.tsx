@@ -3,7 +3,6 @@ import {
 	EuiFlexGroup,
 	EuiFlexItem,
 	EuiHorizontalRule,
-	EuiImage,
 	EuiSplitPanel,
 	EuiTimeline,
 	EuiTimelineItem,
@@ -18,6 +17,7 @@ import { DateTime } from "../datetime/DateTime";
 import { DeviceLink } from "../device/DeviceLink";
 
 import type { Changelog$key } from "@/relay/Changelog.graphql";
+import { DevicePreviewImage } from "~/apps/desktop-app/src/components/device/DevicePreviewImage";
 import { createDate } from "~/lib/createDate";
 
 const ChangelogFragmentGraphql = graphql`
@@ -42,11 +42,7 @@ const ChangelogFragmentGraphql = graphql`
 				timestamp
 				timestampEnd
 				device {
-					definition {
-						imageResource {
-							dataURI
-						}
-					}
+					...DevicePreviewImage
 					...DeviceLink
 				}
 			}
@@ -57,11 +53,7 @@ const ChangelogFragmentGraphql = graphql`
 				name
 				value {
 					... on Device {
-						definition {
-							imageResource {
-								dataURI
-							}
-						}
+						...DevicePreviewImage
 					}
 					...DeviceLink
 				}
@@ -94,15 +86,8 @@ export function Changelog(props: { data: Changelog$key; additionalEvents?: IEven
 		) => {
 			return (
 				<EuiFlexGroup alignItems={"center"}>
-					{property.value.definition?.imageResource[0]?.dataURI && (
-						<EuiFlexItem grow={false}>
-							<EuiImage
-								size={50}
-								alt={""}
-								src={property.value.definition.imageResource[0].dataURI}
-							/>
-						</EuiFlexItem>
-					)}
+					<DevicePreviewImage data={property.value} asFlexItem />
+
 					<EuiFlexItem grow={false}>
 						<div style={{ display: "inline-block" }}>
 							<DeviceLink data={property.value} /> was{" "}
@@ -125,7 +110,6 @@ export function Changelog(props: { data: Changelog$key; additionalEvents?: IEven
 				time: createDate(usageAsProperty.timestamp),
 				info: {
 					icon: <RoundedIcon iconType={"importAction"} color={colorUsages} />,
-					image: usageAsProperty.device.definition?.imageResource[0]?.dataURI,
 					children: (
 						<>
 							Device is inserted into slot &lsquo;{usageAsProperty.name}
@@ -140,7 +124,6 @@ export function Changelog(props: { data: Changelog$key; additionalEvents?: IEven
 					time: createDate(usageAsProperty.timestampEnd),
 					info: {
 						icon: <RoundedIcon iconType={"exportAction"} color={colorUsages} />,
-						image: usageAsProperty.device.definition?.imageResource[0]?.dataURI,
 						children: (
 							<>
 								Device is removed from slot &lsquo;{usageAsProperty.name}
@@ -158,7 +141,6 @@ export function Changelog(props: { data: Changelog$key; additionalEvents?: IEven
 				time: createDate(property.timestamp),
 				info: {
 					icon: <RoundedIcon iconType={"insert"} color={colorSwaps} />,
-					image: property.value.definition?.imageResource[0]?.dataURI,
 					children: getPropertyInsertionOrRemoval(property, "inserted"),
 				},
 			});
@@ -169,7 +151,6 @@ export function Changelog(props: { data: Changelog$key; additionalEvents?: IEven
 					time: createDate(property.timestampEnd),
 					info: {
 						icon: <RoundedIcon iconType={"remove"} color={colorSwaps} />,
-						image: property.value.definition?.imageResource[0]?.dataURI,
 						children: getPropertyInsertionOrRemoval(property, "removed"),
 					},
 				});

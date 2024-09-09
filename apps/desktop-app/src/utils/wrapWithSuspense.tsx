@@ -6,15 +6,15 @@ import React, { forwardRef, Suspense } from "react";
  * This function avoids having to manually create a new component just to wrap it with "Suspense".
  *
  * @param Component The component to wrap.
- * @param fallback The fallback component to display while the wrapped component is loading.
+ * @param Fallback
  */
 export function wrapWithSuspense<TProps extends object>(
 	Component: ComponentType<TProps>,
-	fallback?: React.ReactNode
+	Fallback?: (props: TProps) => React.ReactNode
 ) {
 	return forwardRef(function SuspenseWrapper(props: TProps, ref) {
 		return (
-			<Suspense fallback={fallback}>
+			<Suspense fallback={Fallback ? <Fallback {...props} /> : null}>
 				<Component {...props} ref={ref} />
 			</Suspense>
 		);
