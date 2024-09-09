@@ -89,3 +89,24 @@ export function isSpecialMeaningLabel(
 ): label is (typeof specialMeaningSpecificationsKeys)[number] {
 	return specialMeaningSpecificationsKeys.includes(label as any);
 }
+
+/**
+ * Helper that renders a specification if it exists, or a fallback if it doesn't.
+ */
+export function renderSpecification(
+	specifications: readonly { readonly name: string; readonly value: string }[],
+	propertyName: (typeof specialMeaningSpecificationsKeys)[number],
+	fallback = null
+) {
+	const property = specifications.find((p) => p.name === propertyName);
+	if (!property) {
+		return fallback;
+	}
+
+	const renderFn = specialMeaningSpecificationsValueValidator[propertyName]?.render;
+	if (renderFn !== undefined) {
+		return renderFn(property.value);
+	}
+
+	throw new Error(`No render function for property ${propertyName}`);
+}
