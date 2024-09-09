@@ -42,10 +42,21 @@ export class TaskDispatcher {
 		const base = this.rsConfig.baseURL.toString();
 		const url = `${base}${type}`;
 		const key = JSON.stringify(args);
-		const logger = this.logger.bind({ type, url }); // TODO: Re-add {input: args.input.path };
+		let logger = this.logger.bind({ type, url });
 
 		logger.bind({ args: key }).trace("");
 		logger.info(`Dispatching task`);
+
+		if (type === "resources/downsample") {
+			const input = (args as ITasks["resources/downsample"]["args"]).input;
+			logger = logger.bind({ input: input.path });
+		} else if (type === "images/prepare") {
+			const input = (args as ITasks["images/prepare"]["args"]).input;
+			logger = logger.bind({
+				fileType: input.originalMimeType,
+				targetDimensions: input.options.maxDimensions,
+			});
+		}
 
 		// Only dispatch the task if it has not run before
 		if (!this.history.has(key)) {
