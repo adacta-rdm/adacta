@@ -85,7 +85,7 @@ export const specialMeaningSpecificationsValueValidator: Partial<
 } as const;
 
 export function isSpecialMeaningLabel(
-	label: string
+	label?: string
 ): label is (typeof specialMeaningSpecificationsKeys)[number] {
 	return specialMeaningSpecificationsKeys.includes(label as any);
 }

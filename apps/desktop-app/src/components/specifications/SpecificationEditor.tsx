@@ -75,6 +75,61 @@ export interface ISpecificationEditorActions {
 	addSpecification: (name: string, value: string) => void;
 }
 
+function SpecificationValue(props: {
+	specificationKey?: string;
+	specificationValue: string;
+	setEditValue: (value: ((prevState: string) => string) | string) => void;
+	updateSpecification: () => void;
+}) {
+	const { specificationKey, specificationValue, setEditValue, updateSpecification } = props;
+
+	return (
+		<>
+			{specificationKey !== "Description" ? (
+				<EuiFormRow
+					helpText={
+						isSpecialMeaningLabel(specificationKey) &&
+						specialMeaningSpecificationsValueValidator[specificationKey]?.validationHint
+					}
+				>
+					<EuiFieldText
+						isInvalid={
+							isSpecialMeaningLabel(specificationKey) &&
+							!specialMeaningSpecificationsValueValidator[specificationKey]?.validationFn?.(
+								specificationValue
+							)
+						}
+						value={specificationValue}
+						autoFocus={true}
+						onChange={(e) => setEditValue(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") {
+								updateSpecification();
+							}
+						}}
+						maxLength={2000}
+					/>
+				</EuiFormRow>
+			) : (
+				<EuiTextArea
+					value={specificationValue}
+					autoFocus={true}
+					onChange={(e) => setEditValue(e.target.value)}
+					maxLength={2000}
+				/>
+			)}
+			{setEditValue.length === MAX_SPECIFICATION_VALUE_LENGTH && (
+				<>
+					<EuiSpacer />
+					<EuiCallOut color={"warning"}>
+						Specification values can only contain {MAX_SPECIFICATION_VALUE_LENGTH} characters.
+					</EuiCallOut>
+				</>
+			)}
+		</>
+	);
+}
+
 /**
  * This is the core component for editing specifications. The two wrapper components
  * SpecificationEditorDevices and SpecificationEditorSamples provide the suggestions for new
@@ -226,48 +281,13 @@ const SpecificationEditor = forwardRef<
 					) : (
 						<EuiFlexGroup>
 							<EuiFlexItem>
-								{editKey.label !== "Description" ? (
-									<EuiFormRow
-										helpText={
-											isSpecialMeaningLabel(editKey.label) &&
-											specialMeaningSpecificationsValueValidator[editKey.label]?.validationHint
-										}
-									>
-										<EuiFieldText
-											isInvalid={
-												isSpecialMeaningLabel(editKey.label) &&
-												!specialMeaningSpecificationsValueValidator[editKey.label]?.validationFn?.(
-													editValue
-												)
-											}
-											value={editValue}
-											autoFocus={true}
-											onChange={(e) => setEditValue(e.target.value)}
-											onKeyDown={(e) => {
-												if (e.key === "Enter") {
-													updateSpecification();
-												}
-											}}
-											maxLength={2000}
-										/>
-									</EuiFormRow>
-								) : (
-									<EuiTextArea
-										value={editValue}
-										autoFocus={true}
-										onChange={(e) => setEditValue(e.target.value)}
-										maxLength={2000}
-									/>
-								)}
-								{editValue.length === MAX_SPECIFICATION_VALUE_LENGTH && (
-									<>
-										<EuiSpacer />
-										<EuiCallOut color={"warning"}>
-											Specification values can only contain {MAX_SPECIFICATION_VALUE_LENGTH}{" "}
-											characters.
-										</EuiCallOut>
-									</>
-								)}
+								{/*getEuiFlexItem(editKey, editValue, setEditValue, updateSpecification)}*/}
+								<SpecificationValue
+									specificationKey={editKey.label}
+									specificationValue={editValue}
+									setEditValue={setEditValue}
+									updateSpecification={updateSpecification}
+								/>
 							</EuiFlexItem>
 							<EuiFlexItem grow={false}>
 								<EuiButtonIcon
@@ -306,13 +326,11 @@ const SpecificationEditor = forwardRef<
 				description: (
 					<>
 						<EuiFlexGroup alignItems="center" direction="row">
-							<EuiFieldText
-								onChange={(e) => setEditValue(e.target.value)}
-								onKeyDown={(e) => {
-									if (e.key === "Enter") {
-										saveNewSpecification();
-									}
-								}}
+							<SpecificationValue
+								specificationKey={editKey?.label}
+								specificationValue={editValue}
+								setEditValue={setEditValue}
+								updateSpecification={saveNewSpecification}
 							/>
 
 							<EuiFlexItem grow={false}>
@@ -323,9 +341,9 @@ const SpecificationEditor = forwardRef<
 										editKey === undefined ||
 										customKeyInvalid ||
 										(isSpecialMeaningLabel(editKey.label) &&
-											!specialMeaningSpecificationsValueValidator[editKey.label]?.validationFn?.(
+											specialMeaningSpecificationsValueValidator[editKey.label]?.validationFn?.(
 												editValue
-											))
+											)) !== false
 									}
 									onClick={saveNewSpecification}
 								/>
