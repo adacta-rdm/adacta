@@ -276,9 +276,9 @@ const SpecificationEditor = forwardRef<
 									onClick={updateSpecification}
 									isDisabled={
 										isSpecialMeaningLabel(editKey.label) &&
-										!specialMeaningSpecificationsValueValidator[editKey.label]?.validationFn?.(
+										specialMeaningSpecificationsValueValidator[editKey.label]?.validationFn?.(
 											editValue
-										)
+										) !== false
 									}
 								/>
 							</EuiFlexItem>
