@@ -79,10 +79,10 @@ function SpecificationValue(props: {
 	specificationKey?: string;
 	specificationValue: string;
 	setEditValue: (value: ((prevState: string) => string) | string) => void;
-	updateSpecification: () => void;
+	saveSpecification: () => void;
 	valueInvalid: boolean;
 }) {
-	const { specificationKey, specificationValue, setEditValue, updateSpecification, valueInvalid } =
+	const { specificationKey, specificationValue, setEditValue, saveSpecification, valueInvalid } =
 		props;
 
 	return (
@@ -95,10 +95,11 @@ function SpecificationValue(props: {
 					onChange={(e) => setEditValue(e.target.value)}
 					onKeyDown={(e) => {
 						if (!valueInvalid && e.key === "Enter") {
-							updateSpecification();
+							saveSpecification();
 						}
 					}}
 					maxLength={2000}
+					fullWidth={true}
 				/>
 			) : (
 				<EuiTextArea
@@ -106,6 +107,7 @@ function SpecificationValue(props: {
 					autoFocus={true}
 					onChange={(e) => setEditValue(e.target.value)}
 					maxLength={2000}
+					fullWidth={true}
 				/>
 			)}
 			{setEditValue.length === MAX_SPECIFICATION_VALUE_LENGTH && (
@@ -117,6 +119,61 @@ function SpecificationValue(props: {
 				</>
 			)}
 		</>
+	);
+}
+
+function EditSpecificationValue(props: {
+	specificationKey?: string;
+	specificationValue: string;
+	setEditValue: (value: ((prevState: string) => string) | string) => void;
+
+	// Validation
+	valueInvalid: boolean;
+	keyInvalid: boolean;
+
+	// Events
+	saveSpecification: () => void;
+	deleteSpecification: () => void;
+}) {
+	const {
+		specificationKey,
+		specificationValue,
+		setEditValue,
+		valueInvalid,
+		keyInvalid,
+
+		saveSpecification,
+		deleteSpecification,
+	} = props;
+
+	return (
+		<EuiFormRow
+			helpText={
+				isSpecialMeaningLabel(specificationKey) &&
+				specialMeaningSpecificationsValueValidator[specificationKey]?.validationHint
+			}
+		>
+			<EuiFlexGroup alignItems="center" direction="row">
+				<SpecificationValue
+					specificationKey={specificationKey}
+					specificationValue={specificationValue}
+					setEditValue={setEditValue}
+					saveSpecification={saveSpecification}
+					valueInvalid={valueInvalid}
+				/>
+				<EuiFlexItem grow={false}>
+					<EuiButtonIcon
+						iconType="save"
+						aria-label="Save"
+						disabled={keyInvalid || valueInvalid}
+						onClick={saveSpecification}
+					/>
+				</EuiFlexItem>
+				<EuiFlexItem grow={false}>
+					<EuiButtonIcon iconType="cross" aria-label="Delete" onClick={deleteSpecification} />
+				</EuiFlexItem>
+			</EuiFlexGroup>
+		</EuiFormRow>
 	);
 }
 
@@ -273,32 +330,21 @@ const SpecificationEditor = forwardRef<
 							</EuiFlexItem>
 						</EuiFlexGroup>
 					) : (
-						<EuiFormRow
-							helpText={
-								isSpecialMeaningLabel(editKey.label) &&
-								specialMeaningSpecificationsValueValidator[editKey.label]?.validationHint
-							}
-						>
-							<EuiFlexGroup alignItems={"center"}>
-								<EuiFlexItem>
-									<SpecificationValue
-										specificationKey={editKey.label}
-										specificationValue={editValue}
-										setEditValue={setEditValue}
-										updateSpecification={updateSpecification}
-										valueInvalid={valueInvalid}
-									/>
-								</EuiFlexItem>
-								<EuiFlexItem grow={false}>
-									<EuiButtonIcon
-										iconType="save"
-										aria-label="Save"
-										onClick={updateSpecification}
-										isDisabled={valueInvalid}
-									/>
-								</EuiFlexItem>
-							</EuiFlexGroup>
-						</EuiFormRow>
+						<EditSpecificationValue
+							specificationKey={editKey.label}
+							specificationValue={editValue}
+							setEditValue={setEditValue}
+							saveSpecification={updateSpecification}
+							valueInvalid={valueInvalid}
+							deleteSpecification={() => {
+								setEditKey(undefined);
+								setEditMode(false);
+								deleteProperty(editKey.label);
+							}}
+							// We don't allow changing the key (wen existing specifications are
+							// edited) which makes it always valid
+							keyInvalid={false}
+						/>
 					),
 			};
 		});
@@ -320,41 +366,18 @@ const SpecificationEditor = forwardRef<
 					/>
 				),
 				description: (
-					<EuiFormRow
-						helpText={
-							isSpecialMeaningLabel(editKey?.label) &&
-							specialMeaningSpecificationsValueValidator[editKey.label]?.validationHint
-						}
-					>
-						<EuiFlexGroup alignItems="center" direction="row">
-							<SpecificationValue
-								specificationKey={editKey?.label}
-								specificationValue={editValue}
-								setEditValue={setEditValue}
-								updateSpecification={saveNewSpecification}
-								valueInvalid={valueInvalid}
-							/>
-
-							<EuiFlexItem grow={false}>
-								<EuiButtonIcon
-									iconType="save"
-									aria-label="Save"
-									disabled={editKey === undefined || customKeyInvalid || valueInvalid}
-									onClick={saveNewSpecification}
-								/>
-							</EuiFlexItem>
-							<EuiFlexItem grow={false}>
-								<EuiButtonIcon
-									iconType="cross"
-									aria-label="Delete"
-									onClick={() => {
-										setEditKey(undefined);
-										setEditMode(false);
-									}}
-								/>
-							</EuiFlexItem>
-						</EuiFlexGroup>
-					</EuiFormRow>
+					<EditSpecificationValue
+						specificationKey={editKey?.label}
+						specificationValue={editValue}
+						setEditValue={setEditValue}
+						valueInvalid={valueInvalid}
+						keyInvalid={editKey === undefined || customKeyInvalid}
+						saveSpecification={saveNewSpecification}
+						deleteSpecification={() => {
+							setEditKey(undefined);
+							setEditMode(false);
+						}}
+					/>
 				),
 		  }
 		: {
