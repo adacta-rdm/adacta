@@ -5,21 +5,34 @@ import React from "react";
  * List of specification names that have special meaning.
  */
 export const specialMeaningSpecificationsKeys = [
-	"Description", // Rendered as a description of Devices right below the name
-	"Responsible (primary)", // Displayed as the primary responsible person for a Device
-	"Responsible (secondary)", // Displayed as the secondary responsible person for a Device
+	"Description", // Rendered as a description of Devices/Samples right below the name
+	"Responsible (primary)", // Displayed as the primary responsible person for a Device/Sample
+	"Responsible (secondary)", // Displayed as the secondary responsible person for a Device/Sample
 
-	"DOI", // DOI of a Sample/Device
-	"Chemotion", // Link to the Chemotion entry of a Sample/Device
+	"DOI", // DOI of a Device/Sample
+	"Chemotion", // Link to the Chemotion entry of  a Device/Sample
 ] as const;
 
-export const specialMeaningSpecificationsValueValidator: Partial<
+export const specialMeaningSpecificationsHelpers: Partial<
 	Record<
 		(typeof specialMeaningSpecificationsKeys)[number],
 		| {
-				validationFn?: (input: string) => boolean;
+				/**
+				 * Controls how the specification value is rendered (i.e. plain text, link, etc.)
+				 * @param specificationValue
+				 */
 				render?: (specificationValue: string) => React.ReactNode | string;
-				validationHint?: string;
+
+				/**
+				 * Validation function for the specification value.
+				 * @param input
+				 */
+				validationFn?: (input: string) => boolean;
+
+				/**
+				 * A general hint for the user on how to correctly fill out the specification.
+				 */
+				inputHint?: string;
 		  }
 		| undefined
 	>
@@ -67,7 +80,7 @@ export const specialMeaningSpecificationsValueValidator: Partial<
 			</>
 		),
 		validationFn: (input: string) => input.startsWith("10.") && input.includes("/"),
-		validationHint: "Enter a DOI in the following format 10.1000/182",
+		inputHint: "Enter a DOI in the following format 10.1000/182",
 	},
 
 	Chemotion: {
@@ -80,7 +93,7 @@ export const specialMeaningSpecificationsValueValidator: Partial<
 			</>
 		),
 		validationFn: (input: string) => input.startsWith("https://") || input.startsWith("http://"),
-		validationHint: "Enter a valid URL starting with http:// or https://",
+		inputHint: "Enter a valid URL starting with http:// or https://",
 	},
 } as const;
 
@@ -103,7 +116,7 @@ export function renderSpecification(
 		return fallback;
 	}
 
-	const renderFn = specialMeaningSpecificationsValueValidator[propertyName]?.render;
+	const renderFn = specialMeaningSpecificationsHelpers[propertyName]?.render;
 	if (renderFn !== undefined) {
 		return renderFn(property.value);
 	}

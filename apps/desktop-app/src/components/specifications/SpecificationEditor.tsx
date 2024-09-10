@@ -2,7 +2,6 @@ import {
 	EuiButton,
 	EuiButtonEmpty,
 	EuiButtonIcon,
-	EuiCallOut,
 	EuiComboBox,
 	EuiDescriptionList,
 	EuiEmptyPrompt,
@@ -10,7 +9,6 @@ import {
 	EuiFlexGroup,
 	EuiFlexItem,
 	EuiFormRow,
-	EuiSpacer,
 	EuiText,
 } from "@elastic/eui";
 import { EuiTextArea } from "@elastic/eui";
@@ -23,7 +21,7 @@ import { useDeviceSpecificationKeys, useSampleSpecificationKeys } from "./Specif
 
 import {
 	isSpecialMeaningLabel,
-	specialMeaningSpecificationsValueValidator,
+	specialMeaningSpecificationsHelpers,
 } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
 import { wrapWithSuspense } from "~/apps/desktop-app/src/utils/wrapWithSuspense";
 import { MAX_SPECIFICATION_VALUE_LENGTH } from "~/lib/MAX_SPECIFICATION_VALUE_LENGTH";
@@ -75,111 +73,6 @@ export interface ISpecificationEditorActions {
 	addSpecification: (name: string, value: string) => void;
 }
 
-function SpecificationValue(props: {
-	specificationKey?: string;
-	specificationValue: string;
-	setEditValue: (value: ((prevState: string) => string) | string) => void;
-	saveSpecification: () => void;
-	valueInvalid: boolean;
-}) {
-	const { specificationKey, specificationValue, setEditValue, saveSpecification, valueInvalid } =
-		props;
-
-	return (
-		<>
-			{specificationKey !== "Description" ? (
-				<EuiFieldText
-					isInvalid={valueInvalid}
-					value={specificationValue}
-					autoFocus={true}
-					onChange={(e) => setEditValue(e.target.value)}
-					onKeyDown={(e) => {
-						if (!valueInvalid && e.key === "Enter") {
-							saveSpecification();
-						}
-					}}
-					maxLength={2000}
-					fullWidth={true}
-				/>
-			) : (
-				<EuiTextArea
-					value={specificationValue}
-					autoFocus={true}
-					onChange={(e) => setEditValue(e.target.value)}
-					maxLength={2000}
-					fullWidth={true}
-				/>
-			)}
-			{setEditValue.length === MAX_SPECIFICATION_VALUE_LENGTH && (
-				<>
-					<EuiSpacer />
-					<EuiCallOut color={"warning"}>
-						Specification values can only contain {MAX_SPECIFICATION_VALUE_LENGTH} characters.
-					</EuiCallOut>
-				</>
-			)}
-		</>
-	);
-}
-
-function EditSpecificationValue(props: {
-	specificationKey?: string;
-	specificationValue: string;
-	setEditValue: (value: ((prevState: string) => string) | string) => void;
-
-	// Validation
-	valueInvalid: boolean;
-	keyInvalid: boolean;
-
-	// Events
-	saveSpecification: () => void;
-	deleteSpecification: () => void;
-}) {
-	const {
-		specificationKey,
-		specificationValue,
-		setEditValue,
-		valueInvalid,
-		keyInvalid,
-
-		saveSpecification,
-		deleteSpecification,
-	} = props;
-
-	return (
-		<EuiFormRow
-			helpText={
-				isSpecialMeaningLabel(specificationKey) &&
-				specialMeaningSpecificationsValueValidator[specificationKey]?.validationHint
-			}
-			fullWidth={true}
-		>
-			<EuiFlexGroup alignItems="center" direction="row">
-				<EuiFlexItem grow={true}>
-					<SpecificationValue
-						specificationKey={specificationKey}
-						specificationValue={specificationValue}
-						setEditValue={setEditValue}
-						saveSpecification={saveSpecification}
-						valueInvalid={valueInvalid}
-					/>
-				</EuiFlexItem>
-				<EuiFlexItem grow={false}>
-					<EuiButtonIcon
-						iconType="save"
-						aria-label="Save"
-						disabled={keyInvalid || valueInvalid}
-						onClick={saveSpecification}
-					/>
-				</EuiFlexItem>
-				<EuiFlexItem grow={false}>
-					<EuiButtonIcon iconType="cross" aria-label="Delete" onClick={deleteSpecification} />
-				</EuiFlexItem>
-			</EuiFlexGroup>
-		</EuiFormRow>
-	);
-}
-
 /**
  * This is the core component for editing specifications. The two wrapper components
  * SpecificationEditorDevices and SpecificationEditorSamples provide the suggestions for new
@@ -226,7 +119,7 @@ const SpecificationEditor = forwardRef<
 
 	const valueInvalid =
 		isSpecialMeaningLabel(editKey?.label) &&
-		specialMeaningSpecificationsValueValidator[editKey.label]?.validationFn?.(editValue) === false;
+		specialMeaningSpecificationsHelpers[editKey.label]?.validationFn?.(editValue) === false;
 
 	const onCreateOption = (searchValue: string) => {
 		const normalizedSearchValue = searchValue.trim();
@@ -403,3 +296,123 @@ const SpecificationEditor = forwardRef<
 		</>
 	);
 });
+
+/**
+ * Render input field for editing a specification value (`SpecificationValueInputField`) + Actions
+ * to save or delete the specification
+ */
+function EditSpecificationValue(props: {
+	specificationKey?: string;
+	specificationValue: string;
+	setEditValue: (value: ((prevState: string) => string) | string) => void;
+
+	// Validation
+	valueInvalid: boolean;
+	keyInvalid: boolean;
+
+	// Events
+	saveSpecification: () => void;
+	deleteSpecification: () => void;
+}) {
+	const {
+		specificationKey,
+		specificationValue,
+		setEditValue,
+		valueInvalid,
+		keyInvalid,
+
+		saveSpecification,
+		deleteSpecification,
+	} = props;
+
+	const helpText: string[] = [];
+
+	if (isSpecialMeaningLabel(specificationKey)) {
+		const hint = specialMeaningSpecificationsHelpers[specificationKey]?.inputHint;
+		if (hint) {
+			helpText.push(hint);
+		}
+	}
+
+	if (specificationValue.length === MAX_SPECIFICATION_VALUE_LENGTH) {
+		helpText.push(
+			`Specification values can only contain ${MAX_SPECIFICATION_VALUE_LENGTH} characters.`
+		);
+	}
+
+	return (
+		<EuiFormRow helpText={helpText} fullWidth={true}>
+			<EuiFlexGroup alignItems="center" direction="row">
+				<EuiFlexItem grow={true}>
+					<SpecificationValueInputField
+						specificationKey={specificationKey}
+						specificationValue={specificationValue}
+						setEditValue={setEditValue}
+						saveSpecification={saveSpecification}
+						valueInvalid={valueInvalid}
+					/>
+				</EuiFlexItem>
+				<EuiFlexItem grow={false}>
+					<EuiButtonIcon
+						iconType="save"
+						aria-label="Save"
+						disabled={keyInvalid || valueInvalid}
+						onClick={saveSpecification}
+					/>
+				</EuiFlexItem>
+				<EuiFlexItem grow={false}>
+					<EuiButtonIcon iconType="cross" aria-label="Delete" onClick={deleteSpecification} />
+				</EuiFlexItem>
+			</EuiFlexGroup>
+		</EuiFormRow>
+	);
+}
+
+/***
+ * Shows a text field for editing the value of a specification.
+ * For the Description specification, a text area is shown instead of a simple text field
+ */
+function SpecificationValueInputField(props: {
+	specificationKey?: string;
+	specificationValue: string;
+	setEditValue: (value: string) => void;
+	saveSpecification: () => void;
+	valueInvalid: boolean;
+}) {
+	const { specificationKey, specificationValue, setEditValue, saveSpecification, valueInvalid } =
+		props;
+
+	const sharedProps: {
+		fullWidth: boolean;
+		onChange: React.ChangeEventHandler<HTMLInputElement> &
+			React.ChangeEventHandler<HTMLTextAreaElement>;
+		autoFocus: boolean;
+		isInvalid: boolean;
+		value: string;
+		maxLength: number;
+	} = {
+		isInvalid: valueInvalid,
+		value: specificationValue,
+		autoFocus: true,
+		onChange: (e) => setEditValue(e.target.value),
+		maxLength: 2000,
+		fullWidth: true,
+	};
+
+	return (
+		<>
+			{specificationKey !== "Description" ? (
+				<EuiFieldText
+					onKeyDown={(e) => {
+						if (!valueInvalid && e.key === "Enter") {
+							saveSpecification();
+						}
+					}}
+					{...sharedProps}
+				/>
+			) : (
+				<EuiTextArea {...sharedProps} />
+			)}
+		</>
+	);
+}
