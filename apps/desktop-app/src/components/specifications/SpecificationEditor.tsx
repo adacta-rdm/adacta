@@ -152,15 +152,18 @@ function EditSpecificationValue(props: {
 				isSpecialMeaningLabel(specificationKey) &&
 				specialMeaningSpecificationsValueValidator[specificationKey]?.validationHint
 			}
+			fullWidth={true}
 		>
 			<EuiFlexGroup alignItems="center" direction="row">
-				<SpecificationValue
-					specificationKey={specificationKey}
-					specificationValue={specificationValue}
-					setEditValue={setEditValue}
-					saveSpecification={saveSpecification}
-					valueInvalid={valueInvalid}
-				/>
+				<EuiFlexItem grow={true}>
+					<SpecificationValue
+						specificationKey={specificationKey}
+						specificationValue={specificationValue}
+						setEditValue={setEditValue}
+						saveSpecification={saveSpecification}
+						valueInvalid={valueInvalid}
+					/>
+				</EuiFlexItem>
 				<EuiFlexItem grow={false}>
 					<EuiButtonIcon
 						iconType="save"
@@ -395,7 +398,7 @@ const SpecificationEditor = forwardRef<
 				type={"column"}
 				columnGutterSize={"m"}
 				listItems={[...existingSpecificationsItems, endOfListAction]}
-				columnWidths={[1, 3]} // 1/4 width for the title, 3/4 for values + actions
+				columnWidths={[2, 4]} // 2/6 width for the title, 4/6 for values + actions
 			/>
 		</>
 	);
