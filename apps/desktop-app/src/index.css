@@ -7414,4 +7414,11 @@ html {
 	overflow-y: scroll;
 }
 
+.adactaImage {
+	display: inline;
+}
+.adactaImage div[class*="euiImageButton"] {
+	display: none;
+}
+
 /*# sourceMappingURL=index.css.map */

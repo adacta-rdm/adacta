@@ -671,8 +671,10 @@ export type IResourceImage = INode &
 		parent?: Maybe<IResource>;
 		children: IResourceConnection;
 		devices: Array<IDevice>;
+		/** @deprecated Use the imageURI field instead */
 		type?: Maybe<Scalars["ResourceType"]>;
 		dataURI: Scalars["String"];
+		imageURI: Scalars["String"];
 		height: Scalars["Float"];
 		width: Scalars["Float"];
 	};
@@ -681,6 +683,16 @@ export type IResourceImageProjectsArgs = {
 	first?: InputMaybe<Scalars["Int"]>;
 	after?: InputMaybe<Scalars["String"]>;
 };
+
+export type IResourceImageImageUriArgs = {
+	preset: IImagePreset;
+};
+
+export enum IImagePreset {
+	Icon = "ICON",
+	Thumbnail = "THUMBNAIL",
+	Regular = "REGULAR",
+}
 
 export type IPropertyDefinition = {
 	__typename?: "PropertyDefinition";
@@ -1191,7 +1203,7 @@ export type IRepositoryMutation = {
 	/** Import */
 	importRawResourceRequest: IImportRawResourceRequestResponse;
 	importRawResource: Scalars["ID"];
-	importImageResource: Scalars["ID"];
+	importImageResource: IErrorMessageOr_ResourceImage;
 	createAndRunImportTransformation: ICreateAndRunImportTransformationResponse;
 	deleteImportPreset: IDeletedNode;
 	deleteResource: IDeletedNode;
@@ -1476,6 +1488,17 @@ export type IImportRawResourceInput = {
 
 export type IImportImageResourceInput = {
 	uploadId: Scalars["ID"];
+};
+
+export type IErrorMessageOr_ResourceImage = {
+	__typename?: "ErrorMessageOr_ResourceImage";
+	data?: Maybe<IResourceImage>;
+	error?: Maybe<IErrorMessage>;
+};
+
+export type IErrorMessage = {
+	__typename?: "ErrorMessage";
+	message: Scalars["String"];
 };
 
 export type ICreateAndRunImportTransformationInput = {
@@ -2158,6 +2181,7 @@ export type IResolversTypes = {
 	HasImageResource: IResolversTypes["Device"] | IResolversTypes["DeviceDefinition"];
 	ResourceImage: ResolverTypeWrapper<ResolverReturnType<IResourceImage>>;
 	ResourceType: ResolverTypeWrapper<ResolverReturnType<Scalars["ResourceType"]>>;
+	ImagePreset: ResolverTypeWrapper<ResolverReturnType<IImagePreset>>;
 	PropertyDefinition: ResolverTypeWrapper<ResolverReturnType<IPropertyDefinition>>;
 	PropertyType: ResolverTypeWrapper<ResolverReturnType<IPropertyType>>;
 	Specification: ResolverTypeWrapper<ResolverReturnType<ISpecification>>;
@@ -2260,6 +2284,10 @@ export type IResolversTypes = {
 	>;
 	ImportRawResourceInput: ResolverTypeWrapper<ResolverReturnType<IImportRawResourceInput>>;
 	ImportImageResourceInput: ResolverTypeWrapper<ResolverReturnType<IImportImageResourceInput>>;
+	ErrorMessageOr_ResourceImage: ResolverTypeWrapper<
+		ResolverReturnType<IErrorMessageOr_ResourceImage>
+	>;
+	ErrorMessage: ResolverTypeWrapper<ResolverReturnType<IErrorMessage>>;
 	CreateAndRunImportTransformationInput: ResolverTypeWrapper<
 		ResolverReturnType<ICreateAndRunImportTransformationInput>
 	>;
@@ -2610,6 +2638,8 @@ export type IResolversParentTypes = {
 	ImportRawResourceRequestResponse: ResolverReturnType<IImportRawResourceRequestResponse>;
 	ImportRawResourceInput: ResolverReturnType<IImportRawResourceInput>;
 	ImportImageResourceInput: ResolverReturnType<IImportImageResourceInput>;
+	ErrorMessageOr_ResourceImage: ResolverReturnType<IErrorMessageOr_ResourceImage>;
+	ErrorMessage: ResolverReturnType<IErrorMessage>;
 	CreateAndRunImportTransformationInput: ResolverReturnType<ICreateAndRunImportTransformationInput>;
 	CreateAndRunImportTransformationResponse: ResolverReturnType<ICreateAndRunImportTransformationResponse>;
 	DeleteResourceInput: ResolverReturnType<IDeleteResourceInput>;
@@ -3521,6 +3551,12 @@ export type IResourceImageResolvers<
 	devices?: Resolver<Array<IResolversTypes["Device"]>, ParentType, ContextType>;
 	type?: Resolver<Maybe<IResolversTypes["ResourceType"]>, ParentType, ContextType>;
 	dataURI?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
+	imageURI?: Resolver<
+		IResolversTypes["String"],
+		ParentType,
+		ContextType,
+		RequireFields<IResourceImageImageUriArgs, "preset">
+	>;
 	height?: Resolver<IResolversTypes["Float"], ParentType, ContextType>;
 	width?: Resolver<IResolversTypes["Float"], ParentType, ContextType>;
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -4109,7 +4145,7 @@ export type IRepositoryMutationResolvers<
 		RequireFields<IRepositoryMutationImportRawResourceArgs, "input">
 	>;
 	importImageResource?: Resolver<
-		IResolversTypes["ID"],
+		IResolversTypes["ErrorMessageOr_ResourceImage"],
 		ParentType,
 		ContextType,
 		RequireFields<IRepositoryMutationImportImageResourceArgs, "input">
@@ -4406,6 +4442,23 @@ export type IImportRawResourceRequestResponseResolvers<
 > = {
 	id?: Resolver<IResolversTypes["ID"], ParentType, ContextType>;
 	url?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IErrorMessageOr_ResourceImageResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["ErrorMessageOr_ResourceImage"] = IResolversParentTypes["ErrorMessageOr_ResourceImage"]
+> = {
+	data?: Resolver<Maybe<IResolversTypes["ResourceImage"]>, ParentType, ContextType>;
+	error?: Resolver<Maybe<IResolversTypes["ErrorMessage"]>, ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IErrorMessageResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["ErrorMessage"] = IResolversParentTypes["ErrorMessage"]
+> = {
+	message?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -4796,6 +4849,8 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	ImportWizardStep3PayloadData?: IImportWizardStep3PayloadDataResolvers<ContextType>;
 	ImportWizardError?: IImportWizardErrorResolvers<ContextType>;
 	ImportRawResourceRequestResponse?: IImportRawResourceRequestResponseResolvers<ContextType>;
+	ErrorMessageOr_ResourceImage?: IErrorMessageOr_ResourceImageResolvers<ContextType>;
+	ErrorMessage?: IErrorMessageResolvers<ContextType>;
 	CreateAndRunImportTransformationResponse?: ICreateAndRunImportTransformationResponseResolvers<ContextType>;
 	AddSamplePayload?: IAddSamplePayloadResolvers<ContextType>;
 	AddSampleRelationPayload?: IAddSampleRelationPayloadResolvers<ContextType>;

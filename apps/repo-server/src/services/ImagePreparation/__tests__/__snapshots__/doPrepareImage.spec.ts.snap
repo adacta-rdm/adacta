@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ImagePreparation > Supports Image Types + Resizes > Supports BMP 1`] = `"a071e251c1ee7c57240cb7e5cb5b0371"`;
+
+exports[`ImagePreparation > Supports Image Types + Resizes > Supports HEIC 1`] = `"67826eab30113f9034069c216f7bef50"`;
+
+exports[`ImagePreparation > Supports Image Types + Resizes > Supports JPG 1`] = `"61738aad55db3b1daa0b4b1cbc27e4ac"`;
+
+exports[`ImagePreparation > Supports Image Types + Resizes > Supports PNG 1`] = `"780c04fdb159dd674ff34c2fdf61b933"`;
+
+exports[`ImagePreparation > Supports image where orientation is provided by EXIF data > Supports JPG with EXIF orientation 1`] = `"d098197b298a7dc0e017a2d973c057fd"`;

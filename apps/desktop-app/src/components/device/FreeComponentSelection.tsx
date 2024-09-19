@@ -1,6 +1,6 @@
 import assert from "assert";
 
-import { EuiFlexGroup, EuiFlexItem, EuiImage } from "@elastic/eui";
+import { EuiFlexGroup, EuiFlexItem } from "@elastic/eui";
 import { assertDefined } from "@omegadot/assert";
 import type { ReactNode } from "react";
 import React from "react";
@@ -13,6 +13,7 @@ import { SearchableSuperSelect } from "../utils/SearchableSelect";
 
 import type { PropertyType } from "@/relay/AddOrEditComponentUsageModalFragment.graphql";
 import type { FreeComponentSelectionQuery } from "@/relay/FreeComponentSelectionQuery.graphql";
+import { DevicePreviewImage } from "~/apps/desktop-app/src/components/device/DevicePreviewImage";
 import { createDate, createIDatetime, createMaybeIDatetime } from "~/lib/createDate";
 
 export const FreeComponentSelectionGraphQLQuery = graphql`
@@ -36,11 +37,7 @@ export const FreeComponentSelectionGraphQLQuery = graphql`
 							}
 							creationTimestamp
 						}
-						definition {
-							imageResource {
-								dataURI
-							}
-						}
+						...DevicePreviewImage
 					}
 					... on Sample {
 						id
@@ -108,13 +105,8 @@ export function FreeComponentSelection(props: {
 					<>
 						<EuiFlexGroup alignItems="center" direction="row">
 							<EuiFlexItem grow={false}>
-								{c.__typename === "Device" && c.definition?.imageResource[0]?.dataURI ? (
-									<EuiImage
-										style={{ marginRight: 10 }}
-										size={45}
-										alt={`${c.name} preview`}
-										src={c.definition?.imageResource[0]?.dataURI}
-									/>
+								{c.__typename === "Device" ? (
+									<DevicePreviewImage data={c} />
 								) : (
 									getTokenByType(c.__typename)
 								)}

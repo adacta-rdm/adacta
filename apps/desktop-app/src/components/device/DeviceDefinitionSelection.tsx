@@ -1,7 +1,7 @@
-import { EuiImage } from "@elastic/eui";
 import React, { Suspense } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
 import { useLazyLoadQuery } from "react-relay";
+import type { FragmentRefs } from "relay-runtime";
 import { graphql } from "relay-runtime";
 
 import { useRepositoryIdVariable } from "../../services/router/UseRepoId";
@@ -13,6 +13,7 @@ import type {
 	DeviceDefinitionSelectionForDeviceDefinitionQuery$data,
 } from "@/relay/DeviceDefinitionSelectionForDeviceDefinitionQuery.graphql";
 import type { DeviceDefinitionSelectionQuery } from "@/relay/DeviceDefinitionSelectionQuery.graphql";
+import { AdactaImage } from "~/apps/desktop-app/src/components/image/AdactaImage";
 import type { IDeviceDefinitionId } from "~/lib/database/Ids";
 
 const DeviceDefinitionSelectionGraphQLQuery: GraphQLTaggedNode = graphql`
@@ -25,7 +26,7 @@ const DeviceDefinitionSelectionGraphQLQuery: GraphQLTaggedNode = graphql`
 						id
 						name
 						imageResource {
-							dataURI
+							...AdactaImageFragment @arguments(preset: ICON)
 						}
 					}
 				}
@@ -52,7 +53,7 @@ const DeviceDefinitionSelectionForDeviceDefinitionGraphqlQuery: GraphQLTaggedNod
 						id
 						name
 						imageResource {
-							dataURI
+							...AdactaImageFragment @arguments(preset: ICON)
 						}
 					}
 				}
@@ -116,16 +117,16 @@ function DeviceDefinitionSelectionCore({
 
 	function renderDeviceDefinition(item: {
 		name: string;
-		imageResource: Readonly<({ dataURI: string } | null)[]>;
+		imageResource: readonly { readonly " $fragmentSpreads": FragmentRefs<"AdactaImageFragment"> }[];
 	}) {
 		return (
 			<>
 				{item.imageResource[0] !== null && item.imageResource[0] !== undefined && item.name && (
-					<EuiImage
-						style={{ marginRight: 10 }}
-						size={25}
+					<AdactaImage
+						imageStyle={{ marginRight: 10 }}
+						icon={true}
 						alt={`${item.name} preview`}
-						url={item.imageResource[0].dataURI}
+						image={item.imageResource[0]}
 					/>
 				)}
 				{item.name}

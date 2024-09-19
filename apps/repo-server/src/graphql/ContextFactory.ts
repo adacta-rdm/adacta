@@ -18,6 +18,7 @@ import { StorageEngineRemoteAccess } from "../storage/storageEngine/remoteAccess
 
 import { S3Config } from "~/apps/repo-server/src/config/S3Config";
 import { REPO_UPLOAD_S3_PREFIX_DOWNSAMPLING } from "~/apps/repo-server/src/reposerverConfig";
+import { ImagePreparation } from "~/apps/repo-server/src/services/ImagePreparation/ImagePreparation";
 import { KeyValueDatabaseStorageEngineBackend } from "~/apps/repo-server/src/storage/keyValueDatabase/KeyValueDatabaseStorageEngineBackend";
 import { S3RemoteAccess } from "~/apps/repo-server/src/storage/storageEngine/remoteAccess/S3RemoteAccess";
 import type { DrizzleSchema } from "~/drizzle/DrizzleSchema";
@@ -75,6 +76,12 @@ export class ContextFactory {
 		const drizzle = rmp.db();
 		contextContainer.set(new EntityLoader(drizzle));
 		let schema = new DrizzleGlobalSchema() as DrizzleSchema;
+
+		// The ImagePreparation service is used to prepare images for display in the UI.
+		// Since it contains a cache of already prepared images, it should not be reset for each
+		// request. For this reason, it is accessed through the global ServiceContainer (which
+		// ensures that the same instance is used for all requests).
+		const image = this.services.get(ImagePreparation);
 
 		const context: IGraphQLContext = {
 			get schema() {
@@ -144,6 +151,10 @@ export class ContextFactory {
 
 				get drizzle() {
 					return drizzle;
+				},
+
+				get image() {
+					return image;
 				},
 			},
 

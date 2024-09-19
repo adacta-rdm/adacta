@@ -48,38 +48,7 @@ export function ImageAnnotationComponent(props: IProps) {
 	const annotationLabels = [
 		...props.annotations,
 		...(newAnnotation !== undefined ? [newAnnotation] : []),
-	].map((a: IImageAnnotation & { inFlight?: boolean }, index) => {
-		const yp = (a.y / props.imageHeight) * 100;
-		const xp = (a.x / props.imageWidth) * 100;
-		return (
-			<div
-				key={index}
-				style={{
-					position: "absolute",
-					transform: "translate(-50%, -50%)",
-					top: `${yp}%`,
-					left: `${xp}%`,
-					zIndex: 10,
-				}}
-			>
-				<EuiBadge color="hollow" iconType="tag">
-					{a.label}{" "}
-					{props.options?.allowEdit && !a.inFlight && (
-						<EuiButtonIcon
-							iconType={"trash"}
-							size={"xs"}
-							aria-label={"Remove label"}
-							onClick={() => {
-								if (props.options?.onDeleteLabel) {
-									props.options.onDeleteLabel(a.x, a.y);
-								}
-							}}
-						/>
-					)}
-				</EuiBadge>
-			</div>
-		);
-	});
+	];
 
 	// If the image doesn't fit it will get scaled
 	// Therefore, the coordinates of the click must also be scaled accordingly.
@@ -140,9 +109,57 @@ export function ImageAnnotationComponent(props: IProps) {
 						}
 					}}
 				/>
-				{annotationLabels}
+				<AnnotationLabels
+					labels={annotationLabels}
+					allowEdit={props.options?.allowEdit ?? false}
+					onDeleteLabel={props.options?.onDeleteLabel}
+					imageHeight={props.imageHeight}
+					imageWidth={props.imageWidth}
+				/>
 			</div>
 			<EuiText size={"s"}>{props.caption}</EuiText>
 		</>
 	);
+}
+
+function AnnotationLabels(props: {
+	labels: (IImageAnnotation & { inFlight?: boolean })[];
+	allowEdit: boolean;
+	onDeleteLabel?: (x: number, y: number) => void;
+
+	imageHeight: number;
+	imageWidth: number;
+}) {
+	return props.labels.map((a, index) => {
+		const yp = (a.y / props.imageHeight) * 100;
+		const xp = (a.x / props.imageWidth) * 100;
+		return (
+			<div
+				key={index}
+				style={{
+					position: "absolute",
+					transform: "translate(-50%, -50%)",
+					top: `${yp}%`,
+					left: `${xp}%`,
+					zIndex: 10,
+				}}
+			>
+				<EuiBadge color="hollow" iconType="tag">
+					{a.label}{" "}
+					{props.allowEdit && !a.inFlight && (
+						<EuiButtonIcon
+							iconType={"trash"}
+							size={"xs"}
+							aria-label={"Remove label"}
+							onClick={() => {
+								if (props?.onDeleteLabel) {
+									props.onDeleteLabel(a.x, a.y);
+								}
+							}}
+						/>
+					)}
+				</EuiBadge>
+			</div>
+		);
+	});
 }

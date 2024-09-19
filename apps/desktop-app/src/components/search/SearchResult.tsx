@@ -1,13 +1,5 @@
 import type { IconType } from "@elastic/eui";
-import {
-	EuiBadge,
-	EuiFlexGroup,
-	EuiFlexItem,
-	EuiImage,
-	EuiLink,
-	EuiPanel,
-	EuiSpacer,
-} from "@elastic/eui";
+import { EuiBadge, EuiFlexGroup, EuiFlexItem, EuiLink, EuiPanel, EuiSpacer } from "@elastic/eui";
 import type { ReactElement } from "react";
 import React from "react";
 import { graphql } from "react-relay";
@@ -28,7 +20,7 @@ const SearchResultGraphQLFragment = graphql`
 `;
 
 export interface ISearchResultProps {
-	imagePath?: string | null;
+	renderImage?: ReactElement;
 	iconType: IconType | AdactaIconTypes;
 	title: string;
 	link?: RouterArgs;
@@ -64,12 +56,12 @@ function SearchResultWithMetadata(props: ISearchResultProps & { metadata: Search
 }
 
 function SearchResultPure(props: ISearchResultProps & { metadata?: SearchResult$data }) {
-	const { imagePath, iconType, title, link, onClick, properties } = props;
+	const { renderImage, iconType, title, link, onClick, properties } = props;
 
 	let icon: ReactElement;
 
-	if (imagePath) {
-		icon = <EuiImage allowFullScreen size={40} alt={`${title} preview`} url={imagePath} />;
+	if (renderImage != undefined) {
+		icon = renderImage;
 	} else {
 		icon = <AdactaIconOrEuiToken iconType={iconType} size={"l"} />;
 	}

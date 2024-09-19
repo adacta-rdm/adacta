@@ -33,12 +33,12 @@ import { connectionToArray } from "../../../utils/connectionToArray";
 import { sortDeviceDefinitions } from "../../../utils/sortDeviceDefinitions";
 import { UserLink } from "../../user/UserLink";
 import { PaddingHelper } from "../../utils/PaddingHelper";
-import { ImageList } from "../ImageList";
 import { DeviceListTemplate } from "../list/DeviceListTemplate";
 
 import type { DeviceDefinitionListEntry$key } from "@/relay/DeviceDefinitionListEntry.graphql";
 import type { DeviceDefinitionListEntryDeleteMutation } from "@/relay/DeviceDefinitionListEntryDeleteMutation.graphql";
 import type { DeviceDefinitionListQuery } from "@/relay/DeviceDefinitionListQuery.graphql";
+import { AdactaImage } from "~/apps/desktop-app/src/components/image/AdactaImage";
 import type { IDeviceDefinitionId } from "~/lib/database/Ids";
 
 export const DeviceDefinitionListGraphQLQuery = graphql`
@@ -139,6 +139,9 @@ function ListEntry(props: {
 			@refetchable(queryName: "DeviceDefinitionListEntryRefetchQuery") {
 				id
 				name
+				imageResource {
+					...AdactaImageFragment @arguments(preset: ICON)
+				}
 				usages {
 					__typename
 				}
@@ -156,7 +159,6 @@ function ListEntry(props: {
 						...UserLink
 					}
 				}
-				...ImageList
 			}
 		`,
 		props.deviceDefinition
@@ -228,7 +230,9 @@ function ListEntry(props: {
 			<EuiTableRowCell>
 				<PaddingHelper level={data.definitions.length}>
 					<EuiFlexGroup gutterSize={"s"}>
-						<ImageList images={data} preview />
+						{data.imageResource[0] !== undefined ? (
+							<AdactaImage alt={`${data.name} preview`} image={data.imageResource[0]} icon={true} />
+						) : null}
 						<EuiFlexItem grow={true}> {data.name}</EuiFlexItem>
 					</EuiFlexGroup>
 				</PaddingHelper>

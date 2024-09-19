@@ -315,7 +315,7 @@ type RepositoryMutation {
 	# Import of file as raw resource
 	importRawResourceRequest: ImportRawResourceRequestResponse!
 	importRawResource(input: ImportRawResourceInput!): ID!
-	importImageResource(input: ImportImageResourceInput!): ID!
+	importImageResource(input: ImportImageResourceInput!): ErrorMessageOr_ResourceImage!
 	createAndRunImportTransformation(
 		input: CreateAndRunImportTransformationInput!
 	): CreateAndRunImportTransformationResponse!
@@ -1038,11 +1038,19 @@ type ResourceImage implements Node & Resource & HasProjects & HasMetadata {
 	parent: Resource
 	children: ResourceConnection!
 	devices: [Device!]!
-	type: ResourceType
-
+	type: ResourceType @deprecated(reason: "Use the imageURI field instead")
 	dataURI: String!
+
+	imageURI(preset: ImagePreset!): String!
+
 	height: Float!
 	width: Float!
+}
+
+enum ImagePreset {
+	ICON
+	THUMBNAIL
+	REGULAR
 }
 
 type Data {

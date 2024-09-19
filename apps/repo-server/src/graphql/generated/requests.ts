@@ -669,8 +669,10 @@ export type IResourceImage = INode &
 		parent?: Maybe<IResource>;
 		children: IResourceConnection;
 		devices: Array<IDevice>;
+		/** @deprecated Use the imageURI field instead */
 		type?: Maybe<Scalars["ResourceType"]>;
 		dataURI: Scalars["String"];
+		imageURI: Scalars["String"];
 		height: Scalars["Float"];
 		width: Scalars["Float"];
 	};
@@ -679,6 +681,16 @@ export type IResourceImageProjectsArgs = {
 	first?: InputMaybe<Scalars["Int"]>;
 	after?: InputMaybe<Scalars["String"]>;
 };
+
+export type IResourceImageImageUriArgs = {
+	preset: IImagePreset;
+};
+
+export enum IImagePreset {
+	Icon = "ICON",
+	Thumbnail = "THUMBNAIL",
+	Regular = "REGULAR",
+}
 
 export type IPropertyDefinition = {
 	__typename?: "PropertyDefinition";
@@ -1189,7 +1201,7 @@ export type IRepositoryMutation = {
 	/** Import */
 	importRawResourceRequest: IImportRawResourceRequestResponse;
 	importRawResource: Scalars["ID"];
-	importImageResource: Scalars["ID"];
+	importImageResource: IErrorMessageOr_ResourceImage;
 	createAndRunImportTransformation: ICreateAndRunImportTransformationResponse;
 	deleteImportPreset: IDeletedNode;
 	deleteResource: IDeletedNode;
@@ -1474,6 +1486,17 @@ export type IImportRawResourceInput = {
 
 export type IImportImageResourceInput = {
 	uploadId: Scalars["ID"];
+};
+
+export type IErrorMessageOr_ResourceImage = {
+	__typename?: "ErrorMessageOr_ResourceImage";
+	data?: Maybe<IResourceImage>;
+	error?: Maybe<IErrorMessage>;
+};
+
+export type IErrorMessage = {
+	__typename?: "ErrorMessage";
+	message: Scalars["String"];
 };
 
 export type ICreateAndRunImportTransformationInput = {
@@ -2023,7 +2046,11 @@ export type IImportImageResourceMutationVariables = Exact<{
 
 export type IImportImageResourceMutation = {
 	__typename?: "RepositoryMutation";
-	importImageResource: string;
+	importImageResource: {
+		__typename?: "ErrorMessageOr_ResourceImage";
+		data?: { __typename?: "ResourceImage"; id: string } | null;
+		error?: { __typename?: "ErrorMessage"; message: string } | null;
+	};
 };
 
 export type ICreateAndRunImportTransformationMutationVariables = Exact<{
@@ -2151,7 +2178,14 @@ export const ImportRawResourceDocument = gql`
 `;
 export const ImportImageResourceDocument = gql`
 	mutation ImportImageResource($input: ImportImageResourceInput!) {
-		importImageResource(input: $input)
+		importImageResource(input: $input) {
+			data {
+				id
+			}
+			error {
+				message
+			}
+		}
 	}
 `;
 export const CreateAndRunImportTransformationDocument = gql`
