@@ -23,7 +23,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      # Ensures that the run-time type checks are built before the type-check runs
+      # Ensures that the routes and the run-time type checks are built before the type-check runs
+      # Important to build the routes before the run-time type checks. Otherwise, TSRC will not generate the type-checks
+      # needed by the routes.
       - name: Build run-time type checks
         run: yarn build:routes && yarn build:tsrc
 
