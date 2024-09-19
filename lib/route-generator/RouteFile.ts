@@ -101,6 +101,12 @@ export class RouteFile {
 	 * - All import statements are rewritten to use the `~/apps/desktop-app/src/routes` prefix
 	 * - All export modifiers are removed, except for the `getData` function which is explicitly
 	 *   exported
+	 *
+	 * Used by RouteGenerator to externalize the `getData` function from the route file. This is a
+	 * workaround to get HMR working, because files that have non-React exports (i.e., the `getData`
+	 * function) are not hot-reloaded. The trick is to not export the `getData` function in the route,
+	 * but let the RouteGenerator copy the `getData` function over into a separate file from which the
+	 * `getData` function is exported and actually used.
 	 */
 	getFileWithExportedGetDataFunction() {
 		const lines = [];
