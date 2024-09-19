@@ -11,6 +11,7 @@ export class RouteFile {
 
 		// Extract the nodes from the source file needed for further processing
 		for (const statement of this.sourceFile.statements) {
+			// import { GetDataArgs, Props, PropsWithChildren, ... } from "@/routes/...";
 			if (
 				ts.isImportDeclaration(statement) &&
 				statement.importClause?.namedBindings &&
@@ -21,23 +22,37 @@ export class RouteFile {
 				})
 			) {
 				this.importFromGeneratedModuleNodeCandidates.push(statement);
-			} else if (ts.isFunctionDeclaration(statement)) {
+			}
+
+			// function ...() { ... }
+			else if (ts.isFunctionDeclaration(statement)) {
+				// function getData() { ... }
 				if (statement.name && statement.name.getText(this.sourceFile) === "getData") {
 					this.getDataFunctionNode = statement;
 					this.declarations.getData = true;
-				} else if (
+				}
+
+				// export function LoadingState() { ... }
+				else if (
 					statement.name &&
 					statement.name.getText(this.sourceFile) === "LoadingState" &&
 					hasExportModifier(statement)
 				) {
 					this.declarations.LoadingState = true;
-				} else if (
+				}
+
+				// export default function ...() { ... }
+				else if (
 					statement.modifiers?.at(0)?.kind === SyntaxKind.ExportKeyword &&
 					statement.modifiers?.at(1)?.kind === SyntaxKind.DefaultKeyword
 				) {
 					this.declarations.default = true;
 				}
-			} else if (ts.isVariableStatement(statement) && hasExportModifier(statement)) {
+			}
+
+			// export const ... = ...
+			else if (ts.isVariableStatement(statement) && hasExportModifier(statement)) {
+				// export const getData = ...
 				if (
 					statement.declarationList.declarations.some(
 						(declaration) => declaration.name.getText(this.sourceFile) === "getData"
@@ -45,20 +60,29 @@ export class RouteFile {
 				) {
 					this.getDataFunctionNode = statement;
 					this.declarations.getData = true;
-				} else if (
+				}
+
+				// export const redirect = ...
+				else if (
 					statement.declarationList.declarations.some(
 						(declaration) => declaration.name.getText(this.sourceFile) === "redirect"
 					)
 				) {
 					this.declarations.redirect = true;
-				} else if (
+				}
+
+				// export const LoadingState = ...
+				else if (
 					statement.declarationList.declarations.some(
 						(declaration) => declaration.name.getText(this.sourceFile) === "LoadingState"
 					)
 				) {
 					this.declarations.LoadingState = true;
 				}
-			} else if (
+			}
+
+			// export type QueryParams = { ... }
+			else if (
 				ts.isTypeAliasDeclaration(statement) &&
 				statement.name.text === "QueryParams" &&
 				ts.isTypeLiteralNode(statement.type) &&
