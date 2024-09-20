@@ -2,7 +2,6 @@ import { EuiSkeletonText } from "@elastic/eui";
 import React, { Suspense } from "react";
 import { loadQuery } from "react-relay";
 
-import type { IRouteComponentProps, IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { DeviceListTemplate } from "../components/device/list/DeviceListTemplate";
 import {
 	DeviceListHierarchical,
@@ -10,8 +9,9 @@ import {
 } from "../components/device/list/hierarchical/DeviceListHierarchical";
 
 import type { DeviceListHierarchicalQuery } from "@/relay/DeviceListHierarchicalQuery.graphql";
+import type { GetDataArgs, Props } from "@/routes/repositories.$repositoryId.devices._index";
 
-export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) {
+function getData({ match, relayEnvironment }: GetDataArgs) {
 	return loadQuery<DeviceListHierarchicalQuery>(
 		relayEnvironment,
 		DeviceListHierarchicalGraphQLQuery,
@@ -20,7 +20,7 @@ export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) 
 	);
 }
 
-export default function (props: IRouteComponentProps<typeof getData>) {
+export default function Route(props: Props<typeof getData>) {
 	return (
 		<Suspense
 			fallback={

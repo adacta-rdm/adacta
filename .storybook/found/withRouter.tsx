@@ -3,9 +3,9 @@ import { MemoryProtocol } from "farce";
 import { createFarceRouter, resolver } from "found";
 import type { JSX } from "react";
 
-import type { RouterArgs } from "~/apps/desktop-app/src/routes";
-import { routes } from "~/apps/desktop-app/src/routes";
-import { resolveLocation } from "~/apps/desktop-app/src/routes/utils/resolveLocation";
+import { routes } from "@/routes";
+import type { RouterArgs } from "@/routes";
+import { resolveLocation } from "~/apps/desktop-app/src/utils/resolveLocation";
 
 export interface IWithRouterParameters {
 	/**

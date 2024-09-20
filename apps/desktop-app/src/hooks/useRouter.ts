@@ -3,10 +3,11 @@ import type { FoundStoreExtension, Matcher } from "found";
 import { useRouter as useFoundRouter } from "found";
 import { useMemo } from "react";
 
-import type { RouterArgs } from "../routes";
-import { resolveLocation } from "../routes/utils/resolveLocation";
 import { useService } from "../services/ServiceProvider";
 import { HistoryService } from "../services/history/HistoryService";
+import { resolveLocation } from "../utils/resolveLocation";
+
+import type { RouterArgs } from "@/routes";
 
 /**
  * Returns a type safe router.
@@ -17,7 +18,11 @@ export function useRouter() {
 
 	return useMemo(
 		() => ({
-			match,
+			/**
+			 * @deprecated - Pass down route data via props from the route component instead. Will be removed in the future
+			 * because it is not type safe.
+			 */
+			match: match,
 			router: {
 				push(...args: RouterArgs) {
 					history.push(...args);

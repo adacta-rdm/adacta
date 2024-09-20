@@ -1,7 +1,6 @@
 import React, { Suspense } from "react";
 import { loadQuery } from "react-relay";
 
-import type { IRouteComponentProps, IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import {
 	NameCompositionOverview,
 	NameCompositionOverviewGraphQLQuery,
@@ -9,8 +8,12 @@ import {
 } from "../components/nameComposition/NameCompositionOverview";
 
 import type { NameCompositionOverviewQuery } from "@/relay/NameCompositionOverviewQuery.graphql";
+import type {
+	GetDataArgs,
+	Props,
+} from "@/routes/repositories.$repositoryId.nameComposition._index";
 
-export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) {
+function getData({ match, relayEnvironment }: GetDataArgs) {
 	return loadQuery<NameCompositionOverviewQuery>(
 		relayEnvironment,
 		NameCompositionOverviewGraphQLQuery,
@@ -20,7 +23,7 @@ export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) 
 	);
 }
 
-export default function (props: IRouteComponentProps<typeof getData>) {
+export default function Route(props: Props<typeof getData>) {
 	return (
 		<Suspense fallback={<NameCompositionOverviewLoading />}>
 			<NameCompositionOverview queryRef={props.data} />

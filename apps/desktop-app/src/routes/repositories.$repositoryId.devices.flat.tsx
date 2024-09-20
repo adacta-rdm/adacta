@@ -2,16 +2,16 @@ import { EuiSkeletonText } from "@elastic/eui";
 import React, { Suspense } from "react";
 import { loadQuery } from "react-relay";
 
-import type { IRouteComponentProps, IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { DeviceListTemplate } from "../components/device/list/DeviceListTemplate";
 import { DeviceListGraphQLQuery } from "../components/device/list/flat/DeviceList";
 
 import type { DeviceListQuery } from "@/relay/DeviceListQuery.graphql";
+import type { GetDataArgs, Props } from "@/routes/repositories.$repositoryId.devices.flat";
 import { DeviceListPage } from "~/apps/desktop-app/src/components/device/list/flat/DeviceListPage";
 import { getStoredSelectedSearchItems } from "~/apps/desktop-app/src/components/search/list/SearchBar";
 import { CURRENT_USER_ID_PLACEHOLDER } from "~/lib/CURRENT_USER_ID_PLACEHOLDER";
 
-export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) {
+function getData({ match, relayEnvironment }: GetDataArgs) {
 	const storedFilters = getStoredSelectedSearchItems("deviceList");
 	return loadQuery<DeviceListQuery>(
 		relayEnvironment,
@@ -28,7 +28,7 @@ export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) 
 	);
 }
 
-export default function (props: IRouteComponentProps<typeof getData>) {
+export default function Route(props: Props<typeof getData>) {
 	return (
 		<Suspense
 			fallback={

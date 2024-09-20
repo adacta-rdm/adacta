@@ -75,12 +75,13 @@ export function configureRoutes(input: Record<Route, RouteObject | string>): Rou
 		let path = `${route.slice(parent.route.length)}`;
 		if (path[0] !== "/") path = `/${path}`;
 
-		const { getData, Component } = cfg;
+		const { getData, Component, render } = cfg;
 		const node: IRouteObject = {
 			path,
 			route,
 			getData,
 			Component,
+			render,
 		};
 
 		if (!parent.children) parent.children = [];
@@ -100,6 +101,7 @@ interface IRouteObject {
 
 	getData?: RouteObject["getData"];
 	Component?: RouteObject["Component"];
+	render?: RouteObject["render"];
 
 	// Component?: (...args: unknown[]) => unknown;
 	children?: IRouteObject[];
