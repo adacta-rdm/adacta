@@ -36,6 +36,7 @@ import type { AdactaTimelineResource$data } from "@/relay/AdactaTimelineResource
 import type { AdactaTimelineUsage$data } from "@/relay/AdactaTimelineUsage.graphql";
 import type { SampleQuery } from "@/relay/SampleQuery.graphql";
 import { TopLevelDevice } from "~/apps/desktop-app/src/components/device/TopLevelDevice";
+import { renderSpecification } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
 import { createDate, createMaybeDate } from "~/lib/createDate";
 import type { IResourceId, ISampleId } from "~/lib/database/Ids";
 import { convertSampleToTraversalResult } from "~/lib/inheritance/convertToTraversalResult";
@@ -220,6 +221,9 @@ export function Sample(props: { queryRef: PreloadedQuery<SampleQuery> }) {
 					],
 					description: (
 						<span>
+							{renderSpecification(specifications, "Description")}
+							{renderSpecification(specifications, "DOI")}
+							{renderSpecification(specifications, "Chemotion")}
 							Created by <UserLink user={data.sample.metadata.creator} /> at{" "}
 							<DateTime date={createDate(data.sample.metadata.creationTimestamp)} />
 							<TopLevelDevice data={data.sample} />

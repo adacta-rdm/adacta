@@ -40,7 +40,8 @@ export function useSampleSpecificationKeys() {
 		const keys = data.samples.edges
 			.map((e) => e.node?.specifications)
 			.flat()
-			.map((s) => s?.name);
+			.map((s) => s?.name)
+			.concat(specialMeaningSpecificationsKeys);
 
 		const filteredKeys = lodash.sortedUniq(keys.filter(isNonNullish).sort());
 		return filteredKeys;
