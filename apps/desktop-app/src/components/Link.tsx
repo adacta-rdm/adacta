@@ -2,7 +2,8 @@ import * as React from "react";
 import { useCallback } from "react";
 
 import { useRouter } from "../hooks/useRouter";
-import type { RouterArgs } from "../routes";
+
+import type { RouterArgs } from "@/routes";
 
 interface ILinkProps extends React.ComponentProps<"a"> {
 	to: RouterArgs;

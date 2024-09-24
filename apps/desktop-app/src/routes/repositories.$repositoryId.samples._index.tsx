@@ -1,16 +1,16 @@
 import React, { Suspense } from "react";
 import { loadQuery } from "react-relay";
 
-import type { IRouteComponentProps, IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { ListPageLoading } from "../components/layout/ListPageLoading";
 import { SampleListGraphQLQuery } from "../components/sample/SampleList";
 
 import type { SampleListQuery } from "@/relay/SampleListQuery.graphql";
+import type { GetDataArgs, Props } from "@/routes/repositories.$repositoryId.samples._index";
 import { SampleListPage } from "~/apps/desktop-app/src/components/sample/SampleListPage";
 import { getStoredSelectedSearchItems } from "~/apps/desktop-app/src/components/search/list/SearchBar";
 import { CURRENT_USER_ID_PLACEHOLDER } from "~/lib/CURRENT_USER_ID_PLACEHOLDER";
 
-export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) {
+function getData({ match, relayEnvironment }: GetDataArgs) {
 	const storedFilters = getStoredSelectedSearchItems("sampleList");
 	return loadQuery<SampleListQuery>(
 		relayEnvironment,
@@ -27,7 +27,7 @@ export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) 
 	);
 }
 
-export default function (props: IRouteComponentProps<typeof getData>) {
+export default function Route(props: Props<typeof getData>) {
 	return (
 		<Suspense fallback={<ListPageLoading pageTitle="Samples" />}>
 			<SampleListPage queryRef={props.data} />

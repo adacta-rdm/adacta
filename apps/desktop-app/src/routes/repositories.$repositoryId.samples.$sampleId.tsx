@@ -1,13 +1,13 @@
 import React, { Suspense } from "react";
 import { loadQuery } from "react-relay";
 
-import type { IRouteComponentProps, IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { Sample, SampleGraphQLQuery } from "../components/sample/Sample";
 import { SamplePageLoading } from "../components/sample/SamplePageLoading";
 
 import type { SampleQuery } from "@/relay/SampleQuery.graphql";
+import type { GetDataArgs, Props } from "@/routes/repositories.$repositoryId.samples.$sampleId";
 
-export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) {
+function getData({ match, relayEnvironment }: GetDataArgs) {
 	return loadQuery<SampleQuery>(
 		relayEnvironment,
 		SampleGraphQLQuery,
@@ -19,7 +19,7 @@ export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) 
 	);
 }
 
-export default function (props: IRouteComponentProps<typeof getData>) {
+export default function Route(props: Props<typeof getData>) {
 	return (
 		<Suspense fallback={<SamplePageLoading />}>
 			<Sample queryRef={props.data} />

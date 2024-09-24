@@ -1,7 +1,8 @@
 import { describe, test, expect, beforeEach } from "vitest";
 
-import type { RouterArgs } from "../../../routes";
 import { HistoryService } from "../HistoryService";
+
+import type { RouterArgs } from "@/routes";
 
 // @vitest-environment jsdom
 describe("Save history", () => {

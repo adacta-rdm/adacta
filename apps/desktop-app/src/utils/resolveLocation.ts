@@ -1,12 +1,12 @@
 import type { Opaque } from "type-fest";
 
-import type { RouterArgs } from "../../routes";
+import type { RouterArgs } from "@/routes";
 
 /**
  * A string representing a location in the app that can be navigated to. The structure of the string is guaranteed to
  * be resolvable to a route and parameters.
  */
-type Location = Opaque<string, RouterArgs>;
+export type Location = Opaque<string, RouterArgs>;
 
 /**
  * This function is used to resolve the location based on the provided route and parameters.
@@ -21,9 +21,18 @@ type Location = Opaque<string, RouterArgs>;
  * @throws {Error} - Throws an error if a parameter is missing in the parameters object for a route part.
  */
 export function resolveLocation(...args: RouterArgs): Location {
-	const route = args[0];
-	const params = (args[1] ?? {}) as Record<string, string | undefined>;
-	return route
+	const args_ = args as
+		| [string]
+		| [
+				string,
+				Record<string, string | undefined> | undefined,
+				Record<string, string | undefined> | undefined
+		  ];
+	const route = args_[0];
+
+	const params: Record<string, string | undefined> = args_[1] ?? {};
+
+	let location = route
 		.split("/")
 		.map((part) => {
 			const r = part[0] === ":" ? params[part.slice(1)] : part;
@@ -32,5 +41,15 @@ export function resolveLocation(...args: RouterArgs): Location {
 			}
 			return r;
 		})
-		.join("/") as Location;
+		.join("/");
+
+	const queryParams = Object.entries((/\/:/.test(route) ? args_[2] : args_[1]) ?? {});
+	if (queryParams.length > 0) {
+		location += `?${queryParams
+			.filter(([, value]) => value !== undefined)
+			.map(([key, value]) => `${key}=${typeof value === "string" ? value : JSON.stringify(value)}`)
+			.join("&")}`;
+	}
+
+	return location as Location;
 }

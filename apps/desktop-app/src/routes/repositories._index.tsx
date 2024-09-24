@@ -1,10 +1,10 @@
 import { graphql, loadQuery } from "react-relay";
 import { usePreloadedQuery } from "react-relay/hooks";
 
-import type { IRouteComponentProps, IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { useRouter } from "../hooks/useRouter";
 
 import type { repositoriesIndexQuery } from "@/relay/repositoriesIndexQuery.graphql";
+import type { GetDataArgs, Props } from "@/routes/repositories._index";
 
 const repositoriesIndexGraphQLQuery = graphql`
 	query repositoriesIndexQuery {
@@ -18,11 +18,11 @@ const repositoriesIndexGraphQLQuery = graphql`
 	}
 `;
 
-export function getData({ relayEnvironment }: IRouteGetDataFunctionArgs) {
+function getData({ relayEnvironment }: GetDataArgs) {
 	return loadQuery<repositoriesIndexQuery>(relayEnvironment, repositoriesIndexGraphQLQuery, {});
 }
 
-export default function (props: IRouteComponentProps<typeof getData>) {
+export default function Route(props: Props<typeof getData>) {
 	const data = usePreloadedQuery(repositoriesIndexGraphQLQuery, props.data);
 	const { router } = useRouter();
 

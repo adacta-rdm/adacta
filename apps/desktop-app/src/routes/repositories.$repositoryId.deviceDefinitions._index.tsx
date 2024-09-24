@@ -2,7 +2,6 @@ import { EuiSkeletonText } from "@elastic/eui";
 import React, { Suspense } from "react";
 import { loadQuery } from "react-relay";
 
-import type { IRouteComponentProps, IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import {
 	DeviceDefinitionList,
 	DeviceDefinitionListGraphQLQuery,
@@ -10,8 +9,12 @@ import {
 import { DeviceListTemplate } from "../components/device/list/DeviceListTemplate";
 
 import type { DeviceDefinitionListQuery } from "@/relay/DeviceDefinitionListQuery.graphql";
+import type {
+	GetDataArgs,
+	Props,
+} from "@/routes/repositories.$repositoryId.deviceDefinitions._index";
 
-export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) {
+function getData({ match, relayEnvironment }: GetDataArgs) {
 	return loadQuery<DeviceDefinitionListQuery>(
 		relayEnvironment,
 		DeviceDefinitionListGraphQLQuery,
@@ -20,7 +23,7 @@ export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) 
 	);
 }
 
-export default function (props: IRouteComponentProps<typeof getData>) {
+export default function Route(props: Props<typeof getData>) {
 	return (
 		<Suspense
 			fallback={

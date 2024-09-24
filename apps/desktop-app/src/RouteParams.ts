@@ -1,7 +1,7 @@
-import type { RouterArgs } from "./routes";
+import type { RouterArgs } from "@/routes";
 
-type KeysOfUnion<T> = T extends any ? keyof T : never;
+type KeysOfUnionExcludingQueryParams<T> = T extends Record<string, string> ? keyof T : never;
 
 export type RouteParams = {
-	[K in KeysOfUnion<RouterArgs[1]>]?: string;
+	[K in KeysOfUnionExcludingQueryParams<RouterArgs[1]>]?: string;
 };

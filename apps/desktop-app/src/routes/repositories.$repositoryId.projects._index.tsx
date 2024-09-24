@@ -1,13 +1,13 @@
 import React, { Suspense } from "react";
 import { loadQuery } from "react-relay";
 
-import type { IRouteComponentProps, IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { ListPageLoading } from "../components/layout/ListPageLoading";
 import { ProjectList, ProjectListGraphQLQuery } from "../components/project/ProjectList";
 
 import type { ProjectListQuery } from "@/relay/ProjectListQuery.graphql";
+import type { GetDataArgs, Props } from "@/routes/repositories.$repositoryId.projects._index";
 
-export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) {
+function getData({ match, relayEnvironment }: GetDataArgs) {
 	return loadQuery<ProjectListQuery>(
 		relayEnvironment,
 		ProjectListGraphQLQuery,
@@ -16,7 +16,7 @@ export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) 
 	);
 }
 
-export default function (props: IRouteComponentProps<typeof getData>) {
+export default function Route(props: Props<typeof getData>) {
 	return (
 		<Suspense fallback={<ListPageLoading pageTitle="Projects" />}>
 			<ProjectList queryRef={props.data} />

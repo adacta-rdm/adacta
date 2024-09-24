@@ -1,16 +1,16 @@
 import React, { Suspense } from "react";
 import { loadQuery } from "react-relay";
 
-import type { IRouteComponentProps, IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { ListPageLoading } from "../components/layout/ListPageLoading";
 import { ResourceListGraphQLQuery } from "../components/resource/ResourceList";
 
 import type { ResourceListQuery } from "@/relay/ResourceListQuery.graphql";
+import type { GetDataArgs, Props } from "@/routes/repositories.$repositoryId.resources._index";
 import { ResourceListPage } from "~/apps/desktop-app/src/components/resource/ResourceListPage";
 import { getStoredSelectedSearchItems } from "~/apps/desktop-app/src/components/search/list/SearchBar";
 import { CURRENT_USER_ID_PLACEHOLDER } from "~/lib/CURRENT_USER_ID_PLACEHOLDER";
 
-export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) {
+function getData({ match, relayEnvironment }: GetDataArgs) {
 	const storedFilters = getStoredSelectedSearchItems("resourcesList");
 
 	return loadQuery<ResourceListQuery>(
@@ -28,7 +28,7 @@ export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) 
 	);
 }
 
-export default function (props: IRouteComponentProps<typeof getData>) {
+export default function Route(props: Props<typeof getData>) {
 	return (
 		<Suspense fallback={<ListPageLoading pageTitle="Resources" />}>
 			<ResourceListPage queryRef={props.data} />

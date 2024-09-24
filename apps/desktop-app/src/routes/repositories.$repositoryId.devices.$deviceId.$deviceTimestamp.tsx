@@ -1,14 +1,17 @@
 import React, { Suspense } from "react";
 import { loadQuery } from "react-relay";
 
-import type { IRouteComponentProps, IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { Device, DeviceGraphQLQuery } from "../components/device/Device";
 import { DevicePageLoading } from "../components/device/DevicePageLoading";
 
 import type { DeviceQuery } from "@/relay/DeviceQuery.graphql";
+import type {
+	GetDataArgs,
+	Props,
+} from "@/routes/repositories.$repositoryId.devices.$deviceId.$deviceTimestamp";
 import { createIDatetime } from "~/lib/createDate";
 
-export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) {
+function getData({ match, relayEnvironment }: GetDataArgs) {
 	const timeStamp = new Date(match.params.deviceTimestamp);
 	return {
 		queryRef: loadQuery<DeviceQuery>(relayEnvironment, DeviceGraphQLQuery, {
@@ -20,7 +23,7 @@ export function getData({ match, relayEnvironment }: IRouteGetDataFunctionArgs) 
 	};
 }
 
-export default function (props: IRouteComponentProps<typeof getData>) {
+export default function Route(props: Props<typeof getData>) {
 	const queryRef = props.data.queryRef;
 	const viewTimeStamp = props.data.viewTimestamp; //as Date;
 	return (
