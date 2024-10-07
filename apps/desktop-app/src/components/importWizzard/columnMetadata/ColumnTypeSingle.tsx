@@ -91,7 +91,7 @@ export function ColumnTypeSingle(props: IProps) {
 
 const getNormalizerOptions = () => {
 	const options: { inputDisplay: string; value: "" | NormalizerId }[] = getNormalizerList().map(
-		([id, name]) => ({
+		({ id, name }) => ({
 			value: id,
 			inputDisplay: name,
 		})
