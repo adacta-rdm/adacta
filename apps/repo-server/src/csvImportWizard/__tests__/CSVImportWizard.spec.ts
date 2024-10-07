@@ -743,5 +743,58 @@ describe("CSVImportWizard", () => {
 				expect(result.warnings[0]).toMatch(/Device for column b is different/);
 			});
 		});
+
+		describe("ignores trailing empty headers/columns", () => {
+			test.each([
+				"Header", // empty header column (data without empty column)
+				"Data", // empty data column (header without empty column)
+				"Column", // empty column in header and datas
+			])("Supports trailing %s", async (e) => {
+				const wizard = new CSVImportWizard(sto);
+
+				const stoTmp = new FileSystemStorageEngine(await mkdirTmp());
+
+				const filename = "test.rtd";
+				const writable = TabularData.createWriteStream(stoTmp, filename, 2);
+
+				const result = await wizard.toTabularData(
+					`Trailing${e}.csv`,
+					writable,
+					{
+						delimiter: ",",
+						dataArea: { header: { type: "SingleHeaderRow", headerRow: 0 }, body: 1 },
+						columnMetadata: {
+							a: {
+								columnId: "a",
+								title: "a",
+								type: "number",
+								normalizerIds: [],
+							},
+							c: {
+								columnId: "c",
+								title: "c",
+								type: "number",
+								normalizerIds: [],
+								independent: ["a"],
+							},
+						},
+						decimalSeparator: ".",
+						manualDateConfig: {
+							begin: createIDatetime(new Date(0)),
+							end: createIDatetime(new Date(1)),
+						},
+					},
+					deviceReferenceCheck
+				);
+
+				const { props } = result._unsafeUnwrap();
+
+				const td = await TabularData.open(stoTmp, filename, 2);
+
+				expect(td.numRows()).toBe(2);
+				expect(await td.row(0)).toEqual([1, 3]);
+				expect(props.metadata.map((m) => m.title)).toEqual(["a", "c"]);
+			});
+		});
 	});
 });

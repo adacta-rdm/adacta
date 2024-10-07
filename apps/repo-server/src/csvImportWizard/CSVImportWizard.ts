@@ -658,7 +658,6 @@ export class CSVImportWizard {
 					}
 
 					const filtered = row.filter((val): val is number => val !== undefined);
-					console.log("Filtered row: ", filtered);
 					if (row.length === filtered.length) {
 						// The number of columns actually written to the TabularData file.
 						numColumns = filtered.length;
