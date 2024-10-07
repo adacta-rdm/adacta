@@ -218,7 +218,7 @@ describe("CSVImportWizard", () => {
 		 * decimal separator is a comma (this ensures that the normalizer is correctly applied).
 		 *
 		 * Previously the normalizer was applied to the string value and only worked for decimal numbers
-		 * with a point as decimal separator
+		 * with a point as decimal separator.
 		 */
 		test("turnNaNIntoZero works with custom decimal separator ", async () => {
 			const [td, warnings] = await toTabularDataTestWrapper("NonParsableColumnsUsingComma.csv", {

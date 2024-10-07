@@ -18,19 +18,21 @@ import type { IDatetime } from "~/lib/createDate";
 import { createDate } from "~/lib/createDate";
 import type { IDeviceId } from "~/lib/database/Ids";
 import { parseTimeInformation } from "~/lib/datetime/parseTimeInformation";
-import type { NormalizerIdNumber, NormalizerIdString } from "~/lib/importWizard/normalizer";
-import { applyNumberNormalizer } from "~/lib/importWizard/normalizer";
-import { isNumberNormalizer } from "~/lib/importWizard/normalizer";
-import { isStringNormalizer } from "~/lib/importWizard/normalizer";
-import { applyStringNormalizer } from "~/lib/importWizard/normalizer";
+import type { NormalizerId } from "~/lib/importWizard/normalizer";
+import {
+	applyNumberNormalizer,
+	applyStringNormalizer,
+	isNumberNormalizer,
+	isStringNormalizer,
+} from "~/lib/importWizard/normalizer";
 import type { IGenericTable } from "~/lib/interface/CSVImportWizzard/IGenericTable";
 import type { IColumnConfig } from "~/lib/interface/IImportWizardPreset";
 import type { ITabularDataColumnDescription } from "~/lib/interface/ITabularDataColumnDescription";
 import type { IProgressFn } from "~/lib/progress/IProgressReporterFn";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";
 import { StorageEngine } from "~/lib/storage-engine";
-import { createDuplex, createPipeline } from "~/lib/streams";
 import type { Readable, Writable } from "~/lib/streams";
+import { createDuplex, createPipeline } from "~/lib/streams";
 
 interface IImportError {
 	error: string;
@@ -61,7 +63,7 @@ export interface IToGenericTableOptions {
 	preview?: number;
 	delimiter: string;
 	dataArea: IDataArea;
-	normalizers: { [columnName: string]: NormalizerIdNumber | NormalizerIdString | undefined | "" };
+	normalizers: { [columnName: string]: NormalizerId | undefined | "" };
 }
 
 export interface IToTabularDataOptions extends Omit<IToGenericTableOptions, "normalizers"> {

@@ -1,42 +1,61 @@
+/**
+ * Normalizer that can be applied to strings
+ */
+const stringNormalizer = new Map<StringNormalizerId, INormalizer<string>>();
+
+/**
+ * Normalizers that can be applied to already parsed numbers
+ */
+const numberNormalizer = new Map<NumberNormalizerId, INormalizer<number>>();
+
+/**
+ * Normalizer that cuts off a string after the first space
+ */
+registerNormalizer({
+	type: "string",
+	id: "cutOffAfterFirstSpace",
+	name: "Cut of after first space",
+	fn: (input) => input.split(" ")[0],
+});
+
+/**
+ * Normalizer that turns NaN into 0
+ */
+registerNormalizer({
+	type: "number",
+	id: "turnNaNIntoZero",
+	name: "Turn NaN into 0",
+	fn: (input) => {
+		if (isNaN(input)) {
+			return 0;
+		}
+
+		return input;
+	},
+});
+
 type NormalizerFn<T> = (input: T) => T;
 
 const NormalizerIdStringList = ["cutOffAfterFirstSpace"] as const;
 const NormalizerIdNumberList = ["turnNaNIntoZero"] as const;
-export type NormalizerIdString = (typeof NormalizerIdStringList)[number];
-export type NormalizerIdNumber = (typeof NormalizerIdNumberList)[number];
-export type NormalizerId = NormalizerIdString | NormalizerIdNumber;
+export type StringNormalizerId = (typeof NormalizerIdStringList)[number];
+export type NumberNormalizerId = (typeof NormalizerIdNumberList)[number];
+export type NormalizerId = StringNormalizerId | NumberNormalizerId;
 
 interface INormalizer<T> {
 	name: string;
 	fn: NormalizerFn<T>;
 }
 
-export function isNumberNormalizer(id: string | undefined): id is NormalizerIdNumber {
+export function isNumberNormalizer(id: string | undefined): id is NumberNormalizerId {
 	return NormalizerIdNumberList.includes(id as any);
 }
 
-export function isStringNormalizer(id: string | undefined): id is NormalizerIdString {
+export function isStringNormalizer(id: string | undefined): id is StringNormalizerId {
 	return NormalizerIdStringList.includes(id as any);
 }
 
-const stringNormalizer = new Map<NormalizerIdString, INormalizer<string>>();
-const numberNormalizer = new Map<NormalizerIdNumber, INormalizer<number>>();
-
-registerNormalizer(
-	"string",
-	"cutOffAfterFirstSpace",
-	"Cut of after first space",
-	(input) => input.split(" ")[0]
-);
-registerNormalizer("number", "turnNaNIntoZero", "Turn NaN into 0", (input) => {
-	if (isNaN(input)) {
-		return 0;
-	}
-
-	return input;
-});
-
-export function applyStringNormalizer(id: NormalizerIdString, input: string) {
+export function applyStringNormalizer(id: StringNormalizerId, input: string) {
 	const normalizer = stringNormalizer.get(id);
 	if (normalizer === undefined) {
 		throw new Error(`Unsupported normalizer: ${id} is not a known normalizer`);
@@ -44,7 +63,7 @@ export function applyStringNormalizer(id: NormalizerIdString, input: string) {
 	return normalizer.fn(input);
 }
 
-export function applyNumberNormalizer(id: NormalizerIdNumber, input: number) {
+export function applyNumberNormalizer(id: NumberNormalizerId, input: number) {
 	const normalizer = numberNormalizer.get(id);
 	if (normalizer === undefined) {
 		throw new Error(`Unsupported normalizer: ${id} is not a known normalizer`);
@@ -52,28 +71,40 @@ export function applyNumberNormalizer(id: NormalizerIdNumber, input: number) {
 	return normalizer.fn(input);
 }
 
-function registerNormalizer<T extends "string" | "number">(
-	type: T,
-	id: T extends "string" ? NormalizerIdString : NormalizerIdNumber,
-	name: string,
-	fn: NormalizerFn<T extends "string" ? string : number>
-) {
+function registerNormalizer({
+	type,
+	id,
+	name,
+	fn,
+}:
+	| {
+			type: "string";
+			id: StringNormalizerId;
+			name: string;
+			fn: NormalizerFn<string>;
+	  }
+	| {
+			type: "number";
+			id: NumberNormalizerId;
+			name: string;
+			fn: NormalizerFn<number>;
+	  }) {
 	if (type === "string") {
-		stringNormalizer.set(id as NormalizerIdString, {
+		stringNormalizer.set(id, {
 			name,
-			fn: fn as unknown as NormalizerFn<string>,
+			fn,
 		});
 	} else if (type === "number") {
-		numberNormalizer.set(id as NormalizerIdNumber, {
+		numberNormalizer.set(id, {
 			name,
-			fn: fn as unknown as NormalizerFn<number>,
+			fn,
 		});
 	}
 }
 
 export function getNormalizerList(): (
-	| { type: "string"; id: NormalizerIdString; name: string }
-	| { type: "number"; id: NormalizerIdNumber; name: string }
+	| { type: "string"; id: StringNormalizerId; name: string }
+	| { type: "number"; id: NumberNormalizerId; name: string }
 )[] {
 	return [
 		...[...stringNormalizer.entries()].map(([id, { name }]) => ({
