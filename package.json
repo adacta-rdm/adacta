@@ -13,7 +13,7 @@
 		"build:css": "yarn build:css-tailwind && yarn build:css-sass",
 		"build:css-tailwind": "tailwindcss -c ./apps/desktop-app/tailwind.config.js -i apps/desktop-app/src/frontend-tailwind.css -o @/tailwind.dist.css",
 		"build:css-sass": "sass --quiet-deps --load-path=node_modules apps/desktop-app/src/frontend-eui.scss:@/eui.dist.css ./apps/desktop-app/src/index.scss:@/index.dist.css ./apps/desktop-app/src/components/timeline/timeline.scss:@/timeline.dist.css ./apps/desktop-app/src/components/spreadsheet/cell.scss:@/cell.dist.css",
-		"build:storybook": "storybook build",
+		"build:storybook": "yarn build:css && storybook build",
 		"dev": "yarn dev:postgres & yarn dev:server & yarn dev:microservices & yarn dev:relay & yarn dev:frontend & yarn dev:routes",
 		"dev:frontend": "vite",
 		"dev:server": "tsx watch apps/repo-server/src/main.ts",
