@@ -8,10 +8,10 @@
 // mixin that also accounts for this height in flyouts and the collapsible nav.
 // https://elastic.github.io/eui/#/layout/header#stacked-headers
 body {
-  padding-block-start: var(--euiFixedHeadersOffset, 0);
+	padding-block-start: var(--euiFixedHeadersOffset, 0);
 }
 
 .footer {
-  background-color: $euiPageBackgroundColor;
-  color: $euiTextColor;
+	background-color: $euiPageBackgroundColor;
+	color: $euiTextColor;
 }

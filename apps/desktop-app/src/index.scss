@@ -1,33 +1,32 @@
 .fullheight-with-footer {
-  // Offset for the fixed header is already accounted for in the body padding
-  // To make a element "effective full height" we need to subtract the footer height to avoid scrollbars
-  height: calc(100vh - 20px);
+	// Offset for the fixed header is already accounted for in the body padding
+	// To make a element "effective full height" we need to subtract the footer height to avoid scrollbars
+	height: calc(100vh - 20px);
 }
 
 .customEuiTreeWideLabel {
-  .euiTreeView__nodeLabel {
-    width: 100%;
-  }
+	.euiTreeView__nodeLabel {
+		width: 100%;
+	}
 }
-
 
 // Make sure that the search results referring to users are always full width
 .searchResultUser {
-  .euiPopover__anchor {
-    width: 100%;
-  }
+	.euiPopover__anchor {
+		width: 100%;
+	}
 }
 
 // Prevent layout shift for loading states, by ensuring that the body always has a scrollbar.
 html {
-  overflow-y: scroll;
+	overflow-y: scroll;
 }
 
 .adactaImage {
-  display: inline;
+	display: inline;
 
-  // Hide the fullscreen button on the image
-  div[class*="euiImageButton"] {
-    display: none;
-  }
+	// Hide the fullscreen button on the image
+	div[class*="euiImageButton"] {
+		display: none;
+	}
 }
