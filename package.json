@@ -10,7 +10,7 @@
 		"build:repo-server": "tsx scripts/build.ts repo-server",
 		"build:routes": "tsx scripts/generate-routes.ts",
 		"build:tsrc": "tsx scripts/tsrc.ts",
-		"build:css": "tailwindcss -c ./apps/desktop-app/tailwind.config.js -i ./apps/desktop-app/src/tailwind-input.css -o apps/desktop-app/src/tailwind-output.css",
+		"build:css": "tailwindcss -c ./apps/desktop-app/tailwind.config.js -i ./apps/desktop-app/src/tailwind-input.css -o @/tailwind.dist.css",
 		"build:storybook": "storybook build",
 		"dev": "yarn dev:postgres & yarn dev:server & yarn dev:microservices & yarn dev:relay & yarn dev:frontend & yarn dev:routes",
 		"dev:frontend": "vite",

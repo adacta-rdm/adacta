@@ -13,6 +13,7 @@ import { RouterService } from "./services/router/RouterService";
 
 import svg from "~/apps/desktop-app/public/images/AdactaLogo.svg";
 import "@/euiIcons";
+import "@/tailwind.dist.css";
 
 // Bundle additional Moment.js locales
 import "../src/lib/momentLocales";

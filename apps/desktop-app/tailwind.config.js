@@ -1,13 +1,10 @@
-/**
- * All file paths have to be relative to the tailwind-output.css file
- */
 /** @type {import('tailwindcss').Config} */
 module.exports = {
 	content: ["./apps/desktop-app/src/**/*.{js,ts,jsx,tsx}"],
 	theme: {
 		extend: {
 			backgroundImage: {
-				waves: "url('../public/images/waves.svg')",
+				waves: "url('images/waves.svg')",
 			},
 			textColor: {
 				euiText: "#343741",
