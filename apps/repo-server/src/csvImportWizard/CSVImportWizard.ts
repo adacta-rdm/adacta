@@ -611,10 +611,8 @@ export class CSVImportWizard {
 
 									let n = Number(value);
 
-									console.log("Normalizer", normalizer, isNumberNormalizer(normalizer));
 									if (isNumberNormalizer(normalizer)) {
 										n = applyNumberNormalizer(normalizer, n);
-										console.log("New value: ", n);
 									}
 
 									if (isNaN(n)) {
