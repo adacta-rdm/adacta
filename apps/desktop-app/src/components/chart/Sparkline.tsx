@@ -70,7 +70,7 @@ export function Sparklines(props: { resource: Sparkline$key }) {
 
 	return (
 		<EuiStat title="" description="" textAlign="right">
-			<Chart size={{ height: 100, width: 300 }}>
+			<Chart size={{ height: 100, width: 200 }}>
 				<Settings theme={theme} showLegend={false} />
 				{dataSlices.map((slice, i) => (
 					<LineSeries
