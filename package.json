@@ -5,7 +5,7 @@
 	"license": "None",
 	"private": true,
 	"scripts": {
-		"build": "yarn build:routes && yarn build:tsrc && yarn build:relay && vite build && tsx scripts/build.ts",
+		"build": "yarn build:routes && yarn build:tsrc && yarn build:relay && yarn build:css && vite build && tsx scripts/build.ts",
 		"build:relay": "relay-compiler",
 		"build:repo-server": "tsx scripts/build.ts repo-server",
 		"build:routes": "tsx scripts/generate-routes.ts",
