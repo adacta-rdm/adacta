@@ -107,17 +107,19 @@ export function Chart(props: IProps) {
 
 	const getLineStyleByIndex = (
 		index: number,
-		bold?: boolean
+		highlight?: boolean
 	): RecursivePartial<LineSeriesStyle> => {
 		const baseConfig: RecursivePartial<LineSeriesStyle> = {
 			// point: resources.length > 1 ? { visible: false } : undefined, // Hide points in comparison charts
 			point: { visible: false },
 			line: {
-				strokeWidth: bold ? 2 : 1,
+				strokeWidth: highlight ? 2 : 1,
 			},
 		};
 
-		if (index === 0) {
+		// Use the default line style (solid line) for the first resource and for highlighted resources
+		// This ensures that the increased stroke width is easier noticeable
+		if (index === 0 || highlight) {
 			return merge(baseConfig, {
 				fit: {
 					line: {
