@@ -1,51 +1,33 @@
-// https://github.com/elastic/eui/blob/master/wiki/consuming.md
-
-// The following rebuilds the entire EUI component styles
-@import "@elastic/eui/src/themes/amsterdam/theme_light";
-
-@import "@elastic/charts/dist/theme_only_light.css";
-
-// Afford for the height of the fixed header by applying padding to the body. EUI supplies a helper
-// mixin that also accounts for this height in flyouts and the collapsible nav.
-// https://elastic.github.io/eui/#/layout/header#stacked-headers
-body {
-	padding-block-start: var(--euiFixedHeadersOffset, 0);
-}
-
 .fullheight-with-footer {
-	// Offset for the fixed header is already accounted for in the body padding
-	// To make a element "effective full height" we need to subtract the footer height to avoid scrollbars
-	height: calc(100vh - 20px);
+  // Offset for the fixed header is already accounted for in the body padding
+  // To make a element "effective full height" we need to subtract the footer height to avoid scrollbars
+  height: calc(100vh - 20px);
 }
 
 .customEuiTreeWideLabel {
-	.euiTreeView__nodeLabel {
-		width: 100%;
-	}
+  .euiTreeView__nodeLabel {
+    width: 100%;
+  }
 }
 
-.footer {
-	background-color: $euiPageBackgroundColor;
-	color: $euiTextColor;
-}
 
 // Make sure that the search results referring to users are always full width
 .searchResultUser {
-	.euiPopover__anchor {
-		width: 100%;
-	}
+  .euiPopover__anchor {
+    width: 100%;
+  }
 }
 
 // Prevent layout shift for loading states, by ensuring that the body always has a scrollbar.
 html {
-	overflow-y: scroll;
+  overflow-y: scroll;
 }
 
 .adactaImage {
-	display: inline;
+  display: inline;
 
-	// Hide the fullscreen button on the image
-	div[class*="euiImageButton"] {
-		display: none;
-	}
+  // Hide the fullscreen button on the image
+  div[class*="euiImageButton"] {
+    display: none;
+  }
 }

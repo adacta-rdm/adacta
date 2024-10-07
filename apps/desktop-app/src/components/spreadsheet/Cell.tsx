@@ -2,7 +2,7 @@ import type { EuiThemeColorModeStandard } from "@elastic/eui";
 import { darken, EuiSkeletonText, tintOrShade, useEuiTheme } from "@elastic/eui";
 import { assertUnreachable } from "@omegadot/assert";
 import React from "react";
-import "./Cell.css";
+import "@/cell.dist.css";
 
 export interface ICellValue {
 	value: string | JSX.Element;

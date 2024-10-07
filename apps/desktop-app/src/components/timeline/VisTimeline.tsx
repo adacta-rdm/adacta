@@ -3,7 +3,7 @@ import type { ErrorInfo } from "react";
 import React, { useEffect, useState } from "react";
 import Timeline from "react-vis-timeline";
 import type { TimelineGroup, TimelineItem } from "vis-timeline/types";
-import "./timeline.css";
+import "@/timeline.dist.css";
 
 interface IProps {
 	timelineRef: React.RefObject<Timeline>;
