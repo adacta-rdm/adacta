@@ -566,10 +566,18 @@ export class CSVImportWizard {
 						return;
 					}
 
-					if (result.data.length !== headerInternal.length) {
+					// If the trailing column is empty, we don't need to count it as it is skipped in the
+					// header/output
+					const expectedColumns =
+						result.data[result.data.length - 1].trim() == ""
+							? result.data.length - 1
+							: result.data.length;
+
+					if (expectedColumns !== headerInternal.length) {
 						warnings.push(
-							`Inconsistent columns in row ${rowCount}. Expected ${headerInternal.length} columns, but found ${result.data.length}.`
+							`Inconsistent columns in row ${rowCount}. Expected ${headerInternal.length} columns, but found ${expectedColumns}.`
 						);
+
 						rowProcessingFinished();
 						return;
 					}

@@ -32,5 +32,11 @@ export function makeHeadersUnique(headers: readonly string[]): string[] {
 		}
 	}
 
+	// Remove the last header if it is an empty string. This is usually an indicator of a accidental
+	// trailing delimiter in the CSV file (which introduces an empty column).
+	if (newHeaders[headers.length - 1] === "") {
+		return newHeaders.slice(0, -1);
+	}
+
 	return newHeaders;
 }
