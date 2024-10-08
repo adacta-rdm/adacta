@@ -19,15 +19,20 @@ import { createDate } from "~/lib/createDate";
 import type { IDeviceId } from "~/lib/database/Ids";
 import { parseTimeInformation } from "~/lib/datetime/parseTimeInformation";
 import type { NormalizerId } from "~/lib/importWizard/normalizer";
-import { applyNormalizer } from "~/lib/importWizard/normalizer";
+import {
+	applyNumberNormalizer,
+	applyStringNormalizer,
+	isNumberNormalizer,
+	isStringNormalizer,
+} from "~/lib/importWizard/normalizer";
 import type { IGenericTable } from "~/lib/interface/CSVImportWizzard/IGenericTable";
 import type { IColumnConfig } from "~/lib/interface/IImportWizardPreset";
 import type { ITabularDataColumnDescription } from "~/lib/interface/ITabularDataColumnDescription";
 import type { IProgressFn } from "~/lib/progress/IProgressReporterFn";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";
 import { StorageEngine } from "~/lib/storage-engine";
-import { createDuplex, createPipeline } from "~/lib/streams";
 import type { Readable, Writable } from "~/lib/streams";
+import { createDuplex, createPipeline } from "~/lib/streams";
 
 interface IImportError {
 	error: string;
@@ -207,8 +212,8 @@ export class CSVImportWizard {
 							body.push(
 								result.data.map((d, i) => {
 									const normalizer = options.normalizers[header[i]];
-									if (normalizer !== undefined && normalizer !== "") {
-										return applyNormalizer(normalizer, CSVImportWizard.cleanInput(d));
+									if (isStringNormalizer(normalizer)) {
+										return applyStringNormalizer(normalizer, CSVImportWizard.cleanInput(d));
 									}
 									return d;
 								})
@@ -449,8 +454,8 @@ export class CSVImportWizard {
 						value = CSVImportWizard.cleanInput(value);
 
 						const normalizer = columnConfig.normalizerIds[0];
-						if (normalizer) {
-							value = applyNormalizer(normalizer, value);
+						if (isStringNormalizer(normalizer)) {
+							value = applyStringNormalizer(normalizer, value);
 						}
 
 						if (
@@ -574,8 +579,8 @@ export class CSVImportWizard {
 							value = CSVImportWizard.cleanInput(value);
 
 							const normalizer = columnConfig.normalizerIds[0];
-							if (normalizer) {
-								value = applyNormalizer(normalizer, value);
+							if (isStringNormalizer(normalizer)) {
+								value = applyStringNormalizer(normalizer, value);
 							}
 
 							switch (columnConfig.type) {
@@ -606,7 +611,12 @@ export class CSVImportWizard {
 										value = value.replace(".", "").replace(options.decimalSeparator, ".");
 									}
 
-									const n = Number(value);
+									let n = Number(value);
+
+									if (isNumberNormalizer(normalizer)) {
+										n = applyNumberNormalizer(normalizer, n);
+									}
+
 									if (isNaN(n)) {
 										warnings.push(
 											`Unexpected values in row ${rowCount}. Expected column ${columnConfig.columnId} to be of type number found '${value}' instead.`
