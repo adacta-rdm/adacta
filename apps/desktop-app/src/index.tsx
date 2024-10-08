@@ -14,6 +14,10 @@ import { RouterService } from "./services/router/RouterService";
 import svg from "~/apps/desktop-app/public/images/AdactaLogo.svg";
 import "@/euiIcons";
 
+import "@/eui.dist.css";
+import "@/tailwind.dist.css";
+import "@/index.dist.css";
+
 // Bundle additional Moment.js locales
 import "../src/lib/momentLocales";
 
