@@ -19,15 +19,20 @@ import { createDate } from "~/lib/createDate";
 import type { IDeviceId } from "~/lib/database/Ids";
 import { parseTimeInformation } from "~/lib/datetime/parseTimeInformation";
 import type { NormalizerId } from "~/lib/importWizard/normalizer";
-import { applyNormalizer } from "~/lib/importWizard/normalizer";
+import {
+	applyNumberNormalizer,
+	applyStringNormalizer,
+	isNumberNormalizer,
+	isStringNormalizer,
+} from "~/lib/importWizard/normalizer";
 import type { IGenericTable } from "~/lib/interface/CSVImportWizzard/IGenericTable";
 import type { IColumnConfig } from "~/lib/interface/IImportWizardPreset";
 import type { ITabularDataColumnDescription } from "~/lib/interface/ITabularDataColumnDescription";
 import type { IProgressFn } from "~/lib/progress/IProgressReporterFn";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";
 import { StorageEngine } from "~/lib/storage-engine";
-import { createDuplex, createPipeline } from "~/lib/streams";
 import type { Readable, Writable } from "~/lib/streams";
+import { createDuplex, createPipeline } from "~/lib/streams";
 
 interface IImportError {
 	error: string;
@@ -207,8 +212,8 @@ export class CSVImportWizard {
 							body.push(
 								result.data.map((d, i) => {
 									const normalizer = options.normalizers[header[i]];
-									if (normalizer !== undefined && normalizer !== "") {
-										return applyNormalizer(normalizer, CSVImportWizard.cleanInput(d));
+									if (isStringNormalizer(normalizer)) {
+										return applyStringNormalizer(normalizer, CSVImportWizard.cleanInput(d));
 									}
 									return d;
 								})
@@ -449,8 +454,8 @@ export class CSVImportWizard {
 						value = CSVImportWizard.cleanInput(value);
 
 						const normalizer = columnConfig.normalizerIds[0];
-						if (normalizer) {
-							value = applyNormalizer(normalizer, value);
+						if (isStringNormalizer(normalizer)) {
+							value = applyStringNormalizer(normalizer, value);
 						}
 
 						if (
@@ -510,7 +515,8 @@ export class CSVImportWizard {
 			let xOrdering: undefined | "asc" | "desc" = undefined;
 
 			let begin = Infinity;
-			let rowCount = 0;
+			let rowCount = 0; // Read row counts
+			let parsedDataRows = 0; // Count the data rows that are actually parsed
 
 			// The number of columns in the final TabularData file
 			let numColumns = 0;
@@ -560,22 +566,31 @@ export class CSVImportWizard {
 						return;
 					}
 
-					if (result.data.length !== headerInternal.length) {
+					// If the trailing column is empty, we don't need to count it as it is skipped in the
+					// header/output
+					const expectedColumns =
+						result.data[result.data.length - 1].trim() == ""
+							? result.data.length - 1
+							: result.data.length;
+
+					if (expectedColumns !== headerInternal.length) {
 						warnings.push(
-							`Inconsistent columns in row ${rowCount}. Expected ${headerInternal.length} columns, but found ${result.data.length}.`
+							`Inconsistent columns in row ${rowCount}. Expected ${headerInternal.length} columns, but found ${expectedColumns}.`
 						);
+
 						rowProcessingFinished();
 						return;
 					}
 
 					const row: Array<number | undefined> = columnMetadata.map(
 						({ columnConfig, index, concat }) => {
+							parsedDataRows++;
 							let value = result.data[index];
 							value = CSVImportWizard.cleanInput(value);
 
 							const normalizer = columnConfig.normalizerIds[0];
-							if (normalizer) {
-								value = applyNormalizer(normalizer, value);
+							if (isStringNormalizer(normalizer)) {
+								value = applyStringNormalizer(normalizer, value);
 							}
 
 							switch (columnConfig.type) {
@@ -606,7 +621,12 @@ export class CSVImportWizard {
 										value = value.replace(".", "").replace(options.decimalSeparator, ".");
 									}
 
-									const n = Number(value);
+									let n = Number(value);
+
+									if (isNumberNormalizer(normalizer)) {
+										n = applyNumberNormalizer(normalizer, n);
+									}
+
 									if (isNaN(n)) {
 										warnings.push(
 											`Unexpected values in row ${rowCount}. Expected column ${columnConfig.columnId} to be of type number found '${value}' instead.`
@@ -678,6 +698,21 @@ export class CSVImportWizard {
 
 					// End the output stream
 					output.end();
+
+					// If no data was parsed by now, there is a more serious issue with the data
+					// or the preset. In this case we can't continue and any warnings (i.e. for
+					// skipped lines) can provide additional information.
+					// For example, if the header contains a different number of columns than the
+					// data (in every row), the parser will skip all rows and parsing will fail.
+					if (parsedDataRows === 0) {
+						return resolve(
+							err({
+								error: `Tabular data couldn't be parsed ${
+									warnings.length > 0 ? `\nWarnings: ${warnings.join("\n")}` : ""
+								}`,
+							})
+						);
+					}
 
 					let dateInfo =
 						xOrdering === "desc"

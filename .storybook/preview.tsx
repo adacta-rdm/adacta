@@ -6,7 +6,7 @@ import { withRelay } from "~/.storybook/relay/withRelay";
 import { withServices } from "~/.storybook/services/withServices";
 
 import "@/euiIcons";
-import "~/apps/desktop-app/src/tailwind-output.css";
+import "@/tailwind.dist.css";
 import "@elastic/eui/dist/eui_theme_light.css";
 import "@elastic/charts/dist/theme_light.css";
 
