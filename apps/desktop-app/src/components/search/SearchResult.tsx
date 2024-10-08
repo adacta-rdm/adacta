@@ -6,12 +6,12 @@ import { graphql } from "react-relay";
 import { useFragment } from "react-relay/hooks";
 
 import { useRouter } from "../../hooks/useRouter";
-import type { RouterArgs } from "../../routes";
 import type { AdactaIconTypes } from "../icons/AdactaIcon";
 import { AdactaIconOrEuiToken } from "../icons/AdactaIcon";
 import { OriginRepoIndicator } from "../originRepo/OriginRepoIndicator";
 
 import type { SearchResult$data, SearchResult$key } from "@/relay/SearchResult.graphql";
+import type { RouterArgs } from "@/routes";
 
 const SearchResultGraphQLFragment = graphql`
 	fragment SearchResult on HasMetadata {

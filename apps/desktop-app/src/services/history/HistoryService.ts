@@ -2,7 +2,8 @@ import { assertDefined } from "@omegadot/assert";
 import { uniqBy } from "lodash";
 
 import type { RouteParams } from "../../RouteParams";
-import type { RouterArgs } from "../../routes";
+
+import type { RouterArgs } from "@/routes";
 
 export class HistoryService {
 	private static HISTORY_SERVICE_KEY_OLD = "HISTORY_SERVICE_V2";

@@ -1,5 +1,5 @@
-import { isRouteDef } from "./isRouteDef";
-import type { RouterArgs } from "../../routes";
+import type { Route, RouterArgs } from "@/routes";
+import { routes } from "@/routes";
 
 export function isRouterArgs(args: unknown[]): args is RouterArgs {
 	const [route, params = {}, ...rest] = args;
@@ -7,7 +7,8 @@ export function isRouterArgs(args: unknown[]): args is RouterArgs {
 	if (rest.length > 0) return false;
 	// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 	if (!params || typeof params !== "object") return false;
-	if (!isRouteDef(route)) return false;
+
+	if (!isRoute(route)) return false;
 
 	for (const part of route.split("/")) {
 		if (
@@ -18,4 +19,11 @@ export function isRouterArgs(args: unknown[]): args is RouterArgs {
 	}
 
 	return true;
+}
+
+function isRoute(arg: unknown): arg is Route {
+	for (const route of routes) {
+		if (arg === route) return true;
+	}
+	return false;
 }

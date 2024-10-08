@@ -1,17 +1,18 @@
 import { EuiFlexGroup, EuiFlexItem, EuiPageTemplate } from "@elastic/eui";
 import React from "react";
 
-import type { IRouteGetDataFunctionArgs } from "~/apps/desktop-app/src/IRouteConfig";
+import type { GetDataArgs } from "@/routes/register";
 import { RedirectException } from "~/apps/desktop-app/src/RedirectException";
 import { AdactaPageTemplate } from "~/apps/desktop-app/src/components/layout/AdactaPageTemplate";
 import { Register } from "~/apps/desktop-app/src/components/user/authentication/Register";
 
-export function getData({ graphQLHeaders }: IRouteGetDataFunctionArgs) {
+function getData({ graphQLHeaders }: GetDataArgs) {
 	if (graphQLHeaders.authToken) {
 		throw new RedirectException("/");
 	}
 }
-export default function () {
+
+export default function Route() {
 	return (
 		<AdactaPageTemplate>
 			<EuiPageTemplate.Header

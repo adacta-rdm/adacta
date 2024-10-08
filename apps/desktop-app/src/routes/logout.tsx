@@ -1,11 +1,12 @@
-import type { IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { RedirectException } from "../RedirectException";
 
-export function getData({ graphQLHeaders }: IRouteGetDataFunctionArgs) {
+import type { GetDataArgs } from "@/routes/logout";
+
+function getData({ graphQLHeaders }: GetDataArgs) {
 	graphQLHeaders.authToken = undefined;
 	throw new RedirectException("/login");
 }
 
-export default function () {
+export default function Route() {
 	return null;
 }

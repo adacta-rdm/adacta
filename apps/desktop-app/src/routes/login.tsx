@@ -11,24 +11,24 @@ import {
 } from "@elastic/eui";
 import React, { useState } from "react";
 
-import type { IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { RedirectException } from "../RedirectException";
 import { AdactaPageTemplate } from "../components/layout/AdactaPageTemplate";
 import { useRouter } from "../hooks/useRouter";
 import { useService } from "../services/ServiceProvider";
 import { GraphQLHeaderService } from "../services/repositoryId/GraphQLHeaderService";
 
+import type { GetDataArgs } from "@/routes/login";
 import { assertILoginResponse } from "@/tsrc/lib/interface/ILoginResponse";
 import type { ILoginResponse } from "~/lib/interface/ILoginResponse";
 import { RepoURL } from "~/lib/url/RepoURL";
 
-export function getData({ graphQLHeaders }: IRouteGetDataFunctionArgs) {
+function getData({ graphQLHeaders }: GetDataArgs) {
 	if (graphQLHeaders.authToken) {
 		throw new RedirectException("/");
 	}
 }
 
-export default function () {
+export default function Route() {
 	const repoUrl = useService(RepoURL);
 	const graphQLHeaders = useService(GraphQLHeaderService);
 	const router = useRouter();

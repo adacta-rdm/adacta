@@ -1,15 +1,16 @@
 import { EuiFlexGroup, EuiFlexItem, EuiHeader, EuiTab, EuiTabs } from "@elastic/eui";
 import React from "react";
 
-import { resolveLocation } from "./utils/resolveLocation";
-import type { IRouteComponentPropsWithChildren, IRouteGetDataFunctionArgs } from "../IRouteConfig";
 import { RedirectException } from "../RedirectException";
 import type { AdactaIconTypes } from "../components/icons/AdactaIcon";
 import { AdactaIcon } from "../components/icons/AdactaIcon";
 import { useRouter } from "../hooks/useRouter";
-import type { RouterArgs } from "../routes";
+import { resolveLocation } from "../utils/resolveLocation";
 
-export function getData({ match, graphQLHeaders }: IRouteGetDataFunctionArgs) {
+import type { RouterArgs } from "@/routes";
+import type { GetDataArgs, PropsWithChildren } from "@/routes/repositories.$repositoryId";
+
+function getData({ match, graphQLHeaders }: GetDataArgs) {
 	const repositoryId = match.params.repositoryId;
 	// Check whether the headers required to perform graphql queries are present.
 	if (!graphQLHeaders.authToken) {
@@ -26,7 +27,7 @@ export function getData({ match, graphQLHeaders }: IRouteGetDataFunctionArgs) {
 	return { repositoryId };
 }
 
-export default function (props: IRouteComponentPropsWithChildren<typeof getData>) {
+export default function Route(props: PropsWithChildren<typeof getData>) {
 	const { repositoryId } = props.data;
 
 	return (
