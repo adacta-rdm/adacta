@@ -11,6 +11,9 @@ import { ChartLoading } from "~/apps/desktop-app/src/components/chart/ChartLoadi
 
 interface IProps {
 	resourceIds: string[];
+
+	highlightResourceId?: string;
+
 	offsets?: number[];
 
 	alignStart?: boolean;
@@ -79,7 +82,13 @@ export function MultipleResourceChart(props: IProps) {
 	return (
 		<>
 			{data.mergedResourceChart.map((data, i) => (
-				<Chart chart={data} key={i} />
+				<Chart
+					chart={data}
+					key={JSON.stringify({ ...props, key: i })}
+					highlight={
+						props.highlightResourceId ? { resourceId: props.highlightResourceId } : undefined
+					}
+				/>
 			))}
 		</>
 	);
