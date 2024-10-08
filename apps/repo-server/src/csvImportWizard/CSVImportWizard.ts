@@ -515,7 +515,8 @@ export class CSVImportWizard {
 			let xOrdering: undefined | "asc" | "desc" = undefined;
 
 			let begin = Infinity;
-			let rowCount = 0;
+			let rowCount = 0; // Read row counts
+			let parsedDataRows = 0; // Count the data rows that are actually parsed
 
 			// The number of columns in the final TabularData file
 			let numColumns = 0;
@@ -575,6 +576,7 @@ export class CSVImportWizard {
 
 					const row: Array<number | undefined> = columnMetadata.map(
 						({ columnConfig, index, concat }) => {
+							parsedDataRows++;
 							let value = result.data[index];
 							value = CSVImportWizard.cleanInput(value);
 
@@ -688,6 +690,21 @@ export class CSVImportWizard {
 
 					// End the output stream
 					output.end();
+
+					// If no data was parsed by now, there is a more serious issue with the data
+					// or the preset. In this case we can't continue and any warnings (i.e. for
+					// skipped lines) can provide additional information.
+					// For example, if the header contains a different number of columns than the
+					// data (in every row), the parser will skip all rows and parsing will fail.
+					if (parsedDataRows === 0) {
+						return resolve(
+							err({
+								error: `Tabular data couldn't be parsed ${
+									warnings.length > 0 ? `\nWarnings: ${warnings.join("\n")}` : ""
+								}`,
+							})
+						);
+					}
 
 					let dateInfo =
 						xOrdering === "desc"
