@@ -15,7 +15,7 @@ export function useDebounceFormUpdate<T extends Primitive | Primitive[]>(
 	const [value, setValue] = useState<T>(initialValue);
 
 	const onChange = useCallback(
-		() => (e: T | ((e: T) => T)) => {
+		(e: T | ((e: T) => T)) => {
 			setValue(e);
 			onChangeDebounced(typeof e === "function" ? e(value) : e);
 		},
