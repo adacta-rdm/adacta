@@ -10,6 +10,9 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
 
 import { buildTimeConstantsObject } from "./dev/build-utils";
+import { __dirnameFromImportMetaURL } from "./lib/__dirnameFromImportMetaURL";
+
+const __dirname = __dirnameFromImportMetaURL(import.meta.url);
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
