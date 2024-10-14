@@ -7,7 +7,6 @@ import {
 	EuiFlexItem,
 	useEuiTheme,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React, { useState } from "react";
 import { graphql } from "react-relay";
 import { useFragment } from "react-relay/hooks";
@@ -17,6 +16,7 @@ import { EuiComboBoxDuplicates } from "./EuiComboBoxDuplicates";
 
 import type { VariableArrangement$key } from "@/relay/VariableArrangement.graphql";
 import type { VariableArrangementAvailableVariables$key } from "@/relay/VariableArrangementAvailableVariables.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { INameCompositionVariableId } from "~/lib/database/Ids";
 
 type IndexMarker = Opaque<string, "LegacyNameId">;

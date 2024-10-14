@@ -15,7 +15,6 @@ import {
 	EuiSpacer,
 	EuiSwitch,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import type { UnitKind } from "@omegadot/einheiten/dist/types/quantities/kind";
 import type { ReactElement } from "react";
 import React, { useRef, useState } from "react";
@@ -29,6 +28,7 @@ import { DeviceDefinitionSelection } from "../DeviceDefinitionSelection";
 import { InheritedSpecificationsDevice } from "../InheritedSpecifications";
 import { UnsavedChangesModal } from "../modals/UnsavedChangesModal";
 
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IDeviceDefinitionId } from "~/lib/database/Ids";
 import type { ISpecification } from "~/lib/database/documents/interfaces/ISpecification";
 

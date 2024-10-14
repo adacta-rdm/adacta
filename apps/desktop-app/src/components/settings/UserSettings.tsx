@@ -8,7 +8,6 @@ import {
 	EuiSpacer,
 	EuiTitle,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React, { useCallback, useEffect, useState } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
 import { graphql, useMutation } from "react-relay";
@@ -18,6 +17,7 @@ import { PureDateTime } from "../datetime/DateTime";
 
 import type { UserSettings$key } from "@/relay/UserSettings.graphql";
 import type { UserSettingsUpdateMutation } from "@/relay/UserSettingsUpdateMutation.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { TimeStyle } from "~/lib/interface/TimeStyle";
 
 // Do not edit, you will likely receive a response from the server that is not compatible with the current version of the code.

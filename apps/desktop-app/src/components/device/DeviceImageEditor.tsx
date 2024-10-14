@@ -12,7 +12,6 @@ import {
 	EuiText,
 	EuiTitle,
 } from "@elastic/eui";
-import { isNonNullish } from "@omegadot/assert";
 import React from "react";
 import type { GraphQLTaggedNode } from "react-relay";
 import { graphql, useMutation } from "react-relay";
@@ -26,6 +25,7 @@ import type { DeviceImageEditorAddMutation } from "@/relay/DeviceImageEditorAddM
 import type { DeviceImageEditorDeleteMutation } from "@/relay/DeviceImageEditorDeleteMutation.graphql";
 import type { DeviceImageEditorMakePrimaryMutation } from "@/relay/DeviceImageEditorMakePrimaryMutation.graphql";
 import { AdactaImage } from "~/apps/desktop-app/src/components/image/AdactaImage";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 import type { ArrayElementType } from "~/lib/interface/ArrayElementType";
 
 const DeviceImageEditorGraphQLFragment = graphql`

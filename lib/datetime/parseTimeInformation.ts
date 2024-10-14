@@ -1,9 +1,10 @@
 import assert from "assert";
 
-import { assertUnreachable } from "@omegadot/assert";
 import moment from "moment-timezone";
 
 import type { IColumnTimeConfig } from "../interface/IImportWizardPreset";
+
+import { assertUnreachable } from "~/lib/assert/assertUnreachable";
 
 export function parseTimeInformation(
 	value: string,

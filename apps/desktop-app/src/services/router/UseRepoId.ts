@@ -1,6 +1,7 @@
-import { assertDefined } from "@omegadot/assert";
 import { useRouter } from "found";
 import { createContext, useContext, useMemo } from "react";
+
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 /**
  * In most cases the repositoryId can be extracted from the current route.

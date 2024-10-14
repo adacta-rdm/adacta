@@ -5193,9 +5193,7 @@ __metadata:
     "@graphql-tools/utils": "npm:^8.9.0"
     "@microsoft/api-documenter": "npm:^7.15.3"
     "@microsoft/api-extractor": "npm:^7.19.4"
-    "@omegadot/assert": "npm:^0.2.2"
     "@omegadot/einheiten": "npm:^0.1.3"
-    "@omegadot/fs": "npm:^0.2.3"
     "@react-hook/debounce": "npm:^3.0.0"
     "@storybook/addon-essentials": "npm:^8.2.5"
     "@storybook/addon-interactions": "npm:^8.2.5"
@@ -5268,7 +5266,6 @@ __metadata:
     jsdom: "npm:^24.0.0"
     jsonwebtoken: "npm:^8.5.1"
     knip: "npm:^5.23.1"
-    lodash: "npm:^4.17.20"
     lodash-es: "npm:^4.17.21"
     minipass: "npm:^5.0.0"
     moment: "npm:^2.29.1"
@@ -5307,24 +5304,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@omegadot/assert@npm:^0.2.2":
-  version: 0.2.3
-  resolution: "@omegadot/assert@npm:0.2.3"
-  checksum: 10c0/67b67c716e34734bdfcb1b7106391df0b2352a56ef942e95c02f6a1fb16b0a696867f69b8509b49bc2e609e6ec6fbbd6882f23fdcfa5805cf1991397f9506db6
-  languageName: node
-  linkType: hard
-
 "@omegadot/einheiten@npm:^0.1.3":
   version: 0.1.3
   resolution: "@omegadot/einheiten@npm:0.1.3"
   checksum: 10c0/6d371bb2047c751493c1076219b4f892839269c1b4a88af37d628e4dcd4751d13be71961d853406d633a965fe3d326f80497c2fa60fc833b7c665ce3dcdf278d
-  languageName: node
-  linkType: hard
-
-"@omegadot/fs@npm:^0.2.3":
-  version: 0.2.3
-  resolution: "@omegadot/fs@npm:0.2.3"
-  checksum: 10c0/48aaddce4fc135fc6bc5fcde4764e39ecabc1b377c64109191f061e46da48a924bb132fda67fb8e110bbc6edea1af843a9794090bc836dcca200f3a62925979e
   languageName: node
   linkType: hard
 
@@ -13724,7 +13707,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.17.21, lodash@npm:^4.17.15, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:~4.17.0, lodash@npm:~4.17.15":
+"lodash@npm:4.17.21, lodash@npm:^4.17.15, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:~4.17.0, lodash@npm:~4.17.15":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: 10c0/d8cbea072bb08655bb4c989da418994b073a608dffa608b09ac04b43a791b12aeae7cd7ad919aa4c925f33b48490b5cfe6c1f71d827956071dae2e7bb3a6b74c

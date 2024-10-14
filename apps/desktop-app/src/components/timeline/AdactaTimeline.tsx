@@ -15,7 +15,6 @@ import {
 	EuiTitle,
 	EuiToolTip,
 } from "@elastic/eui";
-import { assertDefined, assertUnreachable } from "@omegadot/assert";
 import moment from "moment";
 import type { ReactElement } from "react";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -44,6 +43,8 @@ import type { AdactaTimelineNotes$data } from "@/relay/AdactaTimelineNotes.graph
 import type { AdactaTimelineResource$data } from "@/relay/AdactaTimelineResource.graphql";
 import type { AdactaTimelineSample$data } from "@/relay/AdactaTimelineSample.graphql";
 import type { AdactaTimelineUsage$data } from "@/relay/AdactaTimelineUsage.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
+import { assertUnreachable } from "~/lib/assert/assertUnreachable";
 import { createIDatetime } from "~/lib/createDate";
 import { MAX_DATE_INT } from "~/lib/utils/maxDateInt";
 import { splitPropertyNameIntoVirtualGroups } from "~/lib/utils/splitPropertyNameIntoVirtualGroups";

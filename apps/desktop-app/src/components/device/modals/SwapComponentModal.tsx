@@ -14,7 +14,6 @@ import {
 	EuiSuperSelect,
 	EuiText,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React, { Suspense, useState } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
 import { graphql, useLazyLoadQuery, useMutation } from "react-relay";
@@ -31,6 +30,7 @@ import type { SwapComponentModalMutation } from "@/relay/SwapComponentModalMutat
 import type { SwapComponentModalQuery } from "@/relay/SwapComponentModalQuery.graphql";
 import { DeviceAdd } from "~/apps/desktop-app/src/components/device/DeviceAdd";
 import { FreeComponentSelection } from "~/apps/desktop-app/src/components/device/FreeComponentSelection";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import {
 	createDate,
 	createIDatetime,

@@ -13,7 +13,6 @@ import {
 } from "@elastic/eui";
 import { EuiTextArea } from "@elastic/eui";
 import type { EuiDescriptionListProps } from "@elastic/eui/src/components/description_list/description_list_types";
-import { assertDefined } from "@omegadot/assert";
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import type { ArrayElement } from "type-fest/source/internal";
 
@@ -25,6 +24,7 @@ import {
 } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
 import { wrapWithSuspense } from "~/apps/desktop-app/src/utils/wrapWithSuspense";
 import { MAX_SPECIFICATION_VALUE_LENGTH } from "~/lib/MAX_SPECIFICATION_VALUE_LENGTH";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { ISpecification } from "~/lib/database/documents/interfaces/ISpecification";
 
 interface IProps {

@@ -1,4 +1,4 @@
-import { lastIndexOf } from "lodash";
+import { lastIndexOf } from "lodash-es";
 
 /**
  * Returns the position of the n-th occurrence of char in str

@@ -1,4 +1,4 @@
-import { cloneDeep, isEqual } from "lodash";
+import { cloneDeep, isEqual } from "lodash-es";
 import type { ErrorInfo } from "react";
 import React, { useEffect, useState } from "react";
 import Timeline from "react-vis-timeline";

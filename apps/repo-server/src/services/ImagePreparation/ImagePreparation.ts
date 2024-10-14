@@ -1,6 +1,5 @@
 import assert from "assert";
 
-import { assertUnreachable } from "@omegadot/assert";
 import type { FormatEnum } from "sharp";
 
 import type { IImageOptions } from "~/apps/repo-server/interface/IPrepareImageTaskArgs";
@@ -8,6 +7,7 @@ import { IImagePreset } from "~/apps/repo-server/src/graphql/generated/resolvers
 import { TaskDispatcher } from "~/apps/repo-server/src/services/TaskDispatcher/TaskDispatcher";
 import type { StorageEngineRemoteAccess } from "~/apps/repo-server/src/storage/storageEngine/remoteAccess/StorageEngineRemoteAccess";
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
+import { assertUnreachable } from "~/lib/assert/assertUnreachable";
 import type { IResourceId } from "~/lib/database/Ids";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";
 import type { StorageEngine } from "~/lib/storage-engine";

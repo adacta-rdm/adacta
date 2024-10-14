@@ -7,7 +7,6 @@ import {
 	EuiSwitch,
 	EuiToolTip,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import { useDebounce, useDebounceCallback } from "@react-hook/debounce";
 import React, { Suspense, useState } from "react";
 import { graphql, loadQuery } from "react-relay";
@@ -25,6 +24,7 @@ import { ResourceLink } from "~/apps/desktop-app/src/components/resource/Resourc
 import { useRouter } from "~/apps/desktop-app/src/hooks/useRouter";
 import { useRepositoryId } from "~/apps/desktop-app/src/services/router/UseRepoId";
 import { secondsToHMS } from "~/apps/desktop-app/src/utils/secondsToHMS";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 export type QueryParams = {
 	resourceIds?: string[];

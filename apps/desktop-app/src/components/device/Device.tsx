@@ -1,4 +1,3 @@
-import { assertDefined } from "@omegadot/assert";
 import React from "react";
 import { graphql } from "react-relay";
 import type { PreloadedQuery } from "react-relay/hooks";
@@ -7,6 +6,7 @@ import { usePreloadedQuery } from "react-relay/hooks";
 import { DeviceOverview } from "./DeviceOverview";
 
 import type { DeviceQuery } from "@/relay/DeviceQuery.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 export const DeviceGraphQLQuery = graphql`
 	query DeviceQuery($deviceId: ID!, $time: DateTime, $repositoryId: ID!) {

@@ -2,9 +2,12 @@ import { createHash } from "node:crypto";
 import { mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { __dirnameFromImportMetaURL } from "~/lib/__dirnameFromImportMetaURL";
 import { GeneratedFilesReporter } from "~/scripts/utils/fileGenerator/GeneratedFilesReporter";
 import { GENERATED_HEADER_TS } from "~/scripts/utils/fileGenerator/generatorConsts";
 import { safeWriteGeneratedFile } from "~/scripts/utils/fileGenerator/safeWriteGeneratedFile";
+
+const __dirname = __dirnameFromImportMetaURL(import.meta.url);
 
 export default async function () {
 	// Ensures that this code is not bundled, as it runs at build time

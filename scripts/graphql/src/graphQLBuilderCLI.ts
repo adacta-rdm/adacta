@@ -6,8 +6,8 @@ import * as typescriptPlugin from "@graphql-codegen/typescript";
 import * as typescriptGraphqlRequestPlugin from "@graphql-codegen/typescript-graphql-request";
 import * as typescriptOperationsPlugin from "@graphql-codegen/typescript-operations";
 import * as typescriptResolversPlugin from "@graphql-codegen/typescript-resolvers";
-import type { DocumentNode } from "graphql";
 import { print } from "graphql";
+import type { DocumentNode } from "graphql";
 import glob from "tiny-glob";
 
 import type { TypeDef } from "./GraphQLBuilder";

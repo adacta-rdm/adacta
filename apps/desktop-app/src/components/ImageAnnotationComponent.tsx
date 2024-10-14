@@ -1,10 +1,11 @@
 import { EuiBadge, EuiButtonIcon, EuiImage, EuiText } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import type { ReactElement } from "react";
 import React, { useState } from "react";
 
 import { ImageAnnotationCreate } from "./ImageAnnotationCreate";
 import type { IAvailableLabel } from "./device/SetupDescriptionComponent";
+
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 export interface IImageAnnotation {
 	x: number;

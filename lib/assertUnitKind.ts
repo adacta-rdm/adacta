@@ -2,7 +2,7 @@ import { AssertionError } from "assert";
 
 import { Qty } from "@omegadot/einheiten";
 import type { UnitKind } from "@omegadot/einheiten/dist/types/quantities/kind";
-import { difference } from "lodash";
+import { difference } from "lodash-es";
 
 export function assertUnitKind(kind: string): asserts kind is UnitKind {
 	if (!Qty.getKinds().includes(kind as UnitKind)) {

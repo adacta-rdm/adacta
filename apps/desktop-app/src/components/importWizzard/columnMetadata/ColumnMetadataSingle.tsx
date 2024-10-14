@@ -8,7 +8,6 @@ import {
 	EuiSuperSelect,
 	EuiSwitch,
 } from "@elastic/eui";
-import { isNonNullish } from "@omegadot/assert";
 import React, { Suspense, useState } from "react";
 
 import { UnitInput } from "./UnitInput";
@@ -19,6 +18,7 @@ import { DocFlyoutService } from "../../../services/toaster/FlyoutService";
 import { SplitContent } from "../../utils/SplitContent";
 import { ImportDeviceSelection } from "../ImportDeviceSelection";
 
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 import type { IDeviceId } from "~/lib/database/Ids";
 import type { IColumConfigWithoutIdAndName } from "~/lib/importWizard/IColumnConfigWithoutId";
 import type { IColumnConfig } from "~/lib/interface/IImportWizardPreset";

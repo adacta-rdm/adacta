@@ -1,0 +1,14 @@
+{
+	"src": ".",
+	"excludes": ["**/node_modules/**", "@/**"],
+	"schema": "apps/repo-server/src/graphql/generated/schema.graphql",
+	"language": "typescript",
+	"customScalarTypes": {
+		"DateTime": "string",
+		"JSONString": "string",
+		"ColumnType": "unknown"
+	},
+	"typescriptExcludeUndefinedFromNullableUnion": true,
+	"eagerEsModules": true,
+	"artifactDirectory": "@/relay"
+}

@@ -6,7 +6,7 @@ import {
 	EuiLink,
 	EuiPopover,
 } from "@elastic/eui";
-import { groupBy } from "lodash";
+import { groupBy } from "lodash-es";
 import { uniqBy } from "lodash-es";
 import upperFirst from "lodash-es/upperFirst";
 import { useState } from "react";

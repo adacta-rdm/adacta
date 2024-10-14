@@ -1,12 +1,12 @@
 import assert from "assert";
 
-import { assertDefined } from "@omegadot/assert";
 import { isNotNull, sql } from "drizzle-orm";
 
 import { EntityLoader } from "~/apps/repo-server/src/services/EntityLoader";
 import { closureTableInsert } from "~/apps/repo-server/src/utils/closureTable/closureTableTree";
 import type { DrizzleDb } from "~/drizzle/DrizzleDb";
 import type { DrizzleSchema } from "~/drizzle/DrizzleSchema";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 export async function migrate(db: DrizzleDb, schema: DrizzleSchema) {
 	await migrateDeviceDefinitionTree(db, schema);

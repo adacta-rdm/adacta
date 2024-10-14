@@ -7,11 +7,11 @@ import {
 	EuiSpacer,
 	EuiTitle,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React, { useState } from "react";
 
 import { useService } from "~/apps/desktop-app/src/services/ServiceProvider";
 import { GraphQLHeaderService } from "~/apps/desktop-app/src/services/repositoryId/GraphQLHeaderService";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IChangePasswordRequest } from "~/lib/interface/IChangePasswordRequest";
 import {
 	NEW_PASSWORD_TOO_WEAK,

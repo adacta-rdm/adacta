@@ -1,4 +1,3 @@
-import { assertDefined } from "@omegadot/assert";
 import React from "react";
 import { graphql, useFragment, useLazyLoadQuery } from "react-relay";
 
@@ -9,6 +8,7 @@ import type { PropsWithConnections } from "../../../interfaces/PropsWithConnecti
 
 import type { ResourceListEntryFragment$key } from "@/relay/ResourceListEntryFragment.graphql";
 import type { ResourceListEntryLazyQuery } from "@/relay/ResourceListEntryLazyQuery.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 interface IProps {
 	resource: ResourceListEntryFragment$key;

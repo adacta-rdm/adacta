@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 
 import chokidar from "chokidar";
-import { debounce } from "lodash";
+import { debounce } from "lodash-es";
 
 import { RouteFile } from "~/lib/route-generator/RouteFile";
 import { RouteGenerator } from "~/lib/route-generator/RouteGenerator";

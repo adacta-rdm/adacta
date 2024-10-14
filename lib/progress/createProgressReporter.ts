@@ -1,6 +1,6 @@
 import assert from "assert";
 
-import { range } from "lodash";
+import { range } from "lodash-es";
 
 import type { IProgress, IProgressReporterFn, IProgressValue } from "./IProgressReporterFn";
 

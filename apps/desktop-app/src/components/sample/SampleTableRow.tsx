@@ -1,5 +1,4 @@
 import { EuiLink, EuiTableRow, EuiTableRowCell } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import type { ReactElement } from "react";
 import React, { Fragment, Suspense } from "react";
 import { graphql, useLazyLoadQuery } from "react-relay";
@@ -16,6 +15,7 @@ import { LoadChildrenRowsOnDemand } from "../utils/LoadChildrenRowsOnDemand";
 
 import type { SampleTableRow$key } from "@/relay/SampleTableRow.graphql";
 import type { SampleTableRowLazyQuery } from "@/relay/SampleTableRowLazyQuery.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { ISampleId } from "~/lib/database/Ids";
 
 export function SampleTableRow(props: {

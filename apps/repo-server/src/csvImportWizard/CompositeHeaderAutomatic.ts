@@ -1,4 +1,4 @@
-import lodash from "lodash";
+import { isEqual } from "lodash-es";
 
 import { CSVImportWizard } from "./CSVImportWizard";
 
@@ -52,7 +52,7 @@ export function compositeHeaderAutomatic(rows: string[][]): string[][] {
 		// composite naming schema. It would not make sense to select the 5 element from the first
 		// header row and the 3 element from the second row.
 		if (
-			!lodash.isEqual(
+			!isEqual(
 				headerColumns,
 				[...headerColumns].sort((a, b) => (a ?? 0) - (b ?? 0))
 			)

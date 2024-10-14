@@ -1,5 +1,4 @@
-import { assertDefined } from "@omegadot/assert";
-import lodash from "lodash";
+import lodash from "lodash-es";
 import React, { useEffect, useState } from "react";
 
 import type { ICellValue } from "./Cell";
@@ -7,6 +6,8 @@ import type { IRowData } from "./Row";
 import { Row } from "./Row";
 import { indexToLetter } from "./indexToLetter";
 import { skipIndices } from "./skipIndices";
+
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 export type ISpreadSheetRows = ISpreadSheetRow[];
 type ISpreadSheetRow = ICellValue[];

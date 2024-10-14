@@ -8,7 +8,6 @@ import {
 	EuiPopover,
 	EuiSelect,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React, { useState } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
 import {
@@ -26,6 +25,7 @@ import { fetchQueryWrapper } from "../../../utils/fetchQueryWrapper";
 import type { PresetSelection$key } from "@/relay/PresetSelection.graphql";
 import type { PresetSelectionFetchPresetQuery } from "@/relay/PresetSelectionFetchPresetQuery.graphql";
 import type { PresetSelectionSavePresetMutation } from "@/relay/PresetSelectionSavePresetMutation.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IDeviceId } from "~/lib/database/Ids";
 import type { IImportWizardPreset } from "~/lib/interface/IImportWizardPreset";
 

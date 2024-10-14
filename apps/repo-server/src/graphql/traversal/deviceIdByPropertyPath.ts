@@ -1,6 +1,5 @@
 import assert from "assert";
 
-import { assertDefined } from "@omegadot/assert";
 import { and, eq } from "drizzle-orm";
 
 import { narrowTimeframe } from "./narrowTimeframe";
@@ -8,6 +7,7 @@ import type { EntityLoader } from "../../services/EntityLoader";
 import { propertyPathToString } from "../../utils/propertyPathToString";
 
 import type { DrizzleSchema } from "~/drizzle/DrizzleSchema";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IDeviceId } from "~/lib/database/Ids";
 
 export async function deviceIdByPropertyPath(

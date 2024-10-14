@@ -4,7 +4,6 @@ import {
 	EUI_CHARTS_THEME_LIGHT,
 	EUI_SPARKLINE_THEME_PARTIAL,
 } from "@elastic/eui/dist/eui_charts_theme";
-import { assertDefined } from "@omegadot/assert";
 import React from "react";
 import { graphql } from "react-relay";
 import { useFragment } from "react-relay/hooks";
@@ -12,6 +11,7 @@ import { useFragment } from "react-relay/hooks";
 import { groupMonotonic } from "./utils/groupMonotonic";
 
 import type { Sparkline$key } from "@/relay/Sparkline.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 const SparklineGraphQLFragment = graphql`
 	fragment Sparkline on ResourceTabularData {

@@ -11,7 +11,6 @@ import {
 	EuiTabs,
 	EuiTitle,
 } from "@elastic/eui";
-import { assertDefined, isNonNullish } from "@omegadot/assert";
 import React, { useState } from "react";
 import { graphql } from "react-relay";
 import type { PreloadedQuery } from "react-relay/hooks";
@@ -25,6 +24,8 @@ import { ResourceListTable } from "../resource/list/ResourceListTable";
 import { SampleTable } from "../sample/SampleTable";
 
 import type { UserProfileQuery } from "@/relay/UserProfileQuery.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 
 export const UserProfileGraphQLQuery = graphql`
 	query UserProfileQuery($userId: ID!, $repositoryId: ID!) {

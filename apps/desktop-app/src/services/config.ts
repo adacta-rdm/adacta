@@ -1,4 +1,3 @@
-import { assertDefined } from "@omegadot/assert";
 import type { ExecutionResult } from "graphql/index";
 import type { Sink } from "graphql-ws";
 import { createClient } from "graphql-ws";
@@ -14,6 +13,7 @@ import { GraphQLHeaderService } from "./repositoryId/GraphQLHeaderService";
 import { DocFlyoutService } from "./toaster/FlyoutService";
 import { ToasterService } from "./toaster/ToasterService";
 
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { PACKAGE_VERSION } from "~/lib/buildTimeConstants";
 import { RepoURL } from "~/lib/url/RepoURL";
 

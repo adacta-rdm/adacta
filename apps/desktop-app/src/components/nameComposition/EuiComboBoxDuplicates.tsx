@@ -1,8 +1,8 @@
 import type { EuiComboBoxOptionOption, EuiComboBoxProps, IconType } from "@elastic/eui";
 import { EuiComboBox, EuiFlexGroup, EuiFlexItem, EuiIcon } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React from "react";
 
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { uuid } from "~/lib/uuid";
 
 // Use EuiComboBoxProps and make the options non-nullable

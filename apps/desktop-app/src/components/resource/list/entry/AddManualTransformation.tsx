@@ -6,7 +6,6 @@ import {
 	EuiModalHeader,
 	EuiModalHeaderTitle,
 } from "@elastic/eui";
-import { assertDefined, isNonNullish } from "@omegadot/assert";
 import React, { useState } from "react";
 import { graphql, useLazyLoadQuery, useMutation } from "react-relay";
 
@@ -17,6 +16,8 @@ import { ResourceDropdown } from "../../ResourceDropdown";
 
 import type { AddManualTransformationMutation } from "@/relay/AddManualTransformationMutation.graphql";
 import type { AddManualTransformationQuery } from "@/relay/AddManualTransformationQuery.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 
 export function AddManualTransformation(
 	props: PropsWithConnections<{

@@ -1,5 +1,4 @@
 import { EuiFlexGroup, EuiFlexItem, EuiLink, EuiSpacer, EuiText } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React, { useState } from "react";
 import { graphql, useFragment } from "react-relay";
 
@@ -8,6 +7,7 @@ import { NoteRevisions } from "./comparison/NoteRevisions";
 import { AdactaMarkdownFormat } from "../markdown/AdactaMarkdownFormat";
 
 import type { Note$key } from "@/relay/Note.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { createMaybeDate } from "~/lib/createDate";
 
 interface IProps {

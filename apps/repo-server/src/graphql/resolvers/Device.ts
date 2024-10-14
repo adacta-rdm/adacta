@@ -1,9 +1,8 @@
 import assert from "node:assert";
 
-import { assertDefined } from "@omegadot/assert";
 import { and, eq, gt, isNull, lte, notExists, notInArray, or } from "drizzle-orm";
 import type { SQL } from "drizzle-orm/sql/sql";
-import { isEqual } from "lodash";
+import { isEqual } from "lodash-es";
 
 import { metadata } from "./utils/metadata";
 import { notes } from "./utils/notes";
@@ -17,6 +16,7 @@ import { paginateDocuments } from "~/apps/repo-server/src/graphql/resolvers/util
 import { serverSideSpecifications } from "~/apps/repo-server/src/graphql/resolvers/utils/serverSideSpecifications";
 import { usagesAsProperty } from "~/apps/repo-server/src/graphql/resolvers/utils/usagesAsProperty";
 import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import {
 	createDate,
 	createIDatetime,

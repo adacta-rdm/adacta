@@ -1,8 +1,7 @@
-import { assertDefined } from "@omegadot/assert";
-
 import { ResourceAttachmentManager } from "../context/ResourceAttachmentManager";
 import type { IResolvers } from "../generated/resolvers";
 
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { RawTextReader } from "~/lib/rawTextReader/RawTextReader";
 
 export const ResourceGeneric: IResolvers["ResourceGeneric"] = {

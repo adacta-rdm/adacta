@@ -1,5 +1,5 @@
 import chokidar from "chokidar";
-import { debounce } from "lodash";
+import { debounce } from "lodash-es";
 
 import { graphQLBuilderCLI } from "./src/graphQLBuilderCLI";
 

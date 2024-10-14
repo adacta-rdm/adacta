@@ -1,11 +1,11 @@
 import { EuiFlexItem } from "@elastic/eui";
-import { isNonNullish } from "@omegadot/assert";
 import React from "react";
 import { graphql, useFragment } from "react-relay";
 
 import type { ImageList$key } from "@/relay/ImageList.graphql";
 import { AdactaImage } from "~/apps/desktop-app/src/components/image/AdactaImage";
 import { wrapWithSuspense } from "~/apps/desktop-app/src/utils/wrapWithSuspense";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 
 interface IProps {
 	images: ImageList$key;

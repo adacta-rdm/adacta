@@ -1,7 +1,7 @@
-import { assertDefined } from "@omegadot/assert";
 import type { RequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
 
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { HTTPAuthenticationError } from "~/lib/errors/HTTPAuthenticationError";
 import { extractJWTFromHTTPHeader } from "~/lib/utils/extractJWTFromHTTPHeader";
 

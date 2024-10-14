@@ -1,4 +1,3 @@
-import { assertDefined } from "@omegadot/assert";
 import React from "react";
 import type { GraphQLTaggedNode } from "react-relay";
 import { graphql, useLazyLoadQuery, useMutation } from "react-relay";
@@ -12,6 +11,7 @@ import { ToasterService } from "../../../services/toaster/ToasterService";
 import type { AddOrEditComponentUsageModalFragment$key } from "@/relay/AddOrEditComponentUsageModalFragment.graphql";
 import type { EditComponentUsageModalMutation } from "@/relay/EditComponentUsageModalMutation.graphql";
 import type { EditComponentUsageModalQuery } from "@/relay/EditComponentUsageModalQuery.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { createIDatetime, createMaybeIDatetime } from "~/lib/createDate";
 
 const EditComponentGraphQLMutation: GraphQLTaggedNode = graphql`

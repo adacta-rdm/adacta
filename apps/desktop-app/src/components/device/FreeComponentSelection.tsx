@@ -1,7 +1,6 @@
 import assert from "assert";
 
 import { EuiFlexGroup, EuiFlexItem } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import type { ReactNode } from "react";
 import React from "react";
 import { graphql, useLazyLoadQuery } from "react-relay";
@@ -14,6 +13,7 @@ import { SearchableSuperSelect } from "../utils/SearchableSelect";
 import type { PropertyType } from "@/relay/AddOrEditComponentUsageModalFragment.graphql";
 import type { FreeComponentSelectionQuery } from "@/relay/FreeComponentSelectionQuery.graphql";
 import { DevicePreviewImage } from "~/apps/desktop-app/src/components/device/DevicePreviewImage";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { createDate, createIDatetime, createMaybeIDatetime } from "~/lib/createDate";
 
 export const FreeComponentSelectionGraphQLQuery = graphql`

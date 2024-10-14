@@ -1,7 +1,8 @@
-import { assertDefined } from "@omegadot/assert";
 import React, { useContext } from "react";
 
 import type { ServiceContainer } from "./ServiceContainer";
+
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 export const Service = React.createContext<ServiceContainer | undefined>(undefined);
 

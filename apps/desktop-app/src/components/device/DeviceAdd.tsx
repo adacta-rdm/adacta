@@ -1,4 +1,3 @@
-import { assertDefined } from "@omegadot/assert";
 import React, { useState } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
 import { useMutation } from "react-relay";
@@ -14,6 +13,7 @@ import type {
 	DeviceAddMutation,
 	DeviceAddMutation$variables,
 } from "@/relay/DeviceAddMutation.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IDeviceDefinitionId } from "~/lib/database/Ids";
 import type { ISpecification } from "~/lib/database/documents/interfaces/ISpecification";
 
