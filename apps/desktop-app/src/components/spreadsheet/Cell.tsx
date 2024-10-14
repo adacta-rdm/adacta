@@ -1,9 +1,9 @@
 import type { EuiThemeColorModeStandard } from "@elastic/eui";
 import { darken, EuiSkeletonText, tintOrShade, useEuiTheme } from "@elastic/eui";
 import React from "react";
+import "@/cell.dist.css";
 
 import { assertUnreachable } from "~/lib/assert/assertUnreachable";
-import "./Cell.css";
 
 export interface ICellValue {
 	value: string | JSX.Element;

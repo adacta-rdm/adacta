@@ -173,7 +173,7 @@ export function ResourceChart(props: IProps) {
 		<>
 			<Chart
 				hideDevices={props.hideDevices}
-				highlightSeries={highlightSeries}
+				highlight={{ name: highlightSeries }}
 				chart={data.resource.downSampled}
 				customLegend={
 					<>

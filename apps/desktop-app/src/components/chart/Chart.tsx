@@ -9,6 +9,7 @@ import {
 	Tooltip,
 } from "@elastic/charts";
 import { EuiFlexGroup, EuiFlexItem, EuiPanel } from "@elastic/eui";
+import { merge } from "lodash-es";
 import React, { Fragment, Suspense } from "react";
 import { graphql } from "react-relay";
 import { useFragment } from "react-relay/hooks";
@@ -32,9 +33,19 @@ interface IProps {
 	hideDevices?: string[];
 
 	/**
-	 * Label of the series which should be highlighted (all other series should get a lighter color)
+	 * Select a series which should be highlighted (all other series should get a lighter color)
 	 */
-	highlightSeries?: string;
+	highlight?: {
+		/**
+		 * Name of the series
+		 */
+		name?: string;
+
+		/**
+		 * Resource ID of the series
+		 */
+		resourceId?: string;
+	};
 }
 
 const ChartGraphQLFragment = graphql`
@@ -96,13 +107,20 @@ export function Chart(props: IProps) {
 
 	const getLineStyleByIndex = (
 		index: number,
-		bold?: boolean
+		highlight?: boolean
 	): RecursivePartial<LineSeriesStyle> => {
-		if (index === 0) {
-			return {
-				line: {
-					strokeWidth: bold ? 2 : 1,
-				},
+		const baseConfig: RecursivePartial<LineSeriesStyle> = {
+			// point: resources.length > 1 ? { visible: false } : undefined, // Hide points in comparison charts
+			point: { visible: false },
+			line: {
+				strokeWidth: highlight ? 2 : 1,
+			},
+		};
+
+		// Use the default line style (solid line) for the first resource and for highlighted resources
+		// This ensures that the increased stroke width is easier noticeable
+		if (index === 0 || highlight) {
+			return merge(baseConfig, {
 				fit: {
 					line: {
 						// EUI draws lines to data points that were filled by the "fit" function
@@ -112,8 +130,9 @@ export function Chart(props: IProps) {
 						dash: [Infinity],
 					},
 				},
-			};
+			});
 		} else {
+			// Syntax is [dashLength, gapLength, dashLength, gapLength, ...]
 			const dashConfigs = [
 				[1], // Dots
 				[5], // Dashes
@@ -124,7 +143,7 @@ export function Chart(props: IProps) {
 			const dashConfigIndex = (index - 1) % dashConfigs.length;
 			const dashConfig = dashConfigs[dashConfigIndex];
 
-			return {
+			return merge(baseConfig, {
 				line: {
 					dash: dashConfig,
 				},
@@ -133,12 +152,16 @@ export function Chart(props: IProps) {
 						dash: dashConfig,
 					},
 				},
-			};
+			});
 		}
 	};
 
-	const getColor = (axisTitle: string, axisLabel: string) => {
-		if (props.highlightSeries !== undefined && props.highlightSeries !== axisLabel) {
+	const getColor = (resourceId: string | null, axisTitle: string, axisLabel: string) => {
+		if (
+			props.highlight !== undefined &&
+			props.highlight.name !== axisLabel &&
+			props.highlight.resourceId !== resourceId
+		) {
 			return colorAssigner.getLightColor(axisTitle);
 		}
 
@@ -151,7 +174,7 @@ export function Chart(props: IProps) {
 		const axisId = `${axisTitle}${i}`;
 
 		// Request color even for hidden axes to get consistent colors
-		const color = getColor(axisTitle, yAxis.label);
+		const color = getColor(yAxis.resourceId, axisTitle, yAxis.label);
 
 		if (yAxis.device?.id !== null && props.hideDevices?.includes(yAxis.device?.id as IDeviceId)) {
 			return [];
@@ -192,7 +215,9 @@ export function Chart(props: IProps) {
 							xScaleType={xValueIsTime ? ScaleType.Time : ScaleType.Linear}
 							lineSeriesStyle={getLineStyleByIndex(
 								getResourceIndex(yAxis.resourceId),
-								props.highlightSeries !== undefined && props.highlightSeries === yAxis.label
+								props.highlight !== undefined &&
+									(props.highlight.name === yAxis.label ||
+										props.highlight.resourceId === yAxis.resourceId)
 							)}
 						/>
 					);

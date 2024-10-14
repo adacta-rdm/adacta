@@ -3,9 +3,6 @@
 # dependencies
 node_modules
 
-
-
-
 # production
 build
 release
@@ -48,9 +45,6 @@ app-spec.json
 
 # Keep environment variables out of version control
 *.env
-
-/apps/repo-server/public/resources
-/apps/desktop-app/src/euiIcons.js
 
 # Docker volumes
 temp

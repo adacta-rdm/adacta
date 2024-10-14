@@ -160,6 +160,107 @@ describe("CSVImportWizard", () => {
 	});
 
 	describe("#toTabularData", () => {
+		const toTabularDataTestWrapper = async (
+			fileName: string,
+			options?: IToTabularDataOptions
+		): Promise<[TabularData, string[]]> => {
+			const wizard = new CSVImportWizard(sto);
+
+			const stoTmp = new FileSystemStorageEngine(await mkdirTmp());
+
+			const filename = "test.rtd";
+			const writable = TabularData.createWriteStream(stoTmp, filename, 3);
+
+			const { warnings } = (
+				await wizard.toTabularData(
+					fileName,
+					writable,
+					options ?? {
+						delimiter: ",",
+						dataArea: { header: { type: "SingleHeaderRow", headerRow: 0 }, body: 1 },
+						columnMetadata: {
+							x: {
+								columnId: "x",
+								title: "x",
+								type: "number",
+								normalizerIds: [],
+							},
+							y1: {
+								columnId: "y1",
+								title: "y1",
+								type: "number",
+								normalizerIds: [],
+							},
+							y2: {
+								columnId: "y2",
+								title: "y2",
+								type: "number",
+								normalizerIds: [],
+								independent: ["x"],
+							},
+						},
+						decimalSeparator: ".",
+						manualDateConfig: {
+							begin: createIDatetime(new Date(0)),
+							end: createIDatetime(new Date(1)),
+						},
+					},
+					deviceReferenceCheck
+				)
+			)._unsafeUnwrap();
+
+			const td = await TabularData.open(stoTmp, filename, 3);
+			return [td, warnings];
+		};
+
+		/**
+		 * This test ensures that the `turnNaNIntoZero` normalizer works as expected even when the
+		 * decimal separator is a comma (this ensures that the normalizer is correctly applied).
+		 *
+		 * Previously the normalizer was applied to the string value and only worked for decimal numbers
+		 * with a point as decimal separator.
+		 */
+		test("turnNaNIntoZero works with custom decimal separator ", async () => {
+			const [td, warnings] = await toTabularDataTestWrapper("NonParsableColumnsUsingComma.csv", {
+				decimalSeparator: ",",
+				delimiter: ";",
+				dataArea: { header: { type: "SingleHeaderRow", headerRow: 0 }, body: 1 },
+				columnMetadata: {
+					x: {
+						columnId: "x",
+						title: "x",
+						type: "number",
+						normalizerIds: ["turnNaNIntoZero"],
+					},
+					y1: {
+						columnId: "y1",
+						title: "y1",
+						type: "number",
+						normalizerIds: [],
+					},
+					y2: {
+						columnId: "y2",
+						title: "y2",
+						type: "number",
+						normalizerIds: [],
+						independent: ["x"],
+					},
+				},
+				manualDateConfig: {
+					begin: createIDatetime(new Date(0)),
+					end: createIDatetime(new Date(1)),
+				},
+			});
+
+			expect(warnings).toHaveLength(0);
+			expect(await td.row(0)).toEqual([0, 1, 2]);
+			expect(await td.row(1)).toEqual([
+				0, // <-- NaN is turned into 0
+				4.5,
+				5,
+			]);
+		});
+
 		test("converts 'offset' columns", async () => {
 			const wizard = new CSVImportWizard(sto);
 			const conversionFactor = 1e3;
@@ -467,58 +568,8 @@ describe("CSVImportWizard", () => {
 		});
 
 		describe("ignores erroneous lines within body and generates warning", () => {
-			const testFile = async (fileName: string): Promise<[TabularData, string[]]> => {
-				const wizard = new CSVImportWizard(sto);
-
-				const stoTmp = new FileSystemStorageEngine(await mkdirTmp());
-
-				const filename = "test.rtd";
-				const writable = TabularData.createWriteStream(stoTmp, filename, 3);
-
-				const { warnings } = (
-					await wizard.toTabularData(
-						fileName,
-						writable,
-						{
-							delimiter: ",",
-							dataArea: { header: { type: "SingleHeaderRow", headerRow: 0 }, body: 1 },
-							columnMetadata: {
-								x: {
-									columnId: "x",
-									title: "x",
-									type: "number",
-									normalizerIds: [],
-								},
-								y1: {
-									columnId: "y1",
-									title: "y1",
-									type: "number",
-									normalizerIds: [],
-								},
-								y2: {
-									columnId: "y2",
-									title: "y2",
-									type: "number",
-									normalizerIds: [],
-									independent: ["x"],
-								},
-							},
-							decimalSeparator: ".",
-							manualDateConfig: {
-								begin: createIDatetime(new Date(0)),
-								end: createIDatetime(new Date(1)),
-							},
-						},
-						deviceReferenceCheck
-					)
-				)._unsafeUnwrap();
-
-				const td = await TabularData.open(stoTmp, filename, 3);
-				return [td, warnings];
-			};
-
 			test("ignores complete line if the line unparsable", async () => {
-				const [td, warnings] = await testFile("ErroneousLine.csv");
+				const [td, warnings] = await toTabularDataTestWrapper("ErroneousLine.csv");
 
 				expect(td.numRows()).toBe(4);
 				expect(warnings).toHaveLength(1);
@@ -526,7 +577,7 @@ describe("CSVImportWizard", () => {
 			});
 
 			test("ignores complete line if a single column is unparsable", async () => {
-				const [td, warnings] = await testFile("NonParsableColumns.csv");
+				const [td, warnings] = await toTabularDataTestWrapper("NonParsableColumns.csv");
 
 				expect(td.numRows()).toBe(3);
 				expect(warnings).toHaveLength(2);
@@ -741,6 +792,59 @@ describe("CSVImportWizard", () => {
 
 				expect(result.warnings).toHaveLength(1);
 				expect(result.warnings[0]).toMatch(/Device for column b is different/);
+			});
+		});
+
+		describe("ignores trailing empty headers/columns", () => {
+			test.each([
+				"Header", // empty header column (data without empty column)
+				"Data", // empty data column (header without empty column)
+				"Column", // empty column in header and datas
+			])("Supports trailing %s", async (e) => {
+				const wizard = new CSVImportWizard(sto);
+
+				const stoTmp = new FileSystemStorageEngine(await mkdirTmp());
+
+				const filename = "test.rtd";
+				const writable = TabularData.createWriteStream(stoTmp, filename, 2);
+
+				const result = await wizard.toTabularData(
+					`Trailing${e}.csv`,
+					writable,
+					{
+						delimiter: ",",
+						dataArea: { header: { type: "SingleHeaderRow", headerRow: 0 }, body: 1 },
+						columnMetadata: {
+							a: {
+								columnId: "a",
+								title: "a",
+								type: "number",
+								normalizerIds: [],
+							},
+							c: {
+								columnId: "c",
+								title: "c",
+								type: "number",
+								normalizerIds: [],
+								independent: ["a"],
+							},
+						},
+						decimalSeparator: ".",
+						manualDateConfig: {
+							begin: createIDatetime(new Date(0)),
+							end: createIDatetime(new Date(1)),
+						},
+					},
+					deviceReferenceCheck
+				);
+
+				const { props } = result._unsafeUnwrap();
+
+				const td = await TabularData.open(stoTmp, filename, 2);
+
+				expect(td.numRows()).toBe(2);
+				expect(await td.row(0)).toEqual([1, 3]);
+				expect(props.metadata.map((m) => m.title)).toEqual(["a", "c"]);
 			});
 		});
 	});

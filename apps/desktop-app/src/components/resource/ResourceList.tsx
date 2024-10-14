@@ -13,8 +13,8 @@ import type { PreloadedQuery } from "react-relay/hooks";
 import { usePreloadedQuery } from "react-relay/hooks";
 import type { GraphQLSubscriptionConfig } from "relay-runtime";
 
-import { ResourceComparisonView } from "./ResourceComparisonView";
 import { ResourceListHeader, ResourceListTable } from "./list/ResourceListTable";
+import { useRouter } from "../../hooks/useRouter";
 
 import type { ResourceList$key } from "@/relay/ResourceList.graphql";
 import type { ResourceListAddedOrUpdatedSubscription } from "@/relay/ResourceListAddedOrUpdatedSubscription.graphql";
@@ -22,6 +22,7 @@ import type { ResourceListFragment } from "@/relay/ResourceListFragment.graphql"
 import type { ResourceListQuery } from "@/relay/ResourceListQuery.graphql";
 import type { ResourceListRemovedSubscription } from "@/relay/ResourceListRemovedSubscription.graphql";
 import { SearchEmptyPrompt } from "~/apps/desktop-app/src/components/search/list/SearchEmptyPrompt";
+import { useRepositoryIdVariable } from "~/apps/desktop-app/src/services/router/UseRepoId";
 
 const ResourceListGraphQLFragment = graphql`
 	fragment ResourceList on RepositoryQuery
@@ -93,6 +94,9 @@ export function ResourceList(props: {
 	);
 	props.setRefetch(() => refetch);
 
+	const { router } = useRouter();
+	const repositoryIdVariable = useRepositoryIdVariable();
+
 	const data = fullData.repository;
 	const connectionId = data.resources.__id;
 
@@ -118,20 +122,22 @@ export function ResourceList(props: {
 
 	// Comparison
 	const [selectedResources, setSelectedResources] = useState<string[]>([]);
-	const [showComparison, setShowComparison] = useState(false);
 
-	return showComparison ? (
-		<ResourceComparisonView
-			onLeaveComparisonView={() => setShowComparison(false)}
-			selectedResources={selectedResources}
-		/>
-	) : (
+	return (
 		<>
 			{selectedResources.length > 0 && (
 				<>
 					<EuiFlexGroup justifyContent={"flexEnd"}>
 						<EuiFlexItem grow={false}>
-							<EuiButton onClick={() => setShowComparison(true)}>
+							<EuiButton
+								onClick={() =>
+									router.push(
+										"/repositories/:repositoryId/resources/comparison",
+										repositoryIdVariable,
+										{ resourceIds: selectedResources }
+									)
+								}
+							>
 								Compare {selectedResources.length} resources
 							</EuiButton>
 						</EuiFlexItem>
