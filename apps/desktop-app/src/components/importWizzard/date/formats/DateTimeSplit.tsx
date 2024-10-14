@@ -1,12 +1,12 @@
 import assert from "assert";
 
 import { EuiFieldText, EuiFlexItem, EuiFormRow } from "@elastic/eui";
-import { assertUnreachable } from "@omegadot/assert";
 import React from "react";
 
 import { renderPreview } from "./utils/renderPreview";
 import { useDebounceFormUpdate } from "../../../utils/useDebouncedFormUpdate";
 
+import { assertUnreachable } from "~/lib/assert/assertUnreachable";
 import type {
 	IColumnConfig,
 	IColumnTimeConfig,

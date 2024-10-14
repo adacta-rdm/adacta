@@ -13,7 +13,6 @@ import {
 	EuiModalHeaderTitle,
 	EuiSwitch,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import type { ReactElement } from "react";
 import React, { useRef, useState } from "react";
 
@@ -27,6 +26,7 @@ import { UniqueName } from "../UniqueName";
 import type { ISpecificationEditorActions } from "../specifications/SpecificationEditor";
 import { SpecificationEditorDevices } from "../specifications/SpecificationEditor";
 
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IDeviceDefinitionId } from "~/lib/database/Ids";
 import type { ISpecification } from "~/lib/database/documents/interfaces/ISpecification";
 

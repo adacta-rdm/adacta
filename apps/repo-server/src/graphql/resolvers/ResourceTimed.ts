@@ -1,9 +1,9 @@
 import assert from "assert";
 
-import { assertDefined, assertUnreachable } from "@omegadot/assert";
-
 import type { IResolvers } from "../generated/resolvers";
 
+import { assertDefined } from "~/lib/assert/assertDefined";
+import { assertUnreachable } from "~/lib/assert/assertUnreachable";
 import type { IResourceId } from "~/lib/database/Ids";
 
 export const ResourceTimed: IResolvers["ResourceTimed"] = {

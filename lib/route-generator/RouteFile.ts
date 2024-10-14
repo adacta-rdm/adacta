@@ -1,9 +1,11 @@
 import { parse, normalize, join } from "node:path";
 
 import type { Tagged } from "type-fest";
-import ts, { SyntaxKind } from "typescript";
+import ts from "typescript";
 
 export type TypeLiteralText = Tagged<string, "ts.TypeLiteralNode">;
+
+const { SyntaxKind } = ts;
 
 export class RouteFile {
 	constructor(public readonly filename: string, public readonly fileContents: string) {

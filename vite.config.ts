@@ -39,7 +39,6 @@ export default defineConfig(({ mode }) => ({
 	},
 	resolve: {
 		alias: {
-			lodash: "lodash-es",
 			// Replace Node.js modules with empty implementations.
 			// The exports of these modules are never used/called in the client code because they are tree-shaken away
 			// or in an if block that is never executed in the client code. However, vite must still be able to resolve

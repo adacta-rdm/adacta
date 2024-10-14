@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import { verify } from "jsonwebtoken";
-import { isObject } from "lodash";
+import jwt from "jsonwebtoken";
+import { isObject } from "lodash-es";
 
 import { readEnvVar } from "./readEnvVar";
 import { HTTPAuthenticationError } from "../errors/HTTPAuthenticationError";
@@ -16,7 +16,7 @@ export function extractJWTFromHTTPHeader(
 	const [keyword, token] = authorizationHeader.split(" ");
 	if (keyword !== "Bearer") throw new HTTPAuthenticationError(StatusCodes.BAD_REQUEST);
 
-	const payload = verify(token, AUTH_SERVER_JWT_PUBLIC_KEY, {
+	const payload = jwt.verify(token, AUTH_SERVER_JWT_PUBLIC_KEY, {
 		algorithms: ["RS256"],
 	});
 

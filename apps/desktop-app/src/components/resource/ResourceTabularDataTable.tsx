@@ -5,13 +5,13 @@ import type {
 	EuiDataGridColumn,
 	EuiDataGridPaginationProps,
 } from "@elastic/eui/src/components/datagrid/data_grid_types";
-import { assertDefined } from "@omegadot/assert";
 import React, { useState } from "react";
 import { graphql, useRefetchableFragment } from "react-relay";
 
 import { DateTime } from "../datetime/DateTime";
 
 import type { ResourceTabularDataTable_data$key } from "@/relay/ResourceTabularDataTable_data.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 const ResourceTabularDataTableDataGraphQLFragment = graphql`
 	fragment ResourceTabularDataTable_data on ResourceTabularData

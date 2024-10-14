@@ -1,10 +1,11 @@
-import { assertDefined, assertUnreachable } from "@omegadot/assert";
 import { eq, inArray } from "drizzle-orm";
 
 import { metadata } from "./utils/metadata";
 import type { IProject, IResolvers, IResource } from "../generated/resolvers";
 
 import { paginateDocuments } from "~/apps/repo-server/src/graphql/resolvers/utils/paginateDocuments";
+import { assertDefined } from "~/lib/assert/assertDefined";
+import { assertUnreachable } from "~/lib/assert/assertUnreachable";
 import type { IDeviceId, IResourceId } from "~/lib/database/Ids";
 
 export const Resource: IResolvers["Resource"] = {

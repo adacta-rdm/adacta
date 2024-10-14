@@ -1,0 +1,2077 @@
+{
+  "id": "dca59d4d-9f4e-4473-b8d5-90609278bb47",
+  "prevId": "2b54a1ff-3a9e-41a1-b63c-96ecd0f6419a",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "SQL_SCHEMA_PLACEHOLDER.Device": {
+      "name": "Device",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "device_id": {
+          "name": "device_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "couch_id": {
+          "name": "couch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "short_id": {
+          "name": "short_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "device_definition_id": {
+          "name": "device_definition_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "image_resources": {
+          "name": "image_resources",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "setup_description": {
+          "name": "setup_description",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "specifications": {
+          "name": "specifications",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "search": {
+          "name": "search",
+          "type": "tsvector",
+          "primaryKey": false,
+          "notNull": false,
+          "generated": {
+            "as": "to_tsvector('simple', coalesce(name, '') || ' ' || coalesce(short_id, ''))",
+            "type": "stored"
+          }
+        },
+        "metadata_creator_id": {
+          "name": "metadata_creator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creation_timestamp": {
+          "name": "metadata_creation_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_deleted_at": {
+          "name": "metadata_deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_search_device": {
+          "name": "idx_search_device",
+          "columns": [
+            {
+              "expression": "search",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "Device_device_definition_id_DeviceDefinition_device_definition_id_fk": {
+          "name": "Device_device_definition_id_DeviceDefinition_device_definition_id_fk",
+          "tableFrom": "Device",
+          "tableTo": "DeviceDefinition",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "device_definition_id"
+          ],
+          "columnsTo": [
+            "device_definition_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Device_metadata_creator_id_User_user_id_fk": {
+          "name": "Device_metadata_creator_id_User_user_id_fk",
+          "tableFrom": "Device",
+          "tableTo": "User",
+          "schemaTo": "adacta_global",
+          "columnsFrom": [
+            "metadata_creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "Device_couch_id_unique": {
+          "name": "Device_couch_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "couch_id"
+          ]
+        }
+      }
+    },
+    "SQL_SCHEMA_PLACEHOLDER.DeviceDefinition": {
+      "name": "DeviceDefinition",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "device_definition_id": {
+          "name": "device_definition_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "couch_id": {
+          "name": "couch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "image_resource_ids": {
+          "name": "image_resource_ids",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "acceptsUnit": {
+          "name": "acceptsUnit",
+          "type": "varchar[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parent_device_definition_ids": {
+          "name": "parent_device_definition_ids",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "specifications": {
+          "name": "specifications",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metadata_creator_id": {
+          "name": "metadata_creator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creation_timestamp": {
+          "name": "metadata_creation_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_deleted_at": {
+          "name": "metadata_deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "DeviceDefinition_metadata_creator_id_User_user_id_fk": {
+          "name": "DeviceDefinition_metadata_creator_id_User_user_id_fk",
+          "tableFrom": "DeviceDefinition",
+          "tableTo": "User",
+          "schemaTo": "adacta_global",
+          "columnsFrom": [
+            "metadata_creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "DeviceDefinition_couch_id_unique": {
+          "name": "DeviceDefinition_couch_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "couch_id"
+          ]
+        }
+      }
+    },
+    "SQL_SCHEMA_PLACEHOLDER.DeviceDefinitionPaths": {
+      "name": "DeviceDefinitionPaths",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "ancestor_id": {
+          "name": "ancestor_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "descendant_id": {
+          "name": "descendant_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "depth": {
+          "name": "depth",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "DeviceDefinitionPaths_ancestor_id_DeviceDefinition_device_definition_id_fk": {
+          "name": "DeviceDefinitionPaths_ancestor_id_DeviceDefinition_device_definition_id_fk",
+          "tableFrom": "DeviceDefinitionPaths",
+          "tableTo": "DeviceDefinition",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "ancestor_id"
+          ],
+          "columnsTo": [
+            "device_definition_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "DeviceDefinitionPaths_descendant_id_DeviceDefinition_device_definition_id_fk": {
+          "name": "DeviceDefinitionPaths_descendant_id_DeviceDefinition_device_definition_id_fk",
+          "tableFrom": "DeviceDefinitionPaths",
+          "tableTo": "DeviceDefinition",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "descendant_id"
+          ],
+          "columnsTo": [
+            "device_definition_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "DeviceDefinitionPaths_ancestor_id_descendant_id_pk": {
+          "name": "DeviceDefinitionPaths_ancestor_id_descendant_id_pk",
+          "columns": [
+            "ancestor_id",
+            "descendant_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.DeviceDefinitionSpecification": {
+      "name": "DeviceDefinitionSpecification",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "varchar(2000)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "DeviceDefinitionSpecification_owner_id_DeviceDefinition_device_definition_id_fk": {
+          "name": "DeviceDefinitionSpecification_owner_id_DeviceDefinition_device_definition_id_fk",
+          "tableFrom": "DeviceDefinitionSpecification",
+          "tableTo": "DeviceDefinition",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "device_definition_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "DeviceDefinitionSpecification_owner_id_name_pk": {
+          "name": "DeviceDefinitionSpecification_owner_id_name_pk",
+          "columns": [
+            "owner_id",
+            "name"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.DeviceSpecification": {
+      "name": "DeviceSpecification",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "varchar(2000)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "DeviceSpecification_owner_id_Device_device_id_fk": {
+          "name": "DeviceSpecification_owner_id_Device_device_id_fk",
+          "tableFrom": "DeviceSpecification",
+          "tableTo": "Device",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "device_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "DeviceSpecification_owner_id_name_pk": {
+          "name": "DeviceSpecification_owner_id_name_pk",
+          "columns": [
+            "owner_id",
+            "name"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.IdPool": {
+      "name": "IdPool",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "id_pool_id": {
+          "name": "id_pool_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "counter": {
+          "name": "counter",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "digits": {
+          "name": "digits",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "alphabet": {
+          "name": "alphabet",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creator_id": {
+          "name": "metadata_creator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creation_timestamp": {
+          "name": "metadata_creation_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_deleted_at": {
+          "name": "metadata_deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "IdPool_metadata_creator_id_User_user_id_fk": {
+          "name": "IdPool_metadata_creator_id_User_user_id_fk",
+          "tableFrom": "IdPool",
+          "tableTo": "User",
+          "schemaTo": "adacta_global",
+          "columnsFrom": [
+            "metadata_creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.ImportPreset": {
+      "name": "ImportPreset",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "import_preset_id": {
+          "name": "import_preset_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "couch_id": {
+          "name": "couch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "device_ids": {
+          "name": "device_ids",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "preset": {
+          "name": "preset",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creator_id": {
+          "name": "metadata_creator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creation_timestamp": {
+          "name": "metadata_creation_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_deleted_at": {
+          "name": "metadata_deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ImportPreset_metadata_creator_id_User_user_id_fk": {
+          "name": "ImportPreset_metadata_creator_id_User_user_id_fk",
+          "tableFrom": "ImportPreset",
+          "tableTo": "User",
+          "schemaTo": "adacta_global",
+          "columnsFrom": [
+            "metadata_creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "ImportPreset_couch_id_unique": {
+          "name": "ImportPreset_couch_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "couch_id"
+          ]
+        }
+      }
+    },
+    "SQL_SCHEMA_PLACEHOLDER.Manufacturer": {
+      "name": "Manufacturer",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "manufacturer_id": {
+          "name": "manufacturer_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.NameComposition": {
+      "name": "NameComposition",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "name_composition_id": {
+          "name": "name_composition_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "legacy_name_index": {
+          "name": "legacy_name_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "short_id_index": {
+          "name": "short_id_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metadata_creator_id": {
+          "name": "metadata_creator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creation_timestamp": {
+          "name": "metadata_creation_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_deleted_at": {
+          "name": "metadata_deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "NameComposition_metadata_creator_id_User_user_id_fk": {
+          "name": "NameComposition_metadata_creator_id_User_user_id_fk",
+          "tableFrom": "NameComposition",
+          "tableTo": "User",
+          "schemaTo": "adacta_global",
+          "columnsFrom": [
+            "metadata_creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.NameCompositionVariable": {
+      "name": "NameCompositionVariable",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "name_composition_variable_id": {
+          "name": "name_composition_variable_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "alias": {
+          "name": "alias",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prefix": {
+          "name": "prefix",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "suffix": {
+          "name": "suffix",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metadata_creator_id": {
+          "name": "metadata_creator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creation_timestamp": {
+          "name": "metadata_creation_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_deleted_at": {
+          "name": "metadata_deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "NameCompositionVariable_metadata_creator_id_User_user_id_fk": {
+          "name": "NameCompositionVariable_metadata_creator_id_User_user_id_fk",
+          "tableFrom": "NameCompositionVariable",
+          "tableTo": "User",
+          "schemaTo": "adacta_global",
+          "columnsFrom": [
+            "metadata_creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.NameCompositionVariableUsage": {
+      "name": "NameCompositionVariableUsage",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "name_composition_id": {
+          "name": "name_composition_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "variable_id": {
+          "name": "variable_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "order": {
+          "name": "order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "NameCompositionVariableUsage_name_composition_id_NameComposition_name_composition_id_fk": {
+          "name": "NameCompositionVariableUsage_name_composition_id_NameComposition_name_composition_id_fk",
+          "tableFrom": "NameCompositionVariableUsage",
+          "tableTo": "NameComposition",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "name_composition_id"
+          ],
+          "columnsTo": [
+            "name_composition_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "cascade"
+        },
+        "NameCompositionVariableUsage_variable_id_NameCompositionVariable_name_composition_variable_id_fk": {
+          "name": "NameCompositionVariableUsage_variable_id_NameCompositionVariable_name_composition_variable_id_fk",
+          "tableFrom": "NameCompositionVariableUsage",
+          "tableTo": "NameCompositionVariable",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "variable_id"
+          ],
+          "columnsTo": [
+            "name_composition_variable_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.Note": {
+      "name": "Note",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "note_id": {
+          "name": "note_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "couch_id": {
+          "name": "couch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "item_id": {
+          "name": "item_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "note": {
+          "name": "note",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "history": {
+          "name": "history",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creator_id": {
+          "name": "metadata_creator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creation_timestamp": {
+          "name": "metadata_creation_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_deleted_at": {
+          "name": "metadata_deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Note_metadata_creator_id_User_user_id_fk": {
+          "name": "Note_metadata_creator_id_User_user_id_fk",
+          "tableFrom": "Note",
+          "tableTo": "User",
+          "schemaTo": "adacta_global",
+          "columnsFrom": [
+            "metadata_creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "Note_couch_id_unique": {
+          "name": "Note_couch_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "couch_id"
+          ]
+        }
+      }
+    },
+    "SQL_SCHEMA_PLACEHOLDER.Product": {
+      "name": "Product",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "product_id": {
+          "name": "product_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "manufacturer_id": {
+          "name": "manufacturer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_series_id": {
+          "name": "product_series_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subtitle": {
+          "name": "subtitle",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order_number": {
+          "name": "order_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Product_manufacturer_id_Manufacturer_manufacturer_id_fk": {
+          "name": "Product_manufacturer_id_Manufacturer_manufacturer_id_fk",
+          "tableFrom": "Product",
+          "tableTo": "Manufacturer",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "manufacturer_id"
+          ],
+          "columnsTo": [
+            "manufacturer_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Product_product_series_id_ProductSeries_product_series_id_fk": {
+          "name": "Product_product_series_id_ProductSeries_product_series_id_fk",
+          "tableFrom": "Product",
+          "tableTo": "ProductSeries",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "product_series_id"
+          ],
+          "columnsTo": [
+            "product_series_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "Product_manufacturer_id_order_number_unique": {
+          "name": "Product_manufacturer_id_order_number_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "manufacturer_id",
+            "order_number"
+          ]
+        }
+      }
+    },
+    "SQL_SCHEMA_PLACEHOLDER.ProductSeries": {
+      "name": "ProductSeries",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "product_series_id": {
+          "name": "product_series_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subtitle": {
+          "name": "subtitle",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.ProductToSpecification": {
+      "name": "ProductToSpecification",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "product_id": {
+          "name": "product_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "specification_id": {
+          "name": "specification_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ProductToSpecification_product_id_Product_product_id_fk": {
+          "name": "ProductToSpecification_product_id_Product_product_id_fk",
+          "tableFrom": "ProductToSpecification",
+          "tableTo": "Product",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "product_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ProductToSpecification_specification_id_Specification_specification_id_fk": {
+          "name": "ProductToSpecification_specification_id_Specification_specification_id_fk",
+          "tableFrom": "ProductToSpecification",
+          "tableTo": "Specification",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "specification_id"
+          ],
+          "columnsTo": [
+            "specification_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "ProductToSpecification_product_id_specification_id_pk": {
+          "name": "ProductToSpecification_product_id_specification_id_pk",
+          "columns": [
+            "product_id",
+            "specification_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.Project": {
+      "name": "Project",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "project_id": {
+          "name": "project_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "couch_id": {
+          "name": "couch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "search": {
+          "name": "search",
+          "type": "tsvector",
+          "primaryKey": false,
+          "notNull": false,
+          "generated": {
+            "as": "to_tsvector('simple', coalesce(name, ''))",
+            "type": "stored"
+          }
+        },
+        "metadata_creator_id": {
+          "name": "metadata_creator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creation_timestamp": {
+          "name": "metadata_creation_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_deleted_at": {
+          "name": "metadata_deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_search_project": {
+          "name": "idx_search_project",
+          "columns": [
+            {
+              "expression": "search",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "Project_metadata_creator_id_User_user_id_fk": {
+          "name": "Project_metadata_creator_id_User_user_id_fk",
+          "tableFrom": "Project",
+          "tableTo": "User",
+          "schemaTo": "adacta_global",
+          "columnsFrom": [
+            "metadata_creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "Project_couch_id_unique": {
+          "name": "Project_couch_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "couch_id"
+          ]
+        }
+      }
+    },
+    "SQL_SCHEMA_PLACEHOLDER.ProjectToDevice": {
+      "name": "ProjectToDevice",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "project_id": {
+          "name": "project_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "device_id": {
+          "name": "device_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ProjectToDevice_project_id_Project_project_id_fk": {
+          "name": "ProjectToDevice_project_id_Project_project_id_fk",
+          "tableFrom": "ProjectToDevice",
+          "tableTo": "Project",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "project_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ProjectToDevice_device_id_Device_device_id_fk": {
+          "name": "ProjectToDevice_device_id_Device_device_id_fk",
+          "tableFrom": "ProjectToDevice",
+          "tableTo": "Device",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "device_id"
+          ],
+          "columnsTo": [
+            "device_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "ProjectToDevice_project_id_device_id_pk": {
+          "name": "ProjectToDevice_project_id_device_id_pk",
+          "columns": [
+            "project_id",
+            "device_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.ProjectToResource": {
+      "name": "ProjectToResource",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "project_id": {
+          "name": "project_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "resource_id": {
+          "name": "resource_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ProjectToResource_project_id_Project_project_id_fk": {
+          "name": "ProjectToResource_project_id_Project_project_id_fk",
+          "tableFrom": "ProjectToResource",
+          "tableTo": "Project",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "project_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ProjectToResource_resource_id_Resource_resource_id_fk": {
+          "name": "ProjectToResource_resource_id_Resource_resource_id_fk",
+          "tableFrom": "ProjectToResource",
+          "tableTo": "Resource",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "resource_id"
+          ],
+          "columnsTo": [
+            "resource_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "ProjectToResource_project_id_resource_id_pk": {
+          "name": "ProjectToResource_project_id_resource_id_pk",
+          "columns": [
+            "project_id",
+            "resource_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.ProjectToSample": {
+      "name": "ProjectToSample",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "project_id": {
+          "name": "project_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sample_id": {
+          "name": "sample_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ProjectToSample_project_id_Project_project_id_fk": {
+          "name": "ProjectToSample_project_id_Project_project_id_fk",
+          "tableFrom": "ProjectToSample",
+          "tableTo": "Project",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "project_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ProjectToSample_sample_id_Sample_sample_id_fk": {
+          "name": "ProjectToSample_sample_id_Sample_sample_id_fk",
+          "tableFrom": "ProjectToSample",
+          "tableTo": "Sample",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "ProjectToSample_project_id_sample_id_pk": {
+          "name": "ProjectToSample_project_id_sample_id_pk",
+          "columns": [
+            "project_id",
+            "sample_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.Property": {
+      "name": "Property",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "property_id": {
+          "name": "property_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "couch_id": {
+          "name": "couch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "owner_device_id": {
+          "name": "owner_device_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "begin": {
+          "name": "begin",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end": {
+          "name": "end",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "device_id": {
+          "name": "device_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sample_id": {
+          "name": "sample_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Property_owner_device_id_Device_device_id_fk": {
+          "name": "Property_owner_device_id_Device_device_id_fk",
+          "tableFrom": "Property",
+          "tableTo": "Device",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "owner_device_id"
+          ],
+          "columnsTo": [
+            "device_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Property_device_id_Device_device_id_fk": {
+          "name": "Property_device_id_Device_device_id_fk",
+          "tableFrom": "Property",
+          "tableTo": "Device",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "device_id"
+          ],
+          "columnsTo": [
+            "device_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Property_sample_id_Sample_sample_id_fk": {
+          "name": "Property_sample_id_Sample_sample_id_fk",
+          "tableFrom": "Property",
+          "tableTo": "Sample",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "Property_couch_id_unique": {
+          "name": "Property_couch_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "couch_id"
+          ]
+        }
+      }
+    },
+    "SQL_SCHEMA_PLACEHOLDER.RepositoryConfigEntry": {
+      "name": "RepositoryConfigEntry",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "key": {
+          "name": "key",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.Resource": {
+      "name": "Resource",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "resource_id": {
+          "name": "resource_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "couch_id": {
+          "name": "couch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attachment": {
+          "name": "attachment",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "search": {
+          "name": "search",
+          "type": "tsvector",
+          "primaryKey": false,
+          "notNull": false,
+          "generated": {
+            "as": "to_tsvector('simple', coalesce(name, ''))",
+            "type": "stored"
+          }
+        },
+        "metadata_creator_id": {
+          "name": "metadata_creator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creation_timestamp": {
+          "name": "metadata_creation_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_deleted_at": {
+          "name": "metadata_deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_search_resource": {
+          "name": "idx_search_resource",
+          "columns": [
+            {
+              "expression": "search",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "Resource_metadata_creator_id_User_user_id_fk": {
+          "name": "Resource_metadata_creator_id_User_user_id_fk",
+          "tableFrom": "Resource",
+          "tableTo": "User",
+          "schemaTo": "adacta_global",
+          "columnsFrom": [
+            "metadata_creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "Resource_couch_id_unique": {
+          "name": "Resource_couch_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "couch_id"
+          ]
+        }
+      }
+    },
+    "SQL_SCHEMA_PLACEHOLDER.Sample": {
+      "name": "Sample",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "sample_id": {
+          "name": "sample_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "couch_id": {
+          "name": "couch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "specifications": {
+          "name": "specifications",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metadata_creator_id": {
+          "name": "metadata_creator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_creation_timestamp": {
+          "name": "metadata_creation_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata_deleted_at": {
+          "name": "metadata_deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "search": {
+          "name": "search",
+          "type": "tsvector",
+          "primaryKey": false,
+          "notNull": false,
+          "generated": {
+            "as": "to_tsvector('simple', coalesce(name, ''))",
+            "type": "stored"
+          }
+        }
+      },
+      "indexes": {
+        "idx_search_sample": {
+          "name": "idx_search_sample",
+          "columns": [
+            {
+              "expression": "search",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "Sample_metadata_creator_id_User_user_id_fk": {
+          "name": "Sample_metadata_creator_id_User_user_id_fk",
+          "tableFrom": "Sample",
+          "tableTo": "User",
+          "schemaTo": "adacta_global",
+          "columnsFrom": [
+            "metadata_creator_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "Sample_couch_id_unique": {
+          "name": "Sample_couch_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "couch_id"
+          ]
+        }
+      }
+    },
+    "SQL_SCHEMA_PLACEHOLDER.SampleSpecification": {
+      "name": "SampleSpecification",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "varchar(2000)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "SampleSpecification_owner_id_Sample_sample_id_fk": {
+          "name": "SampleSpecification_owner_id_Sample_sample_id_fk",
+          "tableFrom": "SampleSpecification",
+          "tableTo": "Sample",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "SampleSpecification_owner_id_name_pk": {
+          "name": "SampleSpecification_owner_id_name_pk",
+          "columns": [
+            "owner_id",
+            "name"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "SQL_SCHEMA_PLACEHOLDER.SampleToSample": {
+      "name": "SampleToSample",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "sample_to_sample_id": {
+          "name": "sample_to_sample_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "couch_id": {
+          "name": "couch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sample1": {
+          "name": "sample1",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sample2": {
+          "name": "sample2",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "begin": {
+          "name": "begin",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "relation_type": {
+          "name": "relation_type",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "SampleToSample_sample1_Sample_sample_id_fk": {
+          "name": "SampleToSample_sample1_Sample_sample_id_fk",
+          "tableFrom": "SampleToSample",
+          "tableTo": "Sample",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "sample1"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "SampleToSample_sample2_Sample_sample_id_fk": {
+          "name": "SampleToSample_sample2_Sample_sample_id_fk",
+          "tableFrom": "SampleToSample",
+          "tableTo": "Sample",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "sample2"
+          ],
+          "columnsTo": [
+            "sample_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "SampleToSample_couch_id_unique": {
+          "name": "SampleToSample_couch_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "couch_id"
+          ]
+        }
+      }
+    },
+    "SQL_SCHEMA_PLACEHOLDER.Specification": {
+      "name": "Specification",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "specification_id": {
+          "name": "specification_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "Specification_name_value_unique": {
+          "name": "Specification_name_value_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name",
+            "value"
+          ]
+        }
+      }
+    },
+    "SQL_SCHEMA_PLACEHOLDER.Transformation": {
+      "name": "Transformation",
+      "schema": "SQL_SCHEMA_PLACEHOLDER",
+      "columns": {
+        "transformation_id": {
+          "name": "transformation_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "couch_id": {
+          "name": "couch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "preset_id": {
+          "name": "preset_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "input": {
+          "name": "input",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "output": {
+          "name": "output",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Transformation_preset_id_ImportPreset_import_preset_id_fk": {
+          "name": "Transformation_preset_id_ImportPreset_import_preset_id_fk",
+          "tableFrom": "Transformation",
+          "tableTo": "ImportPreset",
+          "schemaTo": "SQL_SCHEMA_PLACEHOLDER",
+          "columnsFrom": [
+            "preset_id"
+          ],
+          "columnsTo": [
+            "import_preset_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "Transformation_couch_id_unique": {
+          "name": "Transformation_couch_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "couch_id"
+          ]
+        }
+      }
+    },
+    "adacta_global.User": {
+      "name": "User",
+      "schema": "adacta_global",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "mikroORMId": {
+          "name": "mikroORMId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "firstName": {
+          "name": "firstName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lastName": {
+          "name": "lastName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "passwordHash": {
+          "name": "passwordHash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "salt": {
+          "name": "salt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "locale": {
+          "name": "locale",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dateStyle": {
+          "name": "dateStyle",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timeStyle": {
+          "name": "timeStyle",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "User_email_key": {
+          "name": "User_email_key",
+          "columns": [
+            {
+              "expression": "email",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "User_user_id_unique": {
+          "name": "User_user_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id"
+          ]
+        },
+        "User_mikroORMId_unique": {
+          "name": "User_mikroORMId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "mikroORMId"
+          ]
+        }
+      }
+    },
+    "adacta_global.UserRepository": {
+      "name": "UserRepository",
+      "schema": "adacta_global",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "repository_name": {
+          "name": "repository_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "UserRepository_user_id_User_user_id_fk": {
+          "name": "UserRepository_user_id_User_user_id_fk",
+          "tableFrom": "UserRepository",
+          "tableTo": "User",
+          "schemaTo": "adacta_global",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "UserRepository_user_id_repository_name_pk": {
+          "name": "UserRepository_user_id_repository_name_pk",
+          "columns": [
+            "user_id",
+            "repository_name"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "adacta_global": "adacta_global",
+    "SQL_SCHEMA_PLACEHOLDER": "SQL_SCHEMA_PLACEHOLDER"
+  },
+  "sequences": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

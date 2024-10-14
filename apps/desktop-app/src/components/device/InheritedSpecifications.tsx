@@ -7,13 +7,13 @@ import {
 	EuiText,
 	EuiToolTip,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React, { Suspense } from "react";
 import { graphql, useLazyLoadQuery } from "react-relay";
 import { useFragment } from "react-relay/hooks";
 
 import type { InheritedSpecificationsQuery } from "@/relay/InheritedSpecificationsQuery.graphql";
 import type { InheritedSpecificationsSample$key } from "@/relay/InheritedSpecificationsSample.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IDeviceDefinitionId } from "~/lib/database/Ids";
 import type { ISpecification } from "~/lib/database/documents/interfaces/ISpecification";
 import {

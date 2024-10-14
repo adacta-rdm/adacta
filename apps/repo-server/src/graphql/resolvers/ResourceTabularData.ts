@@ -1,9 +1,8 @@
 import assert from "assert";
 
-import { assertDefined } from "@omegadot/assert";
-
 import type { IResolvers, IRowEdge } from "../generated/resolvers";
 
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { UnitlessMarker } from "~/lib/importWizard/ImportWizardUnit";
 
 export const ResourceTabularData: IResolvers["ResourceTabularData"] = {

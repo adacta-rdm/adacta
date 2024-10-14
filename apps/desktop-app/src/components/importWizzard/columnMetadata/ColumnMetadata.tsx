@@ -1,11 +1,11 @@
 import assert from "assert";
 
-import { assertDefined } from "@omegadot/assert";
 import React from "react";
 
 import { ColumnMetadataSingle } from "./ColumnMetadataSingle";
 import { ColumnTypeSingle } from "./ColumnTypeSingle";
 
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IDeviceId } from "~/lib/database/Ids";
 import type { IColumConfigWithoutIdAndName } from "~/lib/importWizard/IColumnConfigWithoutId";
 import type { IColumnConfig } from "~/lib/interface/IImportWizardPreset";

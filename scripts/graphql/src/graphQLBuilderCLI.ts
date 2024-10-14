@@ -6,8 +6,6 @@ import * as typescriptPlugin from "@graphql-codegen/typescript";
 import * as typescriptGraphqlRequestPlugin from "@graphql-codegen/typescript-graphql-request";
 import * as typescriptOperationsPlugin from "@graphql-codegen/typescript-operations";
 import * as typescriptResolversPlugin from "@graphql-codegen/typescript-resolvers";
-import type { DocumentNode } from "graphql";
-import { print } from "graphql";
 import glob from "tiny-glob";
 
 import type { TypeDef } from "./GraphQLBuilder";
@@ -21,6 +19,8 @@ import { isGenerated } from "../../utils/fileGenerator/isGenerated";
 import { safeWriteGeneratedFile } from "../../utils/fileGenerator/safeWriteGeneratedFile";
 
 import { mkdirp, readdir, readJSONFile, readUTF8File } from "~/lib/fs";
+import { print } from "~/lib/graphql/graphql";
+import type { DocumentNode } from "~/lib/graphql/graphql";
 /**
  * A tool for generating GraphQL schema files from a set of input files specified under `include`. The tool has 4 output
  * types that can be used separately or in combination:

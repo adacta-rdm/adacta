@@ -24,7 +24,6 @@ import {
 	EuiText,
 	EuiToolTip,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React, { useState } from "react";
 import { graphql, useFragment, useLazyLoadQuery, useMutation } from "react-relay";
 
@@ -38,6 +37,7 @@ import type { PresetManagerDeleteMutation } from "@/relay/PresetManagerDeleteMut
 import type { PresetManagerEditMutation } from "@/relay/PresetManagerEditMutation.graphql";
 import type { PresetManagerEntry$key } from "@/relay/PresetManagerEntry.graphql";
 import type { PresetManagerQuery } from "@/relay/PresetManagerQuery.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 interface IProps {
 	onClose: () => void;

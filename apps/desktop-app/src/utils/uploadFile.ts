@@ -1,9 +1,9 @@
-import { assertDefined } from "@omegadot/assert";
 import type { AxiosRequestConfig } from "axios";
 import axios from "axios";
 import FormData from "form-data";
 
 import { isIUploadResourceAttachmentResponse } from "@/tsrc/lib/interface/IUploadResourceAttachmentResponse";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IResourceId } from "~/lib/database/Ids";
 import type { StrictArrayBuffer } from "~/lib/interface/StrictArrayBuffer";
 import { calculateResourceAttachmentHash } from "~/lib/resources/calculateResourceAttachmentHash";

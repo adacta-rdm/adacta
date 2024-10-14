@@ -1,6 +1,5 @@
 import assert from "node:assert";
 
-import { assertDefined, assertUnreachable } from "@omegadot/assert";
 import { and, eq, isNull, or } from "drizzle-orm";
 
 import { CONSTANT_NODE_IDS } from "./ConstantNodeIds";
@@ -28,6 +27,8 @@ import { decodeEntityId } from "~/apps/repo-server/src/utils/decodeEntityId";
 import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
 import { setSpecifications } from "~/apps/repo-server/src/utils/setSpecifications";
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
+import { assertDefined } from "~/lib/assert/assertDefined";
+import { assertUnreachable } from "~/lib/assert/assertUnreachable";
 import { assertUnitKinds } from "~/lib/assertUnitKind";
 import { createDate, createMaybeDate } from "~/lib/createDate";
 import { EntityFactory } from "~/lib/database/EntityFactory";

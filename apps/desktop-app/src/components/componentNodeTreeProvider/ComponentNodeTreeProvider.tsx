@@ -1,7 +1,7 @@
 /* eslint-disable relay/unused-fields */
 import assert from "assert";
 
-import { groupBy } from "lodash";
+import { groupBy } from "lodash-es";
 import type { ReactNode } from "react";
 import React, { createContext } from "react";
 import { graphql, useFragment } from "react-relay";

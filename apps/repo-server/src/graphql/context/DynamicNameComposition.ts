@@ -1,4 +1,3 @@
-import { assertDefined } from "@omegadot/assert";
 import { eq } from "drizzle-orm";
 import type { Opaque } from "type-fest";
 
@@ -9,6 +8,7 @@ import { serverSideSpecifications } from "../resolvers/utils/serverSideSpecifica
 
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
 import { DrizzleSchema } from "~/drizzle/DrizzleSchema";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IDeviceId, INameCompositionId, ISampleId } from "~/lib/database/Ids";
 import type { ISpecification } from "~/lib/database/documents/interfaces/ISpecification";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";

@@ -1,6 +1,5 @@
 import type { EuiBreadcrumb } from "@elastic/eui";
 import { EuiHeaderBreadcrumbs, EuiLink, EuiThemeProvider } from "@elastic/eui";
-import { assertUnreachable } from "@omegadot/assert";
 import React from "react";
 import { graphql } from "react-relay";
 import { useFragment } from "react-relay/hooks";
@@ -13,6 +12,7 @@ import { isRouterArgs } from "../../utils/isRouterArgs";
 import { RepositoryPicker } from "../repositoryPicker/RepositoryPicker";
 
 import type { BreadcrumbsFragment$key } from "@/relay/BreadcrumbsFragment.graphql";
+import { assertUnreachable } from "~/lib/assert/assertUnreachable";
 
 const BreadcrumbsFragment = graphql`
 	fragment BreadcrumbsFragment on RepositoryQuery {

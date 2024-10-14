@@ -1,10 +1,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { print } from "graphql";
 import { describe, test, expect } from "vitest";
 
 import { GraphQLBuilder } from "../GraphQLBuilder";
+
+import { print } from "~/lib/graphql/graphql";
 
 const queries = readFileSync(join(__dirname, "./typeDefs/queries.graphql"), "utf-8");
 const types = readFileSync(join(__dirname, "./typeDefs/types.graphql"), "utf-8");

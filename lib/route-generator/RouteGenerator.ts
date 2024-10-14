@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { writeFile, mkdir } from "node:fs/promises";
 import { isAbsolute, join, parse, relative, resolve } from "node:path";
 
-import * as prettier from "prettier";
+import prettier from "prettier";
 
 import { RouteFile } from "./RouteFile";
 

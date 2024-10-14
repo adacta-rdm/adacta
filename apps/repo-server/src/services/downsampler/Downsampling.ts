@@ -1,6 +1,5 @@
 import assert from "assert";
 
-import { isNonNullish } from "@omegadot/assert";
 import type { Opaque } from "type-fest";
 
 import { ResourceAttachmentManager } from "../../graphql/context/ResourceAttachmentManager";
@@ -11,6 +10,7 @@ import { TaskDispatcher } from "../TaskDispatcher/TaskDispatcher";
 
 import { RepositoryInfo } from "~/apps/repo-server/src/graphql/RepositoryInfo";
 import { DrizzleSchema } from "~/drizzle/DrizzleSchema";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 import type { IResourceId } from "~/lib/database/Ids";
 import { UnitlessMarker } from "~/lib/importWizard/ImportWizardUnit";
 import type { TUnit } from "~/lib/importWizard/ImportWizardUnit";

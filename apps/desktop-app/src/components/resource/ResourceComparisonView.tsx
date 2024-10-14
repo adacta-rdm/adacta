@@ -6,7 +6,6 @@ import {
 	EuiSwitch,
 	EuiToolTip,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React, { Suspense, useState } from "react";
 import { graphql, useLazyLoadQuery } from "react-relay";
 
@@ -18,6 +17,7 @@ import { MultipleResourceChart } from "../chart/MultipleResourceChart";
 
 import type { ResourceComparisonViewQuery } from "@/relay/ResourceComparisonViewQuery.graphql";
 import { useRepositoryIdVariable } from "~/apps/desktop-app/src/services/router/UseRepoId";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 export function ResourceComparisonView(props: {
 	onLeaveComparisonView: () => void;

@@ -16,7 +16,6 @@ import {
 	EuiSuperSelect,
 	EuiSwitch,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import type { Moment } from "moment";
 import moment from "moment";
 import React, { Suspense, useEffect, useState } from "react";
@@ -30,6 +29,7 @@ import { SlotSelection } from "../SlotSelection";
 
 import type { AddOrEditComponentUsageModalFragment$key } from "@/relay/AddOrEditComponentUsageModalFragment.graphql";
 import { DeviceAdd } from "~/apps/desktop-app/src/components/device/DeviceAdd";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IPropertyDefinition } from "~/lib/interface/IPropertyDefinition";
 
 const AddOrEditComponentUsageModalGraphQLFragment = graphql`

@@ -11,6 +11,10 @@ import { readFileSync } from "node:fs";
 import { shSync } from "../dev/sh";
 import { version } from "../package.json";
 
+import { __dirnameFromImportMetaURL } from "~/lib/__dirnameFromImportMetaURL";
+
+const __dirname = __dirnameFromImportMetaURL(import.meta.url);
+
 globalThis.__ADACTA = globalThis.__ADACTA ?? {};
 
 export const COMMIT_SHA =

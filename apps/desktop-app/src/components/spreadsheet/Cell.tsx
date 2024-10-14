@@ -1,7 +1,8 @@
 import type { EuiThemeColorModeStandard } from "@elastic/eui";
 import { darken, EuiSkeletonText, tintOrShade, useEuiTheme } from "@elastic/eui";
-import { assertUnreachable } from "@omegadot/assert";
 import React from "react";
+
+import { assertUnreachable } from "~/lib/assert/assertUnreachable";
 import "./Cell.css";
 
 export interface ICellValue {

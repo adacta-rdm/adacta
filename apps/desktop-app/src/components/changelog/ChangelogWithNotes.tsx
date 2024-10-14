@@ -1,4 +1,3 @@
-import { assertDefined } from "@omegadot/assert";
 import React from "react";
 import { graphql, useFragment } from "react-relay";
 
@@ -7,6 +6,7 @@ import { RoundedIcon } from "./RoundedIcon";
 import { NoteWithEditor } from "../note/NoteWithEditor";
 
 import type { ChangelogWithNotes$key } from "@/relay/ChangelogWithNotes.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { createDate } from "~/lib/createDate";
 
 interface IProps {
