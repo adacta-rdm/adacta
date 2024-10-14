@@ -3,7 +3,6 @@ import assert from "assert";
 import { readFile } from "fs/promises";
 import { resolve } from "path";
 
-import { assertDefined, isNonNullish } from "@omegadot/assert";
 import axios from "axios";
 import { gql, GraphQLClient } from "graphql-request";
 import { createClient } from "graphql-ws";
@@ -27,6 +26,8 @@ import type {
 	ILinkToProjectInput,
 } from "~/apps/repo-server/src/graphql/generated/resolvers";
 import { sliceBufferAndCopyToNewArrayBuffer } from "~/apps/repo-server/src/sliceBufferAndCopyToNewArrayBuffer";
+import { assertDefined } from "~/lib/assert/assertDefined";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 import { createIDatetime } from "~/lib/createDate";
 import type { IResourceId } from "~/lib/database/Ids";
 import type { ILoginRequest } from "~/lib/interface/ILoginRequest";

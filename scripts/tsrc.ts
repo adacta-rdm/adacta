@@ -1,8 +1,9 @@
 import { resolve } from "node:path";
 
+import { __dirnameFromImportMetaURL } from "~/lib/__dirnameFromImportMetaURL";
 import { TSRC } from "~/scripts/tsrc/TSRC";
 
-const projectDirectory = resolve(__dirname, "..");
+const projectDirectory = resolve(__dirnameFromImportMetaURL(import.meta.url), "..");
 
 async function main() {
 	const tsrc = new TSRC(projectDirectory, "@/tsrc", [

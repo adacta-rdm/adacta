@@ -1,5 +1,3 @@
-import type { TypeNode, TypeSystemDefinitionNode } from "graphql/language/ast";
-
 import type {
 	DefinitionNode,
 	DirectiveDefinitionNode,
@@ -11,8 +9,9 @@ import type {
 	OperationDefinitionNode,
 	SchemaDefinitionNode,
 	TypeDefinitionNode,
-} from "~/lib/graphql/graphql";
-import { Kind, parse, visit } from "~/lib/graphql/graphql";
+} from "graphql";
+import { Kind, parse, visit } from "graphql";
+import type { TypeNode, TypeSystemDefinitionNode } from "graphql/language/ast";
 
 export type TypeDef = string | { filename: string; content: string };
 

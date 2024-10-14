@@ -1,10 +1,6 @@
 // @generated
 import { ResolverReturnType } from "~/lib/utils/types";
-import type {
-	GraphQLResolveInfo,
-	GraphQLScalarType,
-	GraphQLScalarTypeConfig,
-} from "~/lib/graphql/graphql";
+import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from "graphql";
 import type { IGraphQLContext } from "../IGraphQLContext";
 export type Maybe<T> = T | null | undefined;
 export type InputMaybe<T> = T | null | undefined;
