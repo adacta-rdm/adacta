@@ -7,7 +7,7 @@
 	"private": true,
 	"scripts": {
 		"build": "yarn build:routes && yarn build:tsrc && yarn build:relay && vite build && tsx scripts/build.ts",
-		"build:relay": "relay-compiler",
+		"build:relay": "mkdir -p @/relay && relay-compiler",
 		"build:repo-server": "tsx scripts/build.ts repo-server",
 		"build:routes": "tsx scripts/generate-routes.ts",
 		"build:tsrc": "tsx scripts/tsrc.ts",
