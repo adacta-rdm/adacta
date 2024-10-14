@@ -49,7 +49,7 @@ import type { DeviceOverview$key } from "@/relay/DeviceOverview.graphql";
 import { TopLevelDevice } from "~/apps/desktop-app/src/components/device/TopLevelDevice";
 import { renderSpecification } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
 import { assertDefined } from "~/lib/assert/assertDefined";
-import {  isNonNullish } from "~/lib/assert/isNonNullish";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 import { createDate, createMaybeDate } from "~/lib/createDate";
 import type { IDeviceId } from "~/lib/database/Ids";
 import { convertDeviceToTraversalResult } from "~/lib/inheritance/convertToTraversalResult";
