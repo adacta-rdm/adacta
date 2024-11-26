@@ -1,10 +1,11 @@
 import { EuiButtonIcon, EuiContextMenuItem, EuiContextMenuPanel, EuiPopover } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React, { useState } from "react";
 
 import type { PropsWithConnections } from "../../../../interfaces/PropsWithConnections";
 import { DeleteResource } from "../../DeleteResource";
 import { ResourceFileDownloadButton } from "../../ResourceFileDownloadButton";
+
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 export interface IResourceComparisonOptions {
 	setSelectedResources: (resources: string[]) => void;

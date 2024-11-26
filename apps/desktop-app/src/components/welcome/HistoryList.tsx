@@ -6,7 +6,6 @@ import {
 	EuiListGroupItem,
 	EuiSkeletonRectangle,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React, { Suspense } from "react";
 import { graphql, useLazyLoadQuery } from "react-relay";
 import { useFragment } from "react-relay/hooks";
@@ -22,6 +21,7 @@ import type {
 	HistoryListFragment$key,
 } from "@/relay/HistoryListFragment.graphql";
 import type { HistoryListQuery } from "@/relay/HistoryListQuery.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 const HistoryListFragmentGraphQL = graphql`
 	fragment HistoryListFragment on Node {

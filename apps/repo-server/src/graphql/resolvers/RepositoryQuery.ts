@@ -1,7 +1,5 @@
 import assert from "assert";
 
-import { isNonNullish } from "@omegadot/assert";
-import { assertDefined } from "@omegadot/assert";
 import {
 	and,
 	asc,
@@ -44,6 +42,8 @@ import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
 import { pickJsonbField } from "~/drizzle/queryHelpers/pickJsonField";
 import { CURRENT_USER_ID_PLACEHOLDER } from "~/lib/CURRENT_USER_ID_PLACEHOLDER";
+import { assertDefined } from "~/lib/assert/assertDefined";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 import type {
 	IDeviceDefinitionId,
 	IDeviceId,

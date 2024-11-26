@@ -10,7 +10,6 @@ import {
 	EuiLink,
 	EuiSpacer,
 } from "@elastic/eui";
-import { assertDefined, isNonNullish } from "@omegadot/assert";
 import React, { useState } from "react";
 import { graphql } from "react-relay";
 import type { PreloadedQuery } from "react-relay/hooks";
@@ -37,6 +36,8 @@ import type { AdactaTimelineUsage$data } from "@/relay/AdactaTimelineUsage.graph
 import type { SampleQuery } from "@/relay/SampleQuery.graphql";
 import { TopLevelDevice } from "~/apps/desktop-app/src/components/device/TopLevelDevice";
 import { renderSpecification } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
+import { assertDefined } from "~/lib/assert/assertDefined";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 import { createDate, createMaybeDate } from "~/lib/createDate";
 import type { IResourceId, ISampleId } from "~/lib/database/Ids";
 import { convertSampleToTraversalResult } from "~/lib/inheritance/convertToTraversalResult";

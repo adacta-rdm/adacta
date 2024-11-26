@@ -1,5 +1,4 @@
 import { EuiFlexItem } from "@elastic/eui";
-import { isNonNullish } from "@omegadot/assert";
 import type { ReactElement } from "react";
 import React from "react";
 import { graphql } from "react-relay";
@@ -7,6 +6,7 @@ import { useFragment } from "react-relay/hooks";
 
 import type { DevicePreviewImage$key } from "@/relay/DevicePreviewImage.graphql";
 import { AdactaImage } from "~/apps/desktop-app/src/components/image/AdactaImage";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 
 export function DevicePreviewImage(props: {
 	data: DevicePreviewImage$key;

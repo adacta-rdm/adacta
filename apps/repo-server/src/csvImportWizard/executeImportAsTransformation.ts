@@ -1,7 +1,5 @@
 import assert from "assert";
 
-import { assertDefined } from "@omegadot/assert";
-
 import { CSVImportWizardTransformation } from "./CSVImportWizardTransformation";
 import type { ResourceAttachmentManager } from "../graphql/context/ResourceAttachmentManager";
 import type { ResourceManager } from "../graphql/context/ResourceManager";
@@ -13,6 +11,7 @@ import { assertIImportWizardPreset } from "@/tsrc/lib/interface/IImportWizardPre
 import type { EntityLoader } from "~/apps/repo-server/src/services/EntityLoader";
 import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
 import type { DrizzleSchema } from "~/drizzle/DrizzleSchema";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { EntityFactory } from "~/lib/database/EntityFactory";
 import type { IResourceId, IUserId } from "~/lib/database/Ids";
 import type { Logger } from "~/lib/logger/Logger";

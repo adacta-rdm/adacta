@@ -13,7 +13,6 @@ import {
 	EuiSpacer,
 } from "@elastic/eui";
 import type { EuiSelectOption } from "@elastic/eui/src/components/form/select/select";
-import { assertDefined } from "@omegadot/assert";
 import type { ReactElement } from "react";
 import React, { useState } from "react";
 import { graphql, useLazyLoadQuery, useMutation } from "react-relay";
@@ -36,6 +35,7 @@ import type {
 	ProjectEditorRemoveProjectMutation,
 	ProjectEditorRemoveProjectMutation$data,
 } from "@/relay/ProjectEditorRemoveProjectMutation.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 export function ProjectEditor(props: { data: ProjectEditor$key; listOnly?: boolean }) {
 	const { router, repositoryId } = useRepoRouterHook();

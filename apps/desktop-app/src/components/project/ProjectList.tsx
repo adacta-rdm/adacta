@@ -1,5 +1,4 @@
 import { EuiFlexGroup, EuiFlexItem, EuiPageTemplate } from "@elastic/eui";
-import { isNonNullish } from "@omegadot/assert";
 import React from "react";
 import { graphql } from "react-relay";
 import type { PreloadedQuery } from "react-relay/hooks";
@@ -10,6 +9,7 @@ import { AdactaPageTemplate } from "../layout/AdactaPageTemplate";
 
 import type { ProjectList$key } from "@/relay/ProjectList.graphql";
 import type { ProjectListQuery } from "@/relay/ProjectListQuery.graphql";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 
 const ProjectListGraphQLFragment = graphql`
 	fragment ProjectList on RepositoryQuery

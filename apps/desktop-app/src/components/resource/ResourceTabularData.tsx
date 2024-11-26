@@ -1,8 +1,7 @@
 import assert from "assert";
 
 import { EuiDescriptionList, EuiFlexGroup, EuiFlexItem, EuiSpacer } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
-import { uniqBy } from "lodash";
+import { uniqBy } from "lodash-es";
 import type { ReactElement, ReactNode } from "react";
 import React, { Suspense, useState } from "react";
 import { graphql } from "react-relay";
@@ -24,6 +23,7 @@ import { SampleLink } from "../sample/SampleLink";
 
 import type { ResourceTabularData_data$key } from "@/relay/ResourceTabularData_data.graphql";
 import { UserLink } from "~/apps/desktop-app/src/components/user/UserLink";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { createDate, createMaybeDate } from "~/lib/createDate";
 
 const ResourceTabularDataDataGraphQLFragment = graphql`

@@ -1,4 +1,4 @@
-import { assertDefined } from "@omegadot/assert";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 interface IIterateeElement {
 	key: string;

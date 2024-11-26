@@ -1,7 +1,6 @@
 import assert from "assert";
 
-import { assertUnreachable } from "@omegadot/assert";
-import { isEqual } from "lodash";
+import { isEqual } from "lodash-es";
 import type { Result } from "neverthrow";
 import { err, ok } from "neverthrow";
 import type { ParseResult } from "papaparse";
@@ -14,6 +13,7 @@ import { readLastLines } from "../utils/readLastLines/readLastLines";
 
 import type { EntityLoader } from "~/apps/repo-server/src/services/EntityLoader";
 import type { DrizzleSchema } from "~/drizzle/DrizzleSchema";
+import { assertUnreachable } from "~/lib/assert/assertUnreachable";
 import type { IDatetime } from "~/lib/createDate";
 import { createDate } from "~/lib/createDate";
 import type { IDeviceId } from "~/lib/database/Ids";

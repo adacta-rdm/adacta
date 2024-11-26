@@ -2,9 +2,8 @@ import assert from "assert";
 
 import { EuiFlexGroup, EuiFlexItem, EuiSuperSelect } from "@elastic/eui";
 import type { EuiSuperSelectOption } from "@elastic/eui/src/components/form/super_select/super_select_control";
-import { assertDefined } from "@omegadot/assert";
 import type { UnitKind } from "@omegadot/einheiten/dist/types/quantities/kind";
-import lodash from "lodash";
+import lodash from "lodash-es";
 import React from "react";
 import { graphql, useLazyLoadQuery } from "react-relay";
 
@@ -19,6 +18,7 @@ import type {
 	ImportDeviceSelectionQuery,
 	ImportDeviceSelectionQuery$data,
 } from "@/relay/ImportDeviceSelectionQuery.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { createIDatetime, createMaybeIDatetime } from "~/lib/createDate";
 import type { IDeviceId } from "~/lib/database/Ids";
 

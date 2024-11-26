@@ -1,8 +1,9 @@
 import type { EuiComboBoxOptionOption } from "@elastic/eui";
 import { EuiComboBox } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import type { ReactNode } from "react";
 import React from "react";
+
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 // Zero Width Space
 const ZERO_WIDTH_SPACE = "\u200b";

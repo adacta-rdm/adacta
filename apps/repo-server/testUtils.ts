@@ -1,7 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 
 import { PGlite } from "@electric-sql/pglite";
-import { assertDefined } from "@omegadot/assert";
 import { PgDialect } from "drizzle-orm/pg-core";
 import { drizzle as pgliteDrizzle } from "drizzle-orm/pglite/driver";
 import type { SQL } from "drizzle-orm/sql/sql";
@@ -12,6 +11,7 @@ import { RepositoryManagerPostgres } from "~/apps/repo-server/src/services/Repos
 import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
 import { entityByTypeId } from "~/drizzle/DrizzleSchema";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { EntityFactory } from "~/lib/database/EntityFactory";
 import type { IDeviceId, ISampleId, IUserId } from "~/lib/database/Ids";
 import { SilentLogger } from "~/lib/logger/SilentLogger";

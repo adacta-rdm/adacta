@@ -1,5 +1,4 @@
-import { isNonNullish } from "@omegadot/assert";
-import lodash from "lodash";
+import lodash from "lodash-es";
 import { useMemo } from "react";
 import { graphql, useLazyLoadQuery } from "react-relay";
 
@@ -9,6 +8,7 @@ import { connectionToArray } from "../../utils/connectionToArray";
 import type { SpecificationKeyProviderDeviceQuery } from "@/relay/SpecificationKeyProviderDeviceQuery.graphql";
 import type { SpecificationKeyProviderSampleQuery } from "@/relay/SpecificationKeyProviderSampleQuery.graphql";
 import { specialMeaningSpecificationsKeys } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 
 /**
  * Provides a list of all specification keys for samples in the repository.

@@ -1,4 +1,4 @@
-import lodash from "lodash";
+import lodash from "lodash-es";
 
 import type { IDeviceDefinitionId, ISampleId } from "~/lib/database/Ids";
 

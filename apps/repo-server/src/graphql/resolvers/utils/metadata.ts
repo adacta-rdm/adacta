@@ -1,11 +1,10 @@
 import assert from "node:assert";
 
-import { assertDefined } from "@omegadot/assert";
-
 import { decodeEntityId } from "../../../utils/decodeEntityId";
 import type { IGraphQLContext } from "../../IGraphQLContext";
 import type { IMetadata } from "../../generated/resolvers";
 
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IRepositorySettingId, IUserId } from "~/lib/database/Ids";
 import type { ResolverReturnType } from "~/lib/utils/types";
 

@@ -9,8 +9,7 @@ import {
 	Tooltip,
 } from "@elastic/charts";
 import { EuiFlexGroup, EuiFlexItem, EuiPanel } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
-import { merge } from "lodash";
+import { merge } from "lodash-es";
 import React, { Fragment, Suspense } from "react";
 import { graphql } from "react-relay";
 import { useFragment } from "react-relay/hooks";
@@ -20,6 +19,7 @@ import { ColorAssigner } from "./utils/ColorAssigner";
 import { groupMonotonic } from "./utils/groupMonotonic";
 
 import type { ChartFragment$key } from "@/relay/ChartFragment.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IDeviceId } from "~/lib/database/Ids";
 
 interface IProps {

@@ -1,5 +1,5 @@
 import downsampler from "downsample-lttb";
-import { zip } from "lodash";
+import { zip } from "lodash-es";
 import { describe, test, expect } from "vitest";
 
 import { createDownsampleLTTBTransformStream } from "../createDownsampleLTTBTransformStream";

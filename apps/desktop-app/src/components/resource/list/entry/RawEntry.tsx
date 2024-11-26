@@ -1,5 +1,4 @@
 import { EuiLink, EuiTableRow, EuiTableRowCell, EuiText } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React from "react";
 import { graphql, useFragment } from "react-relay";
 
@@ -13,6 +12,7 @@ import { columnCount } from "../ResourceListTable";
 
 import type { RawEntryFragment$key } from "@/relay/RawEntryFragment.graphql";
 import { UserLink } from "~/apps/desktop-app/src/components/user/UserLink";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 export function RawEntry(
 	props: PropsWithConnections<{

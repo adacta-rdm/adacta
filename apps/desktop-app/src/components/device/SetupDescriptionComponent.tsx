@@ -14,8 +14,7 @@ import {
 	EuiToolTip,
 	useEuiTheme,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
-import { isEqual } from "lodash";
+import { isEqual } from "lodash-es";
 import React, { useState } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
 import { graphql, useMutation } from "react-relay";
@@ -47,6 +46,7 @@ import type { SetupDescriptionComponentDeleteMutation } from "@/relay/SetupDescr
 import type { SetupDescriptionComponentLinkImageMutation } from "@/relay/SetupDescriptionComponentLinkImageMutation.graphql";
 import type { SetupDescriptionComponentUpdateDatesMutation } from "@/relay/SetupDescriptionComponentUpdateDatesMutation.graphql";
 import type { ShowIfUserCanEdit$key } from "@/relay/ShowIfUserCanEdit.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import {
 	createDate,
 	createIDatetime,

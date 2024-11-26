@@ -34,7 +34,7 @@ jobs:
         run: yarn build:repo-server
 
       - name: Generate relay files
-        run: yarn relay
+        run: yarn build:relay
 
       - name: Check types
         run: yarn type-check

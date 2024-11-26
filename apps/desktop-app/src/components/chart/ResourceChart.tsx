@@ -1,5 +1,5 @@
 import { EuiButton, EuiButtonIcon, EuiFlexGroup, EuiFlexItem, EuiSpacer } from "@elastic/eui";
-import { groupBy } from "lodash";
+import { groupBy } from "lodash-es";
 import React, { useMemo, useState } from "react";
 import { graphql, useLazyLoadQuery, useSubscription } from "react-relay";
 import type { GraphQLSubscriptionConfig } from "relay-runtime";

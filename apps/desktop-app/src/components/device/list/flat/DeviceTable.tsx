@@ -11,7 +11,6 @@ import {
 } from "@elastic/eui";
 import type { Criteria } from "@elastic/eui/src/components/basic_table/basic_table";
 import type { Direction } from "@elastic/eui/src/services/sort/sort_direction";
-import { assertDefined } from "@omegadot/assert";
 import React, { useState } from "react";
 import type { RefetchFnDynamic } from "react-relay";
 import { graphql } from "react-relay";
@@ -32,6 +31,7 @@ import type { DeviceListFragment, DeviceOrder } from "@/relay/DeviceListFragment
 import type { DeviceTable_devices$key } from "@/relay/DeviceTable_devices.graphql";
 import { SearchEmptyPrompt } from "~/apps/desktop-app/src/components/search/list/SearchEmptyPrompt";
 import { IDevicesUsage } from "~/apps/repo-server/src/graphql/generated/resolvers";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { ArrayElementType } from "~/lib/interface/ArrayElementType";
 
 const DeviceTableDevicesGraphQLFragment = graphql`

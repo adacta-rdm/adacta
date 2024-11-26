@@ -1,4 +1,3 @@
-import { assertDefined } from "@omegadot/assert";
 import { eq } from "drizzle-orm";
 
 import { narrowTimeframe } from "./narrowTimeframe";
@@ -7,6 +6,7 @@ import type { EntityLoader } from "../../services/EntityLoader";
 
 import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
 import type { DrizzleSchema } from "~/drizzle/DrizzleSchema";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IDeviceId, ISampleId } from "~/lib/database/Ids";
 
 export interface ISampleUsageInfo {

@@ -7,7 +7,6 @@ import {
 	EuiTimeline,
 	EuiTimelineItem,
 } from "@elastic/eui";
-import { assertDefined } from "@omegadot/assert";
 import React from "react";
 import { graphql, useFragment } from "react-relay";
 import type { ArrayElement } from "type-fest/source/internal";
@@ -18,6 +17,7 @@ import { DeviceLink } from "../device/DeviceLink";
 
 import type { Changelog$key } from "@/relay/Changelog.graphql";
 import { DevicePreviewImage } from "~/apps/desktop-app/src/components/device/DevicePreviewImage";
+import { assertDefined } from "~/lib/assert/assertDefined";
 import { createDate } from "~/lib/createDate";
 
 const ChangelogFragmentGraphql = graphql`

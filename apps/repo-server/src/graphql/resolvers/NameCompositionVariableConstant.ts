@@ -1,6 +1,6 @@
-import { assertDefined } from "@omegadot/assert";
-
 import type { IResolvers } from "../generated/resolvers";
+
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 export const NameCompositionVariableConstant: IResolvers["NameCompositionVariableConstant"] = {
 	async value({ id }, _, { services: { el }, schema: { NameCompositionVariable } }) {

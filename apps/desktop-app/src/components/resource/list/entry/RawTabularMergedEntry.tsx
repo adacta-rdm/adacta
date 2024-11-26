@@ -1,5 +1,4 @@
 import { EuiTableRow, EuiTableRowCell } from "@elastic/eui";
-import { isNonNullish } from "@omegadot/assert";
 import React, { Suspense, useState } from "react";
 import { graphql, useFragment } from "react-relay";
 
@@ -21,6 +20,7 @@ import { columnCount } from "../ResourceListTable";
 
 import type { RawTabularMergedEntryFragment$key } from "@/relay/RawTabularMergedEntryFragment.graphql";
 import { UserLink } from "~/apps/desktop-app/src/components/user/UserLink";
+import { isNonNullish } from "~/lib/assert/isNonNullish";
 import { createMaybeDate } from "~/lib/createDate";
 
 export function RawTabularMergedEntry(

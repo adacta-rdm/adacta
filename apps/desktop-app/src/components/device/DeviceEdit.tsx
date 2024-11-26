@@ -1,4 +1,4 @@
-import lodash from "lodash";
+import lodash from "lodash-es";
 import React, { useState } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
 import { graphql, useMutation } from "react-relay";

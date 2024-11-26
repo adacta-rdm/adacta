@@ -8,8 +8,11 @@
 import { readFileSync } from "node:fs";
 
 // NOTE: This import should not be shortened to "~/dev/sh" because it is used in the build process.
+import { __dirnameFromImportMetaURL } from "./__dirnameFromImportMetaURL";
 import { shSync } from "../dev/sh";
 import { version } from "../package.json";
+
+const __dirname = __dirnameFromImportMetaURL(import.meta.url);
 
 globalThis.__ADACTA = globalThis.__ADACTA ?? {};
 

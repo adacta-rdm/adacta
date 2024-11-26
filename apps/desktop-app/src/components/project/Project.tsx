@@ -10,7 +10,6 @@ import {
 	EuiSpacer,
 } from "@elastic/eui";
 import type { Criteria } from "@elastic/eui/src/components/basic_table/basic_table";
-import { assertDefined } from "@omegadot/assert";
 import React, { useState } from "react";
 import {
 	graphql,
@@ -32,6 +31,7 @@ import { SampleLink } from "../sample/SampleLink";
 import type { ProjectDeleteThingMutation } from "@/relay/ProjectDeleteThingMutation.graphql";
 import type { ProjectFragment$data, ProjectFragment$key } from "@/relay/ProjectFragment.graphql";
 import type { ProjectQuery } from "@/relay/ProjectQuery.graphql";
+import { assertDefined } from "~/lib/assert/assertDefined";
 
 export const ProjectGraphqlQuery = graphql`
 	query ProjectQuery($projectId: ID!, $repositoryId: ID!) {
