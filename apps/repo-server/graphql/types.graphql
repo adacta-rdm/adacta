@@ -68,7 +68,12 @@ type RepositoryQuery {
 
 	search: SearchResults!
 
-	importPresets(first: Int, after: String, deviceId: ID, type: ImportTransformationType): Connection_ImportPreset!
+	importPresets(
+		first: Int
+		after: String
+		deviceId: ID
+		type: ImportTransformationType
+	): Connection_ImportPreset!
 
 	projects(first: Int, after: String): ProjectConnection!
 
@@ -88,13 +93,11 @@ type RepositoryQuery {
 		checkFor: NameAvailabilityCheckTarget
 	): CheckNameAvailability!
 
-
 	"""
 	Gather basic information about the file to be imported.
 	Does not require additional user input
 	"""
 	gamryToStep1(resourceId: ID!): ErrorMessageOr_GamryMetadataStep1!
-
 
 	"""
 	Gather more detailed information about the file to be imported (including information about
@@ -327,8 +330,7 @@ type GamryTime {
 	end: DateTime!
 }
 
-
-type GamryTableExtended{
+type GamryTableExtended {
 	headers: [String!]!
 	units: [String!]!
 	min: [Float]! # Min and Max values for each column. If the column is not a number, the value is nullable
@@ -353,7 +355,6 @@ type RepositoryMutation {
 		deviceId: ID!
 		options: JSONString
 	): ImportWizardStep3Payload!
-
 
 	"""
 	Import
@@ -578,9 +579,8 @@ input EditDeviceInput {
 	specifications: [SpecificationInput!]!
 }
 
-
 enum ImportTransformationType {
-	CSV,
+	CSV
 	GAMRY
 }
 
@@ -1281,7 +1281,6 @@ type ImportPreset implements Node & HasMetadata {
 	id: ID!
 
 	type: ImportTransformationType!
-
 
 	metadata: Metadata!
 	devices: [Device!]!
