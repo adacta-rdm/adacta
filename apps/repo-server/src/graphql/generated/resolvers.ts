@@ -59,6 +59,16 @@ export type IRepositoryQuery = {
 	 * checkFor: The type of the object that should be checked for name availability (i.e. Device, Sample)
 	 */
 	checkNameAvailability: ICheckNameAvailability;
+	/**
+	 * Gather basic information about the file to be imported.
+	 * Does not require additional user input
+	 */
+	gamryToStep1: IErrorMessageOr_GamryMetadataStep1;
+	/**
+	 * Gather more detailed information about the file to be imported (including information about
+	 * date + time if possible)
+	 */
+	gamryToStep2: IErrorMessageOr_GamryMetadataStep2;
 };
 
 export type IRepositoryQueryRepositoryArgs = {
@@ -130,6 +140,7 @@ export type IRepositoryQueryImportPresetsArgs = {
 	first?: InputMaybe<Scalars["Int"]>;
 	after?: InputMaybe<Scalars["String"]>;
 	deviceId?: InputMaybe<Scalars["ID"]>;
+	type?: InputMaybe<IImportTransformationType>;
 };
 
 export type IRepositoryQueryProjectsArgs = {
@@ -149,6 +160,15 @@ export type IRepositoryQueryDevicesHierarchicalArgs = {
 export type IRepositoryQueryCheckNameAvailabilityArgs = {
 	name: Scalars["String"];
 	checkFor?: InputMaybe<INameAvailabilityCheckTarget>;
+};
+
+export type IRepositoryQueryGamryToStep1Args = {
+	resourceId: Scalars["ID"];
+};
+
+export type IRepositoryQueryGamryToStep2Args = {
+	resourceId: Scalars["ID"];
+	timezone: Scalars["String"];
 };
 
 export type INode = {
@@ -472,17 +492,12 @@ export type IResourceGeneric = INode &
 		end?: Maybe<Scalars["DateTime"]>;
 		/** Path where the resource can be downloaded from. */
 		downloadURL: Scalars["String"];
-		text: Scalars["String"];
+		rawFileMetadata: IResourceMetadata;
 	};
 
 export type IResourceGenericProjectsArgs = {
 	first?: InputMaybe<Scalars["Int"]>;
 	after?: InputMaybe<Scalars["String"]>;
-};
-
-export type IResourceGenericTextArgs = {
-	start: Scalars["Int"];
-	end: Scalars["Int"];
 };
 
 export type IHasProjects = {
@@ -723,12 +738,18 @@ export type IImportPreset = INode &
 	IHasMetadata & {
 		__typename?: "ImportPreset";
 		id: Scalars["ID"];
+		type: IImportTransformationType;
 		metadata: IMetadata;
 		devices: Array<IDevice>;
 		displayName?: Maybe<Scalars["String"]>;
 		presetJSON: Scalars["String"];
 		columns: Array<Scalars["String"]>;
 	};
+
+export enum IImportTransformationType {
+	Csv = "CSV",
+	Gamry = "GAMRY",
+}
 
 export type IIBaseNote = {
 	caption: Scalars["String"];
@@ -788,6 +809,12 @@ export type IDataSeries = {
 	values: Array<Maybe<Scalars["Float"]>>;
 	device?: Maybe<IDevice>;
 	resourceId?: Maybe<Scalars["ID"]>;
+};
+
+export type IResourceMetadata = {
+	__typename?: "ResourceMetadata";
+	type?: Maybe<Scalars["String"]>;
+	preview: Scalars["String"];
 };
 
 export type IUserEdge = IEdge & {
@@ -1192,6 +1219,54 @@ export enum IConflictResolution {
 	Deny = "DENY",
 }
 
+export type IErrorMessageOr_GamryMetadataStep1 = {
+	__typename?: "ErrorMessageOr_GamryMetadataStep1";
+	data?: Maybe<IGamryMetadataStep1>;
+	error?: Maybe<IErrorMessage>;
+};
+
+export type IGamryMetadataStep1 = {
+	__typename?: "GamryMetadataStep1";
+	tableHeaders: Array<Scalars["String"]>;
+	units: Array<Scalars["String"]>;
+	/**
+	 * If the file contains a start time + T/Time column the time can be calculated without further
+	 * user input. If the file contains an absolute time column, the time can be calculated without
+	 */
+	absoluteTimeInFile: Scalars["Boolean"];
+};
+
+export type IErrorMessage = {
+	__typename?: "ErrorMessage";
+	message: Scalars["String"];
+};
+
+export type IErrorMessageOr_GamryMetadataStep2 = {
+	__typename?: "ErrorMessageOr_GamryMetadataStep2";
+	data?: Maybe<IGamryMetadataStep2>;
+	error?: Maybe<IErrorMessage>;
+};
+
+export type IGamryMetadataStep2 = {
+	__typename?: "GamryMetadataStep2";
+	tables: Array<IGamryTableExtended>;
+	absoluteTime?: Maybe<IGamryTime>;
+};
+
+export type IGamryTableExtended = {
+	__typename?: "GamryTableExtended";
+	headers: Array<Scalars["String"]>;
+	units: Array<Scalars["String"]>;
+	min: Array<Maybe<Scalars["Float"]>>;
+	max: Array<Maybe<Scalars["Float"]>>;
+};
+
+export type IGamryTime = {
+	__typename?: "GamryTime";
+	begin: Scalars["DateTime"];
+	end: Scalars["DateTime"];
+};
+
 export type IRepositoryMutation = {
 	__typename?: "RepositoryMutation";
 	repository: IRepositoryMutation;
@@ -1496,12 +1571,8 @@ export type IErrorMessageOr_ResourceImage = {
 	error?: Maybe<IErrorMessage>;
 };
 
-export type IErrorMessage = {
-	__typename?: "ErrorMessage";
-	message: Scalars["String"];
-};
-
 export type ICreateAndRunImportTransformationInput = {
+	type: IImportTransformationType;
 	rawResourceId: Scalars["ID"];
 	presetJson: Scalars["String"];
 	/**
@@ -1794,6 +1865,7 @@ export type IInsert_ImportPresetInput = {
 };
 
 export type IImportPresetInput = {
+	presetType: IImportTransformationType;
 	deviceId: Array<Scalars["ID"]>;
 	name: Scalars["String"];
 	presetJson: Scalars["String"];
@@ -1805,6 +1877,7 @@ export type IUpdate_ImportPresetInput = {
 };
 
 export type IPartial_ImportPresetInput = {
+	presetType?: InputMaybe<IImportTransformationType>;
 	deviceId?: InputMaybe<Array<Scalars["ID"]>>;
 	name?: InputMaybe<Scalars["String"]>;
 	presetJson?: InputMaybe<Scalars["String"]>;
@@ -2192,6 +2265,7 @@ export type IResolversTypes = {
 		IResolversTypes["Device"] | IResolversTypes["DeviceDefinition"]
 	>;
 	ImportPreset: ResolverTypeWrapper<ResolverReturnType<IImportPreset>>;
+	ImportTransformationType: ResolverTypeWrapper<ResolverReturnType<IImportTransformationType>>;
 	IBaseNote: IResolversTypes["BaseNote"] | IResolversTypes["Note"];
 	BaseNote: ResolverTypeWrapper<ResolverReturnType<IBaseNote>>;
 	Note: ResolverTypeWrapper<ResolverReturnType<INote>>;
@@ -2200,6 +2274,7 @@ export type IResolversTypes = {
 	RowConnection: ResolverTypeWrapper<ResolverReturnType<IRowConnection>>;
 	Data: ResolverTypeWrapper<ResolverReturnType<IData>>;
 	DataSeries: ResolverTypeWrapper<ResolverReturnType<IDataSeries>>;
+	ResourceMetadata: ResolverTypeWrapper<ResolverReturnType<IResourceMetadata>>;
 	UserEdge: ResolverTypeWrapper<ResolverReturnType<IUserEdge>>;
 	NoteEdge: ResolverTypeWrapper<ResolverReturnType<INoteEdge>>;
 	HierarchicalDeviceListConnection: ResolverTypeWrapper<
@@ -2266,6 +2341,17 @@ export type IResolversTypes = {
 	>;
 	CheckNameAvailability: ResolverTypeWrapper<ResolverReturnType<ICheckNameAvailability>>;
 	ConflictResolution: ResolverTypeWrapper<ResolverReturnType<IConflictResolution>>;
+	ErrorMessageOr_GamryMetadataStep1: ResolverTypeWrapper<
+		ResolverReturnType<IErrorMessageOr_GamryMetadataStep1>
+	>;
+	GamryMetadataStep1: ResolverTypeWrapper<ResolverReturnType<IGamryMetadataStep1>>;
+	ErrorMessage: ResolverTypeWrapper<ResolverReturnType<IErrorMessage>>;
+	ErrorMessageOr_GamryMetadataStep2: ResolverTypeWrapper<
+		ResolverReturnType<IErrorMessageOr_GamryMetadataStep2>
+	>;
+	GamryMetadataStep2: ResolverTypeWrapper<ResolverReturnType<IGamryMetadataStep2>>;
+	GamryTableExtended: ResolverTypeWrapper<ResolverReturnType<IGamryTableExtended>>;
+	GamryTime: ResolverTypeWrapper<ResolverReturnType<IGamryTime>>;
 	RepositoryMutation: ResolverTypeWrapper<{}>;
 	UpdateTimeSettingsInput: ResolverTypeWrapper<ResolverReturnType<IUpdateTimeSettingsInput>>;
 	JSONString: ResolverTypeWrapper<ResolverReturnType<Scalars["JSONString"]>>;
@@ -2287,7 +2373,6 @@ export type IResolversTypes = {
 	ErrorMessageOr_ResourceImage: ResolverTypeWrapper<
 		ResolverReturnType<IErrorMessageOr_ResourceImage>
 	>;
-	ErrorMessage: ResolverTypeWrapper<ResolverReturnType<IErrorMessage>>;
 	CreateAndRunImportTransformationInput: ResolverTypeWrapper<
 		ResolverReturnType<ICreateAndRunImportTransformationInput>
 	>;
@@ -2578,6 +2663,7 @@ export type IResolversParentTypes = {
 	RowConnection: ResolverReturnType<IRowConnection>;
 	Data: ResolverReturnType<IData>;
 	DataSeries: ResolverReturnType<IDataSeries>;
+	ResourceMetadata: ResolverReturnType<IResourceMetadata>;
 	UserEdge: ResolverReturnType<IUserEdge>;
 	NoteEdge: ResolverReturnType<INoteEdge>;
 	HierarchicalDeviceListConnection: ResolverReturnType<IHierarchicalDeviceListConnection>;
@@ -2625,6 +2711,13 @@ export type IResolversParentTypes = {
 	Connection_NameComposition: ResolverReturnType<IConnection_NameComposition>;
 	Edge_NameComposition: ResolverReturnType<IEdge_NameComposition>;
 	CheckNameAvailability: ResolverReturnType<ICheckNameAvailability>;
+	ErrorMessageOr_GamryMetadataStep1: ResolverReturnType<IErrorMessageOr_GamryMetadataStep1>;
+	GamryMetadataStep1: ResolverReturnType<IGamryMetadataStep1>;
+	ErrorMessage: ResolverReturnType<IErrorMessage>;
+	ErrorMessageOr_GamryMetadataStep2: ResolverReturnType<IErrorMessageOr_GamryMetadataStep2>;
+	GamryMetadataStep2: ResolverReturnType<IGamryMetadataStep2>;
+	GamryTableExtended: ResolverReturnType<IGamryTableExtended>;
+	GamryTime: ResolverReturnType<IGamryTime>;
 	RepositoryMutation: {};
 	UpdateTimeSettingsInput: ResolverReturnType<IUpdateTimeSettingsInput>;
 	JSONString: ResolverReturnType<Scalars["JSONString"]>;
@@ -2639,7 +2732,6 @@ export type IResolversParentTypes = {
 	ImportRawResourceInput: ResolverReturnType<IImportRawResourceInput>;
 	ImportImageResourceInput: ResolverReturnType<IImportImageResourceInput>;
 	ErrorMessageOr_ResourceImage: ResolverReturnType<IErrorMessageOr_ResourceImage>;
-	ErrorMessage: ResolverReturnType<IErrorMessage>;
 	CreateAndRunImportTransformationInput: ResolverReturnType<ICreateAndRunImportTransformationInput>;
 	CreateAndRunImportTransformationResponse: ResolverReturnType<ICreateAndRunImportTransformationResponse>;
 	DeleteResourceInput: ResolverReturnType<IDeleteResourceInput>;
@@ -2859,6 +2951,18 @@ export type IRepositoryQueryResolvers<
 		ParentType,
 		ContextType,
 		RequireFields<IRepositoryQueryCheckNameAvailabilityArgs, "name">
+	>;
+	gamryToStep1?: Resolver<
+		IResolversTypes["ErrorMessageOr_GamryMetadataStep1"],
+		ParentType,
+		ContextType,
+		RequireFields<IRepositoryQueryGamryToStep1Args, "resourceId">
+	>;
+	gamryToStep2?: Resolver<
+		IResolversTypes["ErrorMessageOr_GamryMetadataStep2"],
+		ParentType,
+		ContextType,
+		RequireFields<IRepositoryQueryGamryToStep2Args, "resourceId" | "timezone">
 	>;
 };
 
@@ -3289,12 +3393,7 @@ export type IResourceGenericResolvers<
 	begin?: Resolver<Maybe<IResolversTypes["DateTime"]>, ParentType, ContextType>;
 	end?: Resolver<Maybe<IResolversTypes["DateTime"]>, ParentType, ContextType>;
 	downloadURL?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
-	text?: Resolver<
-		IResolversTypes["String"],
-		ParentType,
-		ContextType,
-		RequireFields<IResourceGenericTextArgs, "start" | "end">
-	>;
+	rawFileMetadata?: Resolver<IResolversTypes["ResourceMetadata"], ParentType, ContextType>;
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -3606,6 +3705,7 @@ export type IImportPresetResolvers<
 	ParentType extends IResolversParentTypes["ImportPreset"] = IResolversParentTypes["ImportPreset"]
 > = {
 	id?: Resolver<IResolversTypes["ID"], ParentType, ContextType>;
+	type?: Resolver<IResolversTypes["ImportTransformationType"], ParentType, ContextType>;
 	metadata?: Resolver<IResolversTypes["Metadata"], ParentType, ContextType>;
 	devices?: Resolver<Array<IResolversTypes["Device"]>, ParentType, ContextType>;
 	displayName?: Resolver<Maybe<IResolversTypes["String"]>, ParentType, ContextType>;
@@ -3694,6 +3794,15 @@ export type IDataSeriesResolvers<
 	values?: Resolver<Array<Maybe<IResolversTypes["Float"]>>, ParentType, ContextType>;
 	device?: Resolver<Maybe<IResolversTypes["Device"]>, ParentType, ContextType>;
 	resourceId?: Resolver<Maybe<IResolversTypes["ID"]>, ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IResourceMetadataResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["ResourceMetadata"] = IResolversParentTypes["ResourceMetadata"]
+> = {
+	type?: Resolver<Maybe<IResolversTypes["String"]>, ParentType, ContextType>;
+	preview?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -4099,6 +4208,71 @@ export type ICheckNameAvailabilityResolvers<
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type IErrorMessageOr_GamryMetadataStep1Resolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["ErrorMessageOr_GamryMetadataStep1"] = IResolversParentTypes["ErrorMessageOr_GamryMetadataStep1"]
+> = {
+	data?: Resolver<Maybe<IResolversTypes["GamryMetadataStep1"]>, ParentType, ContextType>;
+	error?: Resolver<Maybe<IResolversTypes["ErrorMessage"]>, ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IGamryMetadataStep1Resolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["GamryMetadataStep1"] = IResolversParentTypes["GamryMetadataStep1"]
+> = {
+	tableHeaders?: Resolver<Array<IResolversTypes["String"]>, ParentType, ContextType>;
+	units?: Resolver<Array<IResolversTypes["String"]>, ParentType, ContextType>;
+	absoluteTimeInFile?: Resolver<IResolversTypes["Boolean"], ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IErrorMessageResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["ErrorMessage"] = IResolversParentTypes["ErrorMessage"]
+> = {
+	message?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IErrorMessageOr_GamryMetadataStep2Resolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["ErrorMessageOr_GamryMetadataStep2"] = IResolversParentTypes["ErrorMessageOr_GamryMetadataStep2"]
+> = {
+	data?: Resolver<Maybe<IResolversTypes["GamryMetadataStep2"]>, ParentType, ContextType>;
+	error?: Resolver<Maybe<IResolversTypes["ErrorMessage"]>, ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IGamryMetadataStep2Resolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["GamryMetadataStep2"] = IResolversParentTypes["GamryMetadataStep2"]
+> = {
+	tables?: Resolver<Array<IResolversTypes["GamryTableExtended"]>, ParentType, ContextType>;
+	absoluteTime?: Resolver<Maybe<IResolversTypes["GamryTime"]>, ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IGamryTableExtendedResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["GamryTableExtended"] = IResolversParentTypes["GamryTableExtended"]
+> = {
+	headers?: Resolver<Array<IResolversTypes["String"]>, ParentType, ContextType>;
+	units?: Resolver<Array<IResolversTypes["String"]>, ParentType, ContextType>;
+	min?: Resolver<Array<Maybe<IResolversTypes["Float"]>>, ParentType, ContextType>;
+	max?: Resolver<Array<Maybe<IResolversTypes["Float"]>>, ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IGamryTimeResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["GamryTime"] = IResolversParentTypes["GamryTime"]
+> = {
+	begin?: Resolver<IResolversTypes["DateTime"], ParentType, ContextType>;
+	end?: Resolver<IResolversTypes["DateTime"], ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type IRepositoryMutationResolvers<
 	ContextType = IGraphQLContext,
 	ParentType extends IResolversParentTypes["RepositoryMutation"] = IResolversParentTypes["RepositoryMutation"]
@@ -4454,14 +4628,6 @@ export type IErrorMessageOr_ResourceImageResolvers<
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type IErrorMessageResolvers<
-	ContextType = IGraphQLContext,
-	ParentType extends IResolversParentTypes["ErrorMessage"] = IResolversParentTypes["ErrorMessage"]
-> = {
-	message?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
-	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type ICreateAndRunImportTransformationResponseResolvers<
 	ContextType = IGraphQLContext,
 	ParentType extends IResolversParentTypes["CreateAndRunImportTransformationResponse"] = IResolversParentTypes["CreateAndRunImportTransformationResponse"]
@@ -4805,6 +4971,7 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	RowConnection?: IRowConnectionResolvers<ContextType>;
 	Data?: IDataResolvers<ContextType>;
 	DataSeries?: IDataSeriesResolvers<ContextType>;
+	ResourceMetadata?: IResourceMetadataResolvers<ContextType>;
 	UserEdge?: IUserEdgeResolvers<ContextType>;
 	NoteEdge?: INoteEdgeResolvers<ContextType>;
 	HierarchicalDeviceListConnection?: IHierarchicalDeviceListConnectionResolvers<ContextType>;
@@ -4842,6 +5009,13 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	Connection_NameComposition?: IConnection_NameCompositionResolvers<ContextType>;
 	Edge_NameComposition?: IEdge_NameCompositionResolvers<ContextType>;
 	CheckNameAvailability?: ICheckNameAvailabilityResolvers<ContextType>;
+	ErrorMessageOr_GamryMetadataStep1?: IErrorMessageOr_GamryMetadataStep1Resolvers<ContextType>;
+	GamryMetadataStep1?: IGamryMetadataStep1Resolvers<ContextType>;
+	ErrorMessage?: IErrorMessageResolvers<ContextType>;
+	ErrorMessageOr_GamryMetadataStep2?: IErrorMessageOr_GamryMetadataStep2Resolvers<ContextType>;
+	GamryMetadataStep2?: IGamryMetadataStep2Resolvers<ContextType>;
+	GamryTableExtended?: IGamryTableExtendedResolvers<ContextType>;
+	GamryTime?: IGamryTimeResolvers<ContextType>;
 	RepositoryMutation?: IRepositoryMutationResolvers<ContextType>;
 	JSONString?: GraphQLScalarType;
 	ImportWizardStep3Payload?: IImportWizardStep3PayloadResolvers<ContextType>;
@@ -4850,7 +5024,6 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	ImportWizardError?: IImportWizardErrorResolvers<ContextType>;
 	ImportRawResourceRequestResponse?: IImportRawResourceRequestResponseResolvers<ContextType>;
 	ErrorMessageOr_ResourceImage?: IErrorMessageOr_ResourceImageResolvers<ContextType>;
-	ErrorMessage?: IErrorMessageResolvers<ContextType>;
 	CreateAndRunImportTransformationResponse?: ICreateAndRunImportTransformationResponseResolvers<ContextType>;
 	AddSamplePayload?: IAddSamplePayloadResolvers<ContextType>;
 	AddSampleRelationPayload?: IAddSampleRelationPayloadResolvers<ContextType>;

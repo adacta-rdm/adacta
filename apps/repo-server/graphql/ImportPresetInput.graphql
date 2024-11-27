@@ -1,4 +1,6 @@
 input ImportPresetInput {
+	presetType: ImportTransformationType!
+
 	deviceId: [ID!]!
 	name: String!
 	presetJson: String!

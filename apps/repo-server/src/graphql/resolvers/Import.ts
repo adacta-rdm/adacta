@@ -1,17 +1,25 @@
 import assert from "node:assert";
 
-import { and, arrayContains, asc, isNotNull } from "drizzle-orm";
+import { and, arrayContains, asc, eq, isNotNull } from "drizzle-orm";
 import probe from "probe-image-size";
 
 import { createResourceFromUpload } from "./utils/createResourceFromUpload";
 import { paginateDocuments } from "./utils/paginateDocuments";
-import { executeImportAsTransformation } from "../../csvImportWizard/executeImportAsTransformation";
+import { executeImportAsTransformation } from "../../transformations/executeImportAsTransformation";
 import type { IImportPreset, IResolvers } from "../generated/resolvers";
+import { IImportTransformationType } from "../generated/resolvers";
 
-import { assertIImportWizardPreset } from "@/tsrc/lib/interface/IImportWizardPreset";
+import { assertICSVPreset, assertIGamryPreset } from "@/tsrc/lib/interface/IImportWizardPreset";
+import { ResourceAttachmentManager } from "~/apps/repo-server/src/graphql/context/ResourceAttachmentManager";
+import { streamToGamryDtaParserEvents } from "~/apps/repo-server/src/graphql/resolvers/mutations/GamryImportMutation";
 import { ImagePreparation } from "~/apps/repo-server/src/services/ImagePreparation/ImagePreparation";
+import { gamryCalculateTime } from "~/apps/repo-server/src/transformations/gamry/gamryCalculateTime";
 import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
+import { updateArrayMinMax } from "~/apps/repo-server/src/utils/updateArrayMinMax";
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
+import { ImportPresetType } from "~/drizzle/schema/repo.ImportPreset";
+import { assertUnreachable } from "~/lib/assert";
+import { createIDatetime } from "~/lib/createDate";
 import { EntityFactory } from "~/lib/database/EntityFactory";
 import type { IDeviceId } from "~/lib/database/Ids";
 import { uuid } from "~/lib/uuid";
@@ -104,15 +112,17 @@ export const ImportMutations: IResolvers["RepositoryMutation"] = {
 		};
 
 		executeImportAsTransformation(
-			rm,
 			input,
 			userId,
-			el,
-			schema,
-			ram,
-			downsampling,
-			logger,
-			sto,
+			{
+				rm,
+				el,
+				schema,
+				ram,
+				downsampling,
+				logger,
+				sto,
+			},
 			progress
 		)
 			.then((result) => {
@@ -145,7 +155,13 @@ export const ImportMutations: IResolvers["RepositoryMutation"] = {
 					payload: { ids: result.resources, __typename: "ImportTransformationSuccess" },
 				});
 			})
-			.catch(() => {
+			.catch((e) => {
+				if (e instanceof Error) {
+					logger.error(`Import Transformation Error: ${e.message}`);
+				} else {
+					logger.error(`Import Transformation Error: Unknown error`);
+				}
+
 				void uiSubscriptionPublisher.publish("importTask", {
 					id: importTaskId,
 					payload: {
@@ -171,7 +187,13 @@ export const ImportMutations: IResolvers["RepositoryMutation"] = {
 			const { input } = insert;
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const presetJson = JSON.parse(input.presetJson);
-			assertIImportWizardPreset(presetJson);
+
+			// A nullish presetType is treated as CSV
+			if (!input.presetType || input.presetType === IImportTransformationType.Csv) {
+				assertICSVPreset(presetJson);
+			} else {
+				assertIGamryPreset(presetJson);
+			}
 			assert(isEntityId(input.deviceId, "Device"));
 
 			preset = EntityFactory.create(
@@ -180,6 +202,10 @@ export const ImportMutations: IResolvers["RepositoryMutation"] = {
 					name: input.name,
 					deviceIds: input.deviceId,
 					preset: presetJson,
+					type:
+						input.presetType === IImportTransformationType.Gamry
+							? ImportPresetType.GAMRY
+							: ImportPresetType.CSV,
 				},
 				userId
 			);
@@ -222,20 +248,36 @@ export const ImportResolvers: IResolvers["RepositoryQuery"] = {
 	async importPresets(_, vars, { services: { el }, schema: { ImportPreset } }) {
 		const deviceId = (vars.deviceId ?? undefined) as IDeviceId | undefined;
 
+		const filter = [
+			// Manually created presets are those presets that have a name
+			// Presets that are created to save the preset used in a specific import do not have
+			// a name
+			isNotNull(ImportPreset.name),
+		];
+
+		if (deviceId) {
+			filter.push(
+				// Filter by device
+				arrayContains(ImportPreset.deviceIds, [deviceId])
+			);
+		}
+
+		if (vars.type) {
+			switch (vars.type) {
+				case IImportTransformationType.Csv:
+					filter.push(eq(ImportPreset.type, ImportPresetType.CSV));
+					break;
+				case IImportTransformationType.Gamry:
+					filter.push(eq(ImportPreset.type, ImportPresetType.GAMRY));
+					break;
+				default:
+					assertUnreachable(vars.type);
+			}
+		}
+
 		const presets = await el.find(ImportPreset, {
 			orderBy: (t) => asc(t.name),
-			where: (t) => {
-				// Manually created presets are those presets that have a name
-				// Presets that are created to save the preset used in a specific import do not have
-				// a name
-				const showManuallyCreated = isNotNull(t.name);
-
-				if (deviceId) {
-					return and(showManuallyCreated, arrayContains(t.deviceIds, [deviceId]));
-				} else {
-					return showManuallyCreated;
-				}
-			},
+			where: filter.length > 0 ? and(...filter) : undefined,
 		});
 
 		return paginateDocuments<IImportPreset>(
@@ -243,5 +285,92 @@ export const ImportResolvers: IResolvers["RepositoryQuery"] = {
 			vars.first,
 			vars.after
 		);
+	},
+
+	async gamryToStep1(_, vars, { services: { el, sto }, schema: { Resource } }) {
+		const { resourceId } = vars;
+		const resource = await el.one(Resource, resourceId);
+
+		try {
+			const metadata = await streamToGamryDtaParserEvents(
+				sto,
+				ResourceAttachmentManager.getPath(resource)
+			);
+
+			return {
+				data: {
+					tableHeaders: metadata.headers[0],
+					units: metadata.units[0],
+					absoluteTimeInFile:
+						metadata.headers[0].includes("T") || metadata.headers[0].includes("Time"),
+				},
+			};
+		} catch (e) {
+			return {
+				error: {
+					__typename: "ErrorMessage",
+					message: e instanceof Error ? e.toString() : "Unknown error",
+				},
+			};
+		}
+	},
+
+	async gamryToStep2(_, vars, { services: { el, sto }, schema: { Resource } }) {
+		const { resourceId } = vars;
+		const resource = await el.one(Resource, resourceId);
+
+		try {
+			const parsedFile = await streamToGamryDtaParserEvents(
+				sto,
+				ResourceAttachmentManager.getPath(resource)
+			);
+
+			const tables = parsedFile.headers.map((headers, i) => {
+				return {
+					headers,
+					units: parsedFile.units[i],
+					min: parsedFile.minMax[i].min,
+					max: parsedFile.minMax[i].max,
+				};
+			});
+
+			const overallMax = parsedFile.minMax[0].max;
+			const overallMin = parsedFile.minMax[0].min;
+			for (let i = 0; i < parsedFile.headers.length; i++) {
+				updateArrayMinMax(overallMax, parsedFile.minMax[i].max, "max");
+				updateArrayMinMax(overallMin, parsedFile.minMax[i].min, "min");
+			}
+
+			// TODO: The time range detection assumes that the whole file is a single range (and not
+			//  multiple completely independent ranges
+			let timePostion = parsedFile.headers[0].indexOf("T");
+			if (timePostion == -1) {
+				timePostion = parsedFile.headers[0].indexOf("Time");
+			}
+
+			const time = gamryCalculateTime(
+				parsedFile.metadata,
+				overallMin[timePostion],
+				overallMax[timePostion],
+				vars.timezone
+			);
+
+			return {
+				data: {
+					tables,
+					absoluteTime: {
+						begin: createIDatetime(time.begin),
+						end: createIDatetime(time.end),
+					},
+				},
+			};
+		} catch (e) {
+			return {
+				error: {
+					__typename: "ErrorMessage",
+					message: e instanceof Error ? e.toString() : "Unknown error",
+				},
+			};
+		}
 	},
 };

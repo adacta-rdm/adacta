@@ -37,9 +37,11 @@ import type { PresetManagerDeleteMutation } from "@/relay/PresetManagerDeleteMut
 import type { PresetManagerEditMutation } from "@/relay/PresetManagerEditMutation.graphql";
 import type { PresetManagerEntry$key } from "@/relay/PresetManagerEntry.graphql";
 import type { PresetManagerQuery } from "@/relay/PresetManagerQuery.graphql";
+import { IImportTransformationType } from "~/apps/repo-server/src/graphql/generated/resolvers";
 import { assertDefined } from "~/lib/assert/assertDefined";
 
 interface IProps {
+	type: "csv" | "gamry";
 	onClose: () => void;
 
 	/**
@@ -51,9 +53,9 @@ interface IProps {
 }
 
 export const PresetManagerGraphQLQuery = graphql`
-	query PresetManagerQuery($repositoryId: ID!) {
+	query PresetManagerQuery($repositoryId: ID!, $type: ImportTransformationType) {
 		repository(id: $repositoryId) {
-			importPresets(first: 100) {
+			importPresets(first: 100, type: $type) {
 				__id
 				edges {
 					node {
@@ -68,7 +70,15 @@ export const PresetManagerGraphQLQuery = graphql`
 
 export function PresetManager(props: IProps) {
 	const repositoryId = useRepositoryIdVariable();
-	const data = useLazyLoadQuery<PresetManagerQuery>(PresetManagerGraphQLQuery, { ...repositoryId });
+	const data = useLazyLoadQuery<PresetManagerQuery>(PresetManagerGraphQLQuery, {
+		...repositoryId,
+		type:
+			props.type == "csv"
+				? IImportTransformationType.Csv
+				: props.type === "gamry"
+				? IImportTransformationType.Gamry
+				: undefined,
+	});
 
 	return (
 		<EuiModal maxWidth={"60vw"} onClose={props.onClose} style={{ minWidth: "600px" }}>

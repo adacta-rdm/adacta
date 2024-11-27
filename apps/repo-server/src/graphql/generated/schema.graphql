@@ -54,7 +54,12 @@ type RepositoryQuery {
 	"""
 	deviceDefinitionsTree(simulatedParentId: [ID!]): [DeviceDefinitionGraphElement!]!
 	search: SearchResults!
-	importPresets(first: Int, after: String, deviceId: ID): Connection_ImportPreset!
+	importPresets(
+		first: Int
+		after: String
+		deviceId: ID
+		type: ImportTransformationType
+	): Connection_ImportPreset!
 	projects(first: Int, after: String): ProjectConnection!
 	project(id: ID!): Project!
 	devicesHierarchical(first: Int, after: String): HierarchicalDeviceListConnection!
@@ -68,6 +73,16 @@ type RepositoryQuery {
 		name: String!
 		checkFor: NameAvailabilityCheckTarget
 	): CheckNameAvailability!
+	"""
+	Gather basic information about the file to be imported.
+	Does not require additional user input
+	"""
+	gamryToStep1(resourceId: ID!): ErrorMessageOr_GamryMetadataStep1!
+	"""
+	Gather more detailed information about the file to be imported (including information about
+	date + time if possible)
+	"""
+	gamryToStep2(resourceId: ID!, timezone: String!): ErrorMessageOr_GamryMetadataStep2!
 }
 
 interface Node {
@@ -315,7 +330,7 @@ type ResourceGeneric implements Node & Resource & ResourceTimed & HasProjects & 
 	Path where the resource can be downloaded from.
 	"""
 	downloadURL: String!
-	text(start: Int!, end: Int!): String!
+	rawFileMetadata: ResourceMetadata!
 }
 
 interface HasProjects implements HasMetadata {
@@ -502,11 +517,17 @@ union DeviceOrDefinition = Device | DeviceDefinition
 
 type ImportPreset implements Node & HasMetadata {
 	id: ID!
+	type: ImportTransformationType!
 	metadata: Metadata!
 	devices: [Device!]!
 	displayName: String
 	presetJSON: String!
 	columns: [String!]!
+}
+
+enum ImportTransformationType {
+	CSV
+	GAMRY
 }
 
 interface IBaseNote implements HasMetadata {
@@ -562,6 +583,11 @@ type DataSeries {
 	values: [Float]!
 	device: Device
 	resourceId: ID
+}
+
+type ResourceMetadata {
+	type: String
+	preview: String!
 }
 
 type UserEdge implements Edge {
@@ -895,6 +921,47 @@ enum ConflictResolution {
 	DENY
 }
 
+type ErrorMessageOr_GamryMetadataStep1 {
+	data: GamryMetadataStep1
+	error: ErrorMessage
+}
+
+type GamryMetadataStep1 {
+	tableHeaders: [String!]!
+	units: [String!]!
+	"""
+	If the file contains a start time + T/Time column the time can be calculated without further
+	user input. If the file contains an absolute time column, the time can be calculated without
+	"""
+	absoluteTimeInFile: Boolean!
+}
+
+type ErrorMessage {
+	message: String!
+}
+
+type ErrorMessageOr_GamryMetadataStep2 {
+	data: GamryMetadataStep2
+	error: ErrorMessage
+}
+
+type GamryMetadataStep2 {
+	tables: [GamryTableExtended!]!
+	absoluteTime: GamryTime
+}
+
+type GamryTableExtended {
+	headers: [String!]!
+	units: [String!]!
+	min: [Float]!
+	max: [Float]!
+}
+
+type GamryTime {
+	begin: DateTime!
+	end: DateTime!
+}
+
 type RepositoryMutation {
 	repository(id: ID!): RepositoryMutation!
 	"""
@@ -1025,11 +1092,8 @@ type ErrorMessageOr_ResourceImage {
 	error: ErrorMessage
 }
 
-type ErrorMessage {
-	message: String!
-}
-
 input CreateAndRunImportTransformationInput {
+	type: ImportTransformationType!
 	rawResourceId: ID!
 	presetJson: String!
 	"""
@@ -1312,6 +1376,7 @@ input Insert_ImportPresetInput {
 }
 
 input ImportPresetInput {
+	presetType: ImportTransformationType!
 	deviceId: [ID!]!
 	name: String!
 	presetJson: String!
@@ -1323,6 +1388,7 @@ input Update_ImportPresetInput {
 }
 
 input Partial_ImportPresetInput {
+	presetType: ImportTransformationType
 	deviceId: [ID!]
 	name: String
 	presetJson: String

@@ -1,14 +1,16 @@
 import assert from "assert";
 
-import { CSVImportWizardTransformation } from "./CSVImportWizardTransformation";
+import { createTransformationContext } from "./createTransformationContext";
+import { CSVImportWizardTransformation } from "./csv/CSVImportWizardTransformation";
 import type { ResourceAttachmentManager } from "../graphql/context/ResourceAttachmentManager";
 import type { ResourceManager } from "../graphql/context/ResourceManager";
 import type { ICreateAndRunImportTransformationInput } from "../graphql/generated/resolvers";
+import { IImportTransformationType } from "../graphql/generated/resolvers";
 import type { Downsampling } from "../services/downsampler/Downsampling";
-import { createTransformationContext } from "../transformations/createTransformationContext";
 
-import { assertIImportWizardPreset } from "@/tsrc/lib/interface/IImportWizardPreset";
+import { isICSVPreset, isIGamryPreset } from "@/tsrc/lib/interface/IImportWizardPreset";
 import type { EntityLoader } from "~/apps/repo-server/src/services/EntityLoader";
+import { GamryImportTransformation } from "~/apps/repo-server/src/transformations/gamry/GamryImportTransformation";
 import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
 import type { DrizzleSchema } from "~/drizzle/DrizzleSchema";
 import { assertDefined } from "~/lib/assert/assertDefined";
@@ -19,21 +21,26 @@ import { createProgressReporter } from "~/lib/progress/createProgressReporter";
 import type { StorageEngine } from "~/lib/storage-engine";
 
 /**
- * Utility function which saves the preset as Resource and executes the ImportWizard-Transformation
+ * Utility function which saves the preset as Resource and executes the transformation
  */
 export async function executeImportAsTransformation(
-	rm: ResourceManager,
 	input: NonNullable<ICreateAndRunImportTransformationInput>,
 	userId: IUserId,
-	el: EntityLoader,
-	schema: DrizzleSchema,
-	ram: ResourceAttachmentManager,
-	downsampling: Downsampling,
-	logger: Logger,
-	sto: StorageEngine,
+	ctx: {
+		el: EntityLoader;
+		schema: DrizzleSchema;
 
+		ram: ResourceAttachmentManager;
+		rm: ResourceManager;
+		downsampling: Downsampling;
+		sto: StorageEngine;
+
+		logger: Logger;
+	},
 	progress?: (progress: number) => void
 ): Promise<{ resources?: IResourceId[]; warnings?: string[]; errors?: string[] }> {
+	const { el, schema, rm, ram, downsampling, logger, sto } = ctx;
+
 	const progressReporter = createProgressReporter((p) => {
 		if (progress) {
 			progress(p.value);
@@ -45,9 +52,14 @@ export async function executeImportAsTransformation(
 	assertDefined(rawResource.attachment.uploadDevice);
 
 	const deviceId = rawResource.attachment.uploadDevice;
+
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const inputPreset = JSON.parse(input.presetJson);
-	assertIImportWizardPreset(inputPreset);
+
+	if (!isICSVPreset(inputPreset) && !isIGamryPreset(inputPreset)) {
+		throw new Error("Invalid preset type");
+	}
+
 	assert(isEntityId(deviceId, "Device"));
 
 	const importPreset = EntityFactory.create(
@@ -55,6 +67,7 @@ export async function executeImportAsTransformation(
 		{
 			preset: inputPreset,
 			deviceIds: [deviceId],
+			type: input.type === IImportTransformationType.Csv ? 0 : 1,
 		},
 		userId
 	);
@@ -64,12 +77,30 @@ export async function executeImportAsTransformation(
 		parameters: importPreset,
 	};
 
-	const importResult = await CSVImportWizardTransformation(
-		createTransformationContext(userId, ram, rm, downsampling, logger, el, schema, sto),
-		transformationInput,
-		input.importWithWarnings ?? false,
-		progressReporter
+	const transformationContext = createTransformationContext(
+		userId,
+		ram,
+		rm,
+		downsampling,
+		logger,
+		el,
+		schema,
+		sto
 	);
+
+	const importResult =
+		input.type === IImportTransformationType.Csv
+			? await CSVImportWizardTransformation(
+					transformationContext,
+					transformationInput,
+					input.importWithWarnings ?? false,
+					progressReporter
+			  )
+			: await GamryImportTransformation(
+					transformationContext,
+					transformationInput,
+					progressReporter
+			  );
 
 	// If there are any errors or if there is a warning and we don't have indication from the user
 	// that these warnings are acceptable we return early

@@ -11,9 +11,9 @@ export class RawTextReader {
 		this.utf8Decoder = new TextDecoder("utf-8");
 	}
 
-	async text(start: number, end?: number): Promise<string> {
-		assert(start >= 0, "RawDataStream.rows: start < 0");
-		assert(end === undefined || start < end, "RawDataStream.rows: end <= start");
+	async buffer(start: number, end?: number): Promise<{ buffer: Buffer; bytesRead: number }> {
+		assert(start >= 0, "RawTextReader: start < 0");
+		assert(end === undefined || start < end, "RawTextReader: end <= start");
 
 		const length = end != undefined ? end - start : undefined;
 		const { buffer, bytesRead } = await this.sto.read(this.path, {
@@ -21,6 +21,15 @@ export class RawTextReader {
 			length,
 			buffer: Buffer.alloc(length ?? (await this.sto.size(this.path))),
 		});
-		return this.utf8Decoder.decode(buffer.subarray(0, bytesRead));
+
+		return { buffer, bytesRead };
+	}
+
+	async text(
+		startByte: number,
+		endByte?: number
+	): Promise<{ buffer: Buffer; bytesRead: number; text: string }> {
+		const { buffer, bytesRead } = await this.buffer(startByte, endByte);
+		return { buffer, bytesRead, text: this.utf8Decoder.decode(buffer.subarray(0, bytesRead)) };
 	}
 }
