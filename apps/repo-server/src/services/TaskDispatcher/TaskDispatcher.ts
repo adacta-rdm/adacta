@@ -94,8 +94,8 @@ export class TaskDispatcher {
 				if (!(e instanceof Error)) throw e;
 				logger.error(e.message);
 			}
+		} else {
+			logger.info("Task already dispatched, skipping");
 		}
-
-		logger.info("Task already dispatched, skipping");
 	}
 }

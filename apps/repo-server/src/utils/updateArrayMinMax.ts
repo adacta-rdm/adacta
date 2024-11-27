@@ -1,8 +1,9 @@
+// Helper types to make it easier to update the code to work with non number arrays
 type ElementType = number;
 type ElementTypeOrUndefined = ElementType | undefined;
-type A = ElementTypeOrUndefined[];
+type Array = ElementTypeOrUndefined[];
 
-export function updateArrayMinMax(target: A, source: A, mode: "min" | "max"): A {
+export function updateArrayMinMax(target: Array, source: Array, mode: "min" | "max"): Array {
 	return updateArray(target, source, (target, source) => {
 		if (mode === "min") {
 			return source > target;
@@ -17,8 +18,8 @@ export function updateArrayMinMax(target: A, source: A, mode: "min" | "max"): A 
  * Undefined values in the target array will be overwritten by the source array
  */
 function updateArray(
-	target: A,
-	source: A,
+	target: Array,
+	source: Array,
 	pickTarget: (target: ElementType, source: ElementType) => boolean
 ) {
 	for (let i = 0; i < target.length; i++) {

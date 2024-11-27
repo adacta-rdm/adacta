@@ -31,7 +31,10 @@ export interface IDateInfoManual {
 
 export type TGamryDateInfo = (IDateInfoAutomatic | IDateInfoManual) & { timezone: string };
 
-export type ICSVPreset = IImportWizardPreset; // Type alias for now...
+// For now "ICSVPreset" is just an alias for "IImportWizardPreset"
+// Future uses should use "ICSVPreset" instead of "IImportWizardPreset" to have consistent naming
+// with ICSVPreset/IGamryPreset
+export type ICSVPreset = IImportWizardPreset;
 
 /**
  * Preset for CSV import

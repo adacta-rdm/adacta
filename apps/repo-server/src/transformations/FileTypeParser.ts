@@ -3,7 +3,8 @@ import { NodeFileTypeParser } from "file-type";
 import type { FileTypeResult } from "file-type/core";
 export function getFileTypeParser() {
 	const gamry: Detector = async (tokenizer) => {
-		const explainHeader = [69, 88, 80, 76, 65, 73, 78]; // 'EXPLAIN'
+		// The Gamry .DAT file format starts with the ASCII string 'EXPLAIN'
+		const explainHeader = [69, 88, 80, 76, 65, 73, 78]; // = 'EXPLAIN'
 
 		const buffer = new Uint8Array(7);
 		await tokenizer.peekBuffer(buffer, { length: explainHeader.length, mayBeLess: true });

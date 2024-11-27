@@ -67,8 +67,6 @@ export function GamryTimeSelection(props: {
 		props.data
 	);
 
-	// const timezone = props.dateInfo?.timezone ?? "Europe/Berlin";
-
 	const [timezone, setTimezone] = useState<string>(props.dateInfo?.timezone ?? "Europe/Berlin");
 
 	const options: {

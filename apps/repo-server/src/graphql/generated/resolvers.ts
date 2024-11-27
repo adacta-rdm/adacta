@@ -1231,7 +1231,7 @@ export type IGamryMetadataStep1 = {
 	units: Array<Scalars["String"]>;
 	/**
 	 * If the file contains a start time + T/Time column the time can be calculated without further
-	 * user input. If the file contains an absolute time column, the time can be calculated without
+	 * user input.
 	 */
 	absoluteTimeInFile: Scalars["Boolean"];
 };
