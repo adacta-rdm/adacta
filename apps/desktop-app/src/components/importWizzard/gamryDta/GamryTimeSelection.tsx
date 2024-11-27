@@ -87,15 +87,6 @@ export function GamryTimeSelection(props: {
 				"Use date information in the metadata header and combine it with the suiting time column.",
 			cta: "Use automatic time detection",
 			available: data.absoluteTimeInFile,
-			// onClick: () => props.setDateInfo({ type: "automatic", timezone }),
-		},
-		{
-			id: "relative",
-			title: "Relative time in file",
-			description:
-				"Extract time information from a column in the file. The time is relative to a given time.",
-			cta: "Select relative time column",
-			available: false,
 		},
 		{
 			id: "manual",
