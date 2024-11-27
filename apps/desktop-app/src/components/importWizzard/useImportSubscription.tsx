@@ -32,6 +32,13 @@ export const ImportSubscriptionGraphQL = graphql`
 	}
 `;
 
+/**
+ * This hook subscribes to the importTask subscription and updates the progress, errors, warnings
+ * and also redirects to the resource route if the import was successful.
+ *
+ * This functionality is shared between the CSV and Gamry import.
+ * @param options
+ */
 export function useImportSubscription(options: {
 	taskId: string | undefined;
 	router: IRouter;
