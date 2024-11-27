@@ -5233,7 +5233,6 @@ __metadata:
     apollo-server-core: "npm:^3.10.0"
     apollo-server-express: "npm:^3.10.0"
     assert: "npm:^2.0.0"
-    axios: "npm:^0.21.1"
     babel-plugin-relay: "npm:17.0.0"
     benny: "npm:^3.6.15"
     body-parser: "npm:^1.20.2"
@@ -8505,15 +8504,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^0.21.1":
-  version: 0.21.1
-  resolution: "axios@npm:0.21.1"
-  dependencies:
-    follow-redirects: "npm:^1.10.0"
-  checksum: 10c0/8633cce2dbe64acdfb82a73ba9c916e4d30eff00cb5ac697be859af9446843944cc663c4aafac1da6a43328aeb6fe778a372841fda27e2af44cdd36dba83b2a4
-  languageName: node
-  linkType: hard
-
 "babel-core@npm:^7.0.0-bridge.0":
   version: 7.0.0-bridge.0
   resolution: "babel-core@npm:7.0.0-bridge.0"
@@ -11639,16 +11629,6 @@ __metadata:
   dependencies:
     tslib: "npm:^2.0.3"
   checksum: 10c0/a68e477a53f0c23c96a68c57f908099b06107880f3e491bf545b7478a31a9ec7514aef7b92ecc8e38abb06a387a7770daebb9280b64a5ad5acce640e52531ccf
-  languageName: node
-  linkType: hard
-
-"follow-redirects@npm:^1.10.0":
-  version: 1.13.3
-  resolution: "follow-redirects@npm:1.13.3"
-  peerDependenciesMeta:
-    debug:
-      optional: true
-  checksum: 10c0/e3cb24eb776a840a7c61ed5d860c8630ac5ec06bdafa71d020a2734ba8c854a24ea17cdf2fa6a8c0f0ae5e09628783235f1d921dacdaf001969b9157d4fdd998
   languageName: node
   linkType: hard
 
