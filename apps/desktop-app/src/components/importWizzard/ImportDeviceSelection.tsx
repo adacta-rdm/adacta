@@ -1,6 +1,6 @@
 import assert from "assert";
 
-import { EuiFlexGroup, EuiFlexItem, EuiSuperSelect } from "@elastic/eui";
+import { EuiFlexGroup, EuiFlexItem, EuiSuperSelect, EuiToolTip } from "@elastic/eui";
 import type { EuiSuperSelectOption } from "@elastic/eui/src/components/form/super_select/super_select_control";
 import type { UnitKind } from "@omegadot/einheiten/dist/types/quantities/kind";
 import lodash from "lodash-es";
@@ -59,8 +59,11 @@ interface IProps {
 
 	acceptsUnit?: UnitKind | "";
 
-	valueOfSelected: string[];
+	pathOfSelectedDevice?: string[];
 	onChange: (path: string[], id: IDeviceId) => void;
+
+	readOnly?: boolean;
+	disabled?: boolean | string; // If string, the string is displayed as a tooltip
 }
 
 const PATH_DELIMITER = "__ADACTA_PATH_DELIMITER__";
@@ -68,7 +71,7 @@ const PATH_DELIMITER = "__ADACTA_PATH_DELIMITER__";
 // Used to identify the root device (in this case the device the data is imported to) in the
 // dropdown. All other devices are identified by their path from the root device (which is not
 // feasible for the root device itself)
-const ROOT_DEVICE_MARKER = "__ROOT__";
+export const ROOT_DEVICE_MARKER = "__ROOT__";
 
 export function ImportDeviceSelection(props: IProps) {
 	const { deviceId, begin, end } = props;
@@ -138,10 +141,16 @@ function ImportDeviceSelectionPure(props: IProps & { data: ImportDeviceSelection
 		});
 	};
 
-	return (
+	const valueOfSelectedString = props.pathOfSelectedDevice
+		? props.pathOfSelectedDevice.length === 0 // Empty array indicates the root device (the device at the top level)
+			? ROOT_DEVICE_MARKER
+			: props.pathOfSelectedDevice.join(PATH_DELIMITER)
+		: undefined; // Undefined for no selection
+
+	const select = (
 		<EuiSuperSelect
 			options={getDeviceOptions()}
-			valueOfSelected={props.valueOfSelected.join(PATH_DELIMITER)}
+			valueOfSelected={valueOfSelectedString}
 			onChange={(id) => {
 				let path = id.split(PATH_DELIMITER);
 
@@ -163,6 +172,14 @@ function ImportDeviceSelectionPure(props: IProps & { data: ImportDeviceSelection
 			}}
 			hasDividers
 			fullWidth
+			disabled={typeof props.disabled === "string" || props.disabled}
+			readOnly={props.readOnly}
 		/>
 	);
+
+	if (typeof props.disabled === "string") {
+		return <EuiToolTip content={props.disabled}>{select}</EuiToolTip>;
+	}
+
+	return select;
 }

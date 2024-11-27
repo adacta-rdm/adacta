@@ -1,4 +1,4 @@
-import { EuiButton, EuiCallOut, EuiCodeBlock, EuiSpacer } from "@elastic/eui";
+import { EuiCallOut, EuiCodeBlock, EuiSpacer } from "@elastic/eui";
 import React from "react";
 import { graphql } from "react-relay";
 import { useFragment } from "react-relay/hooks";
@@ -9,10 +9,10 @@ import { ResourceHierarchyNavigation } from "./ResourceHierarchyNavigation";
 import { useRepoRouterHook } from "../../services/router/RepoRouterHook";
 import { TabbedPageLayout } from "../layout/TabbedPageLayout";
 import { OriginRepoIndicator } from "../originRepo/OriginRepoIndicator";
-import { ShowIfUserCanEdit } from "../originRepo/ShowIfUserCanEdit";
 import { ProjectEditorAsHeaderElement } from "../project/projectEditor/ProjectEditorAsHeaderElement";
 
 import type { ResourceGeneric_data$key } from "@/relay/ResourceGeneric_data.graphql";
+import { ResourceFileImportButton } from "~/apps/desktop-app/src/components/resource/ResourceFileImportButton";
 import { UserLink } from "~/apps/desktop-app/src/components/user/UserLink";
 
 export function ResourceGeneric(props: { data: ResourceGeneric_data$key }) {
@@ -35,7 +35,10 @@ export function ResourceGeneric(props: { data: ResourceGeneric_data$key }) {
 						}
 					}
 				}
-				text(start: 0, end: 10000)
+				rawFileMetadata {
+					type
+					preview
+				}
 				uploadDeviceId
 				metadata {
 					creator {
@@ -44,7 +47,6 @@ export function ResourceGeneric(props: { data: ResourceGeneric_data$key }) {
 				}
 				...ProjectEditorAsHeaderElement
 				...OriginRepoIndicator
-				...ShowIfUserCanEdit
 			}
 		`,
 		props.data
@@ -84,21 +86,12 @@ export function ResourceGeneric(props: { data: ResourceGeneric_data$key }) {
 						size={"s"}
 					/>,
 					<ResourceFileDownloadButton key="download" resourceId={data.id} fileName={data.name} />,
-					<ShowIfUserCanEdit metadata={data} key="export">
-						<EuiButton
-							size="s"
-							onClick={() => {
-								if (data.uploadDeviceId) {
-									router.push(
-										"/repositories/:repositoryId/devices/:deviceId/importer/:resourceId",
-										{ repositoryId, deviceId: data.uploadDeviceId, resourceId: data.id }
-									);
-								}
-							}}
-						>
-							Start Import Wizard
-						</EuiButton>
-					</ShowIfUserCanEdit>,
+					<ResourceFileImportButton
+						key="import"
+						resourceId={data.id}
+						uploadDeviceId={data.uploadDeviceId}
+						fileType={data.rawFileMetadata?.type ?? undefined}
+					/>,
 				],
 				tabs: [
 					{
@@ -112,7 +105,7 @@ export function ResourceGeneric(props: { data: ResourceGeneric_data$key }) {
 									full resource use the export button above.
 								</EuiCallOut>
 								<EuiSpacer />
-								<EuiCodeBlock whiteSpace="pre">{`${data.text}\n...`}</EuiCodeBlock>
+								<EuiCodeBlock whiteSpace="pre">{`${data.rawFileMetadata?.preview}\n...`}</EuiCodeBlock>
 							</>
 						),
 					},

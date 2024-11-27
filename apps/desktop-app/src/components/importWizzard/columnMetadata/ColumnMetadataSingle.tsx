@@ -127,7 +127,7 @@ export function ColumnMetadataSingle<T extends IColumConfigWithoutIdAndName["typ
 												deviceId={deviceId}
 												begin={timeFrame.begin}
 												end={timeFrame.end}
-												valueOfSelected={column.devicePath ?? []}
+												pathOfSelectedDevice={column.devicePath ?? undefined}
 												onChange={(devicePath, id) => {
 													const diff = {
 														devicePath,

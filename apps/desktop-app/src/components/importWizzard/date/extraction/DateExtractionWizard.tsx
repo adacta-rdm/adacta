@@ -3,8 +3,8 @@ import assert from "assert";
 import { EuiButton, EuiCallOut, EuiFormRow, EuiLink, EuiSpacer } from "@elastic/eui";
 import React from "react";
 
-import type { IDateState } from "./DateExtractionMode";
-import { DateExtractionMode } from "./DateExtractionMode";
+import type { IDateState } from "./ManualDateExtraction";
+import { ManualDateExtraction } from "./ManualDateExtraction";
 import { DatePickerClearable } from "../../../datepicker/DatePicker";
 
 import {
@@ -227,7 +227,7 @@ export function HeuristicDateExtraction(props: IProps) {
 	}
 
 	if (mode === DateExtractionModes.manual) {
-		main = <DateExtractionMode state={props.manualDateExtraction} />;
+		main = <ManualDateExtraction state={props.manualDateExtraction} />;
 	}
 
 	return (

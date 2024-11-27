@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS "SQL_SCHEMA_PLACEHOLDER"."ImportPreset" (
 	"couch_id" uuid,
 	"name" varchar(255),
 	"device_ids" uuid[] NOT NULL,
+	"type" integer DEFAULT 0 NOT NULL,
 	"preset" jsonb NOT NULL,
 	"metadata_creator_id" uuid NOT NULL,
 	"metadata_creation_timestamp" timestamp NOT NULL,

@@ -3,16 +3,18 @@ import assert from "assert";
 import type { Result } from "neverthrow";
 import { err, ok } from "neverthrow";
 
-import { CSVImportWizard } from "./CSVImportWizard";
-import type { IResourceProps } from "../graphql/context/ResourceManager";
-import { DownsamplingConfigForCacheOnImport } from "../services/downsampler/DownsamplingConfigForCacheOnImport";
+import { CSVImportWizard } from "../../csvImportWizard/CSVImportWizard";
+import type { IResourceProps } from "../../graphql/context/ResourceManager";
+import { DownsamplingConfigForCacheOnImport } from "../../services/downsampler/DownsamplingConfigForCacheOnImport";
 
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
+import { ImportPresetType } from "~/drizzle/schema/repo.ImportPreset";
 import type { IDeviceId, IResourceId } from "~/lib/database/Ids";
 import type { ITransformationContext } from "~/lib/interface/ITransformationContext";
 import type { IProgressReporterFn } from "~/lib/progress/IProgressReporterFn";
 import { createProgressReporter } from "~/lib/progress/createProgressReporter";
 import { TabularData } from "~/lib/tabular-data";
+import { assertPresetType } from "~/lib/utils/assertPresetType";
 
 export async function CSVImportWizardTransformation(
 	context: ITransformationContext,
@@ -29,6 +31,8 @@ export async function CSVImportWizardTransformation(
 
 	const fileName = context.getAttachmentPath(data);
 	const optionsObj = parameters.preset;
+
+	assertPresetType(ImportPresetType.CSV, optionsObj);
 
 	// Ignore "preview" option
 	optionsObj.preview = undefined;

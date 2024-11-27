@@ -9,6 +9,10 @@ import type { TUnit } from "~/lib/importWizard/ImportWizardUnit";
 
 interface IProps {
 	value: TUnit;
+
+	readOnly?: boolean;
+	disabled?: boolean;
+
 	onChange: (value: TUnit) => void;
 
 	/**
@@ -61,6 +65,8 @@ export function UnitInput(props: IProps) {
 					<></>
 				),
 			]}
+			readOnly={props.readOnly}
+			disabled={props.disabled}
 		/>
 	);
 }

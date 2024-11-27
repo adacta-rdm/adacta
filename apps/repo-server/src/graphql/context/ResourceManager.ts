@@ -23,8 +23,8 @@ import { createProgressReporter } from "~/lib/progress/createProgressReporter";
 import { calculateResourceAttachmentHashStream } from "~/lib/resources/calculateResourceAttachmentHash";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";
 import { StorageEngine } from "~/lib/storage-engine";
-import { chain, createDuplex, createReadable, isReadable } from "~/lib/streams";
 import type { Readable, Writable } from "~/lib/streams";
+import { chain, createDuplex, createReadable, isReadable } from "~/lib/streams";
 import { uuid } from "~/lib/uuid";
 
 @Service(EntityLoader, DrizzleSchema, StorageEngine)
