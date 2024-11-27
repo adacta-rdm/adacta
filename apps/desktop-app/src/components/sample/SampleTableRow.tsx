@@ -100,6 +100,7 @@ export function SampleTableRow(props: {
 										sampleId={s.sample.id}
 										level={level + 1}
 										onAddRelatedClick={props.onAddRelatedClick}
+										disableActions={props.disableActions}
 									/>
 								</Suspense>
 							);
@@ -119,6 +120,8 @@ function SampleTableRowLazy(props: {
 	sampleId: string;
 	level: number;
 	onAddRelatedClick: (id: ISampleId) => void;
+
+	disableActions?: boolean;
 }) {
 	const sample = useLazyLoadQuery<SampleTableRowLazyQuery>(
 		graphql`
@@ -139,6 +142,7 @@ function SampleTableRowLazy(props: {
 			sample={sample.repository.sample}
 			level={props.level}
 			onAddRelatedClick={props.onAddRelatedClick}
+			disableActions={props.disableActions}
 		/>
 	);
 }
