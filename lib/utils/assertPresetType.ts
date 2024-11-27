@@ -8,13 +8,9 @@ export function assertPresetType<T extends ImportPresetType>(
 ): asserts preset is T extends ImportPresetType.CSV ? ICSVPreset : IGamryPreset {
 	if (type === ImportPresetType.CSV) {
 		assertICSVPreset(preset);
-		return;
-	}
-
-	if (type === ImportPresetType.GAMRY) {
+	} else if (type === ImportPresetType.GAMRY) {
 		assertIGamryPreset(preset);
-		return;
+	} else {
+		throw new Error(`Invalid preset type '${type}'`);
 	}
-
-	throw new Error(`Invalid preset type '${type}'`);
 }
