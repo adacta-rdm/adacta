@@ -144,7 +144,7 @@
 		"knip": "^5.23.1",
 		"lodash-es": "^4.17.21",
 		"minipass": "^5.0.0",
-		"moment": "^2.29.1",
+		"moment": "^2.30.1",
 		"moment-timezone": "^0.5.32",
 		"morgan": "^1.10.0",
 		"neverthrow": "^6.0.0",
