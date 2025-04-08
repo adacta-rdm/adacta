@@ -73,9 +73,14 @@ interface IContext<T extends ComponentNodeTreeProviderFragmentDataUnion> {
 	components: TComponentOutput<ComponentNodeTreeProviderFragment$data>[];
 }
 
-type ComponentNodeTreeProviderFragmentDataUnion =
-	| ComponentNodeTreeProviderFragment$data
-	| DeviceListHierarchicalGraphQLFragment$data;
+type ComponentNodeTreeProviderFragmentDataUnion<TTypes = "Device" | "Sample" | "%other"> = {
+	readonly components: ReadonlyArray<{
+		readonly pathFromTopLevelDevice: ReadonlyArray<string>;
+		readonly component: {
+			__typename: TTypes;
+		};
+	}>;
+};
 
 /**
  * Generic tree structure that different components can wrap however they want.
@@ -99,7 +104,7 @@ type TComponentOutput<TDatasource extends ComponentNodeTreeProviderFragmentDataU
 	| TComponent<TDatasource>
 	| {
 			pathFromTopLevelDevice: string[];
-			readonly component: { readonly __typename: "virtualGroup"; name?: "Test" };
+			readonly component: { readonly __typename: "virtualGroup"; name?: string };
 	  };
 
 export function createVirtualGroups<TDatasource extends ComponentNodeTreeProviderFragmentDataUnion>(
