@@ -102,7 +102,7 @@ type TComponentOutput<TDatasource extends ComponentNodeTreeProviderFragmentDataU
 			readonly component: { readonly __typename: "virtualGroup"; name?: "Test" };
 	  };
 
-function createVirtualGroups<TDatasource extends ComponentNodeTreeProviderFragmentDataUnion>(
+export function createVirtualGroups<TDatasource extends ComponentNodeTreeProviderFragmentDataUnion>(
 	components: TComponentOutput<TDatasource>[]
 ): TComponentOutput<TDatasource>[] {
 	type TComponentBound = TComponentOutput<TDatasource>;
@@ -121,20 +121,25 @@ function createVirtualGroups<TDatasource extends ComponentNodeTreeProviderFragme
 		// If the path changes when splitPropertyNameIntoVirtualGroups is applied then this should
 		// be a virtual group
 		if (newPath.length !== oldPath.length) {
-			const newParentPath = newPath.slice(0, -1);
+			const virtualGroupsCausedByThisSlot: TComponentBound[] = [];
 
-			const identifier = JSON.stringify(newParentPath);
-			if (!virtualGroupsCreated.includes(identifier)) {
-				const virtualGroup: TComponentBound = {
-					pathFromTopLevelDevice: newParentPath,
-					component: { __typename: "virtualGroup" },
-				};
+			// Loop over paths to ensure that all virtual groups are created
+			for (let i = 1; i < newPath.length; i++) {
+				const newParentPath = newPath.slice(0, i);
+				const identifier = JSON.stringify(newParentPath);
+				if (!virtualGroupsCreated.includes(identifier)) {
+					const virtualGroup: TComponentBound = {
+						pathFromTopLevelDevice: newParentPath,
+						component: { __typename: "virtualGroup" },
+					};
 
-				virtualGroupsCreated.push(identifier);
-
-				// Return the virtual group and the component
-				return [c, virtualGroup];
+					virtualGroupsCreated.push(identifier);
+					virtualGroupsCausedByThisSlot.push(virtualGroup);
+				}
 			}
+
+			// Return the virtual group and the component
+			return [c, ...virtualGroupsCausedByThisSlot];
 		}
 
 		return [c];
