@@ -12,7 +12,7 @@ import { __dirnameFromImportMetaURL } from "./__dirnameFromImportMetaURL";
 import { shSync } from "../dev/sh";
 import { version } from "../package.json";
 
-const __dirname = __dirnameFromImportMetaURL(import.meta.url);
+const __dirname = /* @__PURE__ */ (() => __dirnameFromImportMetaURL(import.meta.url))();
 
 globalThis.__ADACTA = globalThis.__ADACTA ?? {};
 
