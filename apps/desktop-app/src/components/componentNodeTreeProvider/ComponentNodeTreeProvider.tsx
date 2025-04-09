@@ -54,6 +54,10 @@ const ComponentNodeTreeProviderFragmentGraphQl = graphql`
 						timestamp
 						timestampEnd
 						name
+						value {
+							# eslint-disable-next-line relay/must-colocate-fragment-spreads
+							...SampleLink
+						}
 					}
 				}
 			}

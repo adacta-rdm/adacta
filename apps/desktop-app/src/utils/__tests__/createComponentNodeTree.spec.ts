@@ -8,9 +8,15 @@ import { createIDatetime } from "~/lib/createDate";
 
 test("createComponentNodeTree", () => {
 	// The value property is not used by the function under test, so we can omit it.
-	const fakeRef = {
+	const fakeRefDevice = {
 		value: null as unknown as {
 			readonly " $fragmentSpreads": FragmentRefs<"DeviceLink">;
+		},
+	};
+
+	const fakeRefSample = {
+		value: null as unknown as {
+			readonly " $fragmentSpreads": FragmentRefs<"SampleLink">;
 		},
 	};
 
@@ -27,7 +33,7 @@ test("createComponentNodeTree", () => {
 						timestampEnd: createIDatetime(new Date(0)),
 						id: "fakePropertyId",
 						device: { id: "fakeDeviceId" },
-						...fakeRef,
+						...fakeRefSample,
 					},
 				],
 			},
@@ -46,7 +52,7 @@ test("createComponentNodeTree", () => {
 						timestampEnd: createIDatetime(new Date(0)),
 						id: "fakePropertyId",
 						device: { id: "fakeDeviceId" },
-						...fakeRef,
+						...fakeRefDevice,
 					},
 				],
 				definition: {
@@ -68,7 +74,7 @@ test("createComponentNodeTree", () => {
 						timestampEnd: createIDatetime(new Date(0)),
 						id: "fakePropertyId",
 						device: { id: "fakeDeviceId" },
-						...fakeRef,
+						...fakeRefDevice,
 					},
 				],
 				definition: {
@@ -90,7 +96,7 @@ test("createComponentNodeTree", () => {
 						timestampEnd: createIDatetime(new Date(0)),
 						id: "fakePropertyId",
 						device: { id: "fakeDeviceId" },
-						...fakeRef,
+						...fakeRefDevice,
 					},
 				],
 				definition: {
