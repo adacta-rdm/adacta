@@ -291,6 +291,10 @@ export function DeviceOverview(props: IProps) {
 				};
 			}) ?? [];
 
+	// For some devices it is preferred to show the specifications tab as default (i.e. for devices
+	// with no components)
+	const showSpecificationsAsDefaultTab = device.properties.length === 0 && specification.length > 0;
+
 	return (
 		<>
 			{deviceEditor && <DeviceEdit closeModal={() => setDeviceEditor(false)} device={device} />}
@@ -413,6 +417,7 @@ export function DeviceOverview(props: IProps) {
 									{
 										id: "specifications",
 										label: "Specifications",
+										isSelected: showSpecificationsAsDefaultTab,
 										content: (
 											<>
 												{!props.popoverMode && (
