@@ -3,17 +3,22 @@ import assert from "assert";
 import {
 	EuiBadge,
 	EuiButton,
+	EuiButtonIcon,
+	EuiContextMenu,
 	EuiEmptyPrompt,
 	EuiFlexGroup,
 	EuiFlexItem,
 	EuiIcon,
 	EuiLoadingSpinner,
 	EuiOverlayMask,
+	EuiPopover,
 	EuiSpacer,
 	EuiToolTip,
 	EuiTreeView,
 } from "@elastic/eui";
+import type { EuiContextMenuPanelItemDescriptor } from "@elastic/eui/src/components/context_menu/context_menu";
 import type { Node } from "@elastic/eui/src/components/tree_view/tree_view";
+import type { MouseEventHandler } from "react";
 import React, { useState } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
 import { graphql, useMutation } from "react-relay";
@@ -114,7 +119,6 @@ function ComponentEuiTreePure(props: IPropsPure) {
 	const { popoverMode, historyMode, data } = props;
 	const { router, repositoryId } = useRepoRouterHook();
 	const { tree, components } = useTree();
-	const [editMode, setEditMode] = useState(false);
 
 	const repositoryIdVariable = useRepositoryIdVariable();
 
@@ -133,6 +137,41 @@ function ComponentEuiTreePure(props: IPropsPure) {
 	const [swapComponentModalOpen, setSwapComponentModalOpen] = useState<
 		undefined | { deviceId: string; propertyId: string }
 	>();
+
+	function ThreeDotsContextMenu(props: { items: EuiContextMenuPanelItemDescriptor[] }) {
+		const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+		const button = (
+			<EuiButtonIcon
+				iconType={"boxesHorizontal"}
+				onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+					e.stopPropagation();
+					setIsPopoverOpen((prev) => !prev);
+				}}
+			/>
+		);
+
+		return (
+			<EuiPopover
+				button={button}
+				isOpen={isPopoverOpen}
+				closePopover={() => setIsPopoverOpen(false)}
+				panelPaddingSize="none"
+				anchorPosition="downLeft"
+			>
+				<EuiContextMenu
+					initialPanelId={0}
+					panels={[
+						{
+							id: 0,
+							title: "This is a context menu",
+							items: props.items,
+						},
+					]}
+				/>
+			</EuiPopover>
+		);
+	}
 
 	function removeComponent(componentId: string, parentId: string, begin: Date, end?: Date) {
 		commitRemoveComponents({
@@ -203,128 +242,195 @@ function ComponentEuiTreePure(props: IPropsPure) {
 					throw new Error("Unreachable");
 			}
 
-			const actions =
-				node.component.__typename === "virtualGroup" ? (
-					<></>
-				) : (
-					<>
-						{node.component.__typename === "Device" && (
-							<EuiFlexItem grow={false}>
-								<EuiToolTip content={`Add a component to ${node.name} slot.`}>
-									<div
-										className="euiButtonIcon euiButtonIcon--success euiButtonIcon--empty euiButtonIcon--xSmall"
-										onClick={(e) => {
-											// This div acts as a button (plus icon) inside
-											// another button (row of the tree component). To
-											// avoid a click on the tree element the propagation
-											// has to be stopped.
-											e.stopPropagation();
-											assert(
-												node.component.__typename !== "%other" &&
-													node.component.__typename !== "virtualGroup"
-											);
-											setAddComponentModalOpenForDeviceId(node.component.id);
-										}}
-									>
-										<EuiIcon type="plusInCircle" />
-									</div>
-								</EuiToolTip>
-							</EuiFlexItem>
-						)}
+			const contextMenuActions: EuiContextMenuPanelItemDescriptor[] = [];
 
-						<EuiFlexItem grow={false}>
-							<EuiToolTip content={`Remove usage from ${node.name} slot.`}>
-								<div
-									className="euiButtonIcon euiButtonIcon--danger euiButtonIcon--empty euiButtonIcon--xSmall"
-									onClick={(e) => {
-										// This div acts as a button (minus icon) inside
-										// another button (row of the tree component). To
-										// avoid a click on the tree element the propagation
-										// has to be stopped.
-										e.stopPropagation();
-										assert(
-											node.component.__typename !== "%other" &&
-												node.component.__typename !== "virtualGroup"
-										);
-										setRemoveComponentModalOpenForDeviceId(node.component.id);
-									}}
-								>
-									{removeComponentsMutationInFlight ? (
-										<EuiLoadingSpinner size="s" />
-									) : (
-										<EuiIcon type="minusInCircle" />
-									)}
-								</div>
-							</EuiToolTip>
-						</EuiFlexItem>
+			if (node.component.__typename === "Device") {
+				contextMenuActions.push({
+					name: `Add component as child of ${node.component.name}`,
+					icon: "plusInCircle",
+					onClick: (e) => {
+						// This div acts as a button (plus icon) inside
+						// another button (row of the tree component). To
+						// avoid a click on the tree element the propagation
+						// has to be stopped.
+						e.stopPropagation();
+						assert(
+							node.component.__typename !== "%other" && node.component.__typename !== "virtualGroup"
+						);
+						setAddComponentModalOpenForDeviceId(node.component.id);
+					},
+				});
 
-						<EuiFlexItem grow={false}>
-							<EuiToolTip content={`Edit ${node.component.name} usage in ${node.name} slot.`}>
-								<div
-									className="euiButtonIcon euiButtonIcon--danger euiButtonIcon--empty euiButtonIcon--xSmall"
-									onClick={(e) => {
-										// This div acts as a button (pencil icon) inside
-										// another button (row of the tree component). To
-										// avoid a click on the tree element the propagation
-										// has to be stopped.
-										assert(
-											node.component.__typename !== "%other" &&
-												node.component.__typename !== "virtualGroup"
-										);
-										assert(node.component.usagesAsProperty[0].device?.id);
-										e.stopPropagation();
-										setEditComponentModalOpen({
-											deviceId: node.component.usagesAsProperty[0].device.id,
-											propertyId: node.component.usagesAsProperty[0].id,
-											begin: new Date(node.component.usagesAsProperty[0].timestamp),
-											end: node.component.usagesAsProperty[0].timestampEnd
-												? new Date(node.component.usagesAsProperty[0].timestampEnd)
-												: undefined,
-											slot: node.component.usagesAsProperty[0].name,
-											component: node.component.id,
-										});
-									}}
-								>
-									{removeComponentsMutationInFlight ? (
-										<EuiLoadingSpinner size="s" />
-									) : (
-										<EuiIcon type="pencil" />
-									)}
-								</div>
-							</EuiToolTip>
-						</EuiFlexItem>
+				contextMenuActions.push({
+					name: "Remove component",
+					icon: "minusInCircle",
+					onClick: () => {
+						assert(
+							node.component.__typename !== "%other" && node.component.__typename !== "virtualGroup"
+						);
+						setRemoveComponentModalOpenForDeviceId(node.component.id);
+					},
+				});
 
-						<EuiFlexItem grow={false}>
-							<EuiToolTip content={`Swap ${node.component.name} in ${node.name} slot.`}>
-								<div
-									className="euiButtonIcon euiButtonIcon--danger euiButtonIcon--empty euiButtonIcon--xSmall"
-									onClick={(e) => {
-										// This div acts as a button (inputOutput icon) inside
-										// another button (row of the tree component). To
-										// avoid a click on the tree element the propagation
-										// has to be stopped.
-										assert(
-											node.component.__typename !== "%other" &&
-												node.component.__typename !== "virtualGroup"
-										);
-										assert(node.component.usagesAsProperty[0].device?.id);
-										e.stopPropagation();
-										setSwapComponentModalOpen({
-											deviceId: node.component.usagesAsProperty[0].device.id,
-											propertyId: node.component.usagesAsProperty[0].id,
-										});
-									}}
-								>
-									{removeComponentsMutationInFlight ? (
-										<EuiLoadingSpinner size="s" />
-									) : (
-										<EuiIcon type="inputOutput" />
-									)}
-								</div>
-							</EuiToolTip>
-						</EuiFlexItem>
-					</>
-				);
+				contextMenuActions.push({
+					name: `Edit ${node.component.name} usage in ${node.name} slot.`,
+					icon: "pencil",
+					onClick: () => {
+						assert(
+							node.component.__typename !== "%other" && node.component.__typename !== "virtualGroup"
+						);
+						assert(node.component.usagesAsProperty[0].device?.id);
+						setEditComponentModalOpen({
+							deviceId: node.component.usagesAsProperty[0].device.id,
+							propertyId: node.component.usagesAsProperty[0].id,
+							begin: new Date(node.component.usagesAsProperty[0].timestamp),
+							end: node.component.usagesAsProperty[0].timestampEnd
+								? new Date(node.component.usagesAsProperty[0].timestampEnd)
+								: undefined,
+							slot: node.component.usagesAsProperty[0].name,
+							component: node.component.id,
+						});
+					},
+				});
+
+				contextMenuActions.push({
+					name: `Swap ${node.component.name} in ${node.name} slot.`,
+					icon: "inputOutput",
+					onClick: () => {
+						assert(
+							node.component.__typename !== "%other" && node.component.__typename !== "virtualGroup"
+						);
+						assert(node.component.usagesAsProperty[0].device?.id);
+						setSwapComponentModalOpen({
+							deviceId: node.component.usagesAsProperty[0].device.id,
+							propertyId: node.component.usagesAsProperty[0].id,
+						});
+					},
+				});
+			}
+
+			// const actions =
+			// 	node.component.__typename === "virtualGroup" ? (
+			// 		<></>
+			// 	) : (
+			// 		<>
+			// 			{node.component.__typename === "Device" && (
+			// 				<EuiFlexItem grow={false}>
+			// 					<EuiToolTip content={`Add a component to ${node.name} slot.`}>
+			// 						<div
+			// 							className="euiButtonIcon euiButtonIcon--success euiButtonIcon--empty euiButtonIcon--xSmall"
+			// 							onClick={(e) => {
+			// 								// This div acts as a button (plus icon) inside
+			// 								// another button (row of the tree component). To
+			// 								// avoid a click on the tree element the propagation
+			// 								// has to be stopped.
+			// 								e.stopPropagation();
+			// 								assert(
+			// 									node.component.__typename !== "%other" &&
+			// 										node.component.__typename !== "virtualGroup"
+			// 								);
+			// 								setAddComponentModalOpenForDeviceId(node.component.id);
+			// 							}}
+			// 						>
+			// 							<EuiIcon type="plusInCircle" />
+			// 						</div>
+			// 					</EuiToolTip>
+			// 				</EuiFlexItem>
+			// 			)}
+			//
+			// 			<EuiFlexItem grow={false}>
+			// 				<EuiToolTip content={`Remove usage from ${node.name} slot.`}>
+			// 					<div
+			// 						className="euiButtonIcon euiButtonIcon--danger euiButtonIcon--empty euiButtonIcon--xSmall"
+			// 						onClick={(e) => {
+			// 							// This div acts as a button (minus icon) inside
+			// 							// another button (row of the tree component). To
+			// 							// avoid a click on the tree element the propagation
+			// 							// has to be stopped.
+			// 							e.stopPropagation();
+			// 							assert(
+			// 								node.component.__typename !== "%other" &&
+			// 									node.component.__typename !== "virtualGroup"
+			// 							);
+			// 							setRemoveComponentModalOpenForDeviceId(node.component.id);
+			// 						}}
+			// 					>
+			// 						{removeComponentsMutationInFlight ? (
+			// 							<EuiLoadingSpinner size="s" />
+			// 						) : (
+			// 							<EuiIcon type="minusInCircle" />
+			// 						)}
+			// 					</div>
+			// 				</EuiToolTip>
+			// 			</EuiFlexItem>
+			//
+			// 			<EuiFlexItem grow={false}>
+			// 				<EuiToolTip content={`Edit ${node.component.name} usage in ${node.name} slot.`}>
+			// 					<div
+			// 						className="euiButtonIcon euiButtonIcon--danger euiButtonIcon--empty euiButtonIcon--xSmall"
+			// 						onClick={(e) => {
+			// 							// This div acts as a button (pencil icon) inside
+			// 							// another button (row of the tree component). To
+			// 							// avoid a click on the tree element the propagation
+			// 							// has to be stopped.
+			// 							assert(
+			// 								node.component.__typename !== "%other" &&
+			// 									node.component.__typename !== "virtualGroup"
+			// 							);
+			// 							assert(node.component.usagesAsProperty[0].device?.id);
+			// 							e.stopPropagation();
+			// 							setEditComponentModalOpen({
+			// 								deviceId: node.component.usagesAsProperty[0].device.id,
+			// 								propertyId: node.component.usagesAsProperty[0].id,
+			// 								begin: new Date(node.component.usagesAsProperty[0].timestamp),
+			// 								end: node.component.usagesAsProperty[0].timestampEnd
+			// 									? new Date(node.component.usagesAsProperty[0].timestampEnd)
+			// 									: undefined,
+			// 								slot: node.component.usagesAsProperty[0].name,
+			// 								component: node.component.id,
+			// 							});
+			// 						}}
+			// 					>
+			// 						{removeComponentsMutationInFlight ? (
+			// 							<EuiLoadingSpinner size="s" />
+			// 						) : (
+			// 							<EuiIcon type="pencil" />
+			// 						)}
+			// 					</div>
+			// 				</EuiToolTip>
+			// 			</EuiFlexItem>
+			//
+			// 			<EuiFlexItem grow={false}>
+			// 				<EuiToolTip content={`Swap ${node.component.name} in ${node.name} slot.`}>
+			// 					<div
+			// 						className="euiButtonIcon euiButtonIcon--danger euiButtonIcon--empty euiButtonIcon--xSmall"
+			// 						onClick={(e) => {
+			// 							// This div acts as a button (inputOutput icon) inside
+			// 							// another button (row of the tree component). To
+			// 							// avoid a click on the tree element the propagation
+			// 							// has to be stopped.
+			// 							assert(
+			// 								node.component.__typename !== "%other" &&
+			// 									node.component.__typename !== "virtualGroup"
+			// 							);
+			// 							assert(node.component.usagesAsProperty[0].device?.id);
+			// 							e.stopPropagation();
+			// 							setSwapComponentModalOpen({
+			// 								deviceId: node.component.usagesAsProperty[0].device.id,
+			// 								propertyId: node.component.usagesAsProperty[0].id,
+			// 							});
+			// 						}}
+			// 					>
+			// 						{removeComponentsMutationInFlight ? (
+			// 							<EuiLoadingSpinner size="s" />
+			// 						) : (
+			// 							<EuiIcon type="inputOutput" />
+			// 						)}
+			// 					</div>
+			// 				</EuiToolTip>
+			// 			</EuiFlexItem>
+			// 		</>
+			// 	);
 
 			const treeEntryId =
 				node.component.__typename == "virtualGroup"
@@ -358,12 +464,9 @@ function ComponentEuiTreePure(props: IPropsPure) {
 								<EuiFlexItem grow={false}>{link}</EuiFlexItem>
 							</EuiFlexItem>
 						)}
-						{/*// Cannot use EuiButtonIcon since the rows in the tree are also*/}
-						{/*// <button>s, which would trigger an invalid DOM error (nested*/}
-						{/*// buttons are not allowed)*/}
-						{/*// Only show add button if the component is a device and has slots to
-						install other components*/}
-						{!popoverMode && editMode && actions}
+						{!popoverMode && contextMenuActions.length > 0 && (
+							<ThreeDotsContextMenu items={contextMenuActions} />
+						)}
 					</EuiFlexGroup>
 				),
 				className: "customEuiTreeWideLabel",
@@ -558,21 +661,6 @@ function ComponentEuiTreePure(props: IPropsPure) {
 			<InfoHeadline
 				name="Components"
 				tooltip="Shows all the components of the current device. The tags can be used to identify components in the setup below."
-				extraElementsLeft={
-					!popoverMode
-						? [
-								<ShowIfUserCanEdit key="editButtonWrapper" metadata={data}>
-									<EuiIcon
-										type="documentEdit"
-										size="s"
-										onClick={() => {
-											setEditMode(!editMode);
-										}}
-									/>
-								</ShowIfUserCanEdit>,
-						  ]
-						: undefined
-				}
 			/>
 			<EuiSpacer size="s" />
 			<EuiTreeView
