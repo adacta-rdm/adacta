@@ -26,7 +26,7 @@ import type {
 
 interface IProps {
 	closeModal: () => void;
-	connectionId: string;
+	connectionId?: string;
 }
 
 const SampleAddAppendGraphQLMutation: GraphQLTaggedNode = graphql`
@@ -57,7 +57,11 @@ export function SampleAdd(props: IProps) {
 
 	function addSample(input: SampleAddMutation$variables["input"]) {
 		commitAddSample({
-			variables: { input, connections: [props.connectionId], ...repositoryIdVariable },
+			variables: {
+				input,
+				connections: props.connectionId ? [props.connectionId] : [],
+				...repositoryIdVariable,
+			},
 			onError: (e) => toaster.addToast("Add sample failed", e.message, "danger"),
 			onCompleted: () => props.closeModal(),
 		});

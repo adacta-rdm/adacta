@@ -29,6 +29,7 @@ import { SlotSelection } from "../SlotSelection";
 
 import type { AddOrEditComponentUsageModalFragment$key } from "@/relay/AddOrEditComponentUsageModalFragment.graphql";
 import { DeviceAdd } from "~/apps/desktop-app/src/components/device/DeviceAdd";
+import { SampleAdd } from "~/apps/desktop-app/src/components/sample/SampleAdd";
 import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IPropertyDefinition } from "~/lib/interface/IPropertyDefinition";
 
@@ -89,7 +90,10 @@ export function AddOrEditComponentUsageModal(props: IProps) {
 	// `isOpenEnd` from on to off
 	const [end, setEnd] = useState(initialEnd ?? new Date(Date.now() + 24 * 60 * 60 * 1000));
 	const [isOpenEnd, setIsOpenEnd] = useState(initialEnd == undefined);
+
+	// Modals for adding devices and samples
 	const [showCreateDeviceModal, setShowCreateDeviceModal] = useState(false);
+	const [showCreateSampleModal, setShowCreateSampleModal] = useState(false);
 
 	const data = initialData;
 
@@ -168,6 +172,12 @@ export function AddOrEditComponentUsageModal(props: IProps) {
 				closeModal={() => setShowCreateDeviceModal(false)}
 				connections={{ connectionIdFlat: [], connectionIdHierarchical: [] }}
 			/>
+		);
+	}
+
+	if (showCreateSampleModal) {
+		return (
+			<SampleAdd closeModal={() => setShowCreateSampleModal(false)} connectionId={undefined} />
 		);
 	}
 
@@ -266,9 +276,16 @@ export function AddOrEditComponentUsageModal(props: IProps) {
 								/>
 							</EuiFlexItem>
 						</Suspense>
-						<EuiFlexItem grow={false}>
-							<EuiButton onClick={() => setShowCreateDeviceModal(true)}>Add Device</EuiButton>
-						</EuiFlexItem>
+						{(selectedSlotType === undefined || selectedSlotType === "Device") && (
+							<EuiFlexItem grow={false}>
+								<EuiButton onClick={() => setShowCreateDeviceModal(true)}>Add Device</EuiButton>
+							</EuiFlexItem>
+						)}
+						{(selectedSlotType === undefined || selectedSlotType === "Sample") && (
+							<EuiFlexItem grow={false}>
+								<EuiButton onClick={() => setShowCreateSampleModal(true)}>Add Sample</EuiButton>
+							</EuiFlexItem>
+						)}
 					</EuiFlexGroup>
 				</EuiFormRow>
 			</EuiModalBody>

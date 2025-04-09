@@ -88,7 +88,7 @@ export function AddComponentUsageModal(props: IProps) {
 			onError: (e) => toaster.addToast("Add component failed", e.message, "danger"),
 			updater: (cache) => {
 				if (!props.viewTimestamp) {
-					// Invalidate cache if we are viewing a "live" viewtimedProperties
+					// Invalidate cache if we are viewing a "live" properties
 					cache.invalidateStore();
 				}
 			},
