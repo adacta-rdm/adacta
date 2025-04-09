@@ -47,6 +47,7 @@ import type { AdactaTimelineSample$data } from "@/relay/AdactaTimelineSample.gra
 import type { AdactaTimelineUsage$data } from "@/relay/AdactaTimelineUsage.graphql";
 import type { DeviceOverview$key } from "@/relay/DeviceOverview.graphql";
 import { TopLevelDevice } from "~/apps/desktop-app/src/components/device/TopLevelDevice";
+import { ResourceListTable } from "~/apps/desktop-app/src/components/resource/list/ResourceListTable";
 import { renderSpecification } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
 import { assertDefined } from "~/lib/assert/assertDefined";
 import { isNonNullish } from "~/lib/assert/isNonNullish";
@@ -132,6 +133,7 @@ const DeviceOverViewGraphQLFragment = graphql`
 			begin
 			end
 			...AdactaTimelineResource @relay(mask: false)
+			...ResourceListTableFragment
 		}
 		notes {
 			__id
@@ -445,6 +447,17 @@ export function DeviceOverview(props: IProps) {
 										id: "samples",
 										label: "Samples",
 										content: <EuiDescriptionList type="row" listItems={samples} />,
+									},
+							  ]
+							: []),
+						...(device.usageInResource.length > 0
+							? [
+									{
+										id: "Resources",
+										label: "Resources",
+										content: (
+											<ResourceListTable resources={device.usageInResource} connections={[]} />
+										),
 									},
 							  ]
 							: []),
