@@ -52,6 +52,12 @@ export function DevicePageLoading() {
 						disabled: true,
 					},
 					{
+						id: "resources",
+						label: "Resources",
+						content: <></>,
+						disabled: true,
+					},
+					{
 						id: "activity",
 						label: "History",
 						content: <></>,
