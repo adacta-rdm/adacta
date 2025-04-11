@@ -1,8 +1,7 @@
-import { EuiComboBox, EuiFilePicker, EuiFormRow, EuiPanel, EuiSuperSelect } from "@elastic/eui";
+import { EuiComboBox, EuiFilePicker, EuiFormRow, EuiPanel } from "@elastic/eui";
 import React, { useState } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
-import { useLazyLoadQuery } from "react-relay";
-import { graphql, useMutation } from "react-relay";
+import { graphql, useLazyLoadQuery, useMutation } from "react-relay";
 
 import { useRepoRouterHook } from "../services/router/RepoRouterHook";
 import { useRepositoryIdVariable } from "../services/router/UseRepoId";
@@ -34,6 +33,8 @@ const FileUploadGraphQLMutation: GraphQLTaggedNode = graphql`
 
 interface IProps {
 	deviceId: IDeviceId;
+
+	defaultProjects?: string[];
 }
 
 export function FileUpload(props: IProps) {
@@ -46,7 +47,7 @@ export function FileUpload(props: IProps) {
 	);
 
 	const [importRawResourceMutation] = useMutation<FileUploadMutation>(FileUploadGraphQLMutation);
-	const [selectedProject, setselectedProject] = useState<string[]>([]);
+	const [selectedProjects, setSelectedProjects] = useState<string[]>(props.defaultProjects ?? []);
 
 	const importRawResource = (uploadId: string, filename: string) => {
 		importRawResourceMutation({
@@ -55,7 +56,7 @@ export function FileUpload(props: IProps) {
 					uploadDevice: props.deviceId,
 					uploadId: uploadId,
 					name: filename,
-					projects: selectedProject,
+					projects: selectedProjects,
 				},
 				...repositoryIdVariable,
 			},
@@ -106,8 +107,8 @@ export function FileUpload(props: IProps) {
 					helpText={"Optional, select projects to assign to the resource"}
 				>
 					<FileUploadProjects
-						selectedProjects={selectedProject}
-						setSelectedProjects={setselectedProject}
+						selectedProjects={selectedProjects}
+						setSelectedProjects={setSelectedProjects}
 					/>
 				</EuiFormRow>
 				<EuiFormRow label={"File"}>
@@ -157,15 +158,11 @@ function FileUploadProjects(props: {
 			placeholder="Select projects this resource belongs to"
 			options={options}
 			onChange={(o) => {
-				if (!o) {
-					setSelectedProjects([]);
-					return;
-				}
-				const ids = o.flatMap((i) => {
-					if (!i.value) {
+				const ids = o.flatMap((id) => {
+					if (!id.value) {
 						return [];
 					}
-					return i.value;
+					return id.value;
 				});
 
 				setSelectedProjects(ids);
