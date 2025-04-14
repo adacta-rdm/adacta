@@ -11,6 +11,7 @@ import { ResourceLink } from "../../ResourceLink";
 import { columnCount } from "../ResourceListTable";
 
 import type { RawEntryFragment$key } from "@/relay/RawEntryFragment.graphql";
+import { ProjectListCollapsible } from "~/apps/desktop-app/src/components/project/ProjectListCollapsible";
 import { UserLink } from "~/apps/desktop-app/src/components/user/UserLink";
 import { assertDefined } from "~/lib/assert/assertDefined";
 
@@ -36,6 +37,7 @@ export function RawEntry(
 						...UserLink
 					}
 				}
+				...ProjectListCollapsible
 			}
 		`,
 		props.resource
@@ -59,7 +61,10 @@ export function RawEntry(
 					<ResourceLink resource={data} />
 				</PaddingHelper>
 			</EuiTableRowCell>
-			<EuiTableRowCell colSpan={columnCount - 3} align="center" color={"subdued"}>
+			<EuiTableRowCell>
+				<ProjectListCollapsible data={data} />
+			</EuiTableRowCell>
+			<EuiTableRowCell colSpan={columnCount - 4} align="center" color={"subdued"}>
 				<EuiText color={"subdued"} size={"xs"}>
 					<EuiLink color={"subdued"} onClick={handleImport}>
 						Import

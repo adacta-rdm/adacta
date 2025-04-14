@@ -463,7 +463,10 @@ export function DeviceOverview(props: IProps) {
 										id: "Resources",
 										label: "Resources",
 										content: (
-											<ResourceListTable resources={device.usageInResource} connections={[]} />
+											<ResourceListTable
+												resources={device.usageInResource.filter(isNonNullish)}
+												connections={[]}
+											/>
 										),
 									},
 							  ]

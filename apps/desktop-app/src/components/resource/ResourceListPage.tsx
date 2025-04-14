@@ -14,7 +14,10 @@ import {
 	ResourceList,
 	ResourceListLoading,
 } from "~/apps/desktop-app/src/components/resource/ResourceList";
-import { SearchBar } from "~/apps/desktop-app/src/components/search/list/SearchBar";
+import {
+	getStoredSelectedSearchItems,
+	SearchBar,
+} from "~/apps/desktop-app/src/components/search/list/SearchBar";
 import { EDocId } from "~/apps/desktop-app/src/interfaces/EDocId";
 import { useService } from "~/apps/desktop-app/src/services/ServiceProvider";
 import { DocFlyoutService } from "~/apps/desktop-app/src/services/toaster/FlyoutService";
@@ -27,7 +30,9 @@ export function ResourceListPage(props: { queryRef: PreloadedQuery<ResourceListQ
 		useState<RefetchFnDynamic<ResourceListFragment, ResourceList$key>>();
 	const [resourceListVariables, setResourceListVariables] = useState<
 		Partial<ResourceListFragment$variables>
-	>({});
+	>({
+		filter: getStoredSelectedSearchItems("resourcesList"),
+	});
 
 	return (
 		<AdactaPageTemplate>
