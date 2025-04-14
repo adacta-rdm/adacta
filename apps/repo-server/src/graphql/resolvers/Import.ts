@@ -2,7 +2,6 @@ import assert from "node:assert";
 
 import { and, arrayContains, asc, isNotNull } from "drizzle-orm";
 import probe from "probe-image-size";
-import { a } from "vite-node/index-O2IrwHKf";
 
 import { createResourceFromUpload } from "./utils/createResourceFromUpload";
 import { paginateDocuments } from "./utils/paginateDocuments";
