@@ -19,7 +19,10 @@ import type { SampleListQuery } from "@/relay/SampleListQuery.graphql";
 import { AdactaPageTemplate } from "~/apps/desktop-app/src/components/layout/AdactaPageTemplate";
 import { ManageNameCompositionButton } from "~/apps/desktop-app/src/components/nameComposition/ManageNameCompositionButton";
 import { SampleList, SampleListLoading } from "~/apps/desktop-app/src/components/sample/SampleList";
-import { SearchBar } from "~/apps/desktop-app/src/components/search/list/SearchBar";
+import {
+	getStoredSelectedSearchItems,
+	SearchBar,
+} from "~/apps/desktop-app/src/components/search/list/SearchBar";
 import { EDocId } from "~/apps/desktop-app/src/interfaces/EDocId";
 import { useService } from "~/apps/desktop-app/src/services/ServiceProvider";
 import { DocFlyoutService } from "~/apps/desktop-app/src/services/toaster/FlyoutService";
@@ -33,7 +36,7 @@ export function SampleListPage(props: { queryRef: PreloadedQuery<SampleListQuery
 	const [refetch, setRefetch] = useState<RefetchFnDynamic<SampleListFragment, SampleList$key>>();
 	const [sampleListVariables, setSampleListVariables] = useState<
 		Partial<SampleListFragment$variables>
-	>({});
+	>({ filter: getStoredSelectedSearchItems("sampleList") });
 
 	return (
 		<AdactaPageTemplate>
