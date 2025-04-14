@@ -144,6 +144,13 @@ const DeviceOverViewGraphQLFragment = graphql`
 				}
 			}
 		}
+		projects {
+			edges {
+				node {
+					id
+				}
+			}
+		}
 		...ComponentEuiTree @arguments(time: $time)
 		...SetupDescriptionComponent @arguments(time: $time)
 		...DeviceEditFragment
@@ -492,7 +499,10 @@ export function DeviceOverview(props: IProps) {
 											<EuiFlexGroup justifyContent="center">
 												<EuiFlexItem grow={false}>
 													{}
-													<FileUpload deviceId={device.id as IDeviceId} />
+													<FileUpload
+														deviceId={device.id as IDeviceId}
+														defaultProjects={device.projects.edges.map((e) => e.node.id)}
+													/>
 												</EuiFlexItem>
 											</EuiFlexGroup>
 										),
