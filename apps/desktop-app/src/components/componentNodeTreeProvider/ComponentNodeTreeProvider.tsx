@@ -13,7 +13,6 @@ import type {
 	ComponentNodeTreeProviderFragment$data,
 	ComponentNodeTreeProviderFragment$key,
 } from "@/relay/ComponentNodeTreeProviderFragment.graphql";
-import type { DeviceListHierarchicalGraphQLFragment$data } from "@/relay/DeviceListHierarchicalGraphQLFragment.graphql";
 import { splitPropertyNameIntoVirtualGroups } from "~/lib/utils/splitPropertyNameIntoVirtualGroups";
 
 const ComponentNodeTreeProviderFragmentGraphQl = graphql`
