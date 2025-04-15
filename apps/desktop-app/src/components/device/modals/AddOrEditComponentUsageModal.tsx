@@ -15,6 +15,7 @@ import {
 	EuiSpacer,
 	EuiSuperSelect,
 	EuiSwitch,
+	EuiText,
 } from "@elastic/eui";
 import type { Moment } from "moment";
 import moment from "moment";
@@ -189,17 +190,22 @@ export function AddOrEditComponentUsageModal(props: IProps) {
 				</EuiModalHeaderTitle>
 			</EuiModalHeader>
 			<EuiModalBody>
-				<EuiFormRow
-					fullWidth
-					label="Slot"
-					helpText={"Select a slot from the the list. A new slot can be created by entering text."}
-				>
-					<SlotSelection
-						propertyDefinitions={data.definition.propertyDefinitions as IPropertyDefinition[]}
-						value={propertyName}
-						onChange={setPropertyName}
-						editMode={props.existingProperty !== undefined}
-					/>
+				<EuiFormRow fullWidth label="Slot">
+					<>
+						<SlotSelection
+							propertyDefinitions={data.definition.propertyDefinitions as IPropertyDefinition[]}
+							value={propertyName}
+							onChange={setPropertyName}
+							editMode={props.existingProperty !== undefined}
+						/>
+						<EuiSpacer size={"xs"} />
+						<EuiText size={"xs"} color={"subdued"}>
+							Select a slot from the the list. A new slot can be created by entering text.
+							<br />
+							To group multiple slots, use a slash (/) in the name (i.e. &quot;Gas Dosage/MFC
+							3&quot;)
+						</EuiText>
+					</>
 				</EuiFormRow>
 				{invalidDateRange !== null && (
 					<>
