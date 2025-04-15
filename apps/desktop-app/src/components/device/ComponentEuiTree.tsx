@@ -243,6 +243,7 @@ function ComponentEuiTreePure(props: IPropsPure) {
 
 			const contextMenuActions: EuiContextMenuPanelItemDescriptor[] = [];
 
+			// Only devices can have children
 			if (node.component.__typename === "Device") {
 				contextMenuActions.push({
 					name: `Add component as child of ${node.component.name}`,
@@ -259,7 +260,10 @@ function ComponentEuiTreePure(props: IPropsPure) {
 						setAddComponentModalOpenForDeviceId(node.component.id);
 					},
 				});
+			}
 
+			// Actions for all components that are not virtual groups
+			if (node.component.__typename !== "virtualGroup") {
 				contextMenuActions.push({
 					name: "Remove component",
 					icon: "minusInCircle",
