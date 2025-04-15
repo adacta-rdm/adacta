@@ -23,8 +23,12 @@ export const ImportMutations: IResolvers["RepositoryMutation"] = {
 		return { id: uploadId, url };
 	},
 
-	async importRawResource(_, { input }, { userId, services: { rm } }) {
-		return createResourceFromUpload(
+	async importRawResource(
+		_,
+		{ input },
+		{ userId, services: { rm, el }, schema: { ProjectToResource } }
+	) {
+		const resourceId = await createResourceFromUpload(
 			input.uploadId,
 			input.name,
 			{
@@ -35,6 +39,15 @@ export const ImportMutations: IResolvers["RepositoryMutation"] = {
 			rm,
 			userId
 		);
+
+		if (input.projects) {
+			for (const projectId of input.projects) {
+				assert(isEntityId(projectId, "Project"));
+				await el.insert(ProjectToResource, { projectId, resourceId: resourceId });
+			}
+		}
+
+		return resourceId;
 	},
 
 	async importImageResource(_, { input }, { userId, services: { rm, sto } }) {

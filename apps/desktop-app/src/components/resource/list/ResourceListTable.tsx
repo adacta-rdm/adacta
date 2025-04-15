@@ -48,8 +48,8 @@ export function ResourceListTable(
 
 const columns = [
 	"Name",
-	"Time of recording",
 	"Projects",
+	"Time of recording",
 	"Devices",
 	"Preview",
 	"Creator",

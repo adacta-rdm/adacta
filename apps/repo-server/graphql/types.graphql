@@ -567,6 +567,8 @@ input ImportRawResourceInput {
 	name: String!
 	uploadId: ID!
 	uploadDevice: ID!
+
+	projects: [ID!]
 }
 
 input OriginRepoMetadataInput {

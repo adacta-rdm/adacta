@@ -46,6 +46,7 @@ import type { SetupDescriptionComponentDeleteMutation } from "@/relay/SetupDescr
 import type { SetupDescriptionComponentLinkImageMutation } from "@/relay/SetupDescriptionComponentLinkImageMutation.graphql";
 import type { SetupDescriptionComponentUpdateDatesMutation } from "@/relay/SetupDescriptionComponentUpdateDatesMutation.graphql";
 import type { ShowIfUserCanEdit$key } from "@/relay/ShowIfUserCanEdit.graphql";
+import { SampleLink } from "~/apps/desktop-app/src/components/sample/SampleLink";
 import { assertDefined } from "~/lib/assert/assertDefined";
 import {
 	createDate,
@@ -322,7 +323,7 @@ function SetupDescriptionComponentPure(props: IProps & { data: SetupDescriptionC
 		const unlabeledComponents: IAvailableLabel[] = [];
 		for (const node of tree) {
 			let newPropertyPath: string[];
-			if (node.component.__typename === "Device") {
+			if (node.component.__typename === "Device" || node.component.__typename === "Sample") {
 				newPropertyPath = splitPropertyNameIntoVirtualGroups([
 					...propertyPath,
 					node.component.usagesAsProperty[0].name,
@@ -332,13 +333,16 @@ function SetupDescriptionComponentPure(props: IProps & { data: SetupDescriptionC
 					annotations.push({
 						x: setupLabel.xPos,
 						y: setupLabel.yPos,
-						label: (
-							<DeviceLink
-								data={node.component.usagesAsProperty[0].value}
-								timestamp={timestamp}
-								textOverwrite={showSlotNames ? node.name : node.tag}
-							/>
-						),
+						label:
+							node.component.__typename === "Device" ? (
+								<DeviceLink
+									data={node.component.usagesAsProperty[0].value}
+									timestamp={timestamp}
+									textOverwrite={showSlotNames ? node.name : node.tag}
+								/>
+							) : (
+								<SampleLink sample={node.component.usagesAsProperty[0].value} />
+							),
 					});
 				} else {
 					// List all components that are not described in the setup description

@@ -1,8 +1,9 @@
 import assert from "assert";
 
-import { EuiFieldText, EuiFlexItem, EuiFormRow } from "@elastic/eui";
+import { EuiFlexItem, EuiFormRow } from "@elastic/eui";
 import React from "react";
 
+import { DateFormatStringInput } from "./DateFormatStringInput";
 import { renderPreview } from "./utils/renderPreview";
 import { useDebounceFormUpdate } from "../../../utils/useDebouncedFormUpdate";
 
@@ -63,9 +64,10 @@ export function DateTimeSplit({ dataRow, headerRow, config, configs, setConfig }
 	return (
 		<>
 			<EuiFlexItem grow={false}>
-				<EuiFormRow display="rowCompressed" label="Format">
-					<EuiFieldText value={format} onChange={(e) => setDateFormat(e.target.value)} />
+				<EuiFormRow display={"rowCompressed"} label="Format">
+					<DateFormatStringInput value={format} onChange={setDateFormat} inputMode={config.type} />
 				</EuiFormRow>
+
 				<EuiFormRow label="Preview">
 					<>{renderPreview(dataRow, headerRow, config, { targetFormat })}</>
 				</EuiFormRow>

@@ -1,11 +1,12 @@
 import assert from "assert";
 
-import { EuiFieldText, EuiFlexItem, EuiFormRow } from "@elastic/eui";
+import { EuiFlexItem, EuiFormRow } from "@elastic/eui";
 import React from "react";
 
 import { renderPreview } from "./utils/renderPreview";
 import { useDebounceFormUpdate } from "../../../utils/useDebouncedFormUpdate";
 
+import { DateFormatStringInput } from "~/apps/desktop-app/src/components/importWizzard/date/formats/DateFormatStringInput";
 import type { IColumnTimeConfig } from "~/lib/interface/IImportWizardPreset";
 
 interface IProps {
@@ -31,7 +32,7 @@ export function DateTimeCombined({ dataRow, headerRow, config, setConfig }: IPro
 	return (
 		<EuiFlexItem grow={true}>
 			<EuiFormRow display="rowCompressed" label="Format">
-				<EuiFieldText value={format} onChange={(e) => setFormat(e.target.value)} />
+				<DateFormatStringInput value={format} onChange={setFormat} inputMode={"combined"} />
 			</EuiFormRow>
 			<EuiFormRow label="Preview">
 				<>{renderPreview(dataRow, headerRow, config, {})}</>
