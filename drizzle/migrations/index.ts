@@ -7,7 +7,7 @@ import { GeneratedFilesReporter } from "~/scripts/utils/fileGenerator/GeneratedF
 import { GENERATED_HEADER_TS } from "~/scripts/utils/fileGenerator/generatorConsts";
 import { safeWriteGeneratedFile } from "~/scripts/utils/fileGenerator/safeWriteGeneratedFile";
 
-const __dirname = __dirnameFromImportMetaURL(import.meta.url);
+const __dirname = /* @__PURE__ */ (() => __dirnameFromImportMetaURL(import.meta.url))();
 
 export default async function () {
 	// Ensures that this code is not bundled, as it runs at build time
