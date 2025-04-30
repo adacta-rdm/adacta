@@ -154,12 +154,12 @@ function FileUploadProjects(props: {
 			aria-label="Assign projects to resource"
 			placeholder="Select projects this resource belongs to"
 			options={options}
-			onChange={(o) => {
-				const ids = o.flatMap((id) => {
-					if (!id.value) {
+			onChange={(selectedOptions) => {
+				const ids = selectedOptions.flatMap((option) => {
+					if (!option.value) {
 						return [];
 					}
-					return id.value;
+					return option.value;
 				});
 
 				setSelectedProjects(ids);

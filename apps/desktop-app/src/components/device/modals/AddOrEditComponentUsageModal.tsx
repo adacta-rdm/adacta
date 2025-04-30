@@ -200,7 +200,7 @@ export function AddOrEditComponentUsageModal(props: IProps) {
 						/>
 						<EuiSpacer size={"xs"} />
 						<EuiText size={"xs"} color={"subdued"}>
-							Select a slot from the the list. A new slot can be created by entering text.
+							Select a slot from the list. A new slot can be created by entering text.
 							<br />
 							To group multiple slots, use a slash (/) in the name (i.e. &quot;Gas Dosage/MFC
 							3&quot;)
