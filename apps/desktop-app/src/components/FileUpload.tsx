@@ -102,10 +102,7 @@ export function FileUpload(props: IProps) {
 	return (
 		<EuiPanel>
 			<div style={{ width: 300, position: "relative" }}>
-				<EuiFormRow
-					label={"Projects"}
-					helpText={"Optional, select projects to assign to the resource"}
-				>
+				<EuiFormRow label={"Projects"} helpText={"Project assignment is optional"}>
 					<FileUploadProjects
 						selectedProjects={selectedProjects}
 						setSelectedProjects={setSelectedProjects}
