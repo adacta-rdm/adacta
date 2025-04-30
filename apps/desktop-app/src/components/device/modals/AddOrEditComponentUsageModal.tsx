@@ -284,12 +284,12 @@ export function AddOrEditComponentUsageModal(props: IProps) {
 						</Suspense>
 						{(selectedSlotType === undefined || selectedSlotType === "Device") && (
 							<EuiFlexItem grow={false}>
-								<EuiButton onClick={() => setShowCreateDeviceModal(true)}>Add Device</EuiButton>
+								<EuiButton onClick={() => setShowCreateDeviceModal(true)}>Create Device</EuiButton>
 							</EuiFlexItem>
 						)}
 						{(selectedSlotType === undefined || selectedSlotType === "Sample") && (
 							<EuiFlexItem grow={false}>
-								<EuiButton onClick={() => setShowCreateSampleModal(true)}>Add Sample</EuiButton>
+								<EuiButton onClick={() => setShowCreateSampleModal(true)}>Create Sample</EuiButton>
 							</EuiFlexItem>
 						)}
 					</EuiFlexGroup>
