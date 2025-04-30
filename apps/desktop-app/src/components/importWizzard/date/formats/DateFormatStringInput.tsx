@@ -1,4 +1,4 @@
-import { EuiFieldText, EuiInputPopover } from "@elastic/eui";
+import { EuiCallOut, EuiFieldText, EuiInputPopover, EuiText } from "@elastic/eui";
 import React, { useState } from "react";
 
 type TInputMode = "date" | "time" | "combined";
@@ -40,8 +40,8 @@ function TokenExplanation(props: { inputMode: TInputMode }) {
 	const dateTokens = [
 		{ token: "YYYY", example: "2025", description: "4 digit year" },
 		{ token: "YY", example: "25", description: "2 digit year" },
-		{ token: "M MM", example: "1..12", description: "Month number" },
-		{ token: "D DD", example: "1..31", description: "Day of month" },
+		{ token: "MM", example: "1..12", description: "Month number" },
+		{ token: "DD", example: "1..31", description: "Day of month" },
 		{ token: "Do", example: "1st..31st", description: "Day of month with ordinal" },
 	];
 
@@ -55,12 +55,12 @@ function TokenExplanation(props: { inputMode: TInputMode }) {
 	// Z ZZ	+12:00	Offset from UTC as +-HH:mm, +-HHmm, or Z
 	const timeTokens = [
 		{
-			token: "H HH",
+			token: "HH",
 			example: "0..23",
 			description: "Hours (24 hour time)",
 		},
 		{
-			token: "h hh",
+			token: "hh",
 			example: "1..12",
 			description: "Hours (12 hour time used with a A.)",
 		},
@@ -70,12 +70,12 @@ function TokenExplanation(props: { inputMode: TInputMode }) {
 			description: "Post or ante meridiem (Note the one character a p are also considered valid)",
 		},
 		{
-			token: "m mm",
+			token: "mm",
 			example: "0..59",
 			description: "Minutes",
 		},
 		{
-			token: "s ss",
+			token: "ss",
 			example: "0..59",
 			description: "Seconds",
 		},
@@ -145,6 +145,14 @@ function TokenExplanation(props: { inputMode: TInputMode }) {
 						))}
 				</tbody>
 			</table>
+			{props.inputMode !== "date" && (
+				<EuiCallOut color={"primary"} title={"Example"}>
+					<EuiText size={"xs"}>
+						The format HH:mm:ss.SSS applied to the value 01:30:05.123 represents 1 hour, 30 minutes,
+						5 seconds, and 123 milliseconds
+					</EuiText>
+				</EuiCallOut>
+			)}
 		</div>
 	);
 }
