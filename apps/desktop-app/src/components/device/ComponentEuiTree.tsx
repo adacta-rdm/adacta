@@ -163,7 +163,6 @@ function ComponentEuiTreePure(props: IPropsPure) {
 					panels={[
 						{
 							id: 0,
-							title: "This is a context menu",
 							items: props.items,
 						},
 					]}
