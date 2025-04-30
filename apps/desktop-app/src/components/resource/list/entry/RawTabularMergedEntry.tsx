@@ -89,11 +89,11 @@ export function RawTabularMergedEntry(
 					</PaddingHelper>
 				</EuiTableRowCell>
 				<EuiTableRowCell>
-					<DateTime date={createMaybeDate(data.begin)} /> -{" "}
-					<DateTime date={createMaybeDate(data.end)} />
+					<ProjectListCollapsible data={data} />
 				</EuiTableRowCell>
 				<EuiTableRowCell>
-					<ProjectListCollapsible data={data} />
+					<DateTime date={createMaybeDate(data.begin)} /> -{" "}
+					<DateTime date={createMaybeDate(data.end)} />
 				</EuiTableRowCell>
 				<EuiTableRowCell>
 					<ResourceDevices devices={data.devices.filter(isNonNullish)} />

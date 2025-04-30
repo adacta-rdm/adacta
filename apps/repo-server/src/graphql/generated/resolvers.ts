@@ -1484,6 +1484,7 @@ export type IImportRawResourceInput = {
 	name: Scalars["String"];
 	uploadId: Scalars["ID"];
 	uploadDevice: Scalars["ID"];
+	projects?: InputMaybe<Array<Scalars["ID"]>>;
 };
 
 export type IImportImageResourceInput = {

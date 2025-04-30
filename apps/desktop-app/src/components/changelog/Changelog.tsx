@@ -14,6 +14,7 @@ import type { ArrayElement } from "type-fest/source/internal";
 import { RoundedIcon } from "./RoundedIcon";
 import { DateTime } from "../datetime/DateTime";
 import { DeviceLink } from "../device/DeviceLink";
+import { SampleLink } from "../sample/SampleLink";
 
 import type { Changelog$key } from "@/relay/Changelog.graphql";
 import { DevicePreviewImage } from "~/apps/desktop-app/src/components/device/DevicePreviewImage";
@@ -52,10 +53,15 @@ const ChangelogFragmentGraphql = graphql`
 				timestampEnd
 				name
 				value {
-					... on Device {
-						...DevicePreviewImage
+					... on Sample {
+						__typename
+						...SampleLink
 					}
-					...DeviceLink
+					... on Device {
+						__typename
+						...DevicePreviewImage
+						...DeviceLink
+					}
 				}
 			}
 		}
@@ -84,20 +90,36 @@ export function Changelog(props: { data: Changelog$key; additionalEvents?: IEven
 			property: ArrayElement<typeof data.properties>,
 			direction: "inserted" | "removed"
 		) => {
-			return (
-				<EuiFlexGroup alignItems={"center"}>
-					<DevicePreviewImage data={property.value} asFlexItem />
-
-					<EuiFlexItem grow={false}>
-						<div style={{ display: "inline-block" }}>
-							<DeviceLink data={property.value} /> was{" "}
-							{direction === "inserted" ? "inserted into slot" : "removed from"} &lsquo;
-							{property.name}
-							&rsquo;
-						</div>
-					</EuiFlexItem>
-				</EuiFlexGroup>
-			);
+			if (property.value.__typename === "Device") {
+				return (
+					<EuiFlexGroup alignItems={"center"}>
+						<DevicePreviewImage data={property.value} asFlexItem />
+						<EuiFlexItem grow={false}>
+							<div style={{ display: "inline-block" }}>
+								<DeviceLink data={property.value} /> was{" "}
+								{direction === "inserted" ? "inserted into slot" : "removed from"} &lsquo;
+								{property.name}
+								&rsquo;
+							</div>
+						</EuiFlexItem>
+					</EuiFlexGroup>
+				);
+			} else if (property.value.__typename === "Sample") {
+				return (
+					<EuiFlexGroup alignItems={"center"}>
+						<EuiFlexItem grow={false}>
+							<div style={{ display: "inline-block" }}>
+								<SampleLink sample={property.value} /> was{" "}
+								{direction === "inserted" ? "inserted into slot" : "removed from"} &lsquo;
+								{property.name}
+								&rsquo;
+							</div>
+						</EuiFlexItem>
+					</EuiFlexGroup>
+				);
+			} else {
+				throw new Error("Unknown type of property");
+			}
 		};
 
 		for (const usageAsProperty of data.usagesAsProperty) {

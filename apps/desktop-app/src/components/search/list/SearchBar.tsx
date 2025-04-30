@@ -25,6 +25,7 @@ import { SearchFilter } from "~/apps/desktop-app/src/components/search/list/Sear
 import { useSearchBarContext } from "~/apps/desktop-app/src/components/search/list/useSearchBarContext";
 import type { IStoredFilters } from "~/apps/desktop-app/src/interfaces/IStoredFilters";
 import type { InputMaybe, Scalars } from "~/apps/repo-server/src/graphql/generated/resolvers";
+import { CURRENT_USER_ID_PLACEHOLDER } from "~/lib/CURRENT_USER_ID_PLACEHOLDER";
 
 const SearchBarGraphQLQuery = graphql`
 	query SearchBarQuery {
@@ -458,5 +459,7 @@ export function getStoredSelectedSearchItems(
 			return undefined;
 		}
 		return undefined;
+	} else {
+		return { userIds: [CURRENT_USER_ID_PLACEHOLDER], projectIds: [], searchValue: "" };
 	}
 }

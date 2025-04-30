@@ -1,13 +1,14 @@
-import { EuiFilePicker, EuiFormRow, EuiPanel } from "@elastic/eui";
+import { EuiComboBox, EuiFilePicker, EuiFormRow, EuiPanel } from "@elastic/eui";
 import React, { useState } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
-import { graphql, useMutation } from "react-relay";
+import { graphql, useLazyLoadQuery, useMutation } from "react-relay";
 
 import { useRepoRouterHook } from "../services/router/RepoRouterHook";
 import { useRepositoryIdVariable } from "../services/router/UseRepoId";
 import { uploadFileBrowser } from "../utils/uploadFileBrowser";
 
 import type { FileUploadMutation } from "@/relay/FileUploadMutation.graphql";
+import type { FileUploadProjectsQuery } from "@/relay/FileUploadProjectsQuery.graphql";
 import type { FileUploadRequestMutation } from "@/relay/FileUploadRequestMutation.graphql";
 import type { IDeviceId } from "~/lib/database/Ids";
 
@@ -32,6 +33,8 @@ const FileUploadGraphQLMutation: GraphQLTaggedNode = graphql`
 
 interface IProps {
 	deviceId: IDeviceId;
+
+	defaultProjects?: string[];
 }
 
 export function FileUpload(props: IProps) {
@@ -44,11 +47,17 @@ export function FileUpload(props: IProps) {
 	);
 
 	const [importRawResourceMutation] = useMutation<FileUploadMutation>(FileUploadGraphQLMutation);
+	const [selectedProjects, setSelectedProjects] = useState<string[]>(props.defaultProjects ?? []);
 
 	const importRawResource = (uploadId: string, filename: string) => {
 		importRawResourceMutation({
 			variables: {
-				input: { uploadDevice: props.deviceId, uploadId: uploadId, name: filename },
+				input: {
+					uploadDevice: props.deviceId,
+					uploadId: uploadId,
+					name: filename,
+					projects: selectedProjects,
+				},
 				...repositoryIdVariable,
 			},
 			onCompleted: (result) => {
@@ -93,6 +102,12 @@ export function FileUpload(props: IProps) {
 	return (
 		<EuiPanel>
 			<div style={{ width: 300, position: "relative" }}>
+				<EuiFormRow label={"Projects"} helpText={"Project assignment is optional"}>
+					<FileUploadProjects
+						selectedProjects={selectedProjects}
+						setSelectedProjects={setSelectedProjects}
+					/>
+				</EuiFormRow>
 				<EuiFormRow label={"File"}>
 					<EuiFilePicker
 						isLoading={uploadInFlight}
@@ -103,5 +118,54 @@ export function FileUpload(props: IProps) {
 				</EuiFormRow>
 			</div>
 		</EuiPanel>
+	);
+}
+
+function FileUploadProjects(props: {
+	selectedProjects: string[];
+	setSelectedProjects: (selectedProject: string[]) => void;
+}) {
+	const { selectedProjects, setSelectedProjects } = props;
+	const repositoryIdVariable = useRepositoryIdVariable();
+	const data = useLazyLoadQuery<FileUploadProjectsQuery>(
+		graphql`
+			query FileUploadProjectsQuery($repositoryId: ID!) {
+				repository(id: $repositoryId) {
+					projects {
+						edges {
+							node {
+								id
+								name
+							}
+						}
+					}
+				}
+			}
+		`,
+		repositoryIdVariable
+	);
+
+	const projects = data.repository.projects.edges.map((e) => e.node);
+	const options = projects.map((p) => ({ label: `${p.name}`, value: p.id }));
+	const selectedOptions = options.filter((o) => selectedProjects.includes(o.value));
+
+	return (
+		<EuiComboBox
+			aria-label="Assign projects to resource"
+			placeholder="Select projects this resource belongs to"
+			options={options}
+			onChange={(selectedOptions) => {
+				const ids = selectedOptions.flatMap((option) => {
+					if (!option.value) {
+						return [];
+					}
+					return option.value;
+				});
+
+				setSelectedProjects(ids);
+			}}
+			selectedOptions={selectedOptions}
+			isClearable={true}
+		/>
 	);
 }

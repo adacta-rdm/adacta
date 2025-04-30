@@ -13,7 +13,7 @@ export function TabbedPageLayout(props: {
 		tabs: {
 			label: ReactNode;
 			id: string;
-			isSelected?: true;
+			isSelected?: boolean;
 			content: JSX.Element | null;
 			disabled?: true;
 		}[];

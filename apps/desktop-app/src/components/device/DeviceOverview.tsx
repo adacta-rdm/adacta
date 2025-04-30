@@ -47,6 +47,7 @@ import type { AdactaTimelineSample$data } from "@/relay/AdactaTimelineSample.gra
 import type { AdactaTimelineUsage$data } from "@/relay/AdactaTimelineUsage.graphql";
 import type { DeviceOverview$key } from "@/relay/DeviceOverview.graphql";
 import { TopLevelDevice } from "~/apps/desktop-app/src/components/device/TopLevelDevice";
+import { ResourceListTable } from "~/apps/desktop-app/src/components/resource/list/ResourceListTable";
 import { renderSpecification } from "~/apps/desktop-app/src/components/specifications/specialMeaningSpecificationsKeys";
 import { assertDefined } from "~/lib/assert/assertDefined";
 import { isNonNullish } from "~/lib/assert/isNonNullish";
@@ -132,6 +133,7 @@ const DeviceOverViewGraphQLFragment = graphql`
 			begin
 			end
 			...AdactaTimelineResource @relay(mask: false)
+			...ResourceListTableFragment
 		}
 		notes {
 			__id
@@ -139,6 +141,13 @@ const DeviceOverViewGraphQLFragment = graphql`
 				node {
 					...AdactaTimelineNotes @relay(mask: false)
 					begin
+				}
+			}
+		}
+		projects {
+			edges {
+				node {
+					id
 				}
 			}
 		}
@@ -291,6 +300,10 @@ export function DeviceOverview(props: IProps) {
 				};
 			}) ?? [];
 
+	// For some devices it is preferred to show the specifications tab as default (i.e. for devices
+	// with no components)
+	const showSpecificationsAsDefaultTab = device.properties.length === 0 && specification.length > 0;
+
 	return (
 		<>
 			{deviceEditor && <DeviceEdit closeModal={() => setDeviceEditor(false)} device={device} />}
@@ -413,6 +426,7 @@ export function DeviceOverview(props: IProps) {
 									{
 										id: "specifications",
 										label: "Specifications",
+										isSelected: showSpecificationsAsDefaultTab,
 										content: (
 											<>
 												{!props.popoverMode && (
@@ -440,6 +454,20 @@ export function DeviceOverview(props: IProps) {
 										id: "samples",
 										label: "Samples",
 										content: <EuiDescriptionList type="row" listItems={samples} />,
+									},
+							  ]
+							: []),
+						...(device.usageInResource.length > 0
+							? [
+									{
+										id: "Resources",
+										label: "Resources",
+										content: (
+											<ResourceListTable
+												resources={device.usageInResource.filter(isNonNullish)}
+												connections={[]}
+											/>
+										),
 									},
 							  ]
 							: []),
@@ -471,7 +499,10 @@ export function DeviceOverview(props: IProps) {
 											<EuiFlexGroup justifyContent="center">
 												<EuiFlexItem grow={false}>
 													{}
-													<FileUpload deviceId={device.id as IDeviceId} />
+													<FileUpload
+														deviceId={device.id as IDeviceId}
+														defaultProjects={device.projects.edges.map((e) => e.node.id)}
+													/>
 												</EuiFlexItem>
 											</EuiFlexGroup>
 										),
