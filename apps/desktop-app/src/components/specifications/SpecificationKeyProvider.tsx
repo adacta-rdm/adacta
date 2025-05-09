@@ -95,6 +95,7 @@ export function useDeviceSpecificationKeys() {
 		const propertyKeysFromDeviceDefinitions = connectionToArray(data.deviceDefinitions)
 			.map((e) => e.specifications)
 			.flat()
+			.filter(isNonNullish)
 			.map((s) => s.name);
 
 		const keys = propertyKeysFromDevices

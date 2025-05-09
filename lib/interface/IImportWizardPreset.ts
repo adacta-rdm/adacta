@@ -2,7 +2,44 @@ import type { IDatetime } from "../createDate";
 
 import type { IColumnConfigBase } from "~/apps/desktop-app/src/components/importWizzard/ImportWizard";
 import type { IDataArea } from "~/apps/repo-server/src/csvImportWizard/CSVImportWizard";
+import type { ITabularDataColumnDescription } from "~/lib/interface/ITabularDataColumnDescription";
 
+/**
+ * Preset for Gamry import
+ */
+export interface IGamryPreset {
+	dateInfo: TGamryDateInfo;
+	columns: GamryColumn[];
+}
+
+export type GamryColumn = Omit<ITabularDataColumnDescription, "independentVariables"> & {
+	devicePath: string[];
+	independentVariablesNames: string[]; // Gamry files provide unique headers. Use the names to reference the columns
+};
+
+interface IDateInfoAutomatic {
+	type: "automatic";
+	timezone: string;
+}
+
+export interface IDateInfoManual {
+	type: "manual";
+	timezone: string;
+	begin: IDatetime;
+	end: IDatetime;
+}
+
+export type TGamryDateInfo = (IDateInfoAutomatic | IDateInfoManual) & { timezone: string };
+
+// For now "ICSVPreset" is just an alias for "IImportWizardPreset"
+// Future uses should use "ICSVPreset" instead of "IImportWizardPreset" to have consistent naming
+// with ICSVPreset/IGamryPreset
+export type ICSVPreset = IImportWizardPreset;
+
+/**
+ * Preset for CSV import
+ * @deprecated
+ */
 export interface IImportWizardPreset {
 	delimiter: string;
 	decimalSeparator: string;

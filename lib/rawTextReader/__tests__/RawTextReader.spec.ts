@@ -29,8 +29,8 @@ describe("RawTextReader", () => {
 
 		const fileContent = await readUTF8File(path);
 		const reader = new RawTextReader("large.tsv", sto);
-		const text = await reader.text(0, 100);
-		expect(text).toEqual(fileContent.substr(0, 100));
+		const data = await reader.text(0, 100);
+		expect(data.text).toEqual(fileContent.substr(0, 100));
 	});
 
 	/**
@@ -41,7 +41,7 @@ describe("RawTextReader", () => {
 	test("Shows garbage as last character", async () => {
 		await sto.write(testFilePath, new Buffer("𝄞𝄞"));
 		const reader = new RawTextReader(testFilePath, sto);
-		const text = await reader.text(0, 6);
-		expect(text).toBe("𝄞�");
+		const data = await reader.text(0, 6);
+		expect(data.text).toBe("𝄞�");
 	});
 });

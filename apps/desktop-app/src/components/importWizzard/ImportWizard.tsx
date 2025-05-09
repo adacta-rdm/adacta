@@ -1,5 +1,3 @@
-import assert from "assert";
-
 import {
 	colorPalette,
 	EuiFieldText,
@@ -13,12 +11,12 @@ import {
 } from "@elastic/eui";
 import type { EmotionJSX } from "@emotion/react/types/jsx-namespace";
 import type { ChangeEvent, ChangeEventHandler, ReactElement } from "react";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { GraphQLTaggedNode } from "react-relay";
-import { graphql, useMutation, useRefetchableFragment, useSubscription } from "react-relay";
+import { graphql, useMutation, useRefetchableFragment } from "react-relay";
 import type { PreloadedQuery } from "react-relay/hooks";
 import { usePreloadedQuery } from "react-relay/hooks";
-import type { GraphQLSubscriptionConfig, OperationType } from "relay-runtime";
+import type { OperationType } from "relay-runtime";
 
 import { ImportWizardSummary } from "./ImportWizardSummary";
 import { ImportWizardWarning } from "./ImportWizardWarning";
@@ -40,17 +38,16 @@ import { useDebounceFormUpdate } from "../utils/useDebouncedFormUpdate";
 import type { ImportWizardDeviceInformationFragment$key } from "@/relay/ImportWizardDeviceInformationFragment.graphql";
 import type { ImportWizardMutation } from "@/relay/ImportWizardMutation.graphql";
 import type { ImportWizardQuery } from "@/relay/ImportWizardQuery.graphql";
-import type { ImportWizardSubscription } from "@/relay/ImportWizardSubscription.graphql";
 import type { ImportWizardToCellArrayMutation } from "@/relay/ImportWizardToCellArrayMutation.graphql";
 import type { ImportWizardToGenericTableMutation } from "@/relay/ImportWizardToGenericTableMutation.graphql";
 import type { ImportWizardToTabularDataArrayBufferMutation } from "@/relay/ImportWizardToTabularDataArrayBufferMutation.graphql";
 import { assertTToCellArrayOutput } from "@/tsrc/lib/interface/CSVImportWizzard/TToCellArrayOutput";
 import { assertTToGenericTableOutput } from "@/tsrc/lib/interface/CSVImportWizzard/TToGenericTableOutput";
+import { useImportSubscription } from "~/apps/desktop-app/src/components/importWizzard/useImportSubscription";
 import type { IToTabularDataOptions } from "~/apps/repo-server/src/csvImportWizard/CSVImportWizard";
+import { IImportTransformationType } from "~/apps/repo-server/src/graphql/generated/resolvers";
 import { assertDefined } from "~/lib/assert/assertDefined";
 import { assertInstanceof } from "~/lib/assert/assertInstanceof";
-import { assertUnreachable } from "~/lib/assert/assertUnreachable";
-import { isNonNullish } from "~/lib/assert/isNonNullish";
 import { createDate, createIDatetime, createMaybeDate } from "~/lib/createDate";
 import type { IDeviceId, IResourceId } from "~/lib/database/Ids";
 import type { TUnit } from "~/lib/importWizard/ImportWizardUnit";
@@ -64,32 +61,9 @@ import type { TToGenericTableOutput } from "~/lib/interface/CSVImportWizzard/TTo
 import type { IColumnConfig, IImportWizardPreset } from "~/lib/interface/IImportWizardPreset";
 import type { ITabularDataColumnDescription } from "~/lib/interface/ITabularDataColumnDescription";
 
-const ImportWizardGraphQLSubscription = graphql`
-	subscription ImportWizardSubscription {
-		importTask {
-			id
-			payload {
-				__typename
-				... on ImportTransformationProgress {
-					progress
-				}
-				... on ImportTransformationSuccess {
-					ids
-				}
-				... on ImportTransformationError {
-					message
-				}
-				... on ImportTransformationWarning {
-					message
-				}
-			}
-		}
-	}
-`;
-
 export const ImportWizardGraphQLQuery = graphql`
-	query ImportWizardQuery($cursor: String, $deviceId: ID, $repositoryId: ID!) {
-		...PresetSelection @arguments(after: $cursor, deviceId: $deviceId)
+	query ImportWizardQuery($cursor: String, $deviceId: ID) {
+		...PresetSelection @arguments(after: $cursor, deviceId: $deviceId, type: CSV)
 		...ImportWizardDeviceInformationFragment @arguments(ids: [])
 	}
 `;
@@ -787,56 +761,16 @@ export function ImportWizard(props: IImportWizardProps) {
 		setStep(step);
 	};
 
-	// IMPORTANT: your config should be memoized, or at least not re-computed
-	// every render. Otherwise, useSubscription will re-render too frequently.
-	const config: GraphQLSubscriptionConfig<ImportWizardSubscription> = useMemo(() => {
-		return {
-			variables: {},
-			onNext: (r) => {
-				if (taskId !== undefined && r?.importTask?.id === taskId) {
-					const { payload } = r.importTask;
-
-					assert(payload.__typename !== "%other");
-
-					switch (payload.__typename) {
-						case "ImportTransformationProgress": {
-							if (payload.progress != undefined) setProgress(payload.progress);
-							break;
-						}
-						case "ImportTransformationSuccess": {
-							const ids = payload.ids;
-							if (ids.length == 1 && ids[0] !== null) {
-								router.push("/repositories/:repositoryId/resources/:resourceId", {
-									repositoryId,
-									resourceId: ids[0],
-								});
-							} else {
-								router.push("/repositories/:repositoryId/resources/:resourceId", {
-									repositoryId,
-									resourceId: props.resourceId,
-								});
-							}
-							break;
-						}
-						case "ImportTransformationWarning": {
-							setImportRunning(false);
-							setWarning(payload.message.filter(isNonNullish));
-							break;
-						}
-						case "ImportTransformationError": {
-							setImportRunning(false);
-							setErrors(payload.message.filter(isNonNullish));
-							break;
-						}
-						default:
-							assertUnreachable(payload);
-					}
-				}
-			},
-			subscription: ImportWizardGraphQLSubscription,
-		};
-	}, [props.resourceId, taskId, router, repositoryId]);
-	useSubscription(config);
+	useImportSubscription({
+		taskId,
+		router,
+		resourceId: props.resourceId,
+		repositoryId,
+		setProgress,
+		setImportRunning,
+		setWarning,
+		setErrors,
+	});
 
 	// Header with types of each column
 	const [columnTypeHeader, setColumnTypeHeader] = useState<Map<string, string>>(new Map());
@@ -876,6 +810,7 @@ export function ImportWizard(props: IImportWizardProps) {
 		importMutation({
 			variables: {
 				input: {
+					type: IImportTransformationType.Csv,
 					rawResourceId: props.resourceId,
 					presetJson: preset,
 					importWithWarnings,
@@ -1186,6 +1121,7 @@ export function ImportWizard(props: IImportWizardProps) {
 			progress={progress}
 			presetList={
 				<PresetSelection
+					type="csv"
 					currentPreset={preset}
 					deviceId={props.deviceId}
 					presets={query}

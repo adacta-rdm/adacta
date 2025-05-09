@@ -48,6 +48,7 @@ import type {
 export const RepositoryMutation: IResolvers["RepositoryMutation"] = {
 	...ImportMutations,
 	...CSVImportWizardMutations,
+
 	...SetupDescriptionMutations,
 
 	async repository(_, { id }, { setRepositoryInfo, repositoryName }) {

@@ -18,7 +18,7 @@ export class ResourceAttachmentManager {
 	public async getRawText(resource: DrizzleEntity<"Resource">): Promise<string> {
 		const fileName = ResourceAttachmentManager.getPath(resource.id);
 		const reader = new RawTextReader(fileName, this.sto);
-		return reader.text(0);
+		return (await reader.text(0)).text;
 	}
 
 	public getTabularData(resource: DrizzleEntity<"Resource">): Promise<TabularData> {
