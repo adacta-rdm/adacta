@@ -14,6 +14,15 @@ import { parseEnvFile } from "~/lib/utils/parseEnvFile";
 
 const rmp: RepositoryManagerPostgres[] = [];
 
+/**
+ * Using the postgres binaries from the host might won't work if they are newer than the involved
+ * postgres servers. This function runs a command in a postgres:14 docker container.
+ * @param cmd
+ */
+function shPostgres(cmd: string) {
+	return sh(`docker run -i --rm --net=host postgres:14 bash -c '${cmd}'`);
+}
+
 async function main(args: string[]) {
 	let sourceEnvFile: string | undefined = undefined;
 	let targetEnvFile: string | undefined = undefined;
@@ -148,7 +157,7 @@ async function main(args: string[]) {
 	}
 
 	addPromise(
-		sh(
+		shPostgres(
 			`pg_dump --dbname="${source.toString()}" -Fc --no-owner ${schemaArgs} | pg_restore --dbname="${target.toString()}" --no-owner`
 		)
 	);
