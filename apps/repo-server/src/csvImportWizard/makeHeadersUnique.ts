@@ -24,6 +24,11 @@ export function makeHeadersUnique(headers: readonly string[]): string[] {
 
 	// Modify the newHeaders array to add the suffix to any repeated header names
 	for (const [columnName, appearances] of headerToIndexMap) {
+		if (columnName.trim() === "") {
+			// Don't modify empty headers. Otherwise (repeated) empty headers would be renamed to
+			// " (1)", " (2)", etc.
+			continue;
+		}
 		if (appearances.length > 1) {
 			for (let i = 0; i < appearances.length; i++) {
 				const appearance = appearances[i];
