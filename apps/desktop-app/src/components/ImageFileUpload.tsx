@@ -4,10 +4,10 @@ import type { GraphQLTaggedNode } from "react-relay";
 import { graphql } from "react-relay";
 
 import { useRepositoryIdVariable } from "../services/router/UseRepoId";
-import { uploadFileBrowser } from "../utils/uploadFileBrowser";
 
 import type { ImageFileUploadMutation } from "@/relay/ImageFileUploadMutation.graphql";
 import type { ImageFileUploadRequestMutation } from "@/relay/ImageFileUploadRequestMutation.graphql";
+import { uploadFile } from "~/apps/desktop-app/src/utils/uploadFile";
 import { useMutationErrorHandler } from "~/apps/desktop-app/src/utils/useMutationErrorHandler";
 import { useMutationPromise } from "~/apps/desktop-app/src/utils/useMutationPromise";
 import type { IResourceId } from "~/lib/database/Ids";
@@ -76,7 +76,7 @@ export function ImageFileUpload(props: IProps) {
 		).repository.importRawResourceRequest;
 
 		// Upload the actual file
-		await uploadFileBrowser(file, uploadRequestResponse.url);
+		await uploadFile(file, uploadRequestResponse.url);
 
 		if (filePickerRef.current && !props.disableAutoClear) {
 			filePickerRef.current.removeFiles();
