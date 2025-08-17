@@ -25,9 +25,10 @@ import { fetchQueryWrapper } from "../../../utils/fetchQueryWrapper";
 import type { PresetSelection$key } from "@/relay/PresetSelection.graphql";
 import type { PresetSelectionFetchPresetQuery } from "@/relay/PresetSelectionFetchPresetQuery.graphql";
 import type { PresetSelectionSavePresetMutation } from "@/relay/PresetSelectionSavePresetMutation.graphql";
+import { IImportTransformationType } from "~/apps/repo-server/src/graphql/generated/resolvers";
 import { assertDefined } from "~/lib/assert/assertDefined";
 import type { IDeviceId } from "~/lib/database/Ids";
-import type { IImportWizardPreset } from "~/lib/interface/IImportWizardPreset";
+import type { ICSVPreset, IGamryPreset } from "~/lib/interface/IImportWizardPreset";
 
 const PresetSelectionGraphQLFragment = graphql`
 	fragment PresetSelection on RepositoryQuery
@@ -36,16 +37,15 @@ const PresetSelectionGraphQLFragment = graphql`
 		first: { type: "Int" }
 		after: { type: "String" }
 		deviceId: { type: "ID" }
+		type: { type: "ImportTransformationType" }
 	) {
-		repository(id: $repositoryId) {
-			importPresets(after: $after, first: $first, deviceId: $deviceId)
-				@connection(key: "ImportWizardQuery_importPresets") {
-				__id
-				edges {
-					node {
-						id
-						displayName
-					}
+		importPresets(after: $after, first: $first, deviceId: $deviceId, type: $type)
+			@connection(key: "ImportWizardQuery_importPresets") {
+			__id
+			edges {
+				node {
+					id
+					displayName
 				}
 			}
 		}
@@ -69,23 +69,25 @@ const SaveImportPresetGraphqlMutation: GraphQLTaggedNode = graphql`
 	}
 `;
 
-interface IProps {
-	currentPreset: IImportWizardPreset;
-	deviceId: IDeviceId;
-	presets: PresetSelection$key;
-	loadPreset: (preset: IImportWizardPreset) => void;
+interface ITypeToPreset {
+	csv: ICSVPreset;
+	gamry: IGamryPreset;
 }
 
-export function PresetSelection(props: IProps) {
+interface IProps<T extends "csv" | "gamry"> {
+	type: T;
+	currentPreset?: ITypeToPreset[T];
+	deviceId: IDeviceId;
+	presets: PresetSelection$key;
+	loadPreset: (preset: ITypeToPreset[T]) => void;
+}
+
+export function PresetSelection<T extends "csv" | "gamry">(props: IProps<T>) {
 	const environment = useRelayEnvironment();
 	const repositoryIdVariable = useRepositoryIdVariable();
-	const { data: fullData, refetch } = usePaginationFragment(
-		PresetSelectionGraphQLFragment,
-		props.presets
-	);
-	const data = fullData.repository;
+	const { data, refetch } = usePaginationFragment(PresetSelectionGraphQLFragment, props.presets);
 	const [presetId, setPresetId] = useState<string | undefined>(undefined);
-	const [presetMutation] = useMutation<PresetSelectionSavePresetMutation>(
+	const [savePresetMutation] = useMutation<PresetSelectionSavePresetMutation>(
 		SaveImportPresetGraphqlMutation
 	);
 
@@ -99,10 +101,14 @@ export function PresetSelection(props: IProps) {
 	});
 
 	const savePreset = () => {
-		presetMutation({
+		savePresetMutation({
 			variables: {
 				insert: {
 					input: {
+						presetType:
+							props.type === "csv"
+								? IImportTransformationType.Csv
+								: IImportTransformationType.Gamry,
 						presetJson: JSON.stringify(props.currentPreset),
 						name: presetName,
 						deviceId: [props.deviceId],
@@ -128,6 +134,7 @@ export function PresetSelection(props: IProps) {
 						node(id: $id) {
 							... on ImportPreset {
 								__typename
+								type
 								presetJSON
 							}
 						}
@@ -140,7 +147,16 @@ export function PresetSelection(props: IProps) {
 		const node = presetResponse.repository.node;
 		assertDefined(node);
 		assert(node.__typename !== "%other");
-		const preset = JSON.parse(node.presetJSON) as IImportWizardPreset;
+
+		if (node.type === IImportTransformationType.Csv) {
+			assert(props.type === "csv");
+		}
+
+		if (node.type === IImportTransformationType.Gamry) {
+			assert(props.type === "gamry");
+		}
+
+		const preset = JSON.parse(node.presetJSON) as ITypeToPreset[T];
 		props.loadPreset(preset);
 	};
 
@@ -161,6 +177,7 @@ export function PresetSelection(props: IProps) {
 		<>
 			{showPresetEditor && (
 				<PresetManager
+					type={props.type}
 					onClose={() => setShowPresetEditor(false)}
 					openerPresetConnectionId={data.importPresets.__id}
 				/>
@@ -194,7 +211,11 @@ export function PresetSelection(props: IProps) {
 									value={presetName}
 									onChange={(e) => setPresetName(e.target.value)}
 									append={
-										<EuiButtonEmpty size="xs" onClick={savePreset}>
+										<EuiButtonEmpty
+											size="xs"
+											onClick={savePreset}
+											disabled={props.currentPreset === undefined}
+										>
 											Save
 										</EuiButtonEmpty>
 									}

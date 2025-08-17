@@ -57,6 +57,16 @@ export type IRepositoryQuery = {
 	 * checkFor: The type of the object that should be checked for name availability (i.e. Device, Sample)
 	 */
 	checkNameAvailability: ICheckNameAvailability;
+	/**
+	 * Gather basic information about the file to be imported.
+	 * Does not require additional user input
+	 */
+	gamryToStep1: IErrorMessageOr_GamryMetadataStep1;
+	/**
+	 * Gather more detailed information about the file to be imported (including information about
+	 * date + time if possible)
+	 */
+	gamryToStep2: IErrorMessageOr_GamryMetadataStep2;
 };
 
 export type IRepositoryQueryRepositoryArgs = {
@@ -128,6 +138,7 @@ export type IRepositoryQueryImportPresetsArgs = {
 	first?: InputMaybe<Scalars["Int"]>;
 	after?: InputMaybe<Scalars["String"]>;
 	deviceId?: InputMaybe<Scalars["ID"]>;
+	type?: InputMaybe<IImportTransformationType>;
 };
 
 export type IRepositoryQueryProjectsArgs = {
@@ -147,6 +158,15 @@ export type IRepositoryQueryDevicesHierarchicalArgs = {
 export type IRepositoryQueryCheckNameAvailabilityArgs = {
 	name: Scalars["String"];
 	checkFor?: InputMaybe<INameAvailabilityCheckTarget>;
+};
+
+export type IRepositoryQueryGamryToStep1Args = {
+	resourceId: Scalars["ID"];
+};
+
+export type IRepositoryQueryGamryToStep2Args = {
+	resourceId: Scalars["ID"];
+	timezone: Scalars["String"];
 };
 
 export type INode = {
@@ -470,17 +490,12 @@ export type IResourceGeneric = INode &
 		end?: Maybe<Scalars["DateTime"]>;
 		/** Path where the resource can be downloaded from. */
 		downloadURL: Scalars["String"];
-		text: Scalars["String"];
+		rawFileMetadata: IResourceMetadata;
 	};
 
 export type IResourceGenericProjectsArgs = {
 	first?: InputMaybe<Scalars["Int"]>;
 	after?: InputMaybe<Scalars["String"]>;
-};
-
-export type IResourceGenericTextArgs = {
-	start: Scalars["Int"];
-	end: Scalars["Int"];
 };
 
 export type IHasProjects = {
@@ -721,12 +736,18 @@ export type IImportPreset = INode &
 	IHasMetadata & {
 		__typename?: "ImportPreset";
 		id: Scalars["ID"];
+		type: IImportTransformationType;
 		metadata: IMetadata;
 		devices: Array<IDevice>;
 		displayName?: Maybe<Scalars["String"]>;
 		presetJSON: Scalars["String"];
 		columns: Array<Scalars["String"]>;
 	};
+
+export enum IImportTransformationType {
+	Csv = "CSV",
+	Gamry = "GAMRY",
+}
 
 export type IIBaseNote = {
 	caption: Scalars["String"];
@@ -786,6 +807,12 @@ export type IDataSeries = {
 	values: Array<Maybe<Scalars["Float"]>>;
 	device?: Maybe<IDevice>;
 	resourceId?: Maybe<Scalars["ID"]>;
+};
+
+export type IResourceMetadata = {
+	__typename?: "ResourceMetadata";
+	type?: Maybe<Scalars["String"]>;
+	preview: Scalars["String"];
 };
 
 export type IUserEdge = IEdge & {
@@ -1190,6 +1217,54 @@ export enum IConflictResolution {
 	Deny = "DENY",
 }
 
+export type IErrorMessageOr_GamryMetadataStep1 = {
+	__typename?: "ErrorMessageOr_GamryMetadataStep1";
+	data?: Maybe<IGamryMetadataStep1>;
+	error?: Maybe<IErrorMessage>;
+};
+
+export type IGamryMetadataStep1 = {
+	__typename?: "GamryMetadataStep1";
+	tableHeaders: Array<Scalars["String"]>;
+	units: Array<Scalars["String"]>;
+	/**
+	 * If the file contains a start time + T/Time column the time can be calculated without further
+	 * user input.
+	 */
+	absoluteTimeInFile: Scalars["Boolean"];
+};
+
+export type IErrorMessage = {
+	__typename?: "ErrorMessage";
+	message: Scalars["String"];
+};
+
+export type IErrorMessageOr_GamryMetadataStep2 = {
+	__typename?: "ErrorMessageOr_GamryMetadataStep2";
+	data?: Maybe<IGamryMetadataStep2>;
+	error?: Maybe<IErrorMessage>;
+};
+
+export type IGamryMetadataStep2 = {
+	__typename?: "GamryMetadataStep2";
+	tables: Array<IGamryTableExtended>;
+	absoluteTime?: Maybe<IGamryTime>;
+};
+
+export type IGamryTableExtended = {
+	__typename?: "GamryTableExtended";
+	headers: Array<Scalars["String"]>;
+	units: Array<Scalars["String"]>;
+	min: Array<Maybe<Scalars["Float"]>>;
+	max: Array<Maybe<Scalars["Float"]>>;
+};
+
+export type IGamryTime = {
+	__typename?: "GamryTime";
+	begin: Scalars["DateTime"];
+	end: Scalars["DateTime"];
+};
+
 export type IRepositoryMutation = {
 	__typename?: "RepositoryMutation";
 	repository: IRepositoryMutation;
@@ -1495,12 +1570,8 @@ export type IErrorMessageOr_ResourceImage = {
 	error?: Maybe<IErrorMessage>;
 };
 
-export type IErrorMessage = {
-	__typename?: "ErrorMessage";
-	message: Scalars["String"];
-};
-
 export type ICreateAndRunImportTransformationInput = {
+	type: IImportTransformationType;
 	rawResourceId: Scalars["ID"];
 	presetJson: Scalars["String"];
 	/**
@@ -1793,6 +1864,7 @@ export type IInsert_ImportPresetInput = {
 };
 
 export type IImportPresetInput = {
+	presetType: IImportTransformationType;
 	deviceId: Array<Scalars["ID"]>;
 	name: Scalars["String"];
 	presetJson: Scalars["String"];
@@ -1804,6 +1876,7 @@ export type IUpdate_ImportPresetInput = {
 };
 
 export type IPartial_ImportPresetInput = {
+	presetType?: InputMaybe<IImportTransformationType>;
 	deviceId?: InputMaybe<Array<Scalars["ID"]>>;
 	name?: InputMaybe<Scalars["String"]>;
 	presetJson?: InputMaybe<Scalars["String"]>;

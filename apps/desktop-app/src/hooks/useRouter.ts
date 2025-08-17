@@ -46,7 +46,7 @@ export function useRouter() {
 	);
 }
 
-interface IRouter extends FarceStoreExtension, FoundStoreExtension {
+export interface IRouter extends FarceStoreExtension, FoundStoreExtension {
 	/**
 	 * Navigates to a new location
 	 * @see farce

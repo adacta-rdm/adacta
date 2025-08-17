@@ -16,7 +16,6 @@ function getData({ match, relayEnvironment }: GetDataArgs) {
 		relayEnvironment,
 		ImportWizardGraphQLQuery,
 		{
-			repositoryId: match.params.repositoryId,
 			deviceId: match.params.deviceId,
 		},
 		{ fetchPolicy: "store-and-network" }

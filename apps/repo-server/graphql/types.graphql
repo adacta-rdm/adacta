@@ -68,7 +68,12 @@ type RepositoryQuery {
 
 	search: SearchResults!
 
-	importPresets(first: Int, after: String, deviceId: ID): Connection_ImportPreset!
+	importPresets(
+		first: Int
+		after: String
+		deviceId: ID
+		type: ImportTransformationType
+	): Connection_ImportPreset!
 
 	projects(first: Int, after: String): ProjectConnection!
 
@@ -87,6 +92,18 @@ type RepositoryQuery {
 		name: String!
 		checkFor: NameAvailabilityCheckTarget
 	): CheckNameAvailability!
+
+	"""
+	Gather basic information about the file to be imported.
+	Does not require additional user input
+	"""
+	gamryToStep1(resourceId: ID!): ErrorMessageOr_GamryMetadataStep1!
+
+	"""
+	Gather more detailed information about the file to be imported (including information about
+	date + time if possible)
+	"""
+	gamryToStep2(resourceId: ID!, timezone: String!): ErrorMessageOr_GamryMetadataStep2!
 }
 
 type CheckNameAvailability {
@@ -291,6 +308,35 @@ type ImportTransformationProgress {
 	progress: Float
 }
 
+type GamryMetadataStep1 {
+	tableHeaders: [String!]!
+	units: [String!]!
+
+	"""
+	If the file contains a start time + T/Time column the time can be calculated without further
+	user input.
+	"""
+	absoluteTimeInFile: Boolean!
+}
+
+type GamryMetadataStep2 {
+	tables: [GamryTableExtended!]!
+
+	absoluteTime: GamryTime
+}
+
+type GamryTime {
+	begin: DateTime!
+	end: DateTime!
+}
+
+type GamryTableExtended {
+	headers: [String!]!
+	units: [String!]!
+	min: [Float]! # Min and Max values for each column. If the column is not a number, the value is nullable
+	max: [Float]! # Min and Max values for each column. If the column is not a number, the value is nullable
+}
+
 type RepositoryMutation {
 	repository(id: ID!): RepositoryMutation!
 
@@ -300,6 +346,7 @@ type RepositoryMutation {
 	# Users Time Setting
 	updateTimeSettings(input: UpdateTimeSettingsInput!): CurrentUser!
 
+	# CSV Import
 	# NOTE: Using JSON strings to replicate connection between Render/Main
 	toCellArray(resourceId: ID!, options: JSONString): JSONString!
 	toGenericTable(resourceId: ID!, options: JSONString): JSONString!
@@ -532,7 +579,14 @@ input EditDeviceInput {
 	specifications: [SpecificationInput!]!
 }
 
+enum ImportTransformationType {
+	CSV
+	GAMRY
+}
+
 input CreateAndRunImportTransformationInput {
+	type: ImportTransformationType!
+
 	rawResourceId: ID! # Id of raw resource
 	presetJson: String! # Using JSON here to avoid copying the whole structure
 	"""
@@ -992,7 +1046,13 @@ type ResourceGeneric implements Node & Resource & ResourceTimed & HasProjects & 
 	Path where the resource can be downloaded from.
 	"""
 	downloadURL: String!
-	text(start: Int!, end: Int!): String!
+
+	rawFileMetadata: ResourceMetadata!
+}
+
+type ResourceMetadata {
+	type: String
+	preview: String!
 }
 
 type ResourceTabularData implements Node & Resource & ResourceTimed & HasProjects & HasMetadata {
@@ -1221,6 +1281,8 @@ type UserEdge implements Edge {
 
 type ImportPreset implements Node & HasMetadata {
 	id: ID!
+
+	type: ImportTransformationType!
 
 	metadata: Metadata!
 	devices: [Device!]!

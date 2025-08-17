@@ -25,8 +25,9 @@ export class KeyValueDatabaseStorageEngineBackend implements KeyValueDatabase {
 	): Promise<TypeStringToTypename<T> | undefined> {
 		try {
 			const fileName = this.translateKeyToFileName(key);
-			const string = await new RawTextReader(fileName, this.sto).text(0);
-			const obj = JSON.parse(string) as TypeStringToTypename<T>;
+			const { text } = await new RawTextReader(fileName, this.sto).text(0);
+
+			const obj = JSON.parse(text) as TypeStringToTypename<T>;
 
 			if (type && obj.type !== type) return undefined;
 

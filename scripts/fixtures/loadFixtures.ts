@@ -16,7 +16,10 @@ import type {
 	IAddSampleInput,
 	IImportTaskSubscription,
 } from "~/apps/repo-server/src/graphql/generated/requests";
-import { getSdk as getRepoServerSdk } from "~/apps/repo-server/src/graphql/generated/requests";
+import {
+	getSdk as getRepoServerSdk,
+	IImportTransformationType,
+} from "~/apps/repo-server/src/graphql/generated/requests";
 import type {
 	Exact,
 	IAddComponentInput,
@@ -458,7 +461,11 @@ async function loadFixtures(
 		const rawResourceId = importRawResourceResult.importRawResource;
 
 		const { createAndRunImportTransformation } = await sdk.CreateAndRunImportTransformation({
-			input: { rawResourceId, presetJson: JSON.stringify(preset) },
+			input: {
+				rawResourceId,
+				presetJson: JSON.stringify(preset),
+				type: IImportTransformationType.Csv,
+			},
 		});
 
 		let unsub = () => {};

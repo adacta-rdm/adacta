@@ -15,7 +15,7 @@ export interface IDateState {
 	setDate: (date: Date) => void;
 }
 
-export function DateExtractionMode(props: {
+export function ManualDateExtraction(props: {
 	disabled?: boolean;
 
 	state?: {

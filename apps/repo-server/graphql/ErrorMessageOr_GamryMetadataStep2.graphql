@@ -1,0 +1,6 @@
+# @generated
+
+type ErrorMessageOr_GamryMetadataStep2 {
+	data: GamryMetadataStep2
+	error: ErrorMessage
+}

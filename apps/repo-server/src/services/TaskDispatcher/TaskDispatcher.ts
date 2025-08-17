@@ -45,7 +45,7 @@ export class TaskDispatcher {
 		let logger = this.logger.bind({ type, url });
 
 		logger.bind({ args: key }).trace("");
-		logger.info(`Dispatching task`);
+		logger.info(`Task dispatching: ${type}`);
 
 		if (type === "resources/downsample") {
 			const input = (args as ITasks["resources/downsample"]["args"]).input;
@@ -60,6 +60,7 @@ export class TaskDispatcher {
 
 		// Only dispatch the task if it has not run before
 		if (!this.history.has(key)) {
+			logger.info(`Dispatching task`);
 			this.history.add(key);
 
 			try {
@@ -93,6 +94,8 @@ export class TaskDispatcher {
 				if (!(e instanceof Error)) throw e;
 				logger.error(e.message);
 			}
+		} else {
+			logger.info("Task already dispatched, skipping");
 		}
 	}
 }
