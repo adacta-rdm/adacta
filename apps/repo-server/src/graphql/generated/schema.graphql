@@ -68,6 +68,11 @@ type RepositoryQuery {
 		name: String!
 		checkFor: NameAvailabilityCheckTarget
 	): CheckNameAvailability!
+	"""
+	A dataverse instance can have multiple dataverses. This query returns a list of all dataverses
+	of a instance
+	"""
+	dataverses(instanceId: ID!): [Dataverse!]!
 }
 
 interface Node {
@@ -705,12 +710,30 @@ type CurrentUser implements IdentifiedPayload & Node {
 type CurrentUserCore {
 	user: User!
 	timeSetting: DateOptions
+	dataverses: Connection_UserDataverseConnection!
 }
 
 type DateOptions {
 	locale: String!
 	dateStyle: String!
 	timeStyle: String!
+}
+
+type Connection_UserDataverseConnection {
+	edges: [Edge_UserDataverseConnection!]!
+	pageInfo: PageInfo!
+}
+
+type Edge_UserDataverseConnection {
+	cursor: String!
+	node: UserDataverseConnection!
+}
+
+type UserDataverseConnection implements Node {
+	id: ID!
+	name: String!
+	url: String!
+	tokenPreview: String!
 }
 
 type NameComposition implements Node {
@@ -895,6 +918,11 @@ enum ConflictResolution {
 	DENY
 }
 
+type Dataverse {
+	id: ID!
+	title: String!
+}
+
 type RepositoryMutation {
 	repository(id: ID!): RepositoryMutation!
 	"""
@@ -977,6 +1005,13 @@ type RepositoryMutation {
 	upsertSample(insert: Insert_SampleInput, update: Update_SampleInput): UpsertMutationPayload_Sample
 	repoConfigSetDefaultDeviceNamingStrategy(id: ID!): [NameComposition!]!
 	repoConfigSetDefaultSampleNamingStrategy(id: ID!): [NameComposition!]!
+	publishToDataverse(input: PublishToDataverseInput!): String
+	searchDataverse(input: SearchDataverseInput!): [Dataverse!]!
+	upsertUserDataverseConnection(
+		insert: Insert_UserDataverseConnectionInput
+		update: Update_UserDataverseConnectionInput
+	): UpsertMutationPayload_UserDataverseConnection
+	deleteUserDataverseConnection(id: ID!): DeletedNode!
 }
 
 input UpdateTimeSettingsInput {
@@ -1436,6 +1471,57 @@ input Partial_SampleInput {
 
 type UpsertMutationPayload_Sample {
 	node: Sample!
+}
+
+input PublishToDataverseInput {
+	dataverseInstanceId: ID!
+	dataverse: String!
+	"""
+	Create a new dataset in the dataverse
+	"""
+	createNewDataset: CreateDatasetInput
+	"""
+	Use an existing dataset in the dataverse
+	"""
+	useExistingDataset: ID
+	resourceId: ID!
+}
+
+input CreateDatasetInput {
+	title: String!
+	description: String!
+	subject: [String!]!
+}
+
+input SearchDataverseInput {
+	dataverseInstanceId: ID!
+	dataverse: String!
+	query: String!
+}
+
+input Insert_UserDataverseConnectionInput {
+	input: UserDataverseConnectionInput!
+}
+
+input UserDataverseConnectionInput {
+	name: String!
+	url: String!
+	token: String!
+}
+
+input Update_UserDataverseConnectionInput {
+	id: ID!
+	input: Partial_UserDataverseConnectionInput!
+}
+
+input Partial_UserDataverseConnectionInput {
+	name: String
+	url: String
+	token: String
+}
+
+type UpsertMutationPayload_UserDataverseConnection {
+	node: UserDataverseConnection!
 }
 
 type RepositorySubscription {

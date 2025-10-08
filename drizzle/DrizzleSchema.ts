@@ -27,12 +27,14 @@ import {
 } from "./schema/repo.Specification";
 import { Transformation } from "./schema/repo.Transformation";
 
+import { UserDataverseConnection } from "~/drizzle/schema/global.UserDataverse";
 import { UserRepository } from "~/drizzle/schema/global.UserRepository";
 
 export class DrizzleGlobalSchema {
 	public global = pgSchema("adacta_global");
 	public User = User(this);
 	public UserRepository = UserRepository(this);
+	public UserDataverseConnection = UserDataverseConnection(this);
 }
 
 export class DrizzleSchema extends DrizzleGlobalSchema {
@@ -90,6 +92,7 @@ export const entityByTypeId = {
 	11: "SampleToSample",
 	12: "ImportPreset",
 
+	254: "UserDataverseConnection",
 	255: "User",
 } as const satisfies Record<number, DrizzleEntityName>;
 

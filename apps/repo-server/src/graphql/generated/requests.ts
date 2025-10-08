@@ -57,6 +57,11 @@ export type IRepositoryQuery = {
 	 * checkFor: The type of the object that should be checked for name availability (i.e. Device, Sample)
 	 */
 	checkNameAvailability: ICheckNameAvailability;
+	/**
+	 * A dataverse instance can have multiple dataverses. This query returns a list of all dataverses
+	 * of a instance
+	 */
+	dataverses: Array<IDataverse>;
 };
 
 export type IRepositoryQueryRepositoryArgs = {
@@ -147,6 +152,10 @@ export type IRepositoryQueryDevicesHierarchicalArgs = {
 export type IRepositoryQueryCheckNameAvailabilityArgs = {
 	name: Scalars["String"];
 	checkFor?: InputMaybe<INameAvailabilityCheckTarget>;
+};
+
+export type IRepositoryQueryDataversesArgs = {
+	instanceId: Scalars["ID"];
 };
 
 export type INode = {
@@ -946,6 +955,7 @@ export type ICurrentUserCore = {
 	__typename?: "CurrentUserCore";
 	user: IUser;
 	timeSetting?: Maybe<IDateOptions>;
+	dataverses: IConnection_UserDataverseConnection;
 };
 
 export type IDateOptions = {
@@ -953,6 +963,26 @@ export type IDateOptions = {
 	locale: Scalars["String"];
 	dateStyle: Scalars["String"];
 	timeStyle: Scalars["String"];
+};
+
+export type IConnection_UserDataverseConnection = {
+	__typename?: "Connection_UserDataverseConnection";
+	edges: Array<IEdge_UserDataverseConnection>;
+	pageInfo: IPageInfo;
+};
+
+export type IEdge_UserDataverseConnection = {
+	__typename?: "Edge_UserDataverseConnection";
+	cursor: Scalars["String"];
+	node: IUserDataverseConnection;
+};
+
+export type IUserDataverseConnection = INode & {
+	__typename?: "UserDataverseConnection";
+	id: Scalars["ID"];
+	name: Scalars["String"];
+	url: Scalars["String"];
+	tokenPreview: Scalars["String"];
 };
 
 export type INameComposition = INode & {
@@ -1190,6 +1220,12 @@ export enum IConflictResolution {
 	Deny = "DENY",
 }
 
+export type IDataverse = {
+	__typename?: "Dataverse";
+	id: Scalars["ID"];
+	title: Scalars["String"];
+};
+
 export type IRepositoryMutation = {
 	__typename?: "RepositoryMutation";
 	repository: IRepositoryMutation;
@@ -1245,6 +1281,10 @@ export type IRepositoryMutation = {
 	upsertSample?: Maybe<IUpsertMutationPayload_Sample>;
 	repoConfigSetDefaultDeviceNamingStrategy: Array<INameComposition>;
 	repoConfigSetDefaultSampleNamingStrategy: Array<INameComposition>;
+	publishToDataverse?: Maybe<Scalars["String"]>;
+	searchDataverse: Array<IDataverse>;
+	upsertUserDataverseConnection?: Maybe<IUpsertMutationPayload_UserDataverseConnection>;
+	deleteUserDataverseConnection: IDeletedNode;
 };
 
 export type IRepositoryMutationRepositoryArgs = {
@@ -1442,6 +1482,23 @@ export type IRepositoryMutationRepoConfigSetDefaultDeviceNamingStrategyArgs = {
 };
 
 export type IRepositoryMutationRepoConfigSetDefaultSampleNamingStrategyArgs = {
+	id: Scalars["ID"];
+};
+
+export type IRepositoryMutationPublishToDataverseArgs = {
+	input: IPublishToDataverseInput;
+};
+
+export type IRepositoryMutationSearchDataverseArgs = {
+	input: ISearchDataverseInput;
+};
+
+export type IRepositoryMutationUpsertUserDataverseConnectionArgs = {
+	insert?: InputMaybe<IInsert_UserDataverseConnectionInput>;
+	update?: InputMaybe<IUpdate_UserDataverseConnectionInput>;
+};
+
+export type IRepositoryMutationDeleteUserDataverseConnectionArgs = {
 	id: Scalars["ID"];
 };
 
@@ -1922,6 +1979,54 @@ export type IPartial_SampleInput = {
 export type IUpsertMutationPayload_Sample = {
 	__typename?: "UpsertMutationPayload_Sample";
 	node: ISample;
+};
+
+export type IPublishToDataverseInput = {
+	dataverseInstanceId: Scalars["ID"];
+	dataverse: Scalars["String"];
+	/** Create a new dataset in the dataverse */
+	createNewDataset?: InputMaybe<ICreateDatasetInput>;
+	/** Use an existing dataset in the dataverse */
+	useExistingDataset?: InputMaybe<Scalars["ID"]>;
+	resourceId: Scalars["ID"];
+};
+
+export type ICreateDatasetInput = {
+	title: Scalars["String"];
+	description: Scalars["String"];
+	subject: Array<Scalars["String"]>;
+};
+
+export type ISearchDataverseInput = {
+	dataverseInstanceId: Scalars["ID"];
+	dataverse: Scalars["String"];
+	query: Scalars["String"];
+};
+
+export type IInsert_UserDataverseConnectionInput = {
+	input: IUserDataverseConnectionInput;
+};
+
+export type IUserDataverseConnectionInput = {
+	name: Scalars["String"];
+	url: Scalars["String"];
+	token: Scalars["String"];
+};
+
+export type IUpdate_UserDataverseConnectionInput = {
+	id: Scalars["ID"];
+	input: IPartial_UserDataverseConnectionInput;
+};
+
+export type IPartial_UserDataverseConnectionInput = {
+	name?: InputMaybe<Scalars["String"]>;
+	url?: InputMaybe<Scalars["String"]>;
+	token?: InputMaybe<Scalars["String"]>;
+};
+
+export type IUpsertMutationPayload_UserDataverseConnection = {
+	__typename?: "UpsertMutationPayload_UserDataverseConnection";
+	node: IUserDataverseConnection;
 };
 
 export type IRepositorySubscription = {

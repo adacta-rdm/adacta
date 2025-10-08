@@ -59,6 +59,11 @@ export type IRepositoryQuery = {
 	 * checkFor: The type of the object that should be checked for name availability (i.e. Device, Sample)
 	 */
 	checkNameAvailability: ICheckNameAvailability;
+	/**
+	 * A dataverse instance can have multiple dataverses. This query returns a list of all dataverses
+	 * of a instance
+	 */
+	dataverses: Array<IDataverse>;
 };
 
 export type IRepositoryQueryRepositoryArgs = {
@@ -149,6 +154,10 @@ export type IRepositoryQueryDevicesHierarchicalArgs = {
 export type IRepositoryQueryCheckNameAvailabilityArgs = {
 	name: Scalars["String"];
 	checkFor?: InputMaybe<INameAvailabilityCheckTarget>;
+};
+
+export type IRepositoryQueryDataversesArgs = {
+	instanceId: Scalars["ID"];
 };
 
 export type INode = {
@@ -948,6 +957,7 @@ export type ICurrentUserCore = {
 	__typename?: "CurrentUserCore";
 	user: IUser;
 	timeSetting?: Maybe<IDateOptions>;
+	dataverses: IConnection_UserDataverseConnection;
 };
 
 export type IDateOptions = {
@@ -955,6 +965,26 @@ export type IDateOptions = {
 	locale: Scalars["String"];
 	dateStyle: Scalars["String"];
 	timeStyle: Scalars["String"];
+};
+
+export type IConnection_UserDataverseConnection = {
+	__typename?: "Connection_UserDataverseConnection";
+	edges: Array<IEdge_UserDataverseConnection>;
+	pageInfo: IPageInfo;
+};
+
+export type IEdge_UserDataverseConnection = {
+	__typename?: "Edge_UserDataverseConnection";
+	cursor: Scalars["String"];
+	node: IUserDataverseConnection;
+};
+
+export type IUserDataverseConnection = INode & {
+	__typename?: "UserDataverseConnection";
+	id: Scalars["ID"];
+	name: Scalars["String"];
+	url: Scalars["String"];
+	tokenPreview: Scalars["String"];
 };
 
 export type INameComposition = INode & {
@@ -1192,6 +1222,12 @@ export enum IConflictResolution {
 	Deny = "DENY",
 }
 
+export type IDataverse = {
+	__typename?: "Dataverse";
+	id: Scalars["ID"];
+	title: Scalars["String"];
+};
+
 export type IRepositoryMutation = {
 	__typename?: "RepositoryMutation";
 	repository: IRepositoryMutation;
@@ -1247,6 +1283,10 @@ export type IRepositoryMutation = {
 	upsertSample?: Maybe<IUpsertMutationPayload_Sample>;
 	repoConfigSetDefaultDeviceNamingStrategy: Array<INameComposition>;
 	repoConfigSetDefaultSampleNamingStrategy: Array<INameComposition>;
+	publishToDataverse?: Maybe<Scalars["String"]>;
+	searchDataverse: Array<IDataverse>;
+	upsertUserDataverseConnection?: Maybe<IUpsertMutationPayload_UserDataverseConnection>;
+	deleteUserDataverseConnection: IDeletedNode;
 };
 
 export type IRepositoryMutationRepositoryArgs = {
@@ -1444,6 +1484,23 @@ export type IRepositoryMutationRepoConfigSetDefaultDeviceNamingStrategyArgs = {
 };
 
 export type IRepositoryMutationRepoConfigSetDefaultSampleNamingStrategyArgs = {
+	id: Scalars["ID"];
+};
+
+export type IRepositoryMutationPublishToDataverseArgs = {
+	input: IPublishToDataverseInput;
+};
+
+export type IRepositoryMutationSearchDataverseArgs = {
+	input: ISearchDataverseInput;
+};
+
+export type IRepositoryMutationUpsertUserDataverseConnectionArgs = {
+	insert?: InputMaybe<IInsert_UserDataverseConnectionInput>;
+	update?: InputMaybe<IUpdate_UserDataverseConnectionInput>;
+};
+
+export type IRepositoryMutationDeleteUserDataverseConnectionArgs = {
 	id: Scalars["ID"];
 };
 
@@ -1926,6 +1983,54 @@ export type IUpsertMutationPayload_Sample = {
 	node: ISample;
 };
 
+export type IPublishToDataverseInput = {
+	dataverseInstanceId: Scalars["ID"];
+	dataverse: Scalars["String"];
+	/** Create a new dataset in the dataverse */
+	createNewDataset?: InputMaybe<ICreateDatasetInput>;
+	/** Use an existing dataset in the dataverse */
+	useExistingDataset?: InputMaybe<Scalars["ID"]>;
+	resourceId: Scalars["ID"];
+};
+
+export type ICreateDatasetInput = {
+	title: Scalars["String"];
+	description: Scalars["String"];
+	subject: Array<Scalars["String"]>;
+};
+
+export type ISearchDataverseInput = {
+	dataverseInstanceId: Scalars["ID"];
+	dataverse: Scalars["String"];
+	query: Scalars["String"];
+};
+
+export type IInsert_UserDataverseConnectionInput = {
+	input: IUserDataverseConnectionInput;
+};
+
+export type IUserDataverseConnectionInput = {
+	name: Scalars["String"];
+	url: Scalars["String"];
+	token: Scalars["String"];
+};
+
+export type IUpdate_UserDataverseConnectionInput = {
+	id: Scalars["ID"];
+	input: IPartial_UserDataverseConnectionInput;
+};
+
+export type IPartial_UserDataverseConnectionInput = {
+	name?: InputMaybe<Scalars["String"]>;
+	url?: InputMaybe<Scalars["String"]>;
+	token?: InputMaybe<Scalars["String"]>;
+};
+
+export type IUpsertMutationPayload_UserDataverseConnection = {
+	__typename?: "UpsertMutationPayload_UserDataverseConnection";
+	node: IUserDataverseConnection;
+};
+
 export type IRepositorySubscription = {
 	__typename?: "RepositorySubscription";
 	latestNotification: ILatestNotification;
@@ -2084,6 +2189,7 @@ export type IResolversTypes = {
 		| IResolversTypes["LatestNotification"]
 		| IResolversTypes["LatestNotificationPayload"]
 		| IResolversTypes["CurrentUser"]
+		| IResolversTypes["UserDataverseConnection"]
 		| IResolversTypes["NameComposition"]
 		| IResolversTypes["NameCompositionVariableConstant"]
 		| IResolversTypes["NameCompositionVariableVariable"]
@@ -2226,6 +2332,13 @@ export type IResolversTypes = {
 	CurrentUser: ResolverTypeWrapper<ResolverReturnType<ICurrentUser>>;
 	CurrentUserCore: ResolverTypeWrapper<ResolverReturnType<ICurrentUserCore>>;
 	DateOptions: ResolverTypeWrapper<ResolverReturnType<IDateOptions>>;
+	Connection_UserDataverseConnection: ResolverTypeWrapper<
+		ResolverReturnType<IConnection_UserDataverseConnection>
+	>;
+	Edge_UserDataverseConnection: ResolverTypeWrapper<
+		ResolverReturnType<IEdge_UserDataverseConnection>
+	>;
+	UserDataverseConnection: ResolverTypeWrapper<ResolverReturnType<IUserDataverseConnection>>;
 	NameComposition: ResolverTypeWrapper<ResolverReturnType<INameComposition>>;
 	Connection_NameCompositionVariable: ResolverTypeWrapper<
 		ResolverReturnType<IConnection_NameCompositionVariable>
@@ -2267,6 +2380,7 @@ export type IResolversTypes = {
 	>;
 	CheckNameAvailability: ResolverTypeWrapper<ResolverReturnType<ICheckNameAvailability>>;
 	ConflictResolution: ResolverTypeWrapper<ResolverReturnType<IConflictResolution>>;
+	Dataverse: ResolverTypeWrapper<ResolverReturnType<IDataverse>>;
 	RepositoryMutation: ResolverTypeWrapper<{}>;
 	UpdateTimeSettingsInput: ResolverTypeWrapper<ResolverReturnType<IUpdateTimeSettingsInput>>;
 	JSONString: ResolverTypeWrapper<ResolverReturnType<Scalars["JSONString"]>>;
@@ -2415,6 +2529,24 @@ export type IResolversTypes = {
 	UpsertMutationPayload_Sample: ResolverTypeWrapper<
 		ResolverReturnType<IUpsertMutationPayload_Sample>
 	>;
+	PublishToDataverseInput: ResolverTypeWrapper<ResolverReturnType<IPublishToDataverseInput>>;
+	CreateDatasetInput: ResolverTypeWrapper<ResolverReturnType<ICreateDatasetInput>>;
+	SearchDataverseInput: ResolverTypeWrapper<ResolverReturnType<ISearchDataverseInput>>;
+	Insert_UserDataverseConnectionInput: ResolverTypeWrapper<
+		ResolverReturnType<IInsert_UserDataverseConnectionInput>
+	>;
+	UserDataverseConnectionInput: ResolverTypeWrapper<
+		ResolverReturnType<IUserDataverseConnectionInput>
+	>;
+	Update_UserDataverseConnectionInput: ResolverTypeWrapper<
+		ResolverReturnType<IUpdate_UserDataverseConnectionInput>
+	>;
+	Partial_UserDataverseConnectionInput: ResolverTypeWrapper<
+		ResolverReturnType<IPartial_UserDataverseConnectionInput>
+	>;
+	UpsertMutationPayload_UserDataverseConnection: ResolverTypeWrapper<
+		ResolverReturnType<IUpsertMutationPayload_UserDataverseConnection>
+	>;
 	RepositorySubscription: ResolverTypeWrapper<{}>;
 	ImportTaskResult: ResolverTypeWrapper<
 		ResolverReturnType<
@@ -2464,6 +2596,7 @@ export type IResolversParentTypes = {
 		| IResolversParentTypes["LatestNotification"]
 		| IResolversParentTypes["LatestNotificationPayload"]
 		| IResolversParentTypes["CurrentUser"]
+		| IResolversParentTypes["UserDataverseConnection"]
 		| IResolversParentTypes["NameComposition"]
 		| IResolversParentTypes["NameCompositionVariableConstant"]
 		| IResolversParentTypes["NameCompositionVariableVariable"]
@@ -2603,6 +2736,9 @@ export type IResolversParentTypes = {
 	CurrentUser: ResolverReturnType<ICurrentUser>;
 	CurrentUserCore: ResolverReturnType<ICurrentUserCore>;
 	DateOptions: ResolverReturnType<IDateOptions>;
+	Connection_UserDataverseConnection: ResolverReturnType<IConnection_UserDataverseConnection>;
+	Edge_UserDataverseConnection: ResolverReturnType<IEdge_UserDataverseConnection>;
+	UserDataverseConnection: ResolverReturnType<IUserDataverseConnection>;
 	NameComposition: ResolverReturnType<INameComposition>;
 	Connection_NameCompositionVariable: ResolverReturnType<IConnection_NameCompositionVariable>;
 	Edge_NameCompositionVariable: ResolverReturnType<IEdge_NameCompositionVariable>;
@@ -2626,6 +2762,7 @@ export type IResolversParentTypes = {
 	Connection_NameComposition: ResolverReturnType<IConnection_NameComposition>;
 	Edge_NameComposition: ResolverReturnType<IEdge_NameComposition>;
 	CheckNameAvailability: ResolverReturnType<ICheckNameAvailability>;
+	Dataverse: ResolverReturnType<IDataverse>;
 	RepositoryMutation: {};
 	UpdateTimeSettingsInput: ResolverReturnType<IUpdateTimeSettingsInput>;
 	JSONString: ResolverReturnType<Scalars["JSONString"]>;
@@ -2717,6 +2854,14 @@ export type IResolversParentTypes = {
 	Update_SampleInput: ResolverReturnType<IUpdate_SampleInput>;
 	Partial_SampleInput: ResolverReturnType<IPartial_SampleInput>;
 	UpsertMutationPayload_Sample: ResolverReturnType<IUpsertMutationPayload_Sample>;
+	PublishToDataverseInput: ResolverReturnType<IPublishToDataverseInput>;
+	CreateDatasetInput: ResolverReturnType<ICreateDatasetInput>;
+	SearchDataverseInput: ResolverReturnType<ISearchDataverseInput>;
+	Insert_UserDataverseConnectionInput: ResolverReturnType<IInsert_UserDataverseConnectionInput>;
+	UserDataverseConnectionInput: ResolverReturnType<IUserDataverseConnectionInput>;
+	Update_UserDataverseConnectionInput: ResolverReturnType<IUpdate_UserDataverseConnectionInput>;
+	Partial_UserDataverseConnectionInput: ResolverReturnType<IPartial_UserDataverseConnectionInput>;
+	UpsertMutationPayload_UserDataverseConnection: ResolverReturnType<IUpsertMutationPayload_UserDataverseConnection>;
 	RepositorySubscription: {};
 	ImportTaskResult: ResolverReturnType<
 		Omit<IImportTaskResult, "payload"> & {
@@ -2861,6 +3006,12 @@ export type IRepositoryQueryResolvers<
 		ContextType,
 		RequireFields<IRepositoryQueryCheckNameAvailabilityArgs, "name">
 	>;
+	dataverses?: Resolver<
+		Array<IResolversTypes["Dataverse"]>,
+		ParentType,
+		ContextType,
+		RequireFields<IRepositoryQueryDataversesArgs, "instanceId">
+	>;
 };
 
 export type INodeResolvers<
@@ -2884,6 +3035,7 @@ export type INodeResolvers<
 		| "LatestNotification"
 		| "LatestNotificationPayload"
 		| "CurrentUser"
+		| "UserDataverseConnection"
 		| "NameComposition"
 		| "NameCompositionVariableConstant"
 		| "NameCompositionVariableVariable"
@@ -3867,6 +4019,11 @@ export type ICurrentUserCoreResolvers<
 > = {
 	user?: Resolver<IResolversTypes["User"], ParentType, ContextType>;
 	timeSetting?: Resolver<Maybe<IResolversTypes["DateOptions"]>, ParentType, ContextType>;
+	dataverses?: Resolver<
+		IResolversTypes["Connection_UserDataverseConnection"],
+		ParentType,
+		ContextType
+	>;
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -3877,6 +4034,35 @@ export type IDateOptionsResolvers<
 	locale?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
 	dateStyle?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
 	timeStyle?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IConnection_UserDataverseConnectionResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["Connection_UserDataverseConnection"] = IResolversParentTypes["Connection_UserDataverseConnection"]
+> = {
+	edges?: Resolver<Array<IResolversTypes["Edge_UserDataverseConnection"]>, ParentType, ContextType>;
+	pageInfo?: Resolver<IResolversTypes["PageInfo"], ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IEdge_UserDataverseConnectionResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["Edge_UserDataverseConnection"] = IResolversParentTypes["Edge_UserDataverseConnection"]
+> = {
+	cursor?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
+	node?: Resolver<IResolversTypes["UserDataverseConnection"], ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IUserDataverseConnectionResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["UserDataverseConnection"] = IResolversParentTypes["UserDataverseConnection"]
+> = {
+	id?: Resolver<IResolversTypes["ID"], ParentType, ContextType>;
+	name?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
+	url?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
+	tokenPreview?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -4097,6 +4283,15 @@ export type ICheckNameAvailabilityResolvers<
 > = {
 	conflictResolution?: Resolver<IResolversTypes["ConflictResolution"], ParentType, ContextType>;
 	isAvailable?: Resolver<IResolversTypes["Boolean"], ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IDataverseResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["Dataverse"] = IResolversParentTypes["Dataverse"]
+> = {
+	id?: Resolver<IResolversTypes["ID"], ParentType, ContextType>;
+	title?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -4391,6 +4586,30 @@ export type IRepositoryMutationResolvers<
 		ContextType,
 		RequireFields<IRepositoryMutationRepoConfigSetDefaultSampleNamingStrategyArgs, "id">
 	>;
+	publishToDataverse?: Resolver<
+		Maybe<IResolversTypes["String"]>,
+		ParentType,
+		ContextType,
+		RequireFields<IRepositoryMutationPublishToDataverseArgs, "input">
+	>;
+	searchDataverse?: Resolver<
+		Array<IResolversTypes["Dataverse"]>,
+		ParentType,
+		ContextType,
+		RequireFields<IRepositoryMutationSearchDataverseArgs, "input">
+	>;
+	upsertUserDataverseConnection?: Resolver<
+		Maybe<IResolversTypes["UpsertMutationPayload_UserDataverseConnection"]>,
+		ParentType,
+		ContextType,
+		Partial<IRepositoryMutationUpsertUserDataverseConnectionArgs>
+	>;
+	deleteUserDataverseConnection?: Resolver<
+		IResolversTypes["DeletedNode"],
+		ParentType,
+		ContextType,
+		RequireFields<IRepositoryMutationDeleteUserDataverseConnectionArgs, "id">
+	>;
 };
 
 export interface IJsonStringScalarConfig
@@ -4633,6 +4852,14 @@ export type IUpsertMutationPayload_SampleResolvers<
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type IUpsertMutationPayload_UserDataverseConnectionResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["UpsertMutationPayload_UserDataverseConnection"] = IResolversParentTypes["UpsertMutationPayload_UserDataverseConnection"]
+> = {
+	node?: Resolver<IResolversTypes["UserDataverseConnection"], ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type IRepositorySubscriptionResolvers<
 	ContextType = IGraphQLContext,
 	ParentType extends IResolversParentTypes["RepositorySubscription"] = IResolversParentTypes["RepositorySubscription"]
@@ -4825,6 +5052,9 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	CurrentUser?: ICurrentUserResolvers<ContextType>;
 	CurrentUserCore?: ICurrentUserCoreResolvers<ContextType>;
 	DateOptions?: IDateOptionsResolvers<ContextType>;
+	Connection_UserDataverseConnection?: IConnection_UserDataverseConnectionResolvers<ContextType>;
+	Edge_UserDataverseConnection?: IEdge_UserDataverseConnectionResolvers<ContextType>;
+	UserDataverseConnection?: IUserDataverseConnectionResolvers<ContextType>;
 	NameComposition?: INameCompositionResolvers<ContextType>;
 	Connection_NameCompositionVariable?: IConnection_NameCompositionVariableResolvers<ContextType>;
 	Edge_NameCompositionVariable?: IEdge_NameCompositionVariableResolvers<ContextType>;
@@ -4843,6 +5073,7 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	Connection_NameComposition?: IConnection_NameCompositionResolvers<ContextType>;
 	Edge_NameComposition?: IEdge_NameCompositionResolvers<ContextType>;
 	CheckNameAvailability?: ICheckNameAvailabilityResolvers<ContextType>;
+	Dataverse?: IDataverseResolvers<ContextType>;
 	RepositoryMutation?: IRepositoryMutationResolvers<ContextType>;
 	JSONString?: GraphQLScalarType;
 	ImportWizardStep3Payload?: IImportWizardStep3PayloadResolvers<ContextType>;
@@ -4871,6 +5102,7 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	UpsertMutationPayload_NameCompositionPayload?: IUpsertMutationPayload_NameCompositionPayloadResolvers<ContextType>;
 	NameCompositionPayload?: INameCompositionPayloadResolvers<ContextType>;
 	UpsertMutationPayload_Sample?: IUpsertMutationPayload_SampleResolvers<ContextType>;
+	UpsertMutationPayload_UserDataverseConnection?: IUpsertMutationPayload_UserDataverseConnectionResolvers<ContextType>;
 	RepositorySubscription?: IRepositorySubscriptionResolvers<ContextType>;
 	ImportTaskResult?: IImportTaskResultResolvers<ContextType>;
 	ImportTaskResultPayload?: IImportTaskResultPayloadResolvers<ContextType>;

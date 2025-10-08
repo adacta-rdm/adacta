@@ -1,4 +1,5 @@
 import type {
+	IUserDataverseConnection,
 	IDevice,
 	IDeviceDefinition,
 	IHierarchicalDeviceListEntry,
@@ -16,6 +17,7 @@ import type { ResolverReturnType } from "~/lib/utils/types";
 export async function paginateDocuments<
 	// NOTE: This type needs to be based on the generated schema types, not the entities/documents!
 	TDoc extends
+		| IUserDataverseConnection
 		| IImportPreset
 		| IDevice
 		| IDeviceDefinition

@@ -37,6 +37,7 @@ import type {
 import { IConflictResolution, IDeviceOrder, IResourceOrder } from "../generated/resolvers";
 
 import type { IResourceDocumentAttachmentRaw } from "~/apps/repo-server/interface/IResourceDocumentAttachment";
+import { DataverseClient } from "~/apps/repo-server/src/csvExport/DataverseClient";
 import { preProcessQuery } from "~/apps/repo-server/src/graphql/resolvers/SearchResults";
 import { isEntityId } from "~/apps/repo-server/src/utils/isEntityId";
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
@@ -601,5 +602,12 @@ export const RepositoryQuery: IDefinedResolver<"RepositoryQuery"> = {
 			.where(eq(UserRepository.repositoryName, repositoryName))
 			.orderBy(asc(User.firstName), asc(User.lastName));
 		return users.map((u) => ({ id: u.id }));
+	},
+
+	async dataverses(_, { instanceId }, { services: { el }, schema: { UserDataverseConnection } }) {
+		assert(isEntityId(instanceId, "UserDataverseConnection"));
+		const instance = (await el.find(UserDataverseConnection, (t) => eq(t.id, instanceId)))[0];
+		const client = new DataverseClient(instance.url, instance.token);
+		return client.getDataverseCollections();
 	},
 };

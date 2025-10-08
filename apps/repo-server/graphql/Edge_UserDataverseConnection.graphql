@@ -1,0 +1,6 @@
+# @generated
+
+type Edge_UserDataverseConnection {
+	cursor: String!
+	node: UserDataverseConnection!
+}

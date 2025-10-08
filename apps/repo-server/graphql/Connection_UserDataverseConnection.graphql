@@ -1,0 +1,6 @@
+# @generated
+
+type Connection_UserDataverseConnection {
+	edges: [Edge_UserDataverseConnection!]!
+	pageInfo: PageInfo!
+}
