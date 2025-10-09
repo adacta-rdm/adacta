@@ -566,16 +566,21 @@ export class CSVImportWizard {
 						return;
 					}
 
-					// If the trailing column is empty, we don't need to count it as it is skipped in the
-					// header/output
-					const expectedColumns =
-						result.data[result.data.length - 1].trim() == ""
-							? result.data.length - 1
-							: result.data.length;
+					const countedColumns = result.data.length;
 
-					if (expectedColumns !== headerInternal.length) {
+					// Default expectation is that the column count in each row matches the count of the
+					// headers
+					const acceptableCloumnCounts = [headerInternal.length];
+					if (result.data[result.data.length - 1].trim() == "") {
+						// If the header has a trailing delimiter it won't cause a empty header
+						// If the data has a trailing delimiter it results in a empty column
+						// Thefore a single additional empty column is acceptable as well
+						acceptableCloumnCounts.push(headerInternal.length + 1);
+					}
+
+					if (!acceptableCloumnCounts.includes(countedColumns)) {
 						warnings.push(
-							`Inconsistent columns in row ${rowCount}. Expected ${headerInternal.length} columns, but found ${expectedColumns}.`
+							`Inconsistent columns in row ${rowCount}. Expected ${headerInternal.length} columns, but found ${countedColumns}.`
 						);
 
 						rowProcessingFinished();

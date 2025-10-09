@@ -799,6 +799,7 @@ describe("CSVImportWizard", () => {
 			test.each([
 				"Header", // empty header column (data without empty column)
 				"Data", // empty data column (header without empty column)
+				"DataMultipleColumn", // multiple empty data column (header without empty column)
 				"Column", // empty column in header and datas
 			])("Supports trailing %s", async (e) => {
 				const wizard = new CSVImportWizard(sto);
