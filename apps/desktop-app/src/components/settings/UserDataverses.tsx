@@ -206,7 +206,11 @@ function CreateModal(props: {
 				</EuiFormRow>
 				<EuiFormRow
 					label={"URL"}
-					helpText={"Enter the URL of your Dataverse instance, e.g. https://dataverse.harvard.edu"}
+					helpText={
+						<>
+							Enter the URL of your Dataverse instance, e.g. <q>https://repository.nfdi4cat.org/</q>
+						</>
+					}
 				>
 					<EuiFieldText
 						value={url}
