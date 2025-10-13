@@ -1,0 +1,7 @@
+# @generated
+
+input Partial_UserDataverseConnectionInput {
+	name: String
+	url: String
+	token: String
+}

@@ -20,7 +20,6 @@ import type { UserSettingsUpdateMutation } from "@/relay/UserSettingsUpdateMutat
 import { assertDefined } from "~/lib/assert/assertDefined";
 import type { TimeStyle } from "~/lib/interface/TimeStyle";
 
-// Do not edit, you will likely receive a response from the server that is not compatible with the current version of the code.
 const UserSettingsGraphQLFragment = graphql`
 	fragment UserSettings on CurrentUser {
 		payload {
@@ -33,7 +32,6 @@ const UserSettingsGraphQLFragment = graphql`
 	}
 `;
 
-// Do not edit, you will likely receive a response from the server that is not compatible with the current version of the code.
 const UserSettingsUpdateMutationGraphQL: GraphQLTaggedNode = graphql`
 	mutation UserSettingsUpdateMutation($input: UpdateTimeSettingsInput!) {
 		updateTimeSettings(input: $input) {

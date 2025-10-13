@@ -87,6 +87,12 @@ type RepositoryQuery {
 		name: String!
 		checkFor: NameAvailabilityCheckTarget
 	): CheckNameAvailability!
+
+	"""
+	A dataverse instance can have multiple dataverses. This query returns a list of all dataverses
+	of a instance
+	"""
+	dataverses(instanceId: ID!): [Dataverse!]!
 }
 
 type CheckNameAvailability {
@@ -400,6 +406,55 @@ type RepositoryMutation {
 	# to make it easier to update the UI
 	repoConfigSetDefaultDeviceNamingStrategy(id: ID!): [NameComposition!]!
 	repoConfigSetDefaultSampleNamingStrategy(id: ID!): [NameComposition!]!
+
+	publishToDataverse(input: PublishToDataverseInput!): String
+	searchDataverse(input: SearchDataverseInput!): [Dataverse!]!
+
+	upsertUserDataverseConnection(
+		insert: Insert_UserDataverseConnectionInput
+		update: Update_UserDataverseConnectionInput
+	): UpsertMutationPayload_UserDataverseConnection
+	deleteUserDataverseConnection(id: ID!): DeletedNode!
+}
+
+type Dataverse {
+	id: ID!
+	title: String!
+}
+
+input SearchDataverseInput {
+	dataverseInstanceId: ID!
+	dataverse: String!
+	query: String!
+}
+
+input PublishToDataverseInput {
+	dataverseInstanceId: ID!
+	dataverse: String!
+
+	"""
+	Create a new dataset in the dataverse
+	"""
+	createNewDataset: CreateDatasetInput
+
+	"""
+	Use an existing dataset in the dataverse
+	"""
+	useExistingDataset: ID
+
+	resourceId: ID!
+}
+
+input CreateDatasetInput {
+	title: String!
+	description: String!
+	subject: [String!]!
+}
+
+input UserDataverseConnectionInput {
+	name: String!
+	url: String!
+	token: String!
 }
 
 type NameCompositionPayload {

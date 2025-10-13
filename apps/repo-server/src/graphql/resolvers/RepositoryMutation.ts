@@ -15,10 +15,18 @@ import { createTransformationContext } from "../../transformations/createTransfo
 import { manualTransformation } from "../../transformations/manual/ManualTransformation";
 import type { IResolvers } from "../generated/resolvers";
 
+import { CSVOutput } from "~/apps/repo-server/src/csvExport/CSVOutput";
+import { DataverseClient } from "~/apps/repo-server/src/csvExport/DataverseClient";
+import { omegadotStreamToWeb } from "~/apps/repo-server/src/csvExport/omegadotStreamToWeb";
 import { RepositoryInfo } from "~/apps/repo-server/src/graphql/RepositoryInfo";
+import {
+	generateReadme,
+	toDataverseDate,
+} from "~/apps/repo-server/src/graphql/resolvers/utils/DataverseExport";
 import { createPropertyValue } from "~/apps/repo-server/src/graphql/resolvers/utils/createPropertyValue";
 import { linkToProject } from "~/apps/repo-server/src/graphql/resolvers/utils/linkToProject";
 import { loadDeviceOrDeviceDefinition } from "~/apps/repo-server/src/graphql/resolvers/utils/loadDeviceOrDeviceDefinition";
+import { maskToken } from "~/apps/repo-server/src/graphql/resolvers/utils/maskToken";
 import {
 	closureTableInsert,
 	closureTableSetParent,
@@ -1010,6 +1018,174 @@ export const RepositoryMutation: IResolvers["RepositoryMutation"] = {
 		return {
 			id: CONSTANT_NODE_IDS["CURRENT_USER_ID"].id,
 		};
+	},
+
+	async publishToDataverse(_, { input }, ctx) {
+		const {
+			services: { el, ram },
+			schema: { User, UserDataverseConnection, Resource },
+		} = ctx;
+		const { dataverseInstanceId } = input;
+
+		assert(isEntityId(dataverseInstanceId, "UserDataverseConnection"));
+		const instance = (
+			await el.find(UserDataverseConnection, (t) => eq(t.id, dataverseInstanceId))
+		)[0];
+		const client = new DataverseClient(instance.url, instance.token);
+
+		const resource = await el.one(Resource, input.resourceId);
+		const creator = await el.one(User, resource.metadataCreatorId);
+
+		let id: string;
+		if (input.createNewDataset) {
+			const url = await client.createDataset(input.dataverse, {
+				title: input.createNewDataset.title,
+				creator: [`${creator.lastName}, ${creator.firstName}`],
+				subject: input.createNewDataset.subject,
+				description: input.createNewDataset.description,
+			});
+			assertDefined(url);
+			id = DataverseClient.extractIdentifier(url);
+		} else if (input.useExistingDataset) {
+			id = input.useExistingDataset;
+		} else {
+			throw new Error(
+				"Invalid input: Either createNewDataset or useExistingDataset must be defined"
+			);
+		}
+
+		if (resource.attachment.type === "TabularData") {
+			await client.addSingleFile(
+				id,
+				"README.txt",
+				new Blob([await generateReadme(resource, ctx)]).stream()
+			);
+
+			// Export tabular data to CSV and upload it
+			const td = await ram.getTabularData(resource);
+			const tdStream = omegadotStreamToWeb(td.createReadStream());
+
+			const formattedTabularDataStream = tdStream.pipeThrough(
+				new TransformStream<number[], (string | number)[]>({
+					transform(chunk, controller) {
+						assert(resource.attachment.type === "TabularData");
+						const columns = resource.attachment.columns;
+						controller.enqueue(
+							chunk.map((v, i) => {
+								const type = columns[i].type;
+								if (type === "datetime") {
+									return toDataverseDate(new Date(v));
+								}
+								return v;
+							})
+						);
+					},
+				})
+			);
+
+			const csvStream = CSVOutput.withHeader(
+				formattedTabularDataStream,
+				resource.attachment.columns.map((column) => column.title),
+				{
+					delimiter: ",",
+				}
+			);
+			await client.addSingleFile(
+				id,
+				`${resource.name.split(".").slice(0, -1).join(".")}.csv`,
+				csvStream
+			);
+		}
+
+		return `${instance.url}/dataset.xhtml?persistentId=${id}`;
+	},
+
+	async searchDataverse(
+		_,
+		{ input: { dataverseInstanceId, dataverse, query } },
+		{ services: { el }, schema: { UserDataverseConnection }, userId }
+	) {
+		assert(isEntityId(dataverseInstanceId, "UserDataverseConnection"));
+		const instance = (
+			await el.find(UserDataverseConnection, (t) =>
+				and(eq(t.id, dataverseInstanceId), eq(UserDataverseConnection.metadataCreatorId, userId))
+			)
+		)[0];
+
+		const client = new DataverseClient(instance.url, instance.token);
+
+		const searchResult = await client.searchDatasets(dataverse, query);
+		return searchResult.data.items.map((item) => ({ id: item.global_id, title: item.name }));
+	},
+
+	async upsertUserDataverseConnection(
+		_,
+		{ insert, update },
+		{ schema: { UserDataverseConnection }, services: { el }, userId }
+	) {
+		if (insert) {
+			const instance = EntityFactory.create(
+				"UserDataverseConnection",
+				{
+					__typename: "UserDataverseConnection",
+					name: insert.input.name,
+					url: insert.input.url,
+					token: insert.input.token,
+					userId,
+				},
+				userId
+			);
+			await el.insert(UserDataverseConnection, instance);
+			return {
+				node: {
+					id: instance.id,
+					name: instance.name,
+					url: instance.url,
+					tokenPreview: maskToken(instance.token),
+				},
+			};
+		} else if (update) {
+			const instance = await el.one(UserDataverseConnection, update.id);
+			const { name, url, token } = update.input;
+
+			instance.name = name ?? instance.name;
+			instance.url = url ?? instance.url;
+
+			// Keep old token if token field is empty
+			// This way the token can stay unchanged without having to populate the UI with the correct (secret) token
+			instance.token = token != undefined && token.length > 0 ? token : instance.token;
+
+			await el.drizzle
+				.update(UserDataverseConnection)
+				.set(instance)
+				.where(eq(UserDataverseConnection.id, instance.id));
+
+			return {
+				node: {
+					id: instance.id,
+					name: instance.name,
+					url: instance.url,
+					tokenPreview: maskToken(instance.token),
+				},
+			};
+		}
+	},
+
+	async deleteUserDataverseConnection(
+		_,
+		{ id },
+		{ userId, schema: { UserDataverseConnection }, services: { el } }
+	) {
+		assert(isEntityId(id, "UserDataverseConnection"));
+		await el.drizzle
+			.delete(UserDataverseConnection)
+			.where(
+				and(
+					eq(UserDataverseConnection.id, id),
+					eq(UserDataverseConnection.metadataCreatorId, userId)
+				)
+			);
+		return { deletedId: id };
 	},
 };
 

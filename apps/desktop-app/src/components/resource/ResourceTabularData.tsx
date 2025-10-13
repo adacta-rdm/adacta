@@ -1,12 +1,13 @@
 import assert from "assert";
 
-import { EuiDescriptionList, EuiFlexGroup, EuiFlexItem, EuiSpacer } from "@elastic/eui";
+import { EuiButton, EuiDescriptionList, EuiFlexGroup, EuiFlexItem, EuiSpacer } from "@elastic/eui";
 import { uniqBy } from "lodash-es";
 import type { ReactElement, ReactNode } from "react";
 import React, { Suspense, useState } from "react";
 import { graphql } from "react-relay";
 import { useFragment } from "react-relay/hooks";
 
+import { DataverseExportModal } from "./DataverseExportModal";
 import { DeleteResource } from "./DeleteResource";
 import { ResourceFileDownloadButton } from "./ResourceFileDownloadButton";
 import { ResourceHierarchyNavigation } from "./ResourceHierarchyNavigation";
@@ -83,6 +84,8 @@ export function ResourceTabularData(props: { data: ResourceTabularData_data$key 
 	const { devices, parent } = data;
 
 	const allDeviceIds = devices.flatMap((d) => d?.id ?? []);
+
+	const [exportModalOpen, setExportModalOpen] = useState(false);
 
 	assert(devices.length);
 
@@ -205,80 +208,83 @@ export function ResourceTabularData(props: { data: ResourceTabularData_data$key 
 		);
 	}
 
+	actions.push(
+		<EuiButton size={"s"} onClick={() => setExportModalOpen(true)}>
+			Export
+		</EuiButton>
+	);
+
 	return (
-		<TabbedPageLayout
-			pageHeader={{
-				pageTitle: (
-					<>
-						Resource {data.name} <OriginRepoIndicator metadata={data} />
-					</>
-				),
-				description: (
-					<>
-						{data.subName}
-						<br />
-						Created by: <UserLink user={data.metadata.creator} />
-						<ProjectEditorAsHeaderElement data={data} />
-					</>
-				),
-				rightSideItems: [
-					<ResourceHierarchyNavigation
-						key="navigation"
-						parentResource={data.parent}
-						childResources={data.children.edges.map((e) => e.node)}
-					/>,
-					<DeleteResource
-						size={"s"}
-						key={"delete"}
-						buttonStyle={"button"}
-						disabled={data.children.edges.length > 0}
-						resourceId={data.id}
-						connections={[]}
-						onResourceDeleted={() =>
-							router.push("/repositories/:repositoryId/resources/", { repositoryId })
-						}
-					/>,
-					...actions,
-				],
-				tabs: [
-					{
-						label: "Overview",
-						isSelected: true,
-						id: "overview",
-						content: (
-							<>
-								<EuiDescriptionList type="column" listItems={overview} />
-								<EuiSpacer />
-								<ResourceChart
-									resourceId={data.id}
-									hideDevices={hideDevices}
-									showAll={showAll}
-									show={show}
-									solo={solo}
-									hide={hide}
-									// customLegend={
-									// 	<EuiTreeView
-									// 		showExpansionArrows
-									// 		expandByDefault
-									// 		items={nodes}
-									// 		aria-label="Device Tree View"
-									// 	/>
-									// }
-								/>
-							</>
-						),
-					},
-					{
-						label: "Table",
-						id: "table",
-						content: (
-							<Suspense fallback={<ResourceTabularDataTableLoading />}>
-								<ResourceTabularDataTable data={data} />
-							</Suspense>
-						),
-					},
-				],
-			}}
-		/>
+		<>
+			{exportModalOpen && (
+				<DataverseExportModal onClose={() => setExportModalOpen(false)} resourceId={data.id} />
+			)}
+			<TabbedPageLayout
+				pageHeader={{
+					pageTitle: (
+						<>
+							Resource {data.name} <OriginRepoIndicator metadata={data} />
+						</>
+					),
+					description: (
+						<>
+							{data.subName}
+							<br />
+							Created by: <UserLink user={data.metadata.creator} />
+							<ProjectEditorAsHeaderElement data={data} />
+						</>
+					),
+					rightSideItems: [
+						<ResourceHierarchyNavigation
+							key="navigation"
+							parentResource={data.parent}
+							childResources={data.children.edges.map((e) => e.node)}
+						/>,
+						<DeleteResource
+							size={"s"}
+							key={"delete"}
+							buttonStyle={"button"}
+							disabled={data.children.edges.length > 0}
+							resourceId={data.id}
+							connections={[]}
+							onResourceDeleted={() =>
+								router.push("/repositories/:repositoryId/resources/", { repositoryId })
+							}
+						/>,
+						...actions,
+					],
+					tabs: [
+						{
+							label: "Overview",
+							isSelected: true,
+							id: "overview",
+							content: (
+								<>
+									<EuiDescriptionList type="column" listItems={overview} />
+									<EuiSpacer />
+									<ResourceChart
+										resourceId={data.id}
+										hideDevices={hideDevices}
+										showAll={showAll}
+										show={show}
+										solo={solo}
+										hide={hide}
+									/>
+								</>
+							),
+						},
+						{
+							label: "Table",
+							id: "table",
+							content: (
+								<Suspense fallback={<ResourceTabularDataTableLoading />}>
+									<ResourceTabularDataTable data={data} />
+								</Suspense>
+							),
+						},
+					],
+				}}
+			/>
+		</>
 	);
 }

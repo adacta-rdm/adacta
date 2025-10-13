@@ -5225,6 +5225,7 @@ __metadata:
     "@types/validator": "npm:^13"
     "@types/verror": "npm:^1.10.10"
     "@types/ws": "npm:^8"
+    "@types/xmldoc": "npm:^1"
     "@typescript-eslint/eslint-plugin": "npm:^5.46.1"
     "@typescript-eslint/parser": "npm:^7.2.0"
     "@vingle/bmp-js": "npm:^0.2.5"
@@ -5255,7 +5256,6 @@ __metadata:
     express: "npm:^4.18.1"
     express-async-handler: "npm:^1.2.0"
     fastify: "npm:^4.26.2"
-    form-data: "npm:^4.0.0"
     found: "npm:^1.3.0"
     graphql: "npm:^16.9.0"
     graphql-request: "npm:^5.1.0"
@@ -5301,6 +5301,8 @@ __metadata:
     vite-tsconfig-paths: "npm:^4.3.2"
     vitest: "npm:^1.5.3"
     ws: "npm:^8.8.0"
+    xmlbuilder2: "npm:^3.1.1"
+    xmldoc: "npm:^1.3.0"
   languageName: unknown
   linkType: soft
 
@@ -5308,6 +5310,43 @@ __metadata:
   version: 0.1.3
   resolution: "@omegadot/einheiten@npm:0.1.3"
   checksum: 10c0/6d371bb2047c751493c1076219b4f892839269c1b4a88af37d628e4dcd4751d13be71961d853406d633a965fe3d326f80497c2fa60fc833b7c665ce3dcdf278d
+  languageName: node
+  linkType: hard
+
+"@oozcitak/dom@npm:1.15.10":
+  version: 1.15.10
+  resolution: "@oozcitak/dom@npm:1.15.10"
+  dependencies:
+    "@oozcitak/infra": "npm:1.0.8"
+    "@oozcitak/url": "npm:1.0.4"
+    "@oozcitak/util": "npm:8.3.8"
+  checksum: 10c0/128162dd35fd21976e7589a4b50e980d8fb72e1f90e5675a3baca70b23cfdd87c0df57bff1ec708e7927671247a7233f240a27a4546bb904e069be1b4d4d7a05
+  languageName: node
+  linkType: hard
+
+"@oozcitak/infra@npm:1.0.8":
+  version: 1.0.8
+  resolution: "@oozcitak/infra@npm:1.0.8"
+  dependencies:
+    "@oozcitak/util": "npm:8.3.8"
+  checksum: 10c0/5fa44f02abbad453f5b26b38e2934978c177ef3a1baf8bf53919991135268f55bc89e23f8f3edebf0973c6a7d72d98fededb666c04a8b22ee4ca3048d0d42d25
+  languageName: node
+  linkType: hard
+
+"@oozcitak/url@npm:1.0.4":
+  version: 1.0.4
+  resolution: "@oozcitak/url@npm:1.0.4"
+  dependencies:
+    "@oozcitak/infra": "npm:1.0.8"
+    "@oozcitak/util": "npm:8.3.8"
+  checksum: 10c0/49824e30219b1e3bd0133c7302e79ead18dbfff91bc1ebb2f05b3c2cd670ed07b36af0f933faba2bc3221f65ef068fb7fca7d6c3cb8053fbca45f8cdf5670147
+  languageName: node
+  linkType: hard
+
+"@oozcitak/util@npm:8.3.8":
+  version: 8.3.8
+  resolution: "@oozcitak/util@npm:8.3.8"
+  checksum: 10c0/1c492abcba79f5dd9bd7709331a614114706e6936a899cac6ac90b63bbe8e98da288e664c13c6acb2a38e3c5ffd47b93f824075ba81384d6192cc364bf126775
   languageName: node
   linkType: hard
 
@@ -7433,6 +7472,13 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 10c0/af36857b804e6df615b401bacf34e9312f073ed9dbeda35be16ee3352d18a4449f27066169893166a6ec17ae51557c3adf8d232ac4a4a0226aafb3267e1f1b39
+  languageName: node
+  linkType: hard
+
+"@types/xmldoc@npm:^1":
+  version: 1.1.9
+  resolution: "@types/xmldoc@npm:1.1.9"
+  checksum: 10c0/5de967d947ab2890320f65e3c4e053e573c312bb1b2f116084dde648128ae3f9a49657305156a8e1579f2d80573ee4960cbb140ea0e4c337a41ee4b31c120531
   languageName: node
   linkType: hard
 
@@ -13168,7 +13214,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:^3.13.1":
+"js-yaml@npm:3.14.1, js-yaml@npm:^3.13.1":
   version: 3.14.1
   resolution: "js-yaml@npm:3.14.1"
   dependencies:
@@ -19063,10 +19109,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"xmlbuilder2@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "xmlbuilder2@npm:3.1.1"
+  dependencies:
+    "@oozcitak/dom": "npm:1.15.10"
+    "@oozcitak/infra": "npm:1.0.8"
+    "@oozcitak/util": "npm:8.3.8"
+    js-yaml: "npm:3.14.1"
+  checksum: 10c0/a3e7dd5cbc052f6b53773a4a9d5efb26b0647aa8868bc1a597478d534e78184263b5b3e495e82613f21d0bf016a24145bb793f6e197e8911139dddba9cd831cc
+  languageName: node
+  linkType: hard
+
 "xmlchars@npm:^2.2.0":
   version: 2.2.0
   resolution: "xmlchars@npm:2.2.0"
   checksum: 10c0/b64b535861a6f310c5d9bfa10834cf49127c71922c297da9d4d1b45eeaae40bf9b4363275876088fbe2667e5db028d2cd4f8ee72eed9bede840a67d57dab7593
+  languageName: node
+  linkType: hard
+
+"xmldoc@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "xmldoc@npm:1.3.0"
+  dependencies:
+    sax: "npm:^1.2.4"
+  checksum: 10c0/7957c57ff77008ced62063560d3e8f80c7fdf31d3fafa12d16c9f1fe676c8255f50889e8f41b61cca4cd473b841eedf2625089dcaf3f6b8717df521b9d0acfcf
   languageName: node
   linkType: hard
 

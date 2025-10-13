@@ -8,6 +8,7 @@ import { TabbedPageLayout } from "../layout/TabbedPageLayout";
 
 import type { SettingsFragment$key } from "@/relay/SettingsFragment.graphql";
 import { ChangeUserPassword } from "~/apps/desktop-app/src/components/settings/ChangeUserPassword";
+import { UserDataverses } from "~/apps/desktop-app/src/components/settings/UserDataverses";
 
 export function Settings(props: { data: SettingsFragment$key }) {
 	const data = useFragment(
@@ -16,6 +17,7 @@ export function Settings(props: { data: SettingsFragment$key }) {
 				currentUser {
 					...RemoteSettings
 					...UserSettings
+					...UserDataverses
 				}
 			}
 		`,
@@ -36,6 +38,11 @@ export function Settings(props: { data: SettingsFragment$key }) {
 						id: "localization",
 						label: "Localization",
 						content: <UserSettings currentUser={data.currentUser} />,
+					},
+					{
+						id: "dataverses",
+						label: "Dataverses",
+						content: <UserDataverses currentUser={data.currentUser} />,
 					},
 					{
 						id: "password",

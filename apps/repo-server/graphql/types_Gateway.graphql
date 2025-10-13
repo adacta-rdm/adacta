@@ -18,6 +18,18 @@ type CurrentUserCore {
 	user: User!
 
 	timeSetting: DateOptions
+	dataverses: Connection_UserDataverseConnection!
+}
+
+"""
+Represents the connection to a Dataverse instance
+NOTE: This is not a GraphQL connection
+"""
+type UserDataverseConnection implements Node {
+	id: ID!
+	name: String!
+	url: String!
+	tokenPreview: String!
 }
 
 type RemoteRepo implements Node {

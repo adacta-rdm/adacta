@@ -21,6 +21,9 @@ import type { Config } from "drizzle-kit";
 import { shSync as sh } from "~/dev/sh";
 import { DrizzleSchema } from "~/drizzle/DrizzleSchema";
 import { SQL_SCHEMA_PLACEHOLDER } from "~/drizzle/migrationConst";
+import { __dirnameFromImportMetaURL } from "~/lib/__dirnameFromImportMetaURL";
+
+const __dirname = /* @__PURE__ */ (() => __dirnameFromImportMetaURL(import.meta.url))();
 
 // The root directory of the project.
 const projectRoot = join(__dirname, "..");
