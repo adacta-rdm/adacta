@@ -101,6 +101,7 @@
 		"@types/validator": "^13",
 		"@types/verror": "^1.10.10",
 		"@types/ws": "^8",
+		"@types/xmldoc": "^1",
 		"@typescript-eslint/eslint-plugin": "^5.46.1",
 		"@typescript-eslint/parser": "^7.2.0",
 		"@vingle/bmp-js": "^0.2.5",
@@ -184,8 +185,5 @@
 		"vis-data": "^7.0.0",
 		"@elastic/eui@93.5.1": "patch:@elastic/eui@npm:93.5.1#.yarn/patches/@elastic-eui-npm-93.5.1-18c5327494.patch"
 	},
-	"packageManager": "yarn@4.1.1",
-	"devDependencies": {
-		"@types/xmldoc": "^1"
-	}
+	"packageManager": "yarn@4.1.1"
 }

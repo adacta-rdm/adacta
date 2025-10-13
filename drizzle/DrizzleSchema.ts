@@ -27,7 +27,7 @@ import {
 } from "./schema/repo.Specification";
 import { Transformation } from "./schema/repo.Transformation";
 
-import { UserDataverseConnection } from "~/drizzle/schema/global.UserDataverse";
+import { UserDataverseConnection } from "~/drizzle/schema/global.UserDataverseConnection";
 import { UserRepository } from "~/drizzle/schema/global.UserRepository";
 
 export class DrizzleGlobalSchema {
