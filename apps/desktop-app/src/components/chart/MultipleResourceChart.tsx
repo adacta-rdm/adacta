@@ -8,6 +8,9 @@ import { useRepositoryIdVariable } from "../../services/router/UseRepoId";
 import type { MultipleResourceChartQuery } from "@/relay/MultipleResourceChartQuery.graphql";
 import type { MultipleResourceChartSubscription } from "@/relay/MultipleResourceChartSubscription.graphql";
 import { ChartLoading } from "~/apps/desktop-app/src/components/chart/ChartLoading";
+import { Legend } from "~/apps/desktop-app/src/components/chart/legend/Legend";
+import { ColorAssigner } from "~/apps/desktop-app/src/components/chart/utils/ColorAssigner";
+import { useChartActions } from "~/apps/desktop-app/src/components/chart/utils/useChartActions";
 
 interface IProps {
 	resourceIds: string[];
@@ -29,6 +32,12 @@ const ResourceChartGraphQLQuery = graphql`
 		repository(id: $repositoryId) {
 			mergedResourceChart(ids: $resourceIds, alignStart: $alignStart, offsets: $offsets) {
 				...ChartFragment
+				...LegendFragment
+				y {
+					device {
+						id
+					}
+				}
 			}
 		}
 	}
@@ -36,6 +45,7 @@ const ResourceChartGraphQLQuery = graphql`
 
 export function MultipleResourceChart(props: IProps) {
 	const [fetchKey, setFetchKey] = useState(0);
+
 	const { repository: data } = useLazyLoadQuery<MultipleResourceChartQuery>(
 		ResourceChartGraphQLQuery,
 		{
@@ -46,6 +56,16 @@ export function MultipleResourceChart(props: IProps) {
 		},
 		{ fetchKey, fetchPolicy: fetchKey > 0 ? "store-and-network" : undefined }
 	);
+
+	const { hideDevices, hide, solo, show, showAll } = useChartActions(
+		data.mergedResourceChart.flatMap((c) =>
+			c.y.flatMap((y) => {
+				return y.device?.id ?? [];
+			})
+		)
+	);
+
+	const [highlightSeries, setHighlightSeries] = useState<string | undefined>(undefined);
 
 	// This subscription subscribes to the downsampleDataBecameReady event and refetches the merged
 	// chart if the event is emitted for one of the resources that are included in the comparison.
@@ -79,6 +99,8 @@ export function MultipleResourceChart(props: IProps) {
 		return <ChartLoading />;
 	}
 
+	const colorAssigner = new ColorAssigner();
+
 	return (
 		<>
 			{data.mergedResourceChart.map((data, i) => (
@@ -86,7 +108,26 @@ export function MultipleResourceChart(props: IProps) {
 					chart={data}
 					key={JSON.stringify({ ...props, key: i })}
 					highlight={
-						props.highlightResourceId ? { resourceId: props.highlightResourceId } : undefined
+						props.highlightResourceId
+							? { resourceId: props.highlightResourceId }
+							: highlightSeries
+							? { name: highlightSeries }
+							: undefined
+					}
+					hideDevices={hideDevices}
+					customLegend={
+						<Legend
+							legendInformation={data}
+							getColor={(c) => colorAssigner.getColor(c)}
+							show={show}
+							solo={solo}
+							hide={hide}
+							showAll={showAll}
+							hideDevices={hideDevices}
+							highlightSeries={(id) => {
+								setHighlightSeries(id);
+							}}
+						/>
 					}
 				/>
 			))}
