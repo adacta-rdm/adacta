@@ -43,7 +43,7 @@ export function Legend({
 }) {
 	const highlightSeriesDebounced = useDebounceCallback(highlightSeries ?? (() => {}), 100);
 
-	const yColums = useFragment(
+	const yColumns = useFragment(
 		graphql`
 			fragment LegendFragment on Data {
 				y {
@@ -59,11 +59,11 @@ export function Legend({
 		legendInformation
 	);
 
-	if (yColums === null) {
+	if (yColumns === null) {
 		return <></>;
 	}
 
-	const legendInformation2 = yColums.y.map((y) => ({
+	const legendInformation2 = yColumns.y.map((y) => ({
 		device: y.device,
 		label: y.label,
 		color: getColor(y.label),

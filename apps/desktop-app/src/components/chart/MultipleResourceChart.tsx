@@ -110,7 +110,7 @@ export function MultipleResourceChart(props: IProps) {
 					highlight={
 						props.highlightResourceId
 							? { resourceId: props.highlightResourceId }
-							: highlightSeries && highlightSeries?.length > 0
+							: highlightSeries
 							? { name: highlightSeries }
 							: undefined
 					}
