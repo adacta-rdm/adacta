@@ -162,7 +162,7 @@ function LegendTree(props: IProps) {
 					{n.label}
 					{n.children && n.children?.length > 0 && (
 						<ul>
-							<li onClick={() => {}}>
+							<li>
 								<LegendTree items={n.children} />
 							</li>
 						</ul>
