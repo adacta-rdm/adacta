@@ -320,12 +320,25 @@ export const RepositoryQuery: IDefinedResolver<"RepositoryQuery"> = {
 		);
 	},
 
-	mergedResourceChart(_, { ids, alignStart, offsets }, { services: { downsampling } }) {
-		return downsampling.requestGraphMerged({
+	async mergedResourceChart(_, { ids, alignStart, offsets }, { services: { downsampling } }) {
+		const chart = await downsampling.requestGraphMerged({
 			resourceIds: ids as IResourceId[],
 			datapoints: 150,
 			alignStart: alignStart !== null ? alignStart : undefined,
 			offsets: offsets !== null ? offsets : undefined,
+		});
+
+		return chart.map((downsampled) => {
+			return {
+				x: {
+					...downsampled.x,
+					device: downsampled.x.deviceId ? { id: downsampled.x.deviceId } : undefined,
+				},
+				y: downsampled.y.map((y) => ({
+					...y,
+					device: y.deviceId ? { id: y.deviceId } : undefined,
+				})),
+			};
 		});
 	},
 

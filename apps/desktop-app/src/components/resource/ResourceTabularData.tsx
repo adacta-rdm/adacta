@@ -78,7 +78,7 @@ const ResourceTabularDataDataGraphQLFragment = graphql`
 
 export function ResourceTabularData(props: { data: ResourceTabularData_data$key }) {
 	const data = useFragment(ResourceTabularDataDataGraphQLFragment, props.data);
-	const [hideDevices, setHideDevices] = useState<string[] | undefined>(undefined);
+
 	const { router, repositoryId } = useRepoRouterHook();
 
 	const { devices, parent } = data;
@@ -88,11 +88,6 @@ export function ResourceTabularData(props: { data: ResourceTabularData_data$key 
 	const [exportModalOpen, setExportModalOpen] = useState(false);
 
 	assert(devices.length);
-
-	const solo = (id: string) => setHideDevices(allDeviceIds.filter((s) => s !== id));
-	const show = (id: string) => setHideDevices((hideDevices ?? []).filter((s) => s !== id));
-	const hide = (id: string) => setHideDevices([...(hideDevices ?? []), id]);
-	const showAll = () => setHideDevices(undefined);
 
 	const samples = uniqBy(
 		devices.flatMap((d) =>
@@ -262,14 +257,7 @@ export function ResourceTabularData(props: { data: ResourceTabularData_data$key 
 								<>
 									<EuiDescriptionList type="column" listItems={overview} />
 									<EuiSpacer />
-									<ResourceChart
-										resourceId={data.id}
-										hideDevices={hideDevices}
-										showAll={showAll}
-										show={show}
-										solo={solo}
-										hide={hide}
-									/>
+									<ResourceChart resourceId={data.id} allDeviceIds={allDeviceIds} />
 								</>
 							),
 						},
