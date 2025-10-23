@@ -542,12 +542,25 @@ function ComponentEuiTreePure(props: IPropsPure) {
 				tooltip="Shows all the components of the current device. The tags can be used to identify components in the setup below."
 			/>
 			<EuiSpacer size="s" />
-			<EuiTreeView
-				showExpansionArrows
-				expandByDefault
-				items={createComponentEuiTree(tree)}
-				aria-label="Tree view of all components which are part of the device"
-			/>
+			<>
+				{/*The original block size was set to 100vh, causing any subgroups larger than this to overlap with other elements.*/}
+				<style>
+					{`
+					.fix-max-block-size {
+						li {
+							max-block-size: none;
+						}
+					}
+				`}
+				</style>
+				<EuiTreeView
+					showExpansionArrows
+					expandByDefault
+					items={createComponentEuiTree(tree)}
+					aria-label="Tree view of all components which are part of the device"
+					className={"fix-max-block-size1"}
+				/>
+			</>
 		</>
 	);
 }
