@@ -166,6 +166,7 @@ export function PresetSelection(props: IProps) {
 				/>
 			)}
 			<EuiSelect
+				prepend={"Preset"}
 				options={options}
 				onChange={(e) => setPresetId(e.target.value)}
 				value={presetId}
@@ -175,7 +176,16 @@ export function PresetSelection(props: IProps) {
 						<EuiButtonIcon
 							aria-label="load preset"
 							iconType="download"
-							onClick={() => void loadPreset()}
+							color={"danger"}
+							onClick={() => {
+								if (
+									confirm(
+										`Are you sure you want to load this preset? Loading a preset causes the values entered in the Import Wizard to be replaced by those stored in the preset.`
+									)
+								) {
+									return void loadPreset();
+								}
+							}}
 							disabled={presetId === undefined || presetId === ""}
 						/>
 						<EuiPopover
@@ -205,6 +215,7 @@ export function PresetSelection(props: IProps) {
 							aria-label="edit preset"
 							iconType="indexEdit"
 							onClick={() => setShowPresetEditor(true)}
+							color={"text"}
 						/>
 					</>
 				}
