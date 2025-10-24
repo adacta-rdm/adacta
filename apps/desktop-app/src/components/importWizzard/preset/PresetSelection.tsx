@@ -177,8 +177,8 @@ export function PresetSelection(props: IProps) {
 					buttonColor={"danger"}
 				>
 					<p>
-						Are you sure you want to load this preset? Loading a preset causes the values entered in
-						the Import Wizard to be replaced by those stored in the preset.
+						Are you sure you want to load this preset? Please note that loading a preset will
+						replace the values entered in the Import Wizard with those stored in the preset.
 					</p>
 				</EuiConfirmModal>
 			)}
