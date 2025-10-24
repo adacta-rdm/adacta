@@ -49,7 +49,7 @@ const meta = {
 let pathCounter = 0;
 
 function getPath() {
-	if (pathCounter == 0 || pathCounter == 1) {
+	if (pathCounter === 0 || pathCounter === 1) {
 		const root = `root${pathCounter}`;
 		pathCounter = pathCounter + 1;
 		return [root];

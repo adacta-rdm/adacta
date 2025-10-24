@@ -558,7 +558,7 @@ function ComponentEuiTreePure(props: IPropsPure) {
 					expandByDefault
 					items={createComponentEuiTree(tree)}
 					aria-label="Tree view of all components which are part of the device"
-					className={"fix-max-block-size1"}
+					className={"fix-max-block-size"}
 				/>
 			</>
 		</>
