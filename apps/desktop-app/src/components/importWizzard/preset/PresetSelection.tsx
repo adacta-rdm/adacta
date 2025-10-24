@@ -3,6 +3,7 @@ import assert from "assert";
 import {
 	EuiButtonEmpty,
 	EuiButtonIcon,
+	EuiConfirmModal,
 	EuiFieldText,
 	EuiForm,
 	EuiPopover,
@@ -90,6 +91,8 @@ export function PresetSelection(props: IProps) {
 	);
 
 	const [showPresetPopover, setShowPresetPopover] = useState(false);
+	// Confirm the loading of a preset
+	const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 	const [presetName, setPresetName] = useState("");
 	const [showPresetEditor, setShowPresetEditor] = useState(false);
 
@@ -159,6 +162,26 @@ export function PresetSelection(props: IProps) {
 
 	return (
 		<>
+			{showConfirmationModal && (
+				<EuiConfirmModal
+					style={{ width: 600 }}
+					title="Load preset?"
+					onCancel={() => setShowConfirmationModal(false)}
+					onConfirm={() => {
+						void loadPreset();
+						setShowConfirmationModal(false);
+					}}
+					cancelButtonText="Cancel"
+					confirmButtonText="Load Preset"
+					defaultFocusedButton="confirm"
+					buttonColor={"danger"}
+				>
+					<p>
+						Are you sure you want to load this preset? Loading a preset causes the values entered in
+						the Import Wizard to be replaced by those stored in the preset.
+					</p>
+				</EuiConfirmModal>
+			)}
 			{showPresetEditor && (
 				<PresetManager
 					onClose={() => setShowPresetEditor(false)}
@@ -175,16 +198,10 @@ export function PresetSelection(props: IProps) {
 					<>
 						<EuiButtonIcon
 							aria-label="load preset"
+							title="Load preset"
 							iconType="download"
-							color={"danger"}
 							onClick={() => {
-								if (
-									confirm(
-										`Are you sure you want to load this preset? Loading a preset causes the values entered in the Import Wizard to be replaced by those stored in the preset.`
-									)
-								) {
-									return void loadPreset();
-								}
+								setShowConfirmationModal(true);
 							}}
 							disabled={presetId === undefined || presetId === ""}
 						/>
@@ -194,6 +211,7 @@ export function PresetSelection(props: IProps) {
 									aria-label="Save"
 									iconType="save"
 									onClick={() => setShowPresetPopover(!showPresetPopover)}
+									title="Save preset"
 								/>
 							}
 							isOpen={showPresetPopover}
@@ -212,10 +230,10 @@ export function PresetSelection(props: IProps) {
 							</EuiForm>
 						</EuiPopover>
 						<EuiButtonIcon
+							title="Open Preset Editor"
 							aria-label="edit preset"
 							iconType="indexEdit"
 							onClick={() => setShowPresetEditor(true)}
-							color={"text"}
 						/>
 					</>
 				}
