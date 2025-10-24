@@ -54,6 +54,7 @@ import type { ComponentEuiTree$data, ComponentEuiTree$key } from "@/relay/Compon
 import type { ComponentEuiTreeRemoveComponentMutation } from "@/relay/ComponentEuiTreeRemoveComponentMutation.graphql";
 import type { ComponentNodeTreeProviderFragment$data } from "@/relay/ComponentNodeTreeProviderFragment.graphql";
 import { createIDatetime, createMaybeIDatetime } from "~/lib/createDate";
+import "./ComponentEuiTree.css";
 
 const ComponentEuiTreeGraphQLFragment = graphql`
 	fragment ComponentEuiTree on Device
@@ -546,11 +547,7 @@ function ComponentEuiTreePure(props: IPropsPure) {
 				{/*The original block size was set to 100vh, causing any subgroups larger than this to overlap with other elements.*/}
 				<style>
 					{`
-					.fix-max-block-size {
-						li {
-							max-block-size: none;
-						}
-					}
+					
 				`}
 				</style>
 				<EuiTreeView
