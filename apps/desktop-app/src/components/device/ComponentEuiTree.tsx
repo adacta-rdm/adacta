@@ -54,6 +54,7 @@ import type { ComponentEuiTree$data, ComponentEuiTree$key } from "@/relay/Compon
 import type { ComponentEuiTreeRemoveComponentMutation } from "@/relay/ComponentEuiTreeRemoveComponentMutation.graphql";
 import type { ComponentNodeTreeProviderFragment$data } from "@/relay/ComponentNodeTreeProviderFragment.graphql";
 import { createIDatetime, createMaybeIDatetime } from "~/lib/createDate";
+import "./ComponentEuiTree.css";
 
 const ComponentEuiTreeGraphQLFragment = graphql`
 	fragment ComponentEuiTree on Device
@@ -542,12 +543,21 @@ function ComponentEuiTreePure(props: IPropsPure) {
 				tooltip="Shows all the components of the current device. The tags can be used to identify components in the setup below."
 			/>
 			<EuiSpacer size="s" />
-			<EuiTreeView
-				showExpansionArrows
-				expandByDefault
-				items={createComponentEuiTree(tree)}
-				aria-label="Tree view of all components which are part of the device"
-			/>
+			<>
+				{/*The original block size was set to 100vh, causing any subgroups larger than this to overlap with other elements.*/}
+				<style>
+					{`
+					
+				`}
+				</style>
+				<EuiTreeView
+					showExpansionArrows
+					expandByDefault
+					items={createComponentEuiTree(tree)}
+					aria-label="Tree view of all components which are part of the device"
+					className={"fix-max-block-size"}
+				/>
+			</>
 		</>
 	);
 }

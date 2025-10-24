@@ -1,0 +1,5 @@
+.fix-max-block-size {
+	li {
+		max-block-size: none;
+	}
+}
