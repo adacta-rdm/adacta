@@ -493,6 +493,7 @@ export class CSVImportWizard {
 		});
 
 		const fileSize = await this.sto.size(inputPath);
+		let linesWrittenToOutputStream = 0;
 
 		return new Promise<
 			Result<
@@ -688,6 +689,7 @@ export class CSVImportWizard {
 								parser.resume();
 							});
 						}
+						linesWrittenToOutputStream++;
 					} else {
 						warnings.push(`Ignoring line ${rowCount} as not all columns could be processed`);
 					}
@@ -838,6 +840,18 @@ export class CSVImportWizard {
 							) {
 								warnings.push(
 									"No dependent variables found. If all columns contain independent data, it is possible to import such files, but there is no way to visualize the data."
+								);
+							}
+
+							// If all rows contain an error (e.g., a column that cannot be parsed because it contains text)
+							// and the user imports them despite the warning, an empty Resource is created.
+							// An empty resource/table has little meaning. Therefore, this case is explicitly prohibited.
+							if (linesWrittenToOutputStream == 0) {
+								return resolve(
+									err({
+										error: `Not a single line could be interpreted correctly with the selected settings. This can happen, for example, if each individual line causes a warning because a column could not be interpreted.`,
+										warnings: warnings.length > 0 ? warnings : undefined,
+									})
 								);
 							}
 

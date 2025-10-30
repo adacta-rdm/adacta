@@ -25,7 +25,7 @@ describe("KeyValueDatabaseStorageEngine", () => {
 
 		expect(await kvDatabase.get(newKey)).toStrictEqual(newValue);
 
-		expect(await kvDatabase.get(newKey, "IDownsampledData")).toBeUndefined();
+		expect(await kvDatabase.get(newKey, "ShortTermCacheResult")).toBeUndefined();
 	});
 
 	test("supports updates", async () => {

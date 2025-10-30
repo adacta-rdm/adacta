@@ -112,9 +112,14 @@ export const ResourceTabularData: IResolvers["ResourceTabularData"] = {
 		try {
 			const downsampled = await downsampling.requestGraph(request);
 
-			if (!downsampled) return undefined;
+			if (downsampled.type === "downsampling_pending" || downsampled.type === "temporary_error")
+				return undefined;
+			if (downsampled.type === "permanent_error") {
+				return { __typename: "Error", message: downsampled.message };
+			}
 
 			return {
+				__typename: "Data",
 				x: {
 					...downsampled.x,
 					device: downsampled.x.deviceId ? { id: downsampled.x.deviceId } : undefined,

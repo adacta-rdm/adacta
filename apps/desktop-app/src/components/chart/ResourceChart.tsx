@@ -1,3 +1,6 @@
+import assert from "assert";
+
+import { EuiEmptyPrompt } from "@elastic/eui";
 import React, { useMemo, useState } from "react";
 import { graphql, useLazyLoadQuery, useSubscription } from "react-relay";
 import type { GraphQLSubscriptionConfig } from "relay-runtime";
@@ -23,8 +26,14 @@ const ResourceChartGraphQLQuery = graphql`
 			resource(id: $resourceId) {
 				... on ResourceTabularData {
 					downSampled(dataPoints: 100, singleColumn: false) {
-						...ChartFragment
-						...LegendFragment
+						__typename
+						... on Data {
+							...ChartFragment
+							...LegendFragment
+						}
+						... on Error {
+							message
+						}
 					}
 				}
 			}
@@ -51,6 +60,9 @@ export function ResourceChart(props: IProps) {
 							downSampled(dataPoints: 100, singleColumn: false) {
 								...ChartFragment
 								...LegendFragment
+								... on Error {
+									message
+								}
 							}
 						}
 					}
@@ -65,13 +77,25 @@ export function ResourceChart(props: IProps) {
 		resourceId: props.resourceId,
 		...useRepositoryIdVariable(),
 	});
+	assert(data.resource.downSampled?.__typename !== "%other");
+
 	const [highlightSeries, setHighlightSeries] = useState<string | undefined>(undefined);
 	if (data.resource?.downSampled == null) {
 		return <ChartLoading />;
 	}
 
-	const colorAssigner = new ColorAssigner();
+	if (data.resource.downSampled.__typename === "Error") {
+		return (
+			<EuiEmptyPrompt
+				iconType="error"
+				color="warning"
+				title={<h2>Unable to load chart</h2>}
+				body={<p>{data.resource.downSampled.message}</p>}
+			/>
+		);
+	}
 
+	const colorAssigner = new ColorAssigner();
 	return (
 		<>
 			<Chart

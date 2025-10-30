@@ -537,7 +537,7 @@ export type IResourceTabularData = INode &
 		 * If singleColumn is set to true only one y axis will be select and down sampled. Currently, an attempt is made to
 		 * select a specific column position in which the reactor temperature is often (but not always) located.
 		 */
-		downSampled?: Maybe<IData>;
+		downSampled?: Maybe<IDataOrError>;
 	};
 
 export type IResourceTabularDataProjectsArgs = {
@@ -784,6 +784,8 @@ export type IRowConnection = IConnection & {
 	count: Scalars["Int"];
 };
 
+export type IDataOrError = IData | IError;
+
 export type IData = {
 	__typename?: "Data";
 	x: IDataSeries;
@@ -797,6 +799,11 @@ export type IDataSeries = {
 	values: Array<Maybe<Scalars["Float"]>>;
 	device?: Maybe<IDevice>;
 	resourceId?: Maybe<Scalars["ID"]>;
+};
+
+export type IError = {
+	__typename?: "Error";
+	message: Scalars["String"];
 };
 
 export type IUserEdge = IEdge & {
@@ -979,6 +986,10 @@ export type IEdge_UserDataverseConnection = {
 	node: IUserDataverseConnection;
 };
 
+/**
+ * Represents the connection to a Dataverse instance
+ * NOTE: This is not a GraphQL connection
+ */
 export type IUserDataverseConnection = INode & {
 	__typename?: "UserDataverseConnection";
 	id: Scalars["ID"];
@@ -1659,11 +1670,6 @@ export type IAddDevicePayload = {
 
 export type IDeviceOrSampleOrError = IDevice | ISample | IError;
 
-export type IError = {
-	__typename?: "Error";
-	message: Scalars["String"];
-};
-
 export type IAddDeviceDefinitionInput = {
 	parentDeviceDefinition?: InputMaybe<Scalars["ID"]>;
 	name: Scalars["String"];
@@ -2256,7 +2262,13 @@ export type IResolversTypes = {
 		| IResolversTypes["ResourceGeneric"]
 		| IResolversTypes["ResourceTabularData"]
 		| IResolversTypes["ResourceImage"];
-	ResourceTabularData: ResolverTypeWrapper<ResolverReturnType<IResourceTabularData>>;
+	ResourceTabularData: ResolverTypeWrapper<
+		ResolverReturnType<
+			Omit<IResourceTabularData, "downSampled"> & {
+				downSampled?: Maybe<IResolversTypes["DataOrError"]>;
+			}
+		>
+	>;
 	HasMetadata:
 		| IResolversTypes["Device"]
 		| IResolversTypes["Sample"]
@@ -2305,8 +2317,10 @@ export type IResolversTypes = {
 	ColumnDescription: ResolverTypeWrapper<ResolverReturnType<IColumnDescription>>;
 	ColumnType: ResolverTypeWrapper<ResolverReturnType<Scalars["ColumnType"]>>;
 	RowConnection: ResolverTypeWrapper<ResolverReturnType<IRowConnection>>;
+	DataOrError: ResolverReturnType<IResolversTypes["Data"] | IResolversTypes["Error"]>;
 	Data: ResolverTypeWrapper<ResolverReturnType<IData>>;
 	DataSeries: ResolverTypeWrapper<ResolverReturnType<IDataSeries>>;
+	Error: ResolverTypeWrapper<ResolverReturnType<IError>>;
 	UserEdge: ResolverTypeWrapper<ResolverReturnType<IUserEdge>>;
 	NoteEdge: ResolverTypeWrapper<ResolverReturnType<INoteEdge>>;
 	HierarchicalDeviceListConnection: ResolverTypeWrapper<
@@ -2429,7 +2443,6 @@ export type IResolversTypes = {
 	DeviceOrSampleOrError: ResolverReturnType<
 		IResolversTypes["Device"] | IResolversTypes["Sample"] | IResolversTypes["Error"]
 	>;
-	Error: ResolverTypeWrapper<ResolverReturnType<IError>>;
 	AddDeviceDefinitionInput: ResolverTypeWrapper<ResolverReturnType<IAddDeviceDefinitionInput>>;
 	EditDeviceDefinitionInput: ResolverTypeWrapper<ResolverReturnType<IEditDeviceDefinitionInput>>;
 	EditDeviceDefinitionResult: ResolverReturnType<
@@ -2665,7 +2678,11 @@ export type IResolversParentTypes = {
 		| IResolversParentTypes["ResourceGeneric"]
 		| IResolversParentTypes["ResourceTabularData"]
 		| IResolversParentTypes["ResourceImage"];
-	ResourceTabularData: ResolverReturnType<IResourceTabularData>;
+	ResourceTabularData: ResolverReturnType<
+		Omit<IResourceTabularData, "downSampled"> & {
+			downSampled?: Maybe<IResolversParentTypes["DataOrError"]>;
+		}
+	>;
 	HasMetadata:
 		| IResolversParentTypes["Device"]
 		| IResolversParentTypes["Sample"]
@@ -2710,8 +2727,10 @@ export type IResolversParentTypes = {
 	ColumnDescription: ResolverReturnType<IColumnDescription>;
 	ColumnType: ResolverReturnType<Scalars["ColumnType"]>;
 	RowConnection: ResolverReturnType<IRowConnection>;
+	DataOrError: ResolverReturnType<IResolversParentTypes["Data"] | IResolversParentTypes["Error"]>;
 	Data: ResolverReturnType<IData>;
 	DataSeries: ResolverReturnType<IDataSeries>;
+	Error: ResolverReturnType<IError>;
 	UserEdge: ResolverReturnType<IUserEdge>;
 	NoteEdge: ResolverReturnType<INoteEdge>;
 	HierarchicalDeviceListConnection: ResolverReturnType<IHierarchicalDeviceListConnection>;
@@ -2798,7 +2817,6 @@ export type IResolversParentTypes = {
 		| IResolversParentTypes["Sample"]
 		| IResolversParentTypes["Error"]
 	>;
-	Error: ResolverReturnType<IError>;
 	AddDeviceDefinitionInput: ResolverReturnType<IAddDeviceDefinitionInput>;
 	EditDeviceDefinitionInput: ResolverReturnType<IEditDeviceDefinitionInput>;
 	EditDeviceDefinitionResult: ResolverReturnType<
@@ -3498,7 +3516,7 @@ export type IResourceTabularDataResolvers<
 		Partial<IResourceTabularDataRowsArgs>
 	>;
 	downSampled?: Resolver<
-		Maybe<IResolversTypes["Data"]>,
+		Maybe<IResolversTypes["DataOrError"]>,
 		ParentType,
 		ContextType,
 		RequireFields<IResourceTabularDataDownSampledArgs, "dataPoints">
@@ -3829,6 +3847,13 @@ export type IRowConnectionResolvers<
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type IDataOrErrorResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["DataOrError"] = IResolversParentTypes["DataOrError"]
+> = {
+	__resolveType: TypeResolveFn<"Data" | "Error", ParentType, ContextType>;
+};
+
 export type IDataResolvers<
 	ContextType = IGraphQLContext,
 	ParentType extends IResolversParentTypes["Data"] = IResolversParentTypes["Data"]
@@ -3847,6 +3872,14 @@ export type IDataSeriesResolvers<
 	values?: Resolver<Array<Maybe<IResolversTypes["Float"]>>, ParentType, ContextType>;
 	device?: Resolver<Maybe<IResolversTypes["Device"]>, ParentType, ContextType>;
 	resourceId?: Resolver<Maybe<IResolversTypes["ID"]>, ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IErrorResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["Error"] = IResolversParentTypes["Error"]
+> = {
+	message?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -4736,14 +4769,6 @@ export type IDeviceOrSampleOrErrorResolvers<
 	__resolveType: TypeResolveFn<"Device" | "Sample" | "Error", ParentType, ContextType>;
 };
 
-export type IErrorResolvers<
-	ContextType = IGraphQLContext,
-	ParentType extends IResolversParentTypes["Error"] = IResolversParentTypes["Error"]
-> = {
-	message?: Resolver<IResolversTypes["String"], ParentType, ContextType>;
-	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type IEditDeviceDefinitionResultResolvers<
 	ContextType = IGraphQLContext,
 	ParentType extends IResolversParentTypes["EditDeviceDefinitionResult"] = IResolversParentTypes["EditDeviceDefinitionResult"]
@@ -5031,8 +5056,10 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	ColumnDescription?: IColumnDescriptionResolvers<ContextType>;
 	ColumnType?: GraphQLScalarType;
 	RowConnection?: IRowConnectionResolvers<ContextType>;
+	DataOrError?: IDataOrErrorResolvers<ContextType>;
 	Data?: IDataResolvers<ContextType>;
 	DataSeries?: IDataSeriesResolvers<ContextType>;
+	Error?: IErrorResolvers<ContextType>;
 	UserEdge?: IUserEdgeResolvers<ContextType>;
 	NoteEdge?: INoteEdgeResolvers<ContextType>;
 	HierarchicalDeviceListConnection?: IHierarchicalDeviceListConnectionResolvers<ContextType>;
@@ -5089,7 +5116,6 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	UpsertMutationPayloadDevice?: IUpsertMutationPayloadDeviceResolvers<ContextType>;
 	AddDevicePayload?: IAddDevicePayloadResolvers<ContextType>;
 	DeviceOrSampleOrError?: IDeviceOrSampleOrErrorResolvers<ContextType>;
-	Error?: IErrorResolvers<ContextType>;
 	EditDeviceDefinitionResult?: IEditDeviceDefinitionResultResolvers<ContextType>;
 	DeleteDeviceDefinitionResult?: IDeleteDeviceDefinitionResultResolvers<ContextType>;
 	LinkToProjectPayload?: ILinkToProjectPayloadResolvers<ContextType>;

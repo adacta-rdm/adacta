@@ -16,15 +16,18 @@ import { assertDefined } from "~/lib/assert/assertDefined";
 const SparklineGraphQLFragment = graphql`
 	fragment Sparkline on ResourceTabularData {
 		downSampled(dataPoints: 18, singleColumn: true) {
-			x {
-				label
-				unit
-				values
-			}
-			y {
-				label
-				unit
-				values
+			__typename
+			... on Data {
+				x {
+					label
+					unit
+					values
+				}
+				y {
+					label
+					unit
+					values
+				}
 			}
 		}
 	}
@@ -33,7 +36,7 @@ const SparklineGraphQLFragment = graphql`
 export function Sparklines(props: { resource: Sparkline$key }) {
 	const f = useFragment(SparklineGraphQLFragment, props.resource);
 
-	if (f === null) return <div>No preview available</div>;
+	if (f === null || f.downSampled?.__typename !== "Data") return <div>No preview available</div>;
 
 	const { downSampled: data } = f;
 
