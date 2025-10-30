@@ -28,7 +28,7 @@ export interface IDownsamplingOptions {
 	datapoints: Threshold;
 
 	/**
-	 * If true, the requested graph is intended for the "Sparlines" feature
+	 * If true, the requested graph is intended for the "Sparklines" feature
 	 * 	- An attempt is made to select a particularly relevant column. Please note that the methodology is very
 	 * 		primitive/rudimentary and will be replaced by a user configuration at a later date.)
 	 * 	- Results are stored in the L1 cache. Since this mode is often used for lists of resources, it is advantageous

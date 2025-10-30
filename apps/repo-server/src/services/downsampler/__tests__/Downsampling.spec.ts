@@ -153,7 +153,7 @@ describe("Downsampling service", () => {
 		// Get the same data again. This time it should be returned instead of undefined
 		const graph2 = await downsampling.requestGraph({ resourceId: resource.id, datapoints: 18 });
 
-		expect(graph2.type === "data");
+		expect(graph2.type).toBe("data");
 		expect(graph2).toBeDefined();
 
 		// Make sure the task dispatcher was correctly called

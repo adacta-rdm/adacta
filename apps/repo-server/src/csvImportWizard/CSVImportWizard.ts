@@ -846,7 +846,7 @@ export class CSVImportWizard {
 							// If all rows contain an error (e.g., a column that cannot be parsed because it contains text)
 							// and the user imports them despite the warning, an empty Resource is created.
 							// An empty resource/table has little meaning. Therefore, this case is explicitly prohibited.
-							if (linesWrittenToOutputStream == 0) {
+							if (linesWrittenToOutputStream === 0) {
 								return resolve(
 									err({
 										error: `Not a single line could be interpreted correctly with the selected settings. This can happen, for example, if each individual line causes a warning because a column could not be interpreted.`,
