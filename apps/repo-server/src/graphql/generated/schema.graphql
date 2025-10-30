@@ -356,7 +356,7 @@ type ResourceTabularData implements Node & Resource & ResourceTimed & HasProject
 	If singleColumn is set to true only one y axis will be select and down sampled. Currently, an attempt is made to
 	select a specific column position in which the reactor temperature is often (but not always) located.
 	"""
-	downSampled(dataPoints: Int!, singleColumn: Boolean): Data
+	downSampled(dataPoints: Int!, singleColumn: Boolean): DataOrError
 }
 
 interface HasMetadata {
@@ -556,6 +556,8 @@ type RowConnection implements Connection {
 	count: Int!
 }
 
+union DataOrError = Data | Error
+
 type Data {
 	x: DataSeries!
 	y: [DataSeries!]!
@@ -567,6 +569,10 @@ type DataSeries {
 	values: [Float]!
 	device: Device
 	resourceId: ID
+}
+
+type Error {
+	message: String!
 }
 
 type UserEdge implements Edge {
@@ -729,6 +735,10 @@ type Edge_UserDataverseConnection {
 	node: UserDataverseConnection!
 }
 
+"""
+Represents the connection to a Dataverse instance
+NOTE: This is not a GraphQL connection
+"""
 type UserDataverseConnection implements Node {
 	id: ID!
 	name: String!
@@ -1159,10 +1169,6 @@ type AddDevicePayload {
 }
 
 union DeviceOrSampleOrError = Device | Sample | Error
-
-type Error {
-	message: String!
-}
 
 input AddDeviceDefinitionInput {
 	parentDeviceDefinition: ID

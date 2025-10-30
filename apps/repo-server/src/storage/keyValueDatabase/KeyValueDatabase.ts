@@ -1,6 +1,9 @@
 import type { Promisable } from "type-fest";
 
-import type { IDownsampledData } from "../../services/downsampler/Downsampling";
+import type {
+	LongTermCacheResult,
+	ShortTermCacheResult,
+} from "../../services/downsampler/Downsampling";
 
 /**
  * Storage abstraction for various possible backends which provide a way to persist Key-Value pairs.
@@ -37,11 +40,11 @@ export abstract class KeyValueDatabase {
  */
 export type IKeyValueDocument =
 	| {
-			type: "IDownsampledData";
-			data: IDownsampledData;
+			type: "ShortTermCacheResult";
+			data: ShortTermCacheResult;
 	  }
 	| {
-			type: "IDownsampledDataOrError";
-			data: IDownsampledData | undefined;
+			type: "LongTermCacheResult";
+			data: LongTermCacheResult;
 	  }
 	| { type: "string"; data: string };

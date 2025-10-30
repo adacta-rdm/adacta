@@ -535,7 +535,7 @@ export type IResourceTabularData = INode &
 		 * If singleColumn is set to true only one y axis will be select and down sampled. Currently, an attempt is made to
 		 * select a specific column position in which the reactor temperature is often (but not always) located.
 		 */
-		downSampled?: Maybe<IData>;
+		downSampled?: Maybe<IDataOrError>;
 	};
 
 export type IResourceTabularDataProjectsArgs = {
@@ -782,6 +782,8 @@ export type IRowConnection = IConnection & {
 	count: Scalars["Int"];
 };
 
+export type IDataOrError = IData | IError;
+
 export type IData = {
 	__typename?: "Data";
 	x: IDataSeries;
@@ -795,6 +797,11 @@ export type IDataSeries = {
 	values: Array<Maybe<Scalars["Float"]>>;
 	device?: Maybe<IDevice>;
 	resourceId?: Maybe<Scalars["ID"]>;
+};
+
+export type IError = {
+	__typename?: "Error";
+	message: Scalars["String"];
 };
 
 export type IUserEdge = IEdge & {
@@ -977,6 +984,10 @@ export type IEdge_UserDataverseConnection = {
 	node: IUserDataverseConnection;
 };
 
+/**
+ * Represents the connection to a Dataverse instance
+ * NOTE: This is not a GraphQL connection
+ */
 export type IUserDataverseConnection = INode & {
 	__typename?: "UserDataverseConnection";
 	id: Scalars["ID"];
@@ -1656,11 +1667,6 @@ export type IAddDevicePayload = {
 };
 
 export type IDeviceOrSampleOrError = IDevice | ISample | IError;
-
-export type IError = {
-	__typename?: "Error";
-	message: Scalars["String"];
-};
 
 export type IAddDeviceDefinitionInput = {
 	parentDeviceDefinition?: InputMaybe<Scalars["ID"]>;

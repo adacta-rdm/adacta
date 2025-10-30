@@ -1078,8 +1078,10 @@ type ResourceTabularData implements Node & Resource & ResourceTimed & HasProject
 	If singleColumn is set to true only one y axis will be select and down sampled. Currently, an attempt is made to
 	select a specific column position in which the reactor temperature is often (but not always) located.
 	"""
-	downSampled(dataPoints: Int!, singleColumn: Boolean): Data
+	downSampled(dataPoints: Int!, singleColumn: Boolean): DataOrError
 }
+
+union DataOrError = Data | Error
 
 type ColumnDescription {
 	label: String!
