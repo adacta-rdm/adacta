@@ -45,6 +45,7 @@ app-spec.json
 
 # Keep environment variables out of version control
 *.env
+*.vars
 
 # Docker volumes
 temp
@@ -53,3 +54,4 @@ temp
 @
 tsconfig.tsbuildinfo
 *storybook.log
+.wrangler/
