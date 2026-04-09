@@ -16,7 +16,7 @@ export function parseTimeInformation(
 	switch (config.type) {
 		case "datetime":
 		case "date":
-			unixTime = moment.tz(value, `${config.format}`, config.timezone).toDate().getTime();
+			unixTime = moment.tz(value, config.format, config.timezone).valueOf();
 			break;
 		case "time":
 			unixTime =

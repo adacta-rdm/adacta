@@ -39,7 +39,7 @@ registerNormalizer({
 	id: "removeSpaces",
 	name: "Remove spaces from numbers",
 	fn: (input) => {
-		return input.replace(/\s/g, "");
+		return input.replaceAll(" ", "");
 	},
 });
 
