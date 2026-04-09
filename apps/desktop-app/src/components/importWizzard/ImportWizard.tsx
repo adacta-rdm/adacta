@@ -83,6 +83,7 @@ const ImportWizardGraphQLSubscription = graphql`
 					message
 				}
 				... on ImportTransformationWarning {
+					ids
 					message
 				}
 			}
@@ -183,7 +184,7 @@ const defaultPreset: IImportWizardPreset = {
 };
 
 export interface IImportWizardFormControls {
-	encoding: TImportWizardEncoding;
+	encoding?: TImportWizardEncoding;
 	delimiter: string;
 	decimalSeparator: string;
 	preview: string;
@@ -781,6 +782,7 @@ export function ImportWizard(props: IImportWizardProps) {
 
 	const [preset, setPreset] = useState<IImportWizardPreset>(defaultPreset);
 	const [warning, setWarning] = useState<string[]>();
+	const [warningIds, setWarningIds] = useState<string[]>();
 	const [errors, setErrors] = useState<string[]>([]);
 	const [step, setStep] = useState(0);
 	const [timeframe, setTimeframe] = useState<{ begin: Date; end: Date } | undefined>(undefined);
@@ -796,6 +798,20 @@ export function ImportWizard(props: IImportWizardProps) {
 		setSelectedColumns([]);
 		setStep(step);
 	};
+
+	function redirectToResources(ids: ReadonlyArray<string | null>) {
+		if (ids.length === 1 && ids[0] !== null) {
+			router.push("/repositories/:repositoryId/resources/:resourceId", {
+				repositoryId,
+				resourceId: ids[0],
+			});
+		} else {
+			router.push("/repositories/:repositoryId/resources/:resourceId", {
+				repositoryId,
+				resourceId: props.resourceId,
+			});
+		}
+	}
 
 	// IMPORTANT: your config should be memoized, or at least not re-computed
 	// every render. Otherwise, useSubscription will re-render too frequently.
@@ -815,22 +831,13 @@ export function ImportWizard(props: IImportWizardProps) {
 						}
 						case "ImportTransformationSuccess": {
 							const ids = payload.ids;
-							if (ids.length == 1 && ids[0] !== null) {
-								router.push("/repositories/:repositoryId/resources/:resourceId", {
-									repositoryId,
-									resourceId: ids[0],
-								});
-							} else {
-								router.push("/repositories/:repositoryId/resources/:resourceId", {
-									repositoryId,
-									resourceId: props.resourceId,
-								});
-							}
+							redirectToResources(ids);
 							break;
 						}
 						case "ImportTransformationWarning": {
 							setImportRunning(false);
 							setWarning(payload.message.filter(isNonNullish));
+							setWarningIds(payload.ids.filter(isNonNullish));
 							break;
 						}
 						case "ImportTransformationError": {
@@ -1361,8 +1368,9 @@ export function ImportWizard(props: IImportWizardProps) {
 									<EuiSelect
 										value={formControls.encoding}
 										options={[
-											{ value: "utf-8", text: "UTF-8" },
+											{ value: "utf8", text: "UTF-8" },
 											{ value: "utf16le", text: "UTF-16" },
+											{ value: "latin1", text: "Latin-1/ISO-8859-1" },
 										]}
 										onChange={createChangeHandler("encoding")}
 									/>
@@ -1507,7 +1515,17 @@ export function ImportWizard(props: IImportWizardProps) {
 					error={errors}
 					style={{ maxWidth: 920, marginLeft: "auto", marginRight: "auto" }}
 				>
-					<ImportWizardWarning warnings={warning} />
+					<ImportWizardWarning
+						warnings={warning}
+						resourcesImportedWithWarnings={warningIds}
+						onResolved={(keep, ids) => {
+							if (keep) {
+								redirectToResources(ids);
+							} else {
+								setWarningIds(undefined);
+							}
+						}}
+					/>
 					<ImportWizardSummary
 						summary={summary}
 						importDisabled={errors.length > 0 || importRunning || !importButtonUnlocked}

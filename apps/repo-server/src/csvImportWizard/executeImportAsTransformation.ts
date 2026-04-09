@@ -72,13 +72,8 @@ export async function executeImportAsTransformation(
 	);
 
 	// If there are any errors or if there is a warning and we don't have indication from the user
-	// that these warnings are acceptable we return early
-	if (
-		(importResult.warnings &&
-			importResult.warnings?.length > 0 &&
-			input.importWithWarnings !== true) ||
-		(importResult.errors && importResult.errors?.length > 0)
-	) {
+	// that these warnings are acceptable, we return early
+	if (importResult.errors && importResult.errors?.length > 0) {
 		return importResult;
 	}
 

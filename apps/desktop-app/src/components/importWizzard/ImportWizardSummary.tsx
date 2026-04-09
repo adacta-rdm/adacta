@@ -4,10 +4,10 @@ import {
 	EuiFlexItem,
 	EuiFormRow,
 	EuiPanel,
+	EuiSkeletonCircle,
 	EuiSpacer,
 	EuiStat,
 } from "@elastic/eui";
-import { EuiSkeletonCircle } from "@elastic/eui";
 import type { EmotionJSX } from "@emotion/react/types/jsx-namespace";
 import React from "react";
 
@@ -22,6 +22,11 @@ interface IProps {
 	importTransformation: (importWithWarnings?: boolean) => void;
 	preset: IImportWizardPreset;
 	warning: string[] | undefined;
+	/**
+	 * If some resources were imported with warnings, their ids can be passed here to show the user which ones were
+	 * affected and allow them to decide what to do with them.
+	 */
+	resourcesImportedWithWarnings?: string[];
 
 	summary?: {
 		types: Map<string, string>;
@@ -95,39 +100,33 @@ export function ImportWizardSummary(props: IProps) {
 				<EuiSpacer />
 			</EuiFlexItem>
 			<EuiFlexItem grow={3}>
-				<EuiFormRow>
-					{warning === undefined ? (
-						<EuiButton
-							disabled={importDisabled}
-							onClick={() => importTransformation()}
-							isLoading={isLoading}
-							color={!importDisabled ? "success" : "danger"}
-						>
-							Import
-						</EuiButton>
-					) : (
-						<EuiButton
-							disabled={importDisabled}
-							onClick={() => importTransformation(true)}
-							isLoading={isLoading}
-							color={!importDisabled ? "warning" : "danger"}
-						>
-							Import (ignore above warnings)
-						</EuiButton>
+				<>
+					{(warning?.length ?? 0) === 0 ||
+					(props.resourcesImportedWithWarnings?.length ?? 0) === 0 ? (
+						<EuiFormRow>
+							<EuiButton
+								disabled={importDisabled}
+								onClick={() => importTransformation()}
+								isLoading={isLoading}
+								color={!importDisabled ? "success" : "danger"}
+							>
+								Import
+							</EuiButton>
+						</EuiFormRow>
+					) : null}
+					{process.env.NODE_ENV === "development" && (
+						<EuiFormRow>
+							<EuiButton
+								onClick={() => {
+									// eslint-disable-next-line no-console
+									console.log(JSON.stringify(preset, undefined, 4));
+								}}
+							>
+								Dump preset
+							</EuiButton>
+						</EuiFormRow>
 					)}
-				</EuiFormRow>
-				{process.env.NODE_ENV === "development" && (
-					<EuiFormRow>
-						<EuiButton
-							onClick={() => {
-								// eslint-disable-next-line no-console
-								console.log(JSON.stringify(preset, undefined, 4));
-							}}
-						>
-							Dump preset
-						</EuiButton>
-					</EuiFormRow>
-				)}
+				</>
 			</EuiFlexItem>
 		</EuiFlexGroup>
 	);

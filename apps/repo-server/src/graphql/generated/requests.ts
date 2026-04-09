@@ -977,6 +977,10 @@ export type IEdge_UserDataverseConnection = {
 	node: IUserDataverseConnection;
 };
 
+/**
+ * Represents the connection to a Dataverse instance
+ * NOTE: This is not a GraphQL connection
+ */
 export type IUserDataverseConnection = INode & {
 	__typename?: "UserDataverseConnection";
 	id: Scalars["ID"];
@@ -1239,6 +1243,7 @@ export type IRepositoryMutation = {
 	importRawResource: Scalars["ID"];
 	importImageResource: IErrorMessageOr_ResourceImage;
 	createAndRunImportTransformation: ICreateAndRunImportTransformationResponse;
+	importWithWarningsResolution: IImportTransformationSuccess;
 	deleteImportPreset: IDeletedNode;
 	deleteResource: IDeletedNode;
 	addSample: IAddSamplePayload;
@@ -1321,6 +1326,10 @@ export type IRepositoryMutationImportImageResourceArgs = {
 
 export type IRepositoryMutationCreateAndRunImportTransformationArgs = {
 	input: ICreateAndRunImportTransformationInput;
+};
+
+export type IRepositoryMutationImportWithWarningsResolutionArgs = {
+	input: IImportWithWarningsResolutionInput;
 };
 
 export type IRepositoryMutationDeleteImportPresetArgs = {
@@ -1574,6 +1583,16 @@ export type ICreateAndRunImportTransformationInput = {
 export type ICreateAndRunImportTransformationResponse = {
 	__typename?: "CreateAndRunImportTransformationResponse";
 	importTaskId: Scalars["ID"];
+};
+
+export type IImportWithWarningsResolutionInput = {
+	resourceIds: Array<Scalars["ID"]>;
+	keepImportedResources: Scalars["Boolean"];
+};
+
+export type IImportTransformationSuccess = {
+	__typename?: "ImportTransformationSuccess";
+	ids: Array<Maybe<Scalars["ID"]>>;
 };
 
 export type IDeleteResourceInput = {
@@ -2052,14 +2071,10 @@ export type IImportTaskResultPayload =
 	| IImportTransformationError
 	| IImportTransformationProgress;
 
-export type IImportTransformationSuccess = {
-	__typename?: "ImportTransformationSuccess";
-	ids: Array<Maybe<Scalars["ID"]>>;
-};
-
 export type IImportTransformationWarning = {
 	__typename?: "ImportTransformationWarning";
 	message: Array<Maybe<Scalars["String"]>>;
+	ids: Array<Maybe<Scalars["ID"]>>;
 };
 
 export type IImportTransformationError = {

@@ -30,7 +30,7 @@ export async function createResourceFromUpload(
 		throw new Error("Supplied file id is invalid");
 	}
 
-	const resource = (
+	const { resource } = (
 		await rm.create(
 			{
 				name,

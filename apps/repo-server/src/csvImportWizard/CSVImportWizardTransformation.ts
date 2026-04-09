@@ -4,7 +4,7 @@ import type { Result } from "neverthrow";
 import { err, ok } from "neverthrow";
 
 import { CSVImportWizard } from "./CSVImportWizard";
-import type { IResourceProps } from "../graphql/context/ResourceManager";
+import type { ResourcePropsResults } from "../graphql/context/ResourceManager";
 import { DownsamplingConfigForCacheOnImport } from "../services/downsampler/DownsamplingConfigForCacheOnImport";
 
 import type { DrizzleEntity } from "~/drizzle/DrizzleSchema";
@@ -60,7 +60,7 @@ export async function CSVImportWizardTransformation(
 		 */
 		const getResourceProps = async (): Promise<
 			Result<
-				IResourceProps,
+				ResourcePropsResults,
 				{
 					errors: string[];
 					warnings: string[];
@@ -72,24 +72,21 @@ export async function CSVImportWizardTransformation(
 				return err({ errors: [result.error.error], warnings: [] });
 			}
 
-			// If the import process resulted in warnings, but the user does not want to import with
-			// warnings we return the warnings as errors. This skips the creation of the resource
-			// in the database
-			if (result.value.warnings.length > 0 && !importWithWarnings) {
-				return err({ errors: [], warnings: result.value.warnings });
-			}
-
 			const { props } = result.value;
 
 			return ok({
-				name: data.name,
-				attachment: {
-					type: "TabularData" as const,
-					begin: props.begin,
-					end: props.end,
-					columns: props.metadata,
+				type: "props",
+				props: {
+					name: data.name,
+					attachment: {
+						type: "TabularData" as const,
+						begin: props.begin,
+						end: props.end,
+						columns: props.metadata,
+					},
+					isRootResource: false,
 				},
-				isRootResource: false,
+				warnings: result.value.warnings,
 			});
 		};
 
@@ -98,7 +95,6 @@ export async function CSVImportWizardTransformation(
 			getResourceProps,
 			transform,
 			context.getUser(),
-			true,
 			createProgress
 		);
 
@@ -122,7 +118,7 @@ export async function CSVImportWizardTransformation(
 		}
 
 		const resource = rmResult.value;
-		resourceIds.push(resource.id);
+		resourceIds.push(resource.resource.id);
 
 		const response = await importPromise;
 		if (response.isErr()) {
@@ -132,22 +128,21 @@ export async function CSVImportWizardTransformation(
 			return { errors: [response.error.error] };
 		}
 
-		const { warnings } = response.value;
-
-		if (warnings.length > 0 && !importWithWarnings) {
-			logger.info(`CSVImportWizardTransformation: ${fileName} resulted in warnings`);
-			return { warnings };
+		if (resource.warnings.length === 0) {
+			// Create downsampled data to populate the sparkline cache
+			// This is only done for the sparkline config as there are a lot of sparkline graphs on the
+			// resource list. Whereas the detail view of a resource always needs only one graph, so it
+			// is less "bad" if it has to be calculated "on-the-fly".
+			logger.info(`Request downsampling of: ${fileName}`);
+			await context
+				.getDownsampler()
+				.requestGraph({ resourceId: resource.resource.id, ...DownsamplingConfigForCacheOnImport });
+		} else {
+			logger.info(`Skipping downsampling of: ${fileName} (there are warnings)`);
 		}
 
-		// Create downsampled data to populate the sparkline cache
-		// This is only done for the sparkline config as there are a lot of sparkline graphs on the
-		// resource list. Whereas the detail view of a resource always needs only one graph, so it
-		// is less "bad" if it has to be calculated "on-the-fly".
-
-		logger.info(`Request downsampling of: ${fileName}`);
-		await context
-			.getDownsampler()
-			.requestGraph({ resourceId: resource.id, ...DownsamplingConfigForCacheOnImport });
+		logger.info(`CSVImportWizardTransformation: ${fileName} success`);
+		return { resources: resourceIds, warnings: resource.warnings };
 	} catch (e) {
 		if (typeof e === "string") {
 			logger
@@ -165,7 +160,4 @@ export async function CSVImportWizardTransformation(
 		// Fallback
 		return { errors: ["Unknown error: Importing failed without a error message"] };
 	}
-
-	logger.info(`CSVImportWizardTransformation: ${fileName} success`);
-	return { resources: resourceIds };
 }

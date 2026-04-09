@@ -325,6 +325,10 @@ type RepositoryMutation {
 	createAndRunImportTransformation(
 		input: CreateAndRunImportTransformationInput!
 	): CreateAndRunImportTransformationResponse!
+	# If resources are imported with warnings, this mutation can be used to either keep or discard the imported resources
+	importWithWarningsResolution(input: ImportWithWarningsResolutionInput!): ImportTransformationSuccess!
+
+
 	deleteImportPreset(id: ID!): DeletedNode!
 
 	deleteResource(input: DeleteResourceInput!): DeletedNode!
@@ -416,6 +420,7 @@ type RepositoryMutation {
 	): UpsertMutationPayload_UserDataverseConnection
 	deleteUserDataverseConnection(id: ID!): DeletedNode!
 }
+
 
 type Dataverse {
 	id: ID!
@@ -625,6 +630,12 @@ input ImportRawResourceInput {
 
 	projects: [ID!]
 }
+
+input ImportWithWarningsResolutionInput {
+	resourceIds: [ID!]!
+	keepImportedResources: Boolean!
+}
+
 
 input OriginRepoMetadataInput {
 	url: String!
@@ -1290,6 +1301,7 @@ type Transformation implements Node {
 
 type ImportTransformationWarning {
 	message: [String]!
+	ids: [ID]!
 }
 
 type ImportTransformationError {
