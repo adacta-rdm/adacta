@@ -130,24 +130,25 @@ export const ImportMutations: IResolvers["RepositoryMutation"] = {
 		)
 			.then((result) => {
 				// NOTE: Be careful types seem to be bad for this mutation as it returns a union (?)
-				if (result.warnings && result.warnings?.length > 0) {
-					void uiSubscriptionPublisher.publish("importTask", {
-						id: importTaskId,
-						payload: {
-							__typename: "ImportTransformationWarning",
-							message: result.warnings,
-						},
-					});
-					return;
-				}
-
-				// NOTE: Be careful types seem to be bad for this mutation as it returns a union (?)
 				if (result.errors && result.errors?.length > 0) {
 					void uiSubscriptionPublisher.publish("importTask", {
 						id: importTaskId,
 						payload: {
 							__typename: "ImportTransformationError",
 							message: result.errors,
+						},
+					});
+					return;
+				}
+
+				// NOTE: Be careful types seem to be bad for this mutation as it returns a union (?)
+				if (result.warnings && result.warnings?.length > 0) {
+					void uiSubscriptionPublisher.publish("importTask", {
+						id: importTaskId,
+						payload: {
+							__typename: "ImportTransformationWarning",
+							message: result.warnings,
+							ids: result.resources,
 						},
 					});
 					return;
@@ -228,6 +229,28 @@ export const ImportMutations: IResolvers["RepositoryMutation"] = {
 		}
 
 		return { deletedId: id };
+	},
+
+	async importWithWarningsResolution(
+		_,
+		{ input: { resourceIds, keepImportedResources } },
+		{ services: { el, rm }, schema: { Resource } }
+	) {
+		if (keepImportedResources) {
+			await Promise.all(
+				resourceIds.map((r) => el.update(Resource, r, { metadataDeletedAt: null }))
+			);
+			return { ids: resourceIds };
+		} else {
+			await Promise.all(
+				resourceIds.map((r) => {
+					assert(isEntityId(r, "Resource"));
+					return rm.deleteResourcePermanent(r);
+				})
+			);
+		}
+
+		return { ids: [] };
 	},
 };
 

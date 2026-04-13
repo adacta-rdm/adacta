@@ -979,6 +979,10 @@ export type IEdge_UserDataverseConnection = {
 	node: IUserDataverseConnection;
 };
 
+/**
+ * Represents the connection to a Dataverse instance
+ * NOTE: This is not a GraphQL connection
+ */
 export type IUserDataverseConnection = INode & {
 	__typename?: "UserDataverseConnection";
 	id: Scalars["ID"];
@@ -1241,6 +1245,7 @@ export type IRepositoryMutation = {
 	importRawResource: Scalars["ID"];
 	importImageResource: IErrorMessageOr_ResourceImage;
 	createAndRunImportTransformation: ICreateAndRunImportTransformationResponse;
+	importWithWarningsResolution: IImportTransformationSuccess;
 	deleteImportPreset: IDeletedNode;
 	deleteResource: IDeletedNode;
 	addSample: IAddSamplePayload;
@@ -1323,6 +1328,10 @@ export type IRepositoryMutationImportImageResourceArgs = {
 
 export type IRepositoryMutationCreateAndRunImportTransformationArgs = {
 	input: ICreateAndRunImportTransformationInput;
+};
+
+export type IRepositoryMutationImportWithWarningsResolutionArgs = {
+	input: IImportWithWarningsResolutionInput;
 };
 
 export type IRepositoryMutationDeleteImportPresetArgs = {
@@ -1576,6 +1585,16 @@ export type ICreateAndRunImportTransformationInput = {
 export type ICreateAndRunImportTransformationResponse = {
 	__typename?: "CreateAndRunImportTransformationResponse";
 	importTaskId: Scalars["ID"];
+};
+
+export type IImportWithWarningsResolutionInput = {
+	resourceIds: Array<Scalars["ID"]>;
+	keepImportedResources: Scalars["Boolean"];
+};
+
+export type IImportTransformationSuccess = {
+	__typename?: "ImportTransformationSuccess";
+	ids: Array<Maybe<Scalars["ID"]>>;
 };
 
 export type IDeleteResourceInput = {
@@ -2054,14 +2073,10 @@ export type IImportTaskResultPayload =
 	| IImportTransformationError
 	| IImportTransformationProgress;
 
-export type IImportTransformationSuccess = {
-	__typename?: "ImportTransformationSuccess";
-	ids: Array<Maybe<Scalars["ID"]>>;
-};
-
 export type IImportTransformationWarning = {
 	__typename?: "ImportTransformationWarning";
 	message: Array<Maybe<Scalars["String"]>>;
+	ids: Array<Maybe<Scalars["ID"]>>;
 };
 
 export type IImportTransformationError = {
@@ -2409,6 +2424,12 @@ export type IResolversTypes = {
 	CreateAndRunImportTransformationResponse: ResolverTypeWrapper<
 		ResolverReturnType<ICreateAndRunImportTransformationResponse>
 	>;
+	ImportWithWarningsResolutionInput: ResolverTypeWrapper<
+		ResolverReturnType<IImportWithWarningsResolutionInput>
+	>;
+	ImportTransformationSuccess: ResolverTypeWrapper<
+		ResolverReturnType<IImportTransformationSuccess>
+	>;
 	DeleteResourceInput: ResolverTypeWrapper<ResolverReturnType<IDeleteResourceInput>>;
 	AddSampleInput: ResolverTypeWrapper<ResolverReturnType<IAddSampleInput>>;
 	AddSamplePayload: ResolverTypeWrapper<ResolverReturnType<IAddSamplePayload>>;
@@ -2558,9 +2579,6 @@ export type IResolversTypes = {
 		| IResolversTypes["ImportTransformationWarning"]
 		| IResolversTypes["ImportTransformationError"]
 		| IResolversTypes["ImportTransformationProgress"]
-	>;
-	ImportTransformationSuccess: ResolverTypeWrapper<
-		ResolverReturnType<IImportTransformationSuccess>
 	>;
 	ImportTransformationWarning: ResolverTypeWrapper<
 		ResolverReturnType<IImportTransformationWarning>
@@ -2780,6 +2798,8 @@ export type IResolversParentTypes = {
 	ErrorMessage: ResolverReturnType<IErrorMessage>;
 	CreateAndRunImportTransformationInput: ResolverReturnType<ICreateAndRunImportTransformationInput>;
 	CreateAndRunImportTransformationResponse: ResolverReturnType<ICreateAndRunImportTransformationResponse>;
+	ImportWithWarningsResolutionInput: ResolverReturnType<IImportWithWarningsResolutionInput>;
+	ImportTransformationSuccess: ResolverReturnType<IImportTransformationSuccess>;
 	DeleteResourceInput: ResolverReturnType<IDeleteResourceInput>;
 	AddSampleInput: ResolverReturnType<IAddSampleInput>;
 	AddSamplePayload: ResolverReturnType<IAddSamplePayload>;
@@ -2874,7 +2894,6 @@ export type IResolversParentTypes = {
 		| IResolversParentTypes["ImportTransformationError"]
 		| IResolversParentTypes["ImportTransformationProgress"]
 	>;
-	ImportTransformationSuccess: ResolverReturnType<IImportTransformationSuccess>;
 	ImportTransformationWarning: ResolverReturnType<IImportTransformationWarning>;
 	ImportTransformationError: ResolverReturnType<IImportTransformationError>;
 	ImportTransformationProgress: ResolverReturnType<IImportTransformationProgress>;
@@ -4352,6 +4371,12 @@ export type IRepositoryMutationResolvers<
 		ContextType,
 		RequireFields<IRepositoryMutationCreateAndRunImportTransformationArgs, "input">
 	>;
+	importWithWarningsResolution?: Resolver<
+		IResolversTypes["ImportTransformationSuccess"],
+		ParentType,
+		ContextType,
+		RequireFields<IRepositoryMutationImportWithWarningsResolutionArgs, "input">
+	>;
 	deleteImportPreset?: Resolver<
 		IResolversTypes["DeletedNode"],
 		ParentType,
@@ -4690,6 +4715,14 @@ export type ICreateAndRunImportTransformationResponseResolvers<
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type IImportTransformationSuccessResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["ImportTransformationSuccess"] = IResolversParentTypes["ImportTransformationSuccess"]
+> = {
+	ids?: Resolver<Array<Maybe<IResolversTypes["ID"]>>, ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type IAddSamplePayloadResolvers<
 	ContextType = IGraphQLContext,
 	ParentType extends IResolversParentTypes["AddSamplePayload"] = IResolversParentTypes["AddSamplePayload"]
@@ -4931,19 +4964,12 @@ export type IImportTaskResultPayloadResolvers<
 	>;
 };
 
-export type IImportTransformationSuccessResolvers<
-	ContextType = IGraphQLContext,
-	ParentType extends IResolversParentTypes["ImportTransformationSuccess"] = IResolversParentTypes["ImportTransformationSuccess"]
-> = {
-	ids?: Resolver<Array<Maybe<IResolversTypes["ID"]>>, ParentType, ContextType>;
-	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type IImportTransformationWarningResolvers<
 	ContextType = IGraphQLContext,
 	ParentType extends IResolversParentTypes["ImportTransformationWarning"] = IResolversParentTypes["ImportTransformationWarning"]
 > = {
 	message?: Resolver<Array<Maybe<IResolversTypes["String"]>>, ParentType, ContextType>;
+	ids?: Resolver<Array<Maybe<IResolversTypes["ID"]>>, ParentType, ContextType>;
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -5084,6 +5110,7 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	ErrorMessageOr_ResourceImage?: IErrorMessageOr_ResourceImageResolvers<ContextType>;
 	ErrorMessage?: IErrorMessageResolvers<ContextType>;
 	CreateAndRunImportTransformationResponse?: ICreateAndRunImportTransformationResponseResolvers<ContextType>;
+	ImportTransformationSuccess?: IImportTransformationSuccessResolvers<ContextType>;
 	AddSamplePayload?: IAddSamplePayloadResolvers<ContextType>;
 	AddSampleRelationPayload?: IAddSampleRelationPayloadResolvers<ContextType>;
 	UpsertMutationPayloadDevice?: IUpsertMutationPayloadDeviceResolvers<ContextType>;
@@ -5106,7 +5133,6 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	RepositorySubscription?: IRepositorySubscriptionResolvers<ContextType>;
 	ImportTaskResult?: IImportTaskResultResolvers<ContextType>;
 	ImportTaskResultPayload?: IImportTaskResultPayloadResolvers<ContextType>;
-	ImportTransformationSuccess?: IImportTransformationSuccessResolvers<ContextType>;
 	ImportTransformationWarning?: IImportTransformationWarningResolvers<ContextType>;
 	ImportTransformationError?: IImportTransformationErrorResolvers<ContextType>;
 	ImportTransformationProgress?: IImportTransformationProgressResolvers<ContextType>;

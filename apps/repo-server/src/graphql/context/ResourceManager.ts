@@ -16,16 +16,18 @@ import { DrizzleSchema } from "~/drizzle/DrizzleSchema";
 import type { IResourceDocumentAttachment } from "~/drizzle/schema/repo.Resource";
 import type { IDatetime } from "~/lib/createDate";
 import { EntityFactory } from "~/lib/database/EntityFactory";
-import type { IProjectId, IUserId } from "~/lib/database/Ids";
+import type { IProjectId, IResourceId, IUserId } from "~/lib/database/Ids";
 import type { StrictArrayBuffer } from "~/lib/interface/StrictArrayBuffer";
 import type { IProgressReporterFn } from "~/lib/progress/IProgressReporterFn";
 import { createProgressReporter } from "~/lib/progress/createProgressReporter";
 import { calculateResourceAttachmentHashStream } from "~/lib/resources/calculateResourceAttachmentHash";
 import { Service } from "~/lib/serviceContainer/ServiceContainer";
 import { StorageEngine } from "~/lib/storage-engine";
-import { chain, createDuplex, createReadable, isReadable } from "~/lib/streams";
 import type { Readable, Writable } from "~/lib/streams";
+import { chain, createDuplex, createReadable, isReadable } from "~/lib/streams";
 import { uuid } from "~/lib/uuid";
+
+export type ResourcePropsResults = { props: IResourceProps; warnings?: string[] };
 
 @Service(EntityLoader, DrizzleSchema, StorageEngine)
 export class ResourceManager {
@@ -48,19 +50,22 @@ export class ResourceManager {
 	 * information from the parser)
 	 * @param contents - Contents of the resource: Either as uploadId (i.e. a reference to a file in the StorageEngine) or as Readable Stream
 	 * @param creator - The user responsible for inserting the created resource into the db (i.e. the
-	 * @param commitToDb
 	 * @param progress
 	 */
 	async create(
-		propsInfo: IResourceProps | (() => Promise<Result<IResourceProps, { errors: string[] }>>),
+		propsInfo: IResourceProps | (() => Promise<Result<ResourcePropsResults, { errors: string[] }>>),
 		contents:
 			| { type: "upload"; uploadId: string }
 			| { type: "buffer"; buffer: StrictArrayBuffer }
 			| Readable<Buffer>,
 		creator: IUserId,
-		commitToDb = true, // TODO: Swap arg order
 		progress?: IProgressReporterFn
-	): Promise<Result<DrizzleEntity<"Resource">, { errors: string[]; warnings: string[] }>> {
+	): Promise<
+		Result<
+			{ resource: DrizzleEntity<"Resource">; warnings: string[] },
+			{ errors: string[]; warnings: string[] }
+		>
+	> {
 		try {
 			const [writeProgress, miscProgress] = (progress ?? createProgressReporter(() => {})).fork(85);
 
@@ -103,6 +108,7 @@ export class ResourceManager {
 			writeProgress(85, "Saving TabularData Done");
 
 			let props: IResourceProps;
+			let warnings: string[] = [];
 			if (typeof propsInfo === "function") {
 				const propsInfoResult = await propsInfo();
 				if (propsInfoResult.isErr()) {
@@ -110,7 +116,8 @@ export class ResourceManager {
 					return err({ warnings: [], ...propsInfoResult.error });
 				}
 
-				props = propsInfoResult.value;
+				warnings = propsInfoResult.value.warnings ?? [];
+				props = propsInfoResult.value.props;
 			} else {
 				props = propsInfo;
 			}
@@ -126,16 +133,25 @@ export class ResourceManager {
 			await this.sto.rename(filenameTmp, filenameFinal);
 			writeProgress(100, "Saving Resource done");
 
-			if (commitToDb) {
-				await this.el.insert(this.schema.Resource, resource);
+			// Resources with warnings are marked as deleted (soft delete) as at this point it is unclear if the warnings
+			// are acceptable. The warnings are presented to the users where they can then decide if they want to keep the
+			// resource (i.e. remove the deleted mark) or if they want to delete it permanently.
+			if (warnings.length > 0) {
+				resource.metadataDeletedAt = new Date();
 			}
 
-			miscProgress(100, "Saving Resource done");
+			await this.el.insert(this.schema.Resource, resource);
 
-			return ok(resource);
+			miscProgress(100, "Saving Resource done");
+			return ok({ resource, warnings });
 		} catch (e) {
 			return err({ warnings: [], errors: ["Unexpected error while creating resource"] });
 		}
+	}
+
+	async deleteResourcePermanent(id: IResourceId) {
+		await this.el.update(this.schema.Resource, id, { metadataDeletedAt: new Date() });
+		await this.sto.remove(ResourceAttachmentManager.getPath(id));
 	}
 }
 

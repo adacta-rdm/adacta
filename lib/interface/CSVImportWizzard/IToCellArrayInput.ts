@@ -1,4 +1,3 @@
-export interface IToCellArrayInput {
-	preview?: number;
-	delimiter: string;
-}
+import type { IToCellArrayOptions } from "~/apps/repo-server/src/csvImportWizard/CSVImportWizard";
+
+export type IToCellArrayInput = IToCellArrayOptions;

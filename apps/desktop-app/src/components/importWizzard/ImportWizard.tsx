@@ -46,7 +46,10 @@ import type { ImportWizardToGenericTableMutation } from "@/relay/ImportWizardToG
 import type { ImportWizardToTabularDataArrayBufferMutation } from "@/relay/ImportWizardToTabularDataArrayBufferMutation.graphql";
 import { assertTToCellArrayOutput } from "@/tsrc/lib/interface/CSVImportWizzard/TToCellArrayOutput";
 import { assertTToGenericTableOutput } from "@/tsrc/lib/interface/CSVImportWizzard/TToGenericTableOutput";
-import type { IToTabularDataOptions } from "~/apps/repo-server/src/csvImportWizard/CSVImportWizard";
+import type {
+	IToTabularDataOptions,
+	TImportWizardEncoding,
+} from "~/apps/repo-server/src/csvImportWizard/CSVImportWizard";
 import { assertDefined } from "~/lib/assert/assertDefined";
 import { assertInstanceof } from "~/lib/assert/assertInstanceof";
 import { assertUnreachable } from "~/lib/assert/assertUnreachable";
@@ -80,6 +83,7 @@ const ImportWizardGraphQLSubscription = graphql`
 					message
 				}
 				... on ImportTransformationWarning {
+					ids
 					message
 				}
 			}
@@ -167,6 +171,7 @@ export interface IColumnConfigBase {
 }
 
 const defaultPreset: IImportWizardPreset = {
+	encoding: undefined,
 	delimiter: ",",
 	decimalSeparator: ".",
 	preview: 5,
@@ -179,6 +184,7 @@ const defaultPreset: IImportWizardPreset = {
 };
 
 export interface IImportWizardFormControls {
+	encoding?: TImportWizardEncoding;
 	delimiter: string;
 	decimalSeparator: string;
 	preview: string;
@@ -303,6 +309,7 @@ function ui2preset(
 	const manualDate = determineDateExtractionMode(formControls.columnMetadata).mode === "manual";
 
 	return {
+		encoding: formControls.encoding,
 		delimiter: formControls.delimiter,
 		decimalSeparator: formControls.decimalSeparator,
 		preview: Number(formControls.preview),
@@ -338,6 +345,7 @@ function preset2ui(preset: IImportWizardPreset): IImportWizardFormControls {
 	}
 
 	return {
+		encoding: preset.encoding,
 		delimiter: preset.delimiter,
 		decimalSeparator: preset.decimalSeparator,
 		preview: String(preset.preview),
@@ -532,6 +540,7 @@ export function ImportWizard(props: IImportWizardProps) {
 
 		if (step === Steps.FILE_STRUCTURE) {
 			const result: PresetEvaluationResult<Steps.FILE_STRUCTURE> = await toCellArray({
+				encoding: preset.encoding,
 				delimiter: preset.delimiter,
 				preview: preset.preview,
 			});
@@ -551,6 +560,7 @@ export function ImportWizard(props: IImportWizardProps) {
 
 			try {
 				const table = await toGenericTable({
+					encoding: preset.encoding,
 					delimiter: config.delimiter,
 					preview: config.preview,
 					dataArea: config.dataArea,
@@ -575,6 +585,7 @@ export function ImportWizard(props: IImportWizardProps) {
 			const { types, units, deviceIds } = preprocessMetadata(config);
 
 			const t = await toTabularDataArrayBuffer({
+				encoding: preset.encoding,
 				delimiter: config.delimiter,
 				decimalSeparator: config.decimalSeparator,
 				preview: config.preview,
@@ -771,6 +782,7 @@ export function ImportWizard(props: IImportWizardProps) {
 
 	const [preset, setPreset] = useState<IImportWizardPreset>(defaultPreset);
 	const [warning, setWarning] = useState<string[]>();
+	const [warningIds, setWarningIds] = useState<string[]>();
 	const [errors, setErrors] = useState<string[]>([]);
 	const [step, setStep] = useState(0);
 	const [timeframe, setTimeframe] = useState<{ begin: Date; end: Date } | undefined>(undefined);
@@ -786,6 +798,20 @@ export function ImportWizard(props: IImportWizardProps) {
 		setSelectedColumns([]);
 		setStep(step);
 	};
+
+	function redirectToResources(ids: ReadonlyArray<string | null>) {
+		if (ids.length === 1 && ids[0] !== null) {
+			router.push("/repositories/:repositoryId/resources/:resourceId", {
+				repositoryId,
+				resourceId: ids[0],
+			});
+		} else {
+			router.push("/repositories/:repositoryId/resources/:resourceId", {
+				repositoryId,
+				resourceId: props.resourceId,
+			});
+		}
+	}
 
 	// IMPORTANT: your config should be memoized, or at least not re-computed
 	// every render. Otherwise, useSubscription will re-render too frequently.
@@ -805,22 +831,13 @@ export function ImportWizard(props: IImportWizardProps) {
 						}
 						case "ImportTransformationSuccess": {
 							const ids = payload.ids;
-							if (ids.length == 1 && ids[0] !== null) {
-								router.push("/repositories/:repositoryId/resources/:resourceId", {
-									repositoryId,
-									resourceId: ids[0],
-								});
-							} else {
-								router.push("/repositories/:repositoryId/resources/:resourceId", {
-									repositoryId,
-									resourceId: props.resourceId,
-								});
-							}
+							redirectToResources(ids);
 							break;
 						}
 						case "ImportTransformationWarning": {
 							setImportRunning(false);
 							setWarning(payload.message.filter(isNonNullish));
+							setWarningIds(payload.ids.filter(isNonNullish));
 							break;
 						}
 						case "ImportTransformationError": {
@@ -1346,6 +1363,19 @@ export function ImportWizard(props: IImportWizardProps) {
 									<EuiFieldText value={dataRow} onChange={(e) => setDataRow(e.target.value)} />
 								</EuiFormRow>
 							</EuiFlexItem>
+							<EuiFlexItem grow={false}>
+								<EuiFormRow display="rowCompressed" label="File encoding">
+									<EuiSelect
+										value={formControls.encoding}
+										options={[
+											{ value: "utf8", text: "UTF-8" },
+											{ value: "utf16le", text: "UTF-16" },
+											{ value: "latin1", text: "Latin-1/ISO-8859-1" },
+										]}
+										onChange={createChangeHandler("encoding")}
+									/>
+								</EuiFormRow>
+							</EuiFlexItem>
 						</EuiFlexGroup>
 					</EuiForm>
 					<EuiSpacer />
@@ -1485,7 +1515,17 @@ export function ImportWizard(props: IImportWizardProps) {
 					error={errors}
 					style={{ maxWidth: 920, marginLeft: "auto", marginRight: "auto" }}
 				>
-					<ImportWizardWarning warnings={warning} />
+					<ImportWizardWarning
+						warnings={warning}
+						resourcesImportedWithWarnings={warningIds}
+						onResolved={(keep, ids) => {
+							if (keep) {
+								redirectToResources(ids);
+							} else {
+								setWarningIds(undefined);
+							}
+						}}
+					/>
 					<ImportWizardSummary
 						summary={summary}
 						importDisabled={errors.length > 0 || importRunning || !importButtonUnlocked}

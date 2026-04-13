@@ -59,9 +59,16 @@ export interface IDataArea {
 	body: number;
 }
 
-export interface IToGenericTableOptions {
+export type TImportWizardEncoding = "utf8" | "utf16le" | "latin1";
+
+export interface IToCellArrayOptions {
+	encoding?: TImportWizardEncoding;
 	preview?: number;
+
 	delimiter: string;
+}
+
+export interface IToGenericTableOptions extends IToCellArrayOptions {
 	dataArea: IDataArea;
 	normalizers: { [columnName: string]: NormalizerId | undefined | "" };
 }
@@ -129,10 +136,7 @@ export class CSVImportWizard {
 		return options.preview !== undefined ? options.preview + options.dataArea.body : undefined;
 	}
 
-	async toCellArray(
-		filePath: string,
-		options: { preview?: number; delimiter: string }
-	): Promise<string[][]> {
+	async toCellArray(filePath: string, options: IToCellArrayOptions): Promise<string[][]> {
 		const rows: string[][] = [];
 		return new Promise((resolve, reject) => {
 			let row = 0;
@@ -143,6 +147,7 @@ export class CSVImportWizard {
 
 			const stream = this.sto.readFileStream(filePath);
 			Papa.parse(stream as any, {
+				encoding: options.encoding,
 				preview: options.preview,
 				delimiter: options.delimiter,
 				// Do not attempt to convert numeric data to numbers
@@ -197,6 +202,7 @@ export class CSVImportWizard {
 
 			const stream = this.sto.createReadStream(inputPath);
 			Papa.parse(stream as any, {
+				encoding: options.encoding,
 				preview: CSVImportWizard.calculateAdjustedPreview(options),
 				delimiter: options.delimiter,
 				// Do not attempt to convert numeric data to numbers
@@ -430,6 +436,7 @@ export class CSVImportWizard {
 		let rowCount = 0;
 		const endDate = await new Promise<Date>((resolve, reject) => {
 			Papa.parse(endOfFile, {
+				encoding: options.encoding,
 				//preview: options.preview,
 				delimiter: options.delimiter,
 				// Do not attempt to convert numeric data to numbers
@@ -536,6 +543,7 @@ export class CSVImportWizard {
 			);
 
 			Papa.parse(stream as any, {
+				encoding: options.encoding,
 				preview: CSVImportWizard.calculateAdjustedPreview(options),
 				delimiter: options.delimiter,
 				// Do not attempt to convert numeric data to numbers

@@ -34,9 +34,18 @@ registerNormalizer({
 	},
 });
 
+registerNormalizer({
+	type: "string",
+	id: "removeSpaces",
+	name: "Remove spaces from numbers",
+	fn: (input) => {
+		return input.replaceAll(" ", "");
+	},
+});
+
 type NormalizerFn<T> = (input: T) => T;
 
-const NormalizerIdStringList = ["cutOffAfterFirstSpace"] as const;
+const NormalizerIdStringList = ["cutOffAfterFirstSpace", "removeSpaces"] as const;
 const NormalizerIdNumberList = ["turnNaNIntoZero"] as const;
 export type StringNormalizerId = (typeof NormalizerIdStringList)[number];
 export type NumberNormalizerId = (typeof NormalizerIdNumberList)[number];

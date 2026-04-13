@@ -1,9 +1,13 @@
 import type { IDatetime } from "../createDate";
 
 import type { IColumnConfigBase } from "~/apps/desktop-app/src/components/importWizzard/ImportWizard";
-import type { IDataArea } from "~/apps/repo-server/src/csvImportWizard/CSVImportWizard";
+import type {
+	IDataArea,
+	TImportWizardEncoding,
+} from "~/apps/repo-server/src/csvImportWizard/CSVImportWizard";
 
 export interface IImportWizardPreset {
+	encoding?: TImportWizardEncoding;
 	delimiter: string;
 	decimalSeparator: string;
 	preview?: number;

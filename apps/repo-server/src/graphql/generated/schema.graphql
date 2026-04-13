@@ -729,6 +729,10 @@ type Edge_UserDataverseConnection {
 	node: UserDataverseConnection!
 }
 
+"""
+Represents the connection to a Dataverse instance
+NOTE: This is not a GraphQL connection
+"""
 type UserDataverseConnection implements Node {
 	id: ID!
 	name: String!
@@ -945,6 +949,9 @@ type RepositoryMutation {
 	createAndRunImportTransformation(
 		input: CreateAndRunImportTransformationInput!
 	): CreateAndRunImportTransformationResponse!
+	importWithWarningsResolution(
+		input: ImportWithWarningsResolutionInput!
+	): ImportTransformationSuccess!
 	deleteImportPreset(id: ID!): DeletedNode!
 	deleteResource(input: DeleteResourceInput!): DeletedNode!
 	addSample(input: AddSampleInput!): AddSamplePayload!
@@ -1081,6 +1088,15 @@ input CreateAndRunImportTransformationInput {
 
 type CreateAndRunImportTransformationResponse {
 	importTaskId: ID!
+}
+
+input ImportWithWarningsResolutionInput {
+	resourceIds: [ID!]!
+	keepImportedResources: Boolean!
+}
+
+type ImportTransformationSuccess {
+	ids: [ID]!
 }
 
 input DeleteResourceInput {
@@ -1545,12 +1561,9 @@ union ImportTaskResultPayload =
 	| ImportTransformationError
 	| ImportTransformationProgress
 
-type ImportTransformationSuccess {
-	ids: [ID]!
-}
-
 type ImportTransformationWarning {
 	message: [String]!
+	ids: [ID]!
 }
 
 type ImportTransformationError {
