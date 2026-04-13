@@ -326,8 +326,9 @@ type RepositoryMutation {
 		input: CreateAndRunImportTransformationInput!
 	): CreateAndRunImportTransformationResponse!
 	# If resources are imported with warnings, this mutation can be used to either keep or discard the imported resources
-	importWithWarningsResolution(input: ImportWithWarningsResolutionInput!): ImportTransformationSuccess!
-
+	importWithWarningsResolution(
+		input: ImportWithWarningsResolutionInput!
+	): ImportTransformationSuccess!
 
 	deleteImportPreset(id: ID!): DeletedNode!
 
@@ -420,7 +421,6 @@ type RepositoryMutation {
 	): UpsertMutationPayload_UserDataverseConnection
 	deleteUserDataverseConnection(id: ID!): DeletedNode!
 }
-
 
 type Dataverse {
 	id: ID!
@@ -635,7 +635,6 @@ input ImportWithWarningsResolutionInput {
 	resourceIds: [ID!]!
 	keepImportedResources: Boolean!
 }
-
 
 input OriginRepoMetadataInput {
 	url: String!
