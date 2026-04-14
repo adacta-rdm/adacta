@@ -5212,7 +5212,7 @@ __metadata:
     "@types/lodash-es": "npm:^4"
     "@types/morgan": "npm:^1.9.2"
     "@types/node": "npm:^20.14.9"
-    "@types/papaparse": "npm:^5.3.7"
+    "@types/papaparse": "npm:^5.5.2"
     "@types/prettier": "npm:^2"
     "@types/probe-image-size": "npm:^7.2.0"
     "@types/react": "npm:^18"
@@ -5272,7 +5272,7 @@ __metadata:
     moment-timezone: "npm:^0.6.1"
     morgan: "npm:^1.10.0"
     neverthrow: "npm:^6.0.0"
-    papaparse: "npm:^5.3.2"
+    papaparse: "npm:^5.5.3"
     postgres: "npm:^3.4.4"
     prettier: "npm:^2.8.3"
     probe-image-size: "npm:^7.2.3"
@@ -7223,12 +7223,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/papaparse@npm:^5.3.7":
-  version: 5.3.7
-  resolution: "@types/papaparse@npm:5.3.7"
+"@types/papaparse@npm:^5.5.2":
+  version: 5.5.2
+  resolution: "@types/papaparse@npm:5.5.2"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 10c0/fd234e7872aa7ed86c539583e7b4bac387f3efe55c5f403c590712e7125dfe73f7f0a84e646d5d222bf7e36b4c6213a85a0ae4406db9006a5b9a1b6bc03b6e50
+  checksum: 10c0/27b097b6f8f204b20ade1f2cbf4798eb38caa5fbfa3180fd0faa5e3f9aea371c1786ae180d56f3287556463eefe3100c953e316ea6ee99d7ae1d04111cfc9e50
   languageName: node
   linkType: hard
 
@@ -14867,10 +14867,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"papaparse@npm:^5.3.2":
-  version: 5.3.2
-  resolution: "papaparse@npm:5.3.2"
-  checksum: 10c0/fdc50cae03fdf94fa2b78da86fe18fa53ca36753ccd6619ca7f738df097cdd2cbf572a9c048a72c05118db7cf0ccb25d574f39a720c5e1a8d8c6903b0fd30765
+"papaparse@npm:^5.5.3":
+  version: 5.5.3
+  resolution: "papaparse@npm:5.5.3"
+  checksum: 10c0/623aae6a35703308fd5a39d616fb3837231ebc70697346355ea508154d3f24df75b6554b736afc1924192205518a5db14e75f5e1cf35d154326050a37cdd9447
   languageName: node
   linkType: hard
 

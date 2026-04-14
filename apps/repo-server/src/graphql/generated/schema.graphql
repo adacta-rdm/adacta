@@ -933,13 +933,9 @@ type RepositoryMutation {
 	Authentication
 	"""
 	updateTimeSettings(input: UpdateTimeSettingsInput!): CurrentUser!
-	toCellArray(resourceId: ID!, options: JSONString): JSONString!
-	toGenericTable(resourceId: ID!, options: JSONString): JSONString!
-	toTabularDataArrayBuffer(
-		resourceId: ID!
-		deviceId: ID!
-		options: JSONString
-	): ImportWizardStep3Payload!
+	toCellArray(resourceId: ID!, options: JSONString): ToCellArrayPayload!
+	toGenericTable(resourceId: ID!, options: JSONString): ToGenericTablePayload!
+	toTabularData(resourceId: ID!, deviceId: ID!, options: JSONString): ToTabularDataPayload!
 	"""
 	Import
 	"""
@@ -1029,22 +1025,34 @@ input UpdateTimeSettingsInput {
 
 scalar JSONString
 
-union ImportWizardStep3Payload = ImportWizardStep3PayloadSuccess | ImportWizardError
+union ToCellArrayPayload = ToCellArrayPayloadSuccess | ImportWizardError
 
-type ImportWizardStep3PayloadSuccess {
-	data: ImportWizardStep3PayloadData!
-	warnings: [String!]
-}
-
-type ImportWizardStep3PayloadData {
-	metadata: JSONString!
-	end: DateTime!
-	begin: DateTime!
-	tabularData: [[String!]!]!
+type ToCellArrayPayloadSuccess {
+	data: JSONString!
 }
 
 type ImportWizardError {
 	errors: [String!]!
+}
+
+union ToGenericTablePayload = ToGenericTablePayloadSuccess | ImportWizardError
+
+type ToGenericTablePayloadSuccess {
+	data: JSONString!
+}
+
+union ToTabularDataPayload = ToTabularDataPayloadSuccess | ImportWizardError
+
+type ToTabularDataPayloadSuccess {
+	data: ToTabularDataPayloadData!
+	warnings: [String!]
+}
+
+type ToTabularDataPayloadData {
+	metadata: JSONString!
+	end: DateTime!
+	begin: DateTime!
+	tabularData: [[String!]!]!
 }
 
 type ImportRawResourceRequestResponse {

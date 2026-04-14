@@ -307,13 +307,13 @@ type RepositoryMutation {
 	updateTimeSettings(input: UpdateTimeSettingsInput!): CurrentUser!
 
 	# NOTE: Using JSON strings to replicate connection between Render/Main
-	toCellArray(resourceId: ID!, options: JSONString): JSONString!
-	toGenericTable(resourceId: ID!, options: JSONString): JSONString!
-	toTabularDataArrayBuffer(
+	toCellArray(resourceId: ID!, options: JSONString): ToCellArrayPayload!
+	toGenericTable(resourceId: ID!, options: JSONString): ToGenericTablePayload!
+	toTabularData(
 		resourceId: ID!
 		deviceId: ID!
 		options: JSONString
-	): ImportWizardStep3Payload!
+	): ToTabularDataPayload!
 
 	"""
 	Import
@@ -1382,10 +1382,20 @@ scalar ColumnType
 
 scalar JSONString
 
-union ImportWizardStep3Payload = ImportWizardStep3PayloadSuccess | ImportWizardError
+union ToTabularDataPayload = ToTabularDataPayloadSuccess | ImportWizardError
+union ToCellArrayPayload = ToCellArrayPayloadSuccess | ImportWizardError
+union ToGenericTablePayload = ToGenericTablePayloadSuccess | ImportWizardError
 
-type ImportWizardStep3PayloadSuccess {
-	data: ImportWizardStep3PayloadData!
+type ToGenericTablePayloadSuccess {
+	data: JSONString!
+}
+
+type ToCellArrayPayloadSuccess {
+	data: JSONString!
+}
+
+type ToTabularDataPayloadSuccess {
+	data: ToTabularDataPayloadData!
 	warnings: [String!]
 }
 
@@ -1393,7 +1403,7 @@ type ImportWizardError {
 	errors: [String!]!
 }
 
-type ImportWizardStep3PayloadData {
+type ToTabularDataPayloadData {
 	metadata: JSONString! # TODO: Type
 	end: DateTime!
 	begin: DateTime!

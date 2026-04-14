@@ -88,6 +88,41 @@ export class CSVImportWizard {
 		return input.replace(/\0/g, "").trim();
 	}
 
+	private static ENCODING_WARNING =
+		"The selected encoding appears to be incorrect and does not produce a valid CSV file when applied. Please verify that the correct encoding is selected.";
+
+	/**
+	 * Checks the first chunk of data for potential encoding issues.
+	 * There are encoding scenarios in which an incorrect character set not only causes display errors but also leads to
+	 * more serious problems.
+	 * For example, if UTF-16 is selected for a file encoded in UTF-8, this incorrect configuration can cause
+	 * line breaks to be recognized incorrectly. This can result in not just the first n lines being parsed for the
+	 * preview, but the entire file. This can place an unnecessary load on the server.
+	 *
+	 * @param {Object} params The parameters for the method.
+	 * @param {string} params.chunk The data chunk to analyze.
+	 * @param {Object} params.options The options for the inport process
+	 * @return {boolean} Returns true if encoding issues are detected in the chunk; otherwise, false.
+	 */
+	private static checkFirstChunkForEncodingIssues({
+		chunk,
+		options,
+	}: {
+		chunk: string;
+		options: { delimiter: string };
+	}): boolean {
+		return (
+			// Encountering a linen break or a delimiter is a good indicator that the decoding didn't fail
+			// catastrophically.
+			!chunk.includes("\n") &&
+			!chunk.includes(options.delimiter) &&
+			// Check if the chunk contains any printable ASCII characters (between space and ~)
+			// If not, it's likely that the chunk is not decoded correctly, as most CSV files should
+			// contain at least some printable characters in the first chunk
+			!chunk.match(new RegExp(/[ -~]/))
+		);
+	}
+
 	private static timeColumnConfigured(config: IResolvedColumnConfig[]) {
 		return (
 			config.find((f) => {
@@ -136,14 +171,13 @@ export class CSVImportWizard {
 		return options.preview !== undefined ? options.preview + options.dataArea.body : undefined;
 	}
 
-	async toCellArray(filePath: string, options: IToCellArrayOptions): Promise<string[][]> {
+	async toCellArray(
+		filePath: string,
+		options: IToCellArrayOptions
+	): Promise<Result<string[][], { errors: string[] }>> {
 		const rows: string[][] = [];
 		return new Promise((resolve, reject) => {
 			let row = 0;
-
-			// if (stream.readableLength == 0) {
-			// 	reject("No readable file contents");
-			// }
 
 			const stream = this.sto.readFileStream(filePath);
 			Papa.parse(stream as any, {
@@ -155,6 +189,12 @@ export class CSVImportWizard {
 				// Without error callback errors will be lost
 				error: reject,
 				// Providing the step function enables steaming mode.
+				beforeFirstChunk: (chunk) => {
+					if (CSVImportWizard.checkFirstChunkForEncodingIssues({ chunk, options })) {
+						stream.destroy();
+						return resolve(err({ errors: [CSVImportWizard.ENCODING_WARNING] }));
+					}
+				},
 				step(result: ParseResult<string>, parser) {
 					rows.push(result.data.map((c) => CSVImportWizard.cleanInput(c)));
 
@@ -167,7 +207,7 @@ export class CSVImportWizard {
 				// When in streaming mode, parse results are not available in this callback
 				complete() {
 					stream.destroy();
-					resolve(rows);
+					resolve(ok(rows));
 				},
 			});
 		});
@@ -209,6 +249,12 @@ export class CSVImportWizard {
 				dynamicTyping: false,
 				// Without error callback errors will be lost
 				error: reject,
+				beforeFirstChunk: (chunk) => {
+					if (CSVImportWizard.checkFirstChunkForEncodingIssues({ chunk, options })) {
+						stream.destroy();
+						return resolve(err({ error: CSVImportWizard.ENCODING_WARNING }));
+					}
+				},
 				// Providing the step function enables steaming mode.
 				step(result: ParseResult<string>, parser) {
 					if (row >= options.dataArea.body) {
@@ -300,6 +346,7 @@ export class CSVImportWizard {
 		});
 
 		if (genericTable.isErr()) {
+			output.destroy();
 			return err(genericTable.error);
 		}
 		const { headerInternal } = genericTable.value;
