@@ -27,7 +27,14 @@ export interface IDownsamplingOptions {
 
 	datapoints: Threshold;
 
-	keyIndicatorMode?: boolean; // Attempt to find key indicator which can be used as sparkline
+	/**
+	 * If true, the requested graph is intended for the "Sparklines" feature
+	 * 	- An attempt is made to select a particularly relevant column. Please note that the methodology is very
+	 * 		primitive/rudimentary and will be replaced by a user configuration at a later date.)
+	 * 	- Results are stored in the L1 cache. Since this mode is often used for lists of resources, it is advantageous
+	 * 	if the results are available quickly.
+	 */
+	keyIndicatorMode?: boolean;
 
 	startX?: number;
 	endX?: number;
@@ -41,10 +48,45 @@ interface IDownsamplingOptionsMerge {
 	offsets?: number[];
 }
 
+/**
+ * Downsampled data is used to represent the downsampled data for a resource.
+ * It contains the x-axis and y-axis data.
+ */
 export interface IDownsampledData {
+	type?: "data";
 	x: IDownsampledXColumn;
 	y: IDownsampledColumn[];
 }
+
+/**
+ * Permanent error is used to indicate that the downsampling failed and the result is cached.
+ * The result is cached as the downsampling task is not expected to succeed at a later point in time.
+ */
+export interface IDownsampledErrorPermanent {
+	type: "permanent_error";
+	message: string;
+}
+
+/**
+ * Temporary error is used to indicate that the downsampling failed.
+ * The result is not cached, and the next request will trigger a new downsampling task (which hopefully will succeed).
+ */
+export interface IDownsampledErrorTemporary {
+	type: "temporary_error";
+}
+
+export interface IDownsamplingPending {
+	type: "downsampling_pending";
+}
+
+// Level 1
+export type ShortTermCacheResult = LongTermCacheResult | IDownsampledErrorTemporary;
+
+// Level 2
+export type LongTermCacheResult =
+	| IDownsampledData
+	| IDownsampledErrorPermanent
+	| IDownsamplingPending;
 
 const THRESHOLDS = [18, 100, 150] as const;
 type Threshold = (typeof THRESHOLDS)[number];
@@ -73,10 +115,10 @@ const taskCache = new Set<DownsamplingCacheKey>();
 )
 export class Downsampling {
 	/**
-	 * Level 1 cache (fast, ephemeral
+	 * Level 1 cache (fast, ephemeral)
 	 * - Caches the downsampled data for each resource (mainly to reduce the load on the L2 cache
 	 *   for the resource list with many sparklines)
-	 * - Caches errors (if the downsampling fails) to prevent repeated attempts to downsample the
+	 * - Caches temporary errors (if the downsampling fails) to prevent repeated attempts to downsample the
 	 *   same data
 	 * - Backed by the file system of the apps container (which is ephemeral)
 	 * @private
@@ -112,13 +154,13 @@ export class Downsampling {
 
 	private async requestGraphFromCacheOnly(
 		options: IDownsamplingOptions
-	): Promise<IDownsampledData | undefined> {
+	): Promise<ShortTermCacheResult | undefined> {
 		const cacheKey = Downsampling.getCacheKey(options);
 
 		if (options.keyIndicatorMode) {
-			const data = await this.level1Cache.get(cacheKey, "IDownsampledDataOrError");
+			const data = await this.level1Cache.get(cacheKey, "ShortTermCacheResult");
 
-			if (data && !data?.data) {
+			if (data && data?.data === undefined) {
 				this.logger.debug(`Error value cached for ${options.resourceId}`);
 			}
 
@@ -127,14 +169,14 @@ export class Downsampling {
 			}
 		}
 
-		const cachedData = await this.level2Cache.get(cacheKey, "IDownsampledData");
-		if (cachedData) {
+		const cachedData = await this.level2Cache.get(cacheKey, "LongTermCacheResult");
+		if (cachedData?.data.type === "data" || cachedData?.data.type === "permanent_error") {
 			this.logger.debug("Downsampling Cache: HIT");
 
 			// Copy data from L2 to L1 cache (for data which is already downsampled)
 			if (options.keyIndicatorMode) {
 				await this.level1Cache.set(Downsampling.getCacheKey(options), {
-					type: "IDownsampledDataOrError",
+					type: "ShortTermCacheResult",
 					data: cachedData.data,
 				});
 			}
@@ -151,135 +193,188 @@ export class Downsampling {
 	 * will return a promise that resolves to undefined. The promise will also resolve to undefined if downsampling
 	 * fails.
 	 */
-	public async requestGraph(options: IDownsamplingOptions): Promise<IDownsampledData | undefined> {
+	public async requestGraph(options: IDownsamplingOptions): Promise<ShortTermCacheResult> {
 		const cached = await this.requestGraphFromCacheOnly(options);
-		if (cached) return cached;
+		if (cached?.type === "data" || cached?.type === "permanent_error") {
+			this.logger.debug(
+				`Returning cached downsampled data for ${options.resourceId}: ${JSON.stringify(cached)}`
+			);
+			return cached;
+		}
 
 		const cacheKey = Downsampling.getCacheKey(options);
 
 		// Check if downsampling is already in progress. We check here in addition to the check already performed in
 		// TaskDispatcher to avoid the expensive call to ram.getTabularData().
-		if (taskCache.has(cacheKey)) return;
+		if (taskCache.has(cacheKey)) {
+			this.logger.info(`Downsampling already in progress for ${options.resourceId}`);
+			return { type: "downsampling_pending" }; // Task was already created, return pending
+		}
 
 		const logger = this.logger.bind({ ...options });
 
-		const coreDownsample = async () => {
-			taskCache.add(cacheKey);
-			const resource = await this.el.one(this.schema.Resource, options.resourceId);
-			const tabularData = await this.ram.getTabularData(resource);
-			assert(resource.attachment.type === "TabularData");
-
-			// Index of x column
-			const x = resource.attachment.columns.findIndex(
-				({ independentVariables }) => independentVariables.length === 0
-			);
-			// Indices of y columns to be downsampled
-			const y: number[] = [];
-
-			assert(x > -1);
-
-			if (options.keyIndicatorMode) {
-				const indexOfReactorTempColumn = resource.attachment.columns.findIndex(
-					({ title }) => title === "Reaktor"
-				);
-
-				if (indexOfReactorTempColumn > -1) {
-					y.push(indexOfReactorTempColumn);
-				} else {
-					const lastColumnIndex = resource.attachment.columns.length - 1;
-					y.push(x !== lastColumnIndex ? lastColumnIndex : 0);
-				}
-			} else {
-				for (let i = 0; i < resource.attachment.columns.length; i++) {
-					const column = resource.attachment.columns[i];
-					if (column.independentVariables.length === 0) continue;
-
-					y.push(i);
-				}
-			}
-
-			const results = await this.td.dispatch("resources/downsample", {
-				input: {
-					prefix: this.repoInfo.repositoryName,
-					path: ResourceAttachmentManager.getPath(resource),
-					columns: { x, y },
-					numberColumns: tabularData.numColumns(),
-					numberRows: tabularData.numRows(),
-				},
-				threshold: options.datapoints,
-			});
-
-			if (!results) {
-				throw new Error("Unknown (check service logs)");
-			}
-
-			const { columns } = resource.attachment;
-
-			const xValues = results[0].map((v) => v[0]);
-
-			// Detect if X Axis is descending and reverse order of values in that case
-			const swapOrderForDescendingX = xValues[0] > xValues[xValues.length - 1];
-			if (swapOrderForDescendingX) {
-				xValues.reverse();
-			}
-
-			const printUnit = (unit: TUnit) => (unit === UnitlessMarker ? "Unitless" : unit);
-
-			const result: IDownsampledData = {
-				x: {
-					type: columns[x].type,
-					label: columns[x].title,
-					unit: printUnit(columns[x].unit),
-					values: xValues,
-				},
-				y: y.map((y, i) => {
-					const yValues = results[i].map((v) => v[1]);
-					if (swapOrderForDescendingX) {
-						yValues.reverse();
-					}
-
-					return {
-						deviceId: columns[y].deviceId,
-						resourceId: options.resourceId,
-						label: columns[y].title,
-						unit: printUnit(columns[y].unit),
-						values: yValues,
-					};
-				}),
-			};
-
-			logger.info(`Downsampling tasks finished. Writing into cache ${cacheKey}`);
-
-			if (options.keyIndicatorMode) {
-				await this.level1Cache.set(cacheKey, {
-					type: "IDownsampledDataOrError",
-					data: result,
-				});
-			}
-
-			await this.level2Cache.set(cacheKey, {
-				type: "IDownsampledData",
-				data: result,
-			});
-
-			this.sp.publish("downsampleDataBecameReady", {
-				resourceId: options.resourceId,
-				dataPoints: options.datapoints,
-				singleColumn: options.keyIndicatorMode,
-				resource: { id: options.resourceId },
-			});
-
-			// Remove the task from cache once we've successfully downsampled the data to avoid memory leaks.
-			taskCache.delete(cacheKey);
-		};
-
-		coreDownsample().catch((e) => {
+		this.createDownsamplingTask(options, cacheKey).catch((e) => {
 			const message = e instanceof Error ? e.message : "Unknown error";
 			logger.error(`Downsampling failed: ${message}`);
 
 			// Note that we don't remove the task in the event of an error. This is intentional, as we prevent
 			// downsampling the same data again that will fail anyway.
 		});
+		return { type: "downsampling_pending" }; // Task is being created, return pending
+	}
+
+	private async createDownsamplingTask(
+		options: IDownsamplingOptions,
+		cacheKey: DownsamplingCacheKey
+	) {
+		taskCache.add(cacheKey);
+		const resource = await this.el.one(this.schema.Resource, options.resourceId);
+		const tabularData = await this.ram.getTabularData(resource);
+		assert(resource.attachment.type === "TabularData");
+
+		// This check is here to prevent the server from crashing if a resource is empty
+		// This should not happen for future resources, but there are already existing resources without
+		// any content (with 0 rows).
+		if (tabularData.numRows() === 0) {
+			this.logger.info(`No rows found for resource ${options.resourceId}`);
+			const result = {
+				type: "permanent_error",
+				message:
+					"This resource does not contain any rows. Therefore, it is not possible to display a chart.",
+			} as const;
+			await this.finishProcessing({ downsamplingOptions: options, cacheKey, result });
+			return result;
+		}
+
+		// Index of x column
+		const x = resource.attachment.columns.findIndex(
+			({ independentVariables }) => independentVariables.length === 0
+		);
+		// Indices of y columns to be downsampled
+		const y: number[] = [];
+
+		assert(x > -1);
+
+		if (options.keyIndicatorMode) {
+			const indexOfReactorTempColumn = resource.attachment.columns.findIndex(
+				({ title }) => title === "Reaktor"
+			);
+
+			if (indexOfReactorTempColumn > -1) {
+				y.push(indexOfReactorTempColumn);
+			} else {
+				const lastColumnIndex = resource.attachment.columns.length - 1;
+				y.push(x !== lastColumnIndex ? lastColumnIndex : 0);
+			}
+		} else {
+			for (let i = 0; i < resource.attachment.columns.length; i++) {
+				const column = resource.attachment.columns[i];
+				if (column.independentVariables.length === 0) continue;
+
+				y.push(i);
+			}
+		}
+
+		if (y.length === 0) {
+			this.logger.info(`No y-axis columns found for resource ${options.resourceId}`);
+			const result = {
+				type: "permanent_error",
+				message:
+					"This resource does not contain any dependent columns (y-axis). Therefore, it is not possible to display a chart.",
+			} as const;
+			await this.finishProcessing({ downsamplingOptions: options, cacheKey, result });
+			return result;
+		}
+
+		const results = await this.td.dispatch("resources/downsample", {
+			input: {
+				prefix: this.repoInfo.repositoryName,
+				path: ResourceAttachmentManager.getPath(resource),
+				columns: { x, y },
+				numberColumns: tabularData.numColumns(),
+				numberRows: tabularData.numRows(),
+			},
+			threshold: options.datapoints,
+		});
+
+		if (!results) {
+			return { type: "temporary_error" };
+		}
+
+		const { columns } = resource.attachment;
+
+		const xValues = results[0].map((v) => v[0]);
+
+		// Detect if X Axis is descending and reverse order of values in that case
+		const swapOrderForDescendingX = xValues[0] > xValues[xValues.length - 1];
+		if (swapOrderForDescendingX) {
+			xValues.reverse();
+		}
+
+		const printUnit = (unit: TUnit) => (unit === UnitlessMarker ? "Unitless" : unit);
+
+		const result: IDownsampledData = {
+			x: {
+				type: columns[x].type,
+				label: columns[x].title,
+				unit: printUnit(columns[x].unit),
+				values: xValues,
+			},
+			y: y.map((y, i) => {
+				const yValues = results[i].map((v) => v[1]);
+				if (swapOrderForDescendingX) {
+					yValues.reverse();
+				}
+
+				return {
+					deviceId: columns[y].deviceId,
+					resourceId: options.resourceId,
+					label: columns[y].title,
+					unit: printUnit(columns[y].unit),
+					values: yValues,
+				};
+			}),
+		};
+
+		this.logger.info(`Downsampling tasks finished. Writing into cache`);
+
+		await this.finishProcessing({ downsamplingOptions: options, cacheKey, result });
+	}
+
+	/**
+	 * This function is called when a result is ready (i.e. downsample data or error).
+	 * It writes the result to the cache and notifies the client about the result.
+	 */
+	private async finishProcessing({
+		downsamplingOptions: options,
+		cacheKey,
+		result,
+	}: {
+		downsamplingOptions: IDownsamplingOptions;
+		cacheKey: DownsamplingCacheKey;
+		result: LongTermCacheResult;
+	}) {
+		if (options.keyIndicatorMode) {
+			await this.level1Cache.set(cacheKey, {
+				type: "ShortTermCacheResult",
+				data: { type: "data", ...result },
+			});
+		}
+
+		await this.level2Cache.set(cacheKey, {
+			type: "LongTermCacheResult",
+			data: { type: "data", ...result },
+		});
+
+		this.sp.publish("downsampleDataBecameReady", {
+			resourceId: options.resourceId,
+			dataPoints: options.datapoints,
+			singleColumn: options.keyIndicatorMode,
+			resource: { id: options.resourceId },
+		});
+
+		// Remove the task from cache once we've successfully downsampled the data to avoid memory leaks.
+		taskCache.delete(cacheKey);
 	}
 
 	public async requestGraphMerged(
@@ -300,7 +395,9 @@ export class Downsampling {
 					})
 				)
 			)
-		).filter(isNonNullish);
+		)
+			.filter(isNonNullish)
+			.filter((e): e is IDownsampledData => e.type === "data");
 
 		// It is possible that all requested resources aren't downsampled yet
 		// In this case we return an empty array
