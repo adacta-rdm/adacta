@@ -309,11 +309,7 @@ type RepositoryMutation {
 	# NOTE: Using JSON strings to replicate connection between Render/Main
 	toCellArray(resourceId: ID!, options: JSONString): ToCellArrayPayload!
 	toGenericTable(resourceId: ID!, options: JSONString): ToGenericTablePayload!
-	toTabularData(
-		resourceId: ID!
-		deviceId: ID!
-		options: JSONString
-	): ToTabularDataPayload!
+	toTabularData(resourceId: ID!, deviceId: ID!, options: JSONString): ToTabularDataPayload!
 
 	"""
 	Import
