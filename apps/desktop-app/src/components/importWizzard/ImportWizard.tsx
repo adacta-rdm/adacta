@@ -426,7 +426,16 @@ const ToCellArrayGraphQLMutation: GraphQLTaggedNode = graphql`
 		$options: JSONString
 	) {
 		repository(id: $repositoryId) {
-			toCellArray(resourceId: $resourceId, options: $options)
+			toCellArray(resourceId: $resourceId, options: $options) {
+				... on ToCellArrayPayloadSuccess {
+					__typename
+					data
+				}
+				... on ImportWizardError {
+					__typename
+					errors
+				}
+			}
 		}
 	}
 `;
@@ -438,12 +447,21 @@ const ToGenericTableGraphQLMutation: GraphQLTaggedNode = graphql`
 		$options: JSONString
 	) {
 		repository(id: $repositoryId) {
-			toGenericTable(resourceId: $resourceId, options: $options)
+			toGenericTable(resourceId: $resourceId, options: $options) {
+				... on ToGenericTablePayloadSuccess {
+					__typename
+					data
+				}
+				... on ImportWizardError {
+					__typename
+					errors
+				}
+			}
 		}
 	}
 `;
 
-const ToTabularDataArrayBufferGraphQLMutation: GraphQLTaggedNode = graphql`
+const ToTabularDataGraphQLMutation: GraphQLTaggedNode = graphql`
 	mutation ImportWizardToTabularDataArrayBufferMutation(
 		$repositoryId: ID!
 		$resourceId: ID!
@@ -451,8 +469,8 @@ const ToTabularDataArrayBufferGraphQLMutation: GraphQLTaggedNode = graphql`
 		$options: JSONString
 	) {
 		repository(id: $repositoryId) {
-			toTabularDataArrayBuffer(resourceId: $resourceId, deviceId: $deviceId, options: $options) {
-				... on ImportWizardStep3PayloadSuccess {
+			toTabularData(resourceId: $resourceId, deviceId: $deviceId, options: $options) {
+				... on ToTabularDataPayloadSuccess {
 					__typename
 					data {
 						begin
@@ -490,15 +508,12 @@ export function ImportWizard(props: IImportWizardProps) {
 	);
 	const [toGenericTableMutation, toGenericTableInFlight] =
 		useMutation<ImportWizardToGenericTableMutation>(ToGenericTableGraphQLMutation);
-	const [toTabularDataArrayBufferMutation, toTabularDataArrayBufferInFlight] =
-		useMutation<ImportWizardToTabularDataArrayBufferMutation>(
-			ToTabularDataArrayBufferGraphQLMutation
-		);
+	const [toTabularDataMutation, toTabularDataInFlight] =
+		useMutation<ImportWizardToTabularDataArrayBufferMutation>(ToTabularDataGraphQLMutation);
 
 	// Determine if one of the mutations is in flight. This variable is ued to put the Spreadsheet
 	// into a loading state
-	const waitingForData =
-		toCellArrayInFlight || toGenericTableInFlight || toTabularDataArrayBufferInFlight;
+	const waitingForData = toCellArrayInFlight || toGenericTableInFlight || toTabularDataInFlight;
 
 	type FileStructureReturn = TToCellArrayOutput;
 	type ColumnTypeReturn = { table: IGenericTable; types: Map<string, string> } | undefined;
@@ -566,7 +581,8 @@ export function ImportWizard(props: IImportWizardProps) {
 					dataArea: config.dataArea,
 					normalizers: Object.fromEntries(normalizers),
 				});
-				return cast({ table, types });
+
+				return table ? cast({ table, types }) : cast(undefined);
 			} catch (e) {
 				assertInstanceof(e, Error);
 				setWarning([e.message]);
@@ -682,7 +698,7 @@ export function ImportWizard(props: IImportWizardProps) {
 		return undefined as PresetEvaluationResult<TStep>;
 	}
 
-	interface IStep3ReturnTypeSuccess {
+	interface IToTabularDataSuccess {
 		data: {
 			metadata: ITabularDataColumnDescription[];
 			tabularData: string[][];
@@ -692,13 +708,13 @@ export function ImportWizard(props: IImportWizardProps) {
 		warnings: string[];
 	}
 
-	type Step3ReturnType = IStep3ReturnTypeSuccess | { errors: readonly string[] };
+	type ToTabularDataReturn = IToTabularDataSuccess | { errors: readonly string[] };
 
 	// Execute Step 3 Mutation and convert GraphQL result into the types we need
 	const toTabularDataArrayBuffer = useCallback(
-		(options: IToTabularDataOptions): Promise<Step3ReturnType> => {
+		(options: IToTabularDataOptions): Promise<ToTabularDataReturn> => {
 			return new Promise((resolve, reject) => {
-				toTabularDataArrayBufferMutation({
+				toTabularDataMutation({
 					variables: {
 						...repositoryIdVariables,
 						deviceId,
@@ -707,10 +723,10 @@ export function ImportWizard(props: IImportWizardProps) {
 					},
 					onError: reject,
 					onCompleted: (r) => {
-						const response = r.repository.toTabularDataArrayBuffer;
+						const response = r.repository.toTabularData;
 
-						if (response.__typename == "ImportWizardStep3PayloadSuccess") {
-							const ret: Step3ReturnType = {
+						if (response.__typename == "ToTabularDataPayloadSuccess") {
+							const ret: ToTabularDataReturn = {
 								data: {
 									tabularData: response.data.tabularData.map((x) => [...x]),
 									begin: createDate(response.data.begin),
@@ -730,7 +746,7 @@ export function ImportWizard(props: IImportWizardProps) {
 				});
 			});
 		},
-		[props.resourceId, deviceId, repositoryIdVariables, toTabularDataArrayBufferMutation]
+		[props.resourceId, deviceId, repositoryIdVariables, toTabularDataMutation]
 	);
 
 	// TODO: Check if there is a repeating pattern in those fns
@@ -745,11 +761,16 @@ export function ImportWizard(props: IImportWizardProps) {
 					},
 					onError: reject,
 					onCompleted: (r) => {
-						const { toCellArray: toCellArrayJSON } = r.repository;
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-						const toCellArray: any = JSON.parse(toCellArrayJSON);
-						assertTToCellArrayOutput(toCellArray);
-						resolve(toCellArray);
+						const { toCellArray: toCellArrayResponse } = r.repository;
+						if (toCellArrayResponse.__typename === "ToCellArrayPayloadSuccess") {
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+							const toCellArray: any = JSON.parse(toCellArrayResponse.data);
+							assertTToCellArrayOutput(toCellArray);
+							resolve(toCellArray);
+						} else if (toCellArrayResponse.__typename === "ImportWizardError") {
+							setErrors([...toCellArrayResponse.errors]);
+							resolve([[]]);
+						}
 					},
 				});
 			});
@@ -768,11 +789,16 @@ export function ImportWizard(props: IImportWizardProps) {
 					},
 					onError: reject,
 					onCompleted: (r) => {
-						const { toGenericTable: toGenericTableJSON } = r.repository;
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-						const toCellArray: any = JSON.parse(toGenericTableJSON);
-						assertTToGenericTableOutput(toCellArray);
-						resolve(toCellArray);
+						const { toGenericTable: toGenericTableResponse } = r.repository;
+						if (toGenericTableResponse.__typename === "ToGenericTablePayloadSuccess") {
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+							const toGenericTable: any = JSON.parse(toGenericTableResponse.data);
+							assertTToGenericTableOutput(toGenericTable);
+							resolve(toGenericTable);
+						} else if (toGenericTableResponse.__typename === "ImportWizardError") {
+							setErrors([...toGenericTableResponse.errors]);
+							resolve(undefined);
+						}
 					},
 				});
 			});
@@ -1218,7 +1244,7 @@ export function ImportWizard(props: IImportWizardProps) {
 							// with validation will arise (e.g. with the number of
 							// independent columns) with columns that are not
 							// accessible in the UI at all.
-							const existingColumnNames = t.headerInternal;
+							const existingColumnNames = t?.headerInternal ?? [];
 							const columnMetadata = preset.columnMetadata;
 							for (const presetColumnName in columnMetadata) {
 								if (!existingColumnNames.includes(presetColumnName)) {
@@ -1394,38 +1420,41 @@ export function ImportWizard(props: IImportWizardProps) {
 				</EuiFlexItem>
 			)}
 
-			{step === Steps.COLUMN_TYPES && genericTable && (
-				<EuiFlexItem>
-					<EuiForm isInvalid={errors.length > 0} error={errors}>
-						<ColumnMetadata
-							step={ColumnMetadataStep.ColumnType}
+			{step === Steps.COLUMN_TYPES &&
+				(genericTable ? (
+					<EuiFlexItem>
+						<EuiForm isInvalid={errors.length > 0} error={errors}>
+							<ColumnMetadata
+								step={ColumnMetadataStep.ColumnType}
+								selectedColumns={selectedColumns}
+								headerRow={genericTable.header}
+								headerIdRow={genericTable.headerInternal}
+								dataRow={genericTable.body[0]}
+								config={formControls.columnMetadata}
+								setConfig={createStateUpdater("columnMetadata")}
+								decimalSeparator={formControls.decimalSeparator}
+							/>
+						</EuiForm>
+						<EuiSpacer />
+						<Spreadsheet
+							rows={[
+								genericTable.header,
+								createRowFromMap(genericTable.headerInternal, columnTypeHeader),
+								...genericTable.body,
+							].map((row) => row.map((value) => ({ value })))}
+							headerOptions={{
+								artificialHeaderColumns: true,
+								artificialHeadersColumnFirstRows: ["Title", "Type"],
+								headerRows: [0],
+							}}
 							selectedColumns={selectedColumns}
-							headerRow={genericTable.header}
-							headerIdRow={genericTable.headerInternal}
-							dataRow={genericTable.body[0]}
-							config={formControls.columnMetadata}
-							setConfig={createStateUpdater("columnMetadata")}
-							decimalSeparator={formControls.decimalSeparator}
+							onSelectedColumnsChange={updateColumnsSelection}
+							isLoading={waitingForData}
 						/>
-					</EuiForm>
-					<EuiSpacer />
-					<Spreadsheet
-						rows={[
-							genericTable.header,
-							createRowFromMap(genericTable.headerInternal, columnTypeHeader),
-							...genericTable.body,
-						].map((row) => row.map((value) => ({ value })))}
-						headerOptions={{
-							artificialHeaderColumns: true,
-							artificialHeadersColumnFirstRows: ["Title", "Type"],
-							headerRows: [0],
-						}}
-						selectedColumns={selectedColumns}
-						onSelectedColumnsChange={updateColumnsSelection}
-						isLoading={waitingForData}
-					/>
-				</EuiFlexItem>
-			)}
+					</EuiFlexItem>
+				) : (
+					<EuiForm isInvalid={errors.length > 0} error={errors}></EuiForm>
+				))}
 
 			{step === Steps.TIME_CONFIG && genericTable && (
 				<StepTime

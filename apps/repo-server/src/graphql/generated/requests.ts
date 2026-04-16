@@ -1235,9 +1235,9 @@ export type IRepositoryMutation = {
 	repository: IRepositoryMutation;
 	/** Authentication */
 	updateTimeSettings: ICurrentUser;
-	toCellArray: Scalars["JSONString"];
-	toGenericTable: Scalars["JSONString"];
-	toTabularDataArrayBuffer: IImportWizardStep3Payload;
+	toCellArray: IToCellArrayPayload;
+	toGenericTable: IToGenericTablePayload;
+	toTabularData: IToTabularDataPayload;
 	/** Import */
 	importRawResourceRequest: IImportRawResourceRequestResponse;
 	importRawResource: Scalars["ID"];
@@ -1310,7 +1310,7 @@ export type IRepositoryMutationToGenericTableArgs = {
 	options?: InputMaybe<Scalars["JSONString"]>;
 };
 
-export type IRepositoryMutationToTabularDataArrayBufferArgs = {
+export type IRepositoryMutationToTabularDataArgs = {
 	resourceId: Scalars["ID"];
 	deviceId: Scalars["ID"];
 	options?: InputMaybe<Scalars["JSONString"]>;
@@ -1517,25 +1517,39 @@ export type IUpdateTimeSettingsInput = {
 	timeStyle: Scalars["String"];
 };
 
-export type IImportWizardStep3Payload = IImportWizardStep3PayloadSuccess | IImportWizardError;
+export type IToCellArrayPayload = IToCellArrayPayloadSuccess | IImportWizardError;
 
-export type IImportWizardStep3PayloadSuccess = {
-	__typename?: "ImportWizardStep3PayloadSuccess";
-	data: IImportWizardStep3PayloadData;
-	warnings?: Maybe<Array<Scalars["String"]>>;
-};
-
-export type IImportWizardStep3PayloadData = {
-	__typename?: "ImportWizardStep3PayloadData";
-	metadata: Scalars["JSONString"];
-	end: Scalars["DateTime"];
-	begin: Scalars["DateTime"];
-	tabularData: Array<Array<Scalars["String"]>>;
+export type IToCellArrayPayloadSuccess = {
+	__typename?: "ToCellArrayPayloadSuccess";
+	data: Scalars["JSONString"];
 };
 
 export type IImportWizardError = {
 	__typename?: "ImportWizardError";
 	errors: Array<Scalars["String"]>;
+};
+
+export type IToGenericTablePayload = IToGenericTablePayloadSuccess | IImportWizardError;
+
+export type IToGenericTablePayloadSuccess = {
+	__typename?: "ToGenericTablePayloadSuccess";
+	data: Scalars["JSONString"];
+};
+
+export type IToTabularDataPayload = IToTabularDataPayloadSuccess | IImportWizardError;
+
+export type IToTabularDataPayloadSuccess = {
+	__typename?: "ToTabularDataPayloadSuccess";
+	data: IToTabularDataPayloadData;
+	warnings?: Maybe<Array<Scalars["String"]>>;
+};
+
+export type IToTabularDataPayloadData = {
+	__typename?: "ToTabularDataPayloadData";
+	metadata: Scalars["JSONString"];
+	end: Scalars["DateTime"];
+	begin: Scalars["DateTime"];
+	tabularData: Array<Array<Scalars["String"]>>;
 };
 
 export type IImportRawResourceRequestResponse = {

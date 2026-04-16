@@ -1237,9 +1237,9 @@ export type IRepositoryMutation = {
 	repository: IRepositoryMutation;
 	/** Authentication */
 	updateTimeSettings: ICurrentUser;
-	toCellArray: Scalars["JSONString"];
-	toGenericTable: Scalars["JSONString"];
-	toTabularDataArrayBuffer: IImportWizardStep3Payload;
+	toCellArray: IToCellArrayPayload;
+	toGenericTable: IToGenericTablePayload;
+	toTabularData: IToTabularDataPayload;
 	/** Import */
 	importRawResourceRequest: IImportRawResourceRequestResponse;
 	importRawResource: Scalars["ID"];
@@ -1312,7 +1312,7 @@ export type IRepositoryMutationToGenericTableArgs = {
 	options?: InputMaybe<Scalars["JSONString"]>;
 };
 
-export type IRepositoryMutationToTabularDataArrayBufferArgs = {
+export type IRepositoryMutationToTabularDataArgs = {
 	resourceId: Scalars["ID"];
 	deviceId: Scalars["ID"];
 	options?: InputMaybe<Scalars["JSONString"]>;
@@ -1519,25 +1519,39 @@ export type IUpdateTimeSettingsInput = {
 	timeStyle: Scalars["String"];
 };
 
-export type IImportWizardStep3Payload = IImportWizardStep3PayloadSuccess | IImportWizardError;
+export type IToCellArrayPayload = IToCellArrayPayloadSuccess | IImportWizardError;
 
-export type IImportWizardStep3PayloadSuccess = {
-	__typename?: "ImportWizardStep3PayloadSuccess";
-	data: IImportWizardStep3PayloadData;
-	warnings?: Maybe<Array<Scalars["String"]>>;
-};
-
-export type IImportWizardStep3PayloadData = {
-	__typename?: "ImportWizardStep3PayloadData";
-	metadata: Scalars["JSONString"];
-	end: Scalars["DateTime"];
-	begin: Scalars["DateTime"];
-	tabularData: Array<Array<Scalars["String"]>>;
+export type IToCellArrayPayloadSuccess = {
+	__typename?: "ToCellArrayPayloadSuccess";
+	data: Scalars["JSONString"];
 };
 
 export type IImportWizardError = {
 	__typename?: "ImportWizardError";
 	errors: Array<Scalars["String"]>;
+};
+
+export type IToGenericTablePayload = IToGenericTablePayloadSuccess | IImportWizardError;
+
+export type IToGenericTablePayloadSuccess = {
+	__typename?: "ToGenericTablePayloadSuccess";
+	data: Scalars["JSONString"];
+};
+
+export type IToTabularDataPayload = IToTabularDataPayloadSuccess | IImportWizardError;
+
+export type IToTabularDataPayloadSuccess = {
+	__typename?: "ToTabularDataPayloadSuccess";
+	data: IToTabularDataPayloadData;
+	warnings?: Maybe<Array<Scalars["String"]>>;
+};
+
+export type IToTabularDataPayloadData = {
+	__typename?: "ToTabularDataPayloadData";
+	metadata: Scalars["JSONString"];
+	end: Scalars["DateTime"];
+	begin: Scalars["DateTime"];
+	tabularData: Array<Array<Scalars["String"]>>;
 };
 
 export type IImportRawResourceRequestResponse = {
@@ -2399,16 +2413,24 @@ export type IResolversTypes = {
 	RepositoryMutation: ResolverTypeWrapper<{}>;
 	UpdateTimeSettingsInput: ResolverTypeWrapper<ResolverReturnType<IUpdateTimeSettingsInput>>;
 	JSONString: ResolverTypeWrapper<ResolverReturnType<Scalars["JSONString"]>>;
-	ImportWizardStep3Payload: ResolverReturnType<
-		IResolversTypes["ImportWizardStep3PayloadSuccess"] | IResolversTypes["ImportWizardError"]
+	ToCellArrayPayload: ResolverReturnType<
+		IResolversTypes["ToCellArrayPayloadSuccess"] | IResolversTypes["ImportWizardError"]
 	>;
-	ImportWizardStep3PayloadSuccess: ResolverTypeWrapper<
-		ResolverReturnType<IImportWizardStep3PayloadSuccess>
-	>;
-	ImportWizardStep3PayloadData: ResolverTypeWrapper<
-		ResolverReturnType<IImportWizardStep3PayloadData>
-	>;
+	ToCellArrayPayloadSuccess: ResolverTypeWrapper<ResolverReturnType<IToCellArrayPayloadSuccess>>;
 	ImportWizardError: ResolverTypeWrapper<ResolverReturnType<IImportWizardError>>;
+	ToGenericTablePayload: ResolverReturnType<
+		IResolversTypes["ToGenericTablePayloadSuccess"] | IResolversTypes["ImportWizardError"]
+	>;
+	ToGenericTablePayloadSuccess: ResolverTypeWrapper<
+		ResolverReturnType<IToGenericTablePayloadSuccess>
+	>;
+	ToTabularDataPayload: ResolverReturnType<
+		IResolversTypes["ToTabularDataPayloadSuccess"] | IResolversTypes["ImportWizardError"]
+	>;
+	ToTabularDataPayloadSuccess: ResolverTypeWrapper<
+		ResolverReturnType<IToTabularDataPayloadSuccess>
+	>;
+	ToTabularDataPayloadData: ResolverTypeWrapper<ResolverReturnType<IToTabularDataPayloadData>>;
 	ImportRawResourceRequestResponse: ResolverTypeWrapper<
 		ResolverReturnType<IImportRawResourceRequestResponse>
 	>;
@@ -2784,13 +2806,22 @@ export type IResolversParentTypes = {
 	RepositoryMutation: {};
 	UpdateTimeSettingsInput: ResolverReturnType<IUpdateTimeSettingsInput>;
 	JSONString: ResolverReturnType<Scalars["JSONString"]>;
-	ImportWizardStep3Payload: ResolverReturnType<
-		| IResolversParentTypes["ImportWizardStep3PayloadSuccess"]
+	ToCellArrayPayload: ResolverReturnType<
+		IResolversParentTypes["ToCellArrayPayloadSuccess"] | IResolversParentTypes["ImportWizardError"]
+	>;
+	ToCellArrayPayloadSuccess: ResolverReturnType<IToCellArrayPayloadSuccess>;
+	ImportWizardError: ResolverReturnType<IImportWizardError>;
+	ToGenericTablePayload: ResolverReturnType<
+		| IResolversParentTypes["ToGenericTablePayloadSuccess"]
 		| IResolversParentTypes["ImportWizardError"]
 	>;
-	ImportWizardStep3PayloadSuccess: ResolverReturnType<IImportWizardStep3PayloadSuccess>;
-	ImportWizardStep3PayloadData: ResolverReturnType<IImportWizardStep3PayloadData>;
-	ImportWizardError: ResolverReturnType<IImportWizardError>;
+	ToGenericTablePayloadSuccess: ResolverReturnType<IToGenericTablePayloadSuccess>;
+	ToTabularDataPayload: ResolverReturnType<
+		| IResolversParentTypes["ToTabularDataPayloadSuccess"]
+		| IResolversParentTypes["ImportWizardError"]
+	>;
+	ToTabularDataPayloadSuccess: ResolverReturnType<IToTabularDataPayloadSuccess>;
+	ToTabularDataPayloadData: ResolverReturnType<IToTabularDataPayloadData>;
 	ImportRawResourceRequestResponse: ResolverReturnType<IImportRawResourceRequestResponse>;
 	ImportRawResourceInput: ResolverReturnType<IImportRawResourceInput>;
 	ImportImageResourceInput: ResolverReturnType<IImportImageResourceInput>;
@@ -4331,22 +4362,22 @@ export type IRepositoryMutationResolvers<
 		RequireFields<IRepositoryMutationUpdateTimeSettingsArgs, "input">
 	>;
 	toCellArray?: Resolver<
-		IResolversTypes["JSONString"],
+		IResolversTypes["ToCellArrayPayload"],
 		ParentType,
 		ContextType,
 		RequireFields<IRepositoryMutationToCellArrayArgs, "resourceId">
 	>;
 	toGenericTable?: Resolver<
-		IResolversTypes["JSONString"],
+		IResolversTypes["ToGenericTablePayload"],
 		ParentType,
 		ContextType,
 		RequireFields<IRepositoryMutationToGenericTableArgs, "resourceId">
 	>;
-	toTabularDataArrayBuffer?: Resolver<
-		IResolversTypes["ImportWizardStep3Payload"],
+	toTabularData?: Resolver<
+		IResolversTypes["ToTabularDataPayload"],
 		ParentType,
 		ContextType,
-		RequireFields<IRepositoryMutationToTabularDataArrayBufferArgs, "resourceId" | "deviceId">
+		RequireFields<IRepositoryMutationToTabularDataArgs, "resourceId" | "deviceId">
 	>;
 	importRawResourceRequest?: Resolver<
 		IResolversTypes["ImportRawResourceRequestResponse"],
@@ -4642,34 +4673,22 @@ export interface IJsonStringScalarConfig
 	name: "JSONString";
 }
 
-export type IImportWizardStep3PayloadResolvers<
+export type IToCellArrayPayloadResolvers<
 	ContextType = IGraphQLContext,
-	ParentType extends IResolversParentTypes["ImportWizardStep3Payload"] = IResolversParentTypes["ImportWizardStep3Payload"]
+	ParentType extends IResolversParentTypes["ToCellArrayPayload"] = IResolversParentTypes["ToCellArrayPayload"]
 > = {
 	__resolveType: TypeResolveFn<
-		"ImportWizardStep3PayloadSuccess" | "ImportWizardError",
+		"ToCellArrayPayloadSuccess" | "ImportWizardError",
 		ParentType,
 		ContextType
 	>;
 };
 
-export type IImportWizardStep3PayloadSuccessResolvers<
+export type IToCellArrayPayloadSuccessResolvers<
 	ContextType = IGraphQLContext,
-	ParentType extends IResolversParentTypes["ImportWizardStep3PayloadSuccess"] = IResolversParentTypes["ImportWizardStep3PayloadSuccess"]
+	ParentType extends IResolversParentTypes["ToCellArrayPayloadSuccess"] = IResolversParentTypes["ToCellArrayPayloadSuccess"]
 > = {
-	data?: Resolver<IResolversTypes["ImportWizardStep3PayloadData"], ParentType, ContextType>;
-	warnings?: Resolver<Maybe<Array<IResolversTypes["String"]>>, ParentType, ContextType>;
-	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type IImportWizardStep3PayloadDataResolvers<
-	ContextType = IGraphQLContext,
-	ParentType extends IResolversParentTypes["ImportWizardStep3PayloadData"] = IResolversParentTypes["ImportWizardStep3PayloadData"]
-> = {
-	metadata?: Resolver<IResolversTypes["JSONString"], ParentType, ContextType>;
-	end?: Resolver<IResolversTypes["DateTime"], ParentType, ContextType>;
-	begin?: Resolver<IResolversTypes["DateTime"], ParentType, ContextType>;
-	tabularData?: Resolver<Array<Array<IResolversTypes["String"]>>, ParentType, ContextType>;
+	data?: Resolver<IResolversTypes["JSONString"], ParentType, ContextType>;
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -4678,6 +4697,56 @@ export type IImportWizardErrorResolvers<
 	ParentType extends IResolversParentTypes["ImportWizardError"] = IResolversParentTypes["ImportWizardError"]
 > = {
 	errors?: Resolver<Array<IResolversTypes["String"]>, ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IToGenericTablePayloadResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["ToGenericTablePayload"] = IResolversParentTypes["ToGenericTablePayload"]
+> = {
+	__resolveType: TypeResolveFn<
+		"ToGenericTablePayloadSuccess" | "ImportWizardError",
+		ParentType,
+		ContextType
+	>;
+};
+
+export type IToGenericTablePayloadSuccessResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["ToGenericTablePayloadSuccess"] = IResolversParentTypes["ToGenericTablePayloadSuccess"]
+> = {
+	data?: Resolver<IResolversTypes["JSONString"], ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IToTabularDataPayloadResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["ToTabularDataPayload"] = IResolversParentTypes["ToTabularDataPayload"]
+> = {
+	__resolveType: TypeResolveFn<
+		"ToTabularDataPayloadSuccess" | "ImportWizardError",
+		ParentType,
+		ContextType
+	>;
+};
+
+export type IToTabularDataPayloadSuccessResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["ToTabularDataPayloadSuccess"] = IResolversParentTypes["ToTabularDataPayloadSuccess"]
+> = {
+	data?: Resolver<IResolversTypes["ToTabularDataPayloadData"], ParentType, ContextType>;
+	warnings?: Resolver<Maybe<Array<IResolversTypes["String"]>>, ParentType, ContextType>;
+	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IToTabularDataPayloadDataResolvers<
+	ContextType = IGraphQLContext,
+	ParentType extends IResolversParentTypes["ToTabularDataPayloadData"] = IResolversParentTypes["ToTabularDataPayloadData"]
+> = {
+	metadata?: Resolver<IResolversTypes["JSONString"], ParentType, ContextType>;
+	end?: Resolver<IResolversTypes["DateTime"], ParentType, ContextType>;
+	begin?: Resolver<IResolversTypes["DateTime"], ParentType, ContextType>;
+	tabularData?: Resolver<Array<Array<IResolversTypes["String"]>>, ParentType, ContextType>;
 	__isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -5102,10 +5171,14 @@ export type IResolvers<ContextType = IGraphQLContext> = {
 	Dataverse?: IDataverseResolvers<ContextType>;
 	RepositoryMutation?: IRepositoryMutationResolvers<ContextType>;
 	JSONString?: GraphQLScalarType;
-	ImportWizardStep3Payload?: IImportWizardStep3PayloadResolvers<ContextType>;
-	ImportWizardStep3PayloadSuccess?: IImportWizardStep3PayloadSuccessResolvers<ContextType>;
-	ImportWizardStep3PayloadData?: IImportWizardStep3PayloadDataResolvers<ContextType>;
+	ToCellArrayPayload?: IToCellArrayPayloadResolvers<ContextType>;
+	ToCellArrayPayloadSuccess?: IToCellArrayPayloadSuccessResolvers<ContextType>;
 	ImportWizardError?: IImportWizardErrorResolvers<ContextType>;
+	ToGenericTablePayload?: IToGenericTablePayloadResolvers<ContextType>;
+	ToGenericTablePayloadSuccess?: IToGenericTablePayloadSuccessResolvers<ContextType>;
+	ToTabularDataPayload?: IToTabularDataPayloadResolvers<ContextType>;
+	ToTabularDataPayloadSuccess?: IToTabularDataPayloadSuccessResolvers<ContextType>;
+	ToTabularDataPayloadData?: IToTabularDataPayloadDataResolvers<ContextType>;
 	ImportRawResourceRequestResponse?: IImportRawResourceRequestResponseResolvers<ContextType>;
 	ErrorMessageOr_ResourceImage?: IErrorMessageOr_ResourceImageResolvers<ContextType>;
 	ErrorMessage?: IErrorMessageResolvers<ContextType>;
