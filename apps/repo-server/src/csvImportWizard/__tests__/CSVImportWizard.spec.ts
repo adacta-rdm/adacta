@@ -87,14 +87,14 @@ describe("CSVImportWizard", () => {
 			const a = new CSVImportWizard(sto);
 			const b = await a.toCellArray("Test.csv", { delimiter: "|" });
 
-			expect(b).toEqual(example);
+			expect(b._unsafeUnwrap()).toEqual(example);
 		});
 
 		test("preview option", async () => {
 			const a = new CSVImportWizard(sto);
 			const b = await a.toCellArray("Test.csv", { delimiter: "|", preview: 1 });
 
-			expect(b).toEqual([example[0]]);
+			expect(b._unsafeUnwrap()).toEqual([example[0]]);
 		});
 	});
 
