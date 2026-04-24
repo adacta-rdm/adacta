@@ -56,6 +56,21 @@ describe("parseTimeInformation", () => {
 		expect(unixTimeGermany).toBe(dateTimeInGermany);
 	});
 
+	test("Column type 'offset': Rejects empty offset", () => {
+		const testString = "";
+		const config: IColumnTimeConfig = {
+			columnId: "date",
+			title: "date",
+			type: "offset",
+			conversionFactor: 1e3,
+			startDate: dateTimeInGermany,
+			timezone: "Europe/Berlin",
+			normalizerIds: [],
+		};
+
+		expect(() => parseTimeInformation(testString, config, ".")).toThrowError();
+	});
+
 	// Test for various units  (ms, s, m, h) for the offset
 	// The algorithm treats all offsets the same, but there was a bug where milliseconds were
 	// ignored, resulting in an unnecessary loss of precision.

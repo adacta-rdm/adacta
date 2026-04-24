@@ -31,7 +31,17 @@ export function parseTimeInformation(
 			break;
 
 		case "offset": {
-			const offset = Number(value.replace(decimalSeparator, "."));
+			const offsetString = value.replace(decimalSeparator, ".");
+
+			// Empty strings will be converted to 0 by Number(), but that is not desired here.
+			// Interpreting an empty offset as 0 would lead to wrong timestamps which in turn would
+			// produce a (in this case confusing) error about non-descending/ascending x-values.
+			// By throwing here the user gets a warning that the time column could not be parsed for
+			// this row
+			if (offsetString.trim() === "") {
+				throw new Error("Offset column is empty");
+			}
+			const offset = Number(offsetString);
 
 			assert(!isNaN(offset), "Error while parsing offset column as number");
 
