@@ -5,11 +5,11 @@ import { graphql, useLazyLoadQuery, useMutation } from "react-relay";
 
 import { useRepoRouterHook } from "../services/router/RepoRouterHook";
 import { useRepositoryIdVariable } from "../services/router/UseRepoId";
-import { uploadFileBrowser } from "../utils/uploadFileBrowser";
 
 import type { FileUploadMutation } from "@/relay/FileUploadMutation.graphql";
 import type { FileUploadProjectsQuery } from "@/relay/FileUploadProjectsQuery.graphql";
 import type { FileUploadRequestMutation } from "@/relay/FileUploadRequestMutation.graphql";
+import { uploadFile } from "~/apps/desktop-app/src/utils/uploadFile";
 import type { IDeviceId } from "~/lib/database/Ids";
 
 const FileUploadGraphQLMutationRequest: GraphQLTaggedNode = graphql`
@@ -76,7 +76,7 @@ export function FileUpload(props: IProps) {
 			onCompleted: (result) => {
 				const { url, id: uploadId } = result.repository.importRawResourceRequest;
 
-				void uploadFileBrowser(file, url)
+				void uploadFile(file, url)
 					.then(() => importRawResource(uploadId, file.name))
 					.catch((e) => {
 						throw e;

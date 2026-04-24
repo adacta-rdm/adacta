@@ -110,7 +110,6 @@
 		"apollo-server-core": "^3.10.0",
 		"apollo-server-express": "^3.10.0",
 		"assert": "^2.0.0",
-		"axios": "^0.21.1",
 		"babel-plugin-relay": "17.0.0",
 		"benny": "^3.6.15",
 		"body-parser": "^1.20.2",
