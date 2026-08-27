@@ -1,0 +1,27 @@
+node_modules
+dist
+build
+
+# Local environment and secrets
+.env
+env/
+
+# Editor and OS files
+.idea
+.vscode
+.DS_Store
+
+# Build and tool output
+*.log
+*.tsbuildinfo
+
+# Local database files and scratch space
+temp/
+scratch
+.scratch
+
+# Leftovers from the v1 and v2 trees
+.adacta
+.deployed
+.react-router
+@
