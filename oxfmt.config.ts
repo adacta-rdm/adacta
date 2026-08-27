@@ -8,5 +8,5 @@ export default defineConfig({
 		ignoreCase: false,
 		sortSideEffects: false,
 	},
-	ignorePatterns: ["node_modules", "build", ".react-router", ".*", "!.github"],
+	ignorePatterns: ["node_modules", "build", ".react-router", "vendor", ".*", "!.github"],
 });

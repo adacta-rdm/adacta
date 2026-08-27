@@ -5,7 +5,7 @@ export default defineConfig({
 		typeAware: true,
 	},
 	plugins: ["eslint", "typescript", "unicorn", "node", "import", "jsdoc", "react", "react-perf"],
-	ignorePatterns: ["node_modules", "build", ".react-router", ".*", "!.github"],
+	ignorePatterns: ["node_modules", "build", ".react-router", "vendor", ".*", "!.github"],
 	rules: {
 		"import/no-duplicates": ["error", { preferInline: true }],
 
