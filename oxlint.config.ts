@@ -4,18 +4,8 @@ export default defineConfig({
 	options: {
 		typeAware: true,
 	},
-	plugins: ["eslint", "typescript", "unicorn", "node", "import", "jsdoc"],
-	ignorePatterns: [
-		".*",
-		"!.github",
-		"node_modules",
-		"dist",
-
-		"@",
-		".react-router",
-		".adacta",
-		"scratch",
-	],
+	plugins: ["eslint", "typescript", "unicorn", "node", "import", "jsdoc", "react", "react-perf"],
+	ignorePatterns: ["node_modules", "build", ".react-router", ".*", "!.github"],
 	rules: {
 		"import/no-duplicates": ["error", { preferInline: true }],
 

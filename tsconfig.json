@@ -3,30 +3,28 @@
 		"noEmit": true,
 		"strict": true,
 		"noUnusedLocals": true,
-		"target": "es2022",
-		"module": "esnext",
-		"moduleResolution": "Bundler",
-		"allowImportingTsExtensions": true,
+		"lib": ["DOM", "DOM.Iterable", "ES2022"],
+		"target": "ES2022",
+		"module": "ES2022",
+		"moduleResolution": "bundler",
+		"jsx": "react-jsx",
+		"verbatimModuleSyntax": true,
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"skipLibCheck": true,
-		"types": ["bun"],
+
+		// Bun is the runtime, so no Node types here.
+		"types": ["bun", "vite/client"],
+
+		// Paths are relative to the project root, not to app/. Imports read as
+		// "~/app/...", "~/lib/...", which keeps every top-level directory
+		// addressable the same way.
 		"paths": {
 			"~/*": ["./*"]
-		}
+		},
+		"rootDirs": [".", "./.react-router/types"]
 	},
-	"include": ["**/*.ts"],
-	"exclude": [
-		"node_modules",
-		"dist",
-
-		// Left over from the v1 and v2 trees. Remove these entries once the
-		// directories are deleted.
-		"@",
-		".react-router",
-		".adacta",
-		"scratch",
-		".scratch"
-	]
+	"include": ["**/*", "**/.server/**/*", "**/.client/**/*", ".react-router/types/**/*"],
+	"exclude": ["node_modules", "build", ".react-router"]
 }

@@ -8,18 +8,5 @@ export default defineConfig({
 		ignoreCase: false,
 		sortSideEffects: false,
 	},
-	ignorePatterns: [
-		".*",
-		"!.github",
-		"node_modules",
-		"dist",
-
-		// Left over from the v1 and v2 trees. Remove these entries once the
-		// directories are deleted.
-		"@",
-		".react-router",
-		".adacta",
-		"scratch",
-		".scratch",
-	],
+	ignorePatterns: ["node_modules", "build", ".react-router", ".*", "!.github"],
 });

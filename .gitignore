@@ -1,6 +1,4 @@
-node_modules
-dist
-build
+/node_modules/
 
 # Local environment and secrets
 .env
@@ -23,5 +21,8 @@ scratch
 # Leftovers from the v1 and v2 trees
 .adacta
 .deployed
-.react-router
 @
+
+# React Router
+/.react-router/
+/build/
