@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./theme.css";
 
 @theme {
 	--font-sans:
@@ -8,7 +9,7 @@
 
 html,
 body {
-	@apply bg-white dark:bg-gray-950;
+	@apply bg-canvas text-foreground;
 
 	@media (prefers-color-scheme: dark) {
 		color-scheme: dark;
