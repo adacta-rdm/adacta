@@ -1,9 +1,14 @@
+import { isNull } from "drizzle-orm";
 import { Outlet } from "react-router";
 
-import { listInventory } from "~/app/data/inventory.server";
-import { findRepository } from "~/app/data/repositories.server";
-import { groupByLocation } from "~/app/data/types";
+import { services } from "~/app/context";
 import { AppLayout } from "~/app/layout/AppLayout";
+import { sessionAuth } from "~/app/middleware/authentication";
+import { repositoryAccess } from "~/app/middleware/repositoryAccess";
+import { RepoAccess } from "~/app/services/RepoAccess";
+import { RepoDB } from "~/app/services/RepoDB";
+import { groupByLocation } from "~/app/utils/location";
+import { InventoryEntry as InventoryEntryTable } from "~/drizzle/schema/repo.InventoryEntry";
 
 import type { Route } from "./+types/$repo";
 
@@ -13,16 +18,31 @@ import type { Route } from "./+types/$repo";
  * The sidebar is shared by every section. The inventory tree is therefore loaded here
  * rather than inside the inventory section.
  */
-export function loader({ params }: Route.LoaderArgs) {
-	const repository = params.repo ? findRepository(params.repo) : undefined;
+/**
+ * Authenticate, then bind the repository, before any loader runs.
+ */
+export const middleware: Route.MiddlewareFunction[] = [sessionAuth, repositoryAccess];
 
-	if (!repository) {
-		throw new Response("Repository not found", { status: 404 });
-	}
+export function loader({ context }: Route.LoaderArgs) {
+	const [access, db] = context.get(services).get(RepoAccess, RepoDB);
 
-	const entries = listInventory(repository.slug);
+	const entries = db
+		.select()
+		.from(InventoryEntryTable)
+		.where(isNull(InventoryEntryTable.metadataDeletedAt))
+		.all()
+		.map((row) => ({
+			id: row.id,
+			name: row.name,
+			kind: row.kind,
+			location: {
+				building: row.locationBuildingIdentifier,
+				room: row.locationRoomIdentifier,
+				label: row.locationLabel,
+			},
+		}));
 
-	return { repository, entries, buildings: groupByLocation(entries) };
+	return { repository: access.repository, entries, buildings: groupByLocation(entries) };
 }
 
 export default function Repository({ loaderData }: Route.ComponentProps) {

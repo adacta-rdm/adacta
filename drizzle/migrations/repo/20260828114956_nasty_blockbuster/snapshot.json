@@ -1,7 +1,7 @@
 {
 	"version": "7",
 	"dialect": "sqlite",
-	"id": "0f5f3e56-3410-438d-9d15-3310ef2f9da6",
+	"id": "d38379b5-e870-46d0-a950-df28f9f54ed9",
 	"prevIds": ["00000000-0000-0000-0000-000000000000"],
 	"ddl": [
 		{
@@ -69,7 +69,7 @@
 			"table": "InventoryEntry"
 		},
 		{
-			"type": "integer",
+			"type": "text",
 			"notNull": false,
 			"autoincrement": false,
 			"default": null,

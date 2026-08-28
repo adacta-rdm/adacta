@@ -1,0 +1,49 @@
+import { eq } from "drizzle-orm";
+import { redirect } from "react-router";
+
+import { services } from "~/app/context";
+import type { MiddlewareArgs } from "~/app/middleware/types";
+import { BetterAuth } from "~/app/services/BetterAuth";
+import { Security } from "~/app/services/Security";
+import { SystemDB } from "~/app/services/SystemDB";
+import { User } from "~/drizzle/schema/system.BetterAuth";
+import { Env } from "~/lib/utils/Env";
+
+/**
+ * Establishes the request's user from its Better Auth session cookie.
+ *
+ * In development, ADACTA_DEV_USER may name the email of an existing user to
+ * sign in as. This keeps the login step out of the way while working. Every
+ * other request without a session is redirected to the login page.
+ */
+export async function sessionAuth({ request, context }: MiddlewareArgs): Promise<void> {
+	const container = context.get(services);
+	const [env, auth, security] = container.get(Env, BetterAuth, Security);
+
+	const session = await auth.api.getSession({ headers: request.headers });
+
+	if (session) {
+		security.setCurrentUserId(session.user.id);
+		return;
+	}
+
+	// The bypass is a development convenience and is never read in production.
+	const devUserEmail = env.isProduction() ? undefined : env.string("ADACTA_DEV_USER", undefined);
+
+	if (devUserEmail === undefined) {
+		throw redirect("/login");
+	}
+
+	const user = container
+		.get(SystemDB)
+		.select({ id: User.id })
+		.from(User)
+		.where(eq(User.email, devUserEmail))
+		.get();
+
+	if (!user) {
+		throw new Error(`ADACTA_DEV_USER "${devUserEmail}" was not found in the database.`);
+	}
+
+	security.setCurrentUserId(user.id);
+}

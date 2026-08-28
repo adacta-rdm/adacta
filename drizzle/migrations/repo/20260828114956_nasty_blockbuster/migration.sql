@@ -5,7 +5,7 @@ CREATE TABLE `InventoryEntry` (
 	`location_building_identifier` text,
 	`location_room_identifier` text,
 	`location_label` text,
-	`metadata_creator_id` integer,
+	`metadata_creator_id` text,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_deleted_at` integer
 );

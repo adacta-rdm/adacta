@@ -1,0 +1,154 @@
+import { describe, expect, test } from "bun:test";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+
+import { sql } from "drizzle-orm";
+
+import { DatabaseManager, InvalidDatabaseNameError } from "~/app/services/DatabaseManager";
+import { setupTestDatabaseEnvironment } from "~/app/testUtils/testUtils";
+import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
+import { Repository } from "~/drizzle/schema/system.Repository";
+import type { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
+import { Env } from "~/lib/utils/Env";
+
+/**
+ * A container whose databases live in a fresh temporary directory.
+ */
+const environment = setupTestDatabaseEnvironment;
+
+function dbDir(container: ServiceContainer) {
+	return container.get(Env).string("ADACTA_DB_DIR");
+}
+
+describe("DatabaseManager", () => {
+	describe("connections", () => {
+		test("hands out a usable database handle", () => {
+			const db = environment().get(DatabaseManager).system();
+
+			db.run(sql`CREATE TABLE t (id integer primary key, name text)`);
+			db.run(sql`INSERT INTO t (name) VALUES ('ada')`);
+
+			expect(db.all(sql`SELECT name FROM t`)).toEqual([{ name: "ada" }]);
+		});
+
+		test("returns the same handle for the same database", () => {
+			const databases = environment().get(DatabaseManager);
+			const first = databases.repoDb("demo");
+
+			expect(first).toBeDefined();
+			expect(databases.repoDb("demo")).toBe(first);
+		});
+
+		test("keeps databases separate", () => {
+			const databases = environment().get(DatabaseManager);
+
+			databases.repoDb("demo").run(sql`CREATE TABLE t (id integer primary key)`);
+
+			// The table exists in demo only. Pilot must therefore not see it.
+			expect(() => databases.repoDb("pilot").all(sql`SELECT * FROM t`)).toThrow();
+		});
+
+		test("the system database is not one of the repositories", () => {
+			const databases = environment().get(DatabaseManager);
+
+			expect(databases.system()).not.toBe(databases.repoDb("demo"));
+		});
+
+		test("writes files into the configured directory", () => {
+			const container = environment();
+			container.get(DatabaseManager).repoDb("demo");
+
+			expect(existsSync(join(dbDir(container), "demo.sqlite"))).toBe(true);
+		});
+
+		test("creates the directory when it does not exist", () => {
+			const nested = join(dbDir(environment()), "does", "not", "exist");
+
+			environment({ ADACTA_DB_DIR: nested }).get(DatabaseManager).system();
+
+			expect(existsSync(join(nested, "_system.sqlite"))).toBe(true);
+		});
+
+		test("is a singleton within one container", () => {
+			const container = environment();
+
+			expect(container.get(DatabaseManager)).toBe(container.get(DatabaseManager));
+		});
+
+		test("separate containers do not share databases", () => {
+			const first = environment();
+			const second = environment();
+
+			expect(dbDir(first)).not.toBe(dbDir(second));
+			expect(first.get(DatabaseManager)).not.toBe(second.get(DatabaseManager));
+		});
+	});
+
+	describe("name validation", () => {
+		test.each([["../escape"], ["a/b"], ["with space"], ["semi;colon"], [""], ["_system"]])(
+			"rejects %p",
+			(slug) => {
+				const databases = environment().get(DatabaseManager);
+
+				expect(() => databases.repoDb(slug)).toThrow(InvalidDatabaseNameError);
+			},
+		);
+
+		test("creates no file for a rejected name", () => {
+			const container = environment();
+
+			expect(() => container.get(DatabaseManager).repoDb("../escape")).toThrow();
+			expect(existsSync(join(dbDir(container), "..", "escape.sqlite"))).toBe(false);
+		});
+
+		test("accepts letters, digits, dashes and underscores", () => {
+			const databases = environment().get(DatabaseManager);
+
+			expect(() => databases.repoDb("demo-1_A")).not.toThrow();
+		});
+	});
+
+	describe("migrations", () => {
+		test("migrateSystem creates the system tables", () => {
+			const container = environment();
+			container.get(DatabaseManager).migrateSystem();
+
+			expect(() =>
+				container.get(DatabaseManager).system().select().from(Repository).all(),
+			).not.toThrow();
+		});
+
+		test("migrateRepository creates the repository tables", () => {
+			const databases = environment().get(DatabaseManager);
+			databases.migrateRepository("demo");
+
+			expect(() => databases.repoDb("demo").select().from(InventoryEntry).all()).not.toThrow();
+		});
+
+		test("migrating twice is safe", () => {
+			const databases = environment().get(DatabaseManager);
+			databases.migrateSystem();
+			databases.migrateRepository("demo");
+
+			expect(() => {
+				databases.migrateSystem();
+				databases.migrateRepository("demo");
+			}).not.toThrow();
+		});
+
+		test("does not migrate on open", () => {
+			const databases = environment().get(DatabaseManager);
+
+			// Opening must stay cheap: the repository database is bound per request.
+			expect(() => databases.repoDb("demo").select().from(InventoryEntry).all()).toThrow();
+		});
+
+		test("rejects an unsafe name before migrating", () => {
+			const container = environment();
+
+			expect(() => container.get(DatabaseManager).migrateRepository("../escape")).toThrow(
+				InvalidDatabaseNameError,
+			);
+		});
+	});
+});

@@ -1,8 +1,10 @@
 import { Link } from "react-router";
 
-import { listRepositories } from "~/app/data/repositories.server";
+import { services } from "~/app/context";
+import { SystemDB } from "~/app/services/SystemDB";
 import { Heading } from "~/catalyst-ui/heading";
 import { Text } from "~/catalyst-ui/text";
+import { Repository } from "~/drizzle/schema/system.Repository";
 
 import type { Route } from "./+types/_index";
 
@@ -10,8 +12,15 @@ export function meta() {
 	return [{ title: "Repositories — Adacta" }];
 }
 
-export function loader() {
-	return { repositories: listRepositories() };
+export function loader({ context }: Route.LoaderArgs) {
+	const repositories = context
+		.get(services)
+		.get(SystemDB)
+		.select({ id: Repository.id, slug: Repository.slug, name: Repository.name })
+		.from(Repository)
+		.all();
+
+	return { repositories };
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {

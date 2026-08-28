@@ -1,12 +1,28 @@
 /**
- * Seed script.
+ * Development seed.
  *
- * Creates two repositories and fills each with inventory. Safe to re-run: it
- * clears the tables first. Run with "bun run db:seed".
+ * Goes through the same services the application uses: users are created with
+ * Better Auth, repositories with RepoManager, and a repository is bound with
+ * RepoAccess before its data is written. Nothing here reaches for a raw
+ * database handle, so the seed exercises the real access path.
+ *
+ * Re-running clears the inventory of each repository and leaves the rest alone.
+ * Run with "bun run db:seed".
  */
-import { getGlobalDb, getRepoDb } from "~/app/db/connect.server";
-import { Repository } from "~/drizzle/schema/global.Repository";
+import { createAppContainer } from "~/app/createAppContainer.server";
+import { BetterAuth } from "~/app/services/BetterAuth";
+import { RepoAccess } from "~/app/services/RepoAccess";
+import { RepoDB } from "~/app/services/RepoDB";
+import { RepoManager, RepositoryAlreadyExistsError } from "~/app/services/RepoManager";
+import { Security } from "~/app/services/Security";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
+import type { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
+
+const USER = {
+	name: "Test User",
+	email: "dev@adacta.test",
+	password: "password",
+} as const;
 
 type Seed = {
 	slug: string;
@@ -44,19 +60,77 @@ const repositories: Seed[] = [
 	},
 ];
 
-const now = new Date();
-const globalDb = getGlobalDb();
+const container = createAppContainer();
+const manager = container.get(RepoManager);
 
-globalDb.delete(Repository).run();
+manager.migrateAll();
+
+const userId = await ensureUser(container);
 
 for (const seed of repositories) {
-	globalDb.insert(Repository).values({ slug: seed.slug, name: seed.name, createdAt: now }).run();
+	ensureRepository(manager, seed);
+	manager.grantAccess(userId, seed.slug);
 
-	const repoDb = getRepoDb(seed.slug);
-	repoDb.delete(InventoryEntry).run();
+	writeInventory(scopeFor(container, userId, seed.slug), seed);
 
-	repoDb
-		.insert(InventoryEntry)
+	console.log(`seeded ${seed.slug}: ${seed.entries.length} inventory entries`);
+}
+
+console.log(`user: ${USER.email} / ${USER.password}`);
+console.log(`repositories: ${repositories.map((r) => r.slug).join(", ")}`);
+
+/**
+ * Sign the seed user up through Better Auth, or find them if they exist.
+ */
+async function ensureUser(app: ServiceContainer): Promise<string> {
+	const auth = app.get(BetterAuth);
+
+	const response = await auth.api.signUpEmail({
+		body: { name: USER.name, email: USER.email, password: USER.password },
+		asResponse: true,
+	});
+
+	if (response.ok) {
+		const { user } = (await response.json()) as { user: { id: string } };
+		return user.id;
+	}
+
+	// The user was signed up on an earlier run. Sign in instead.
+	const session = await auth.api.signInEmail({
+		body: { email: USER.email, password: USER.password },
+	});
+
+	return session.user.id;
+}
+
+function ensureRepository(repoManager: RepoManager, seed: Seed): void {
+	try {
+		repoManager.createRepository(seed.slug, seed.name);
+	} catch (error) {
+		if (!(error instanceof RepositoryAlreadyExistsError)) throw error;
+	}
+}
+
+/**
+ * A request-like scope with the seed user authenticated and one repository
+ * bound. RepoDatabase needs both to resolve.
+ */
+function scopeFor(app: ServiceContainer, userId: string, slug: string): ServiceContainer {
+	const scope = app.clone();
+
+	scope.get(Security).setCurrentUserId(userId);
+	scope.get(RepoAccess).selectRepository(slug);
+
+	return scope;
+}
+
+function writeInventory(scope: ServiceContainer, seed: Seed): void {
+	const db = scope.get(RepoDB);
+	const now = new Date();
+
+	db.delete(InventoryEntry).run();
+
+	db.insert(InventoryEntry)
 		.values(
 			seed.entries.map((entry) => ({
 				name: entry.name,
@@ -64,12 +138,13 @@ for (const seed of repositories) {
 				locationBuildingIdentifier: entry.building ?? null,
 				locationRoomIdentifier: entry.room ?? null,
 				locationLabel: entry.label ?? null,
+				metadataCreatorId: userIdOf(scope),
 				metadataCreationTimestamp: now,
 			})),
 		)
 		.run();
-
-	console.log(`seeded ${seed.slug}: ${seed.entries.length} inventory entries`);
 }
 
-console.log(`repositories: ${repositories.map((r) => r.slug).join(", ")}`);
+function userIdOf(scope: ServiceContainer): string {
+	return scope.get(Security).userId;
+}

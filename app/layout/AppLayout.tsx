@@ -9,7 +9,7 @@ import { BuildingOffice2Icon, CubeIcon, RectangleGroupIcon } from "@heroicons/re
 import type { ReactNode } from "react";
 import { useLocation, useParams } from "react-router";
 
-import type { Building, InventoryKind, Repository } from "~/app/data/types";
+import type { Building, Located } from "~/app/utils/location";
 import { Navbar, NavbarSection, NavbarSpacer } from "~/catalyst-ui/navbar";
 import {
 	Sidebar,
@@ -21,10 +21,18 @@ import {
 	SidebarSection,
 } from "~/catalyst-ui/sidebar";
 import { SidebarLayout } from "~/catalyst-ui/sidebar-layout";
+import type { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
 
 /**
  * Custom rigs carry a P&ID; standalone equipment does not.
  */
+type InventoryKind = (typeof InventoryEntry.$inferSelect)["kind"];
+
+/**
+ * What the sidebar tree is built from: a named, placed entry with a kind.
+ */
+type Entry = Located & { id: number; kind: InventoryKind };
+
 function KindIcon({ kind }: { kind: InventoryKind }) {
 	return kind === "rig" ? <RectangleGroupIcon /> : <CubeIcon />;
 }
@@ -34,7 +42,7 @@ function LocationTree({
 	repo,
 	entryId,
 }: {
-	buildings: Building[];
+	buildings: Building<Entry>[];
 	repo: string | undefined;
 	entryId: string | undefined;
 }) {
@@ -83,14 +91,17 @@ export function AppLayout({
 	buildings,
 	children,
 }: {
-	repository: Repository;
-	buildings: Building[];
+	/**
+	 * The slug of the repository in scope.
+	 */
+	repository: string;
+	buildings: Building<Entry>[];
 	children: ReactNode;
 }) {
 	const { pathname } = useLocation();
 	const { repo, entryId } = useParams();
 
-	const title = repository.name;
+	const title = repository;
 
 	const isCurrent = (segment: string) => {
 		const href = `/${repo}/${segment}`;
