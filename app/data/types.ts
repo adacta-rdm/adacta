@@ -1,17 +1,13 @@
 /**
- * Inventory entries and their location hierarchy.
- *
- * Fixture data for now. Only the bodies of these functions change when the
- * database lands; routes stay untouched.
- *
- * An entry is a physical thing that sits somewhere in the lab. Two kinds:
- *
- *   rig        custom built, has a P&ID
- *   equipment  standalone vendor equipment, has a location but no P&ID
- *
- * NAMING: "entry" is a placeholder. The term for this concept has not been
- * chosen yet. "Facility" is deliberately not used.
+ * Shapes shared by loaders and components, plus the pure helpers that work on
+ * them. No database imports, so this is safe in the browser bundle.
  */
+
+export type Repository = {
+	id: number;
+	slug: string;
+	name: string;
+};
 
 export type InventoryKind = "rig" | "equipment";
 
@@ -22,58 +18,14 @@ export type Location = {
 };
 
 export type InventoryEntry = {
-	id: string;
+	id: number;
 	name: string;
 	kind: InventoryKind;
 	location: Location;
 };
 
-const entries: InventoryEntry[] = [
-	{
-		id: "ammonia-rig",
-		name: "Ammonia Synthesis Rig",
-		kind: "rig",
-		location: { building: "B3", room: "101", label: "Bench 2" },
-	},
-	{
-		id: "so2-rig",
-		name: "SO2 Oxidation Rig",
-		kind: "rig",
-		location: { building: "B3", room: "101", label: null },
-	},
-	{
-		id: "analytical-balance",
-		name: "Analytical Balance XS205",
-		kind: "equipment",
-		location: { building: "B3", room: "102", label: null },
-	},
-	{
-		id: "micro-gc",
-		name: "Micro GC 490",
-		kind: "equipment",
-		location: { building: "B3", room: "102", label: "Cabinet A" },
-	},
-	{
-		id: "methanation-rig",
-		name: "Methanation Test Stand",
-		kind: "rig",
-		location: { building: "B7", room: "12", label: null },
-	},
-	{
-		id: "spare-mfc",
-		name: "Mass Flow Controller (spare)",
-		kind: "equipment",
-		location: { building: null, room: null, label: null },
-	},
-];
-
-export function listInventory(): InventoryEntry[] {
-	return entries;
-}
-
-export function findInventoryEntry(id: string): InventoryEntry | undefined {
-	return entries.find((entry) => entry.id === id);
-}
+export type Room = { identifier: string | null; entries: InventoryEntry[] };
+export type Building = { identifier: string | null; rooms: Room[] };
 
 export function formatLocation(location: Location): string {
 	return [
@@ -84,9 +36,6 @@ export function formatLocation(location: Location): string {
 		.filter((part): part is string => Boolean(part))
 		.join(" · ");
 }
-
-export type Room = { identifier: string | null; entries: InventoryEntry[] };
-export type Building = { identifier: string | null; rooms: Room[] };
 
 const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
 

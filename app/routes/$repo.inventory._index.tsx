@@ -1,16 +1,20 @@
 import { CubeIcon, RectangleGroupIcon } from "@heroicons/react/20/solid";
-import { Link, useParams } from "react-router";
+import { Link, useRouteLoaderData } from "react-router";
 
-import { formatLocation, listInventory } from "~/app/data/inventory";
+import { formatLocation } from "~/app/data/types";
 import { Badge } from "~/catalyst-ui/badge";
 import { Heading, Subheading } from "~/catalyst-ui/heading";
 
-export function loader() {
-	return { entries: listInventory() };
-}
+import type { loader as repoLoader } from "./$repo";
 
-export default function InventoryIndex({ loaderData }: { loaderData: ReturnType<typeof loader> }) {
-	const { repo } = useParams();
+/**
+ * No loader here. The repository route already loaded the inventory for the
+ * sidebar tree. This reads the same data instead of querying again.
+ */
+export default function InventoryIndex() {
+	const data = useRouteLoaderData<typeof repoLoader>("routes/$repo");
+
+	if (!data) return null;
 
 	return (
 		<>
@@ -20,10 +24,10 @@ export default function InventoryIndex({ loaderData }: { loaderData: ReturnType<
 			</Subheading>
 
 			<ul className="mt-6 divide-y divide-zinc-950/5 dark:divide-white/10">
-				{loaderData.entries.map((entry) => (
+				{data.entries.map((entry) => (
 					<li key={entry.id}>
 						<Link
-							to={`/${repo}/inventory/${entry.id}`}
+							to={`/${data.repository.slug}/inventory/${entry.id}`}
 							className="flex items-center gap-3 py-3 hover:bg-zinc-950/[2.5%] dark:hover:bg-white/5"
 						>
 							{entry.kind === "rig" ? (

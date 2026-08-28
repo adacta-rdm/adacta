@@ -9,8 +9,7 @@ import { BuildingOffice2Icon, CubeIcon, RectangleGroupIcon } from "@heroicons/re
 import type { ReactNode } from "react";
 import { useLocation, useParams } from "react-router";
 
-import type { Building, InventoryKind } from "~/app/data/inventory";
-import { findRepository } from "~/app/data/repositories";
+import type { Building, InventoryKind, Repository } from "~/app/data/types";
 import { Navbar, NavbarSection, NavbarSpacer } from "~/catalyst-ui/navbar";
 import {
 	Sidebar,
@@ -62,7 +61,7 @@ function LocationTree({
 										<li key={entry.id}>
 											<SidebarItem
 												href={`/${repo}/inventory/${entry.id}`}
-												current={entry.id === entryId}
+												current={String(entry.id) === entryId}
 											>
 												<KindIcon kind={entry.kind} />
 												<SidebarLabel>{entry.name}</SidebarLabel>
@@ -79,12 +78,19 @@ function LocationTree({
 	);
 }
 
-export function AppLayout({ buildings, children }: { buildings: Building[]; children: ReactNode }) {
+export function AppLayout({
+	repository,
+	buildings,
+	children,
+}: {
+	repository: Repository;
+	buildings: Building[];
+	children: ReactNode;
+}) {
 	const { pathname } = useLocation();
 	const { repo, entryId } = useParams();
 
-	const repository = repo ? findRepository(repo) : undefined;
-	const title = repository?.name ?? repo ?? "Adacta";
+	const title = repository.name;
 
 	const isCurrent = (segment: string) => {
 		const href = `/${repo}/${segment}`;

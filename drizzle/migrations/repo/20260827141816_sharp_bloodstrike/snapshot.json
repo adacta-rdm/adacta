@@ -1,0 +1,110 @@
+{
+	"version": "7",
+	"dialect": "sqlite",
+	"id": "0f5f3e56-3410-438d-9d15-3310ef2f9da6",
+	"prevIds": ["00000000-0000-0000-0000-000000000000"],
+	"ddl": [
+		{
+			"name": "InventoryEntry",
+			"entityType": "tables"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": true,
+			"default": null,
+			"generated": null,
+			"name": "inventory_entry_id",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "kind",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "location_building_identifier",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "location_room_identifier",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "location_label",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_deleted_at",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"columns": ["inventory_entry_id"],
+			"nameExplicit": false,
+			"name": "InventoryEntry_pk",
+			"table": "InventoryEntry",
+			"entityType": "pks"
+		}
+	],
+	"renames": []
+}
