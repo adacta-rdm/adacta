@@ -3,8 +3,9 @@
  *
  * Setup functions operate on service containers and return only the configured
  * container. Tests construct their own inputs and resolve the services or data
- * they need from that container. Environment overrides are passed as raw values;
- * the setup functions always install them in the `test` environment.
+ * they need from that container. Environment overrides are passed as raw values,
+ * and install in the `test` environment unless a test names another one, which
+ * is what a test of production-only behavior needs.
  *
  * The setups build on each other: an environment, then databases, then a
  * migrated schema, then a registered user. Each step uses the same services the
@@ -29,9 +30,9 @@ export const TEST_USER = {
 /**
  * Create the root service-container environment shared by more specialized test fixtures.
  */
-export function setupTestEnvironment(env: EnvSource = {}): ServiceContainer {
+export function setupTestEnvironment(env: EnvSource = {}, mode = "test"): ServiceContainer {
 	const container = new ServiceContainer();
-	container.set(new Env(env, "test"));
+	container.set(new Env(env, mode));
 	return container;
 }
 
@@ -42,17 +43,20 @@ export function setupTestEnvironment(env: EnvSource = {}): ServiceContainer {
  * The directory is left behind on purpose. It costs nothing, and it means the
  * SQLite file of a failing test can still be opened afterwards.
  */
-export function setupTestDatabaseEnvironment(env: EnvSource = {}): ServiceContainer {
+export function setupTestDatabaseEnvironment(env: EnvSource = {}, mode = "test"): ServiceContainer {
 	const dbDir = mkdtempSync(join(tmpdir(), "adacta-test-"));
 
-	return setupTestEnvironment({ ADACTA_DB_DIR: dbDir, ...env });
+	return setupTestEnvironment({ ADACTA_DB_DIR: dbDir, ...env }, mode);
 }
 
 /**
  * Create an environment with a migrated system database and no data in it.
  */
-export function setupEmptyTestDatabaseEnvironment(env: EnvSource = {}): ServiceContainer {
-	const container = setupTestDatabaseEnvironment(env);
+export function setupEmptyTestDatabaseEnvironment(
+	env: EnvSource = {},
+	mode = "test",
+): ServiceContainer {
+	const container = setupTestDatabaseEnvironment(env, mode);
 
 	container.get(RepoManager).migrateAll();
 
@@ -63,8 +67,11 @@ export function setupEmptyTestDatabaseEnvironment(env: EnvSource = {}): ServiceC
  * Create a database environment containing one user registered through the
  * production authentication service. That user is set as the current identity.
  */
-export async function setupTestUserEnvironment(env: EnvSource = {}): Promise<ServiceContainer> {
-	const container = setupEmptyTestDatabaseEnvironment(env);
+export async function setupTestUserEnvironment(
+	env: EnvSource = {},
+	mode = "test",
+): Promise<ServiceContainer> {
+	const container = setupEmptyTestDatabaseEnvironment(env, mode);
 
 	container.get(Security).setCurrentUserId(await signUpTestUser(container));
 
@@ -72,6 +79,30 @@ export async function setupTestUserEnvironment(env: EnvSource = {}): Promise<Ser
 }
 
 type TestUserOverrides = { name?: string; email?: string; password?: string };
+
+/**
+ * Sign a user in and return the value for a request's Cookie header. A test can
+ * then make a request that carries a real session.
+ *
+ * Only the name=value part of each cookie is kept. The attributes a server
+ * sends back (Path, HttpOnly) do not belong in a request header.
+ */
+export async function signInTestUser(
+	container: ServiceContainer,
+	overrides: TestUserOverrides = {},
+): Promise<string> {
+	const { email, password } = { ...TEST_USER, ...overrides };
+
+	const response = await container.get(BetterAuth).api.signInEmail({
+		body: { email, password },
+		asResponse: true,
+	});
+
+	return response.headers
+		.getSetCookie()
+		.map((cookie) => cookie.split(";", 1)[0])
+		.join("; ");
+}
 
 /**
  * Register a user through Better Auth and return the new user id.
