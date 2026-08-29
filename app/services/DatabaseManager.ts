@@ -62,7 +62,16 @@ export class DatabaseManager {
 		let connection = this.#connections.get(dbName);
 
 		if (!connection) {
-			connection = drizzle({ client: new SQLite(`${this.#dbDir}/${dbName}.sqlite`) });
+			const client = new SQLite(`${this.#dbDir}/${dbName}.sqlite`);
+
+			// SQLite checks foreign keys only when asked. The setting belongs to the
+			// connection rather than to the file. Every connection therefore turns it
+			// on. A migration that rebuilds a table has to use
+			// "PRAGMA defer_foreign_keys" instead. This setting does nothing inside a
+			// transaction.
+			client.run("PRAGMA foreign_keys = ON");
+
+			connection = drizzle({ client });
 			this.#connections.set(dbName, connection);
 		}
 

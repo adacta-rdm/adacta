@@ -69,6 +69,16 @@ describe("DatabaseManager", () => {
 			expect(existsSync(join(nested, "_system.sqlite"))).toBe(true);
 		});
 
+		test("enforces foreign keys", () => {
+			const db = environment().get(DatabaseManager).repoDb("demo");
+
+			db.run(sql`CREATE TABLE parent (id integer primary key)`);
+			db.run(sql`CREATE TABLE child (parent_id integer references parent(id))`);
+
+			// No parent row with id 1 exists. The child row must therefore be rejected.
+			expect(() => db.run(sql`INSERT INTO child (parent_id) VALUES (1)`)).toThrow();
+		});
+
 		test("is a singleton within one container", () => {
 			const container = environment();
 
