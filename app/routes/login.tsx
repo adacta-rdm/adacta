@@ -19,7 +19,7 @@ export default function Login() {
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
 
-	async function signIn(event: React.FormEvent) {
+	async function signIn(event: React.SyntheticEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setError("");
 
