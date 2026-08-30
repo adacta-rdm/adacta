@@ -1,3 +1,6 @@
+import { stdout } from "node:process";
+
+import { Logger, logLevelFromName } from "~/lib/logger/Logger";
 import { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
 import { Env } from "~/lib/utils/Env";
 
@@ -12,6 +15,14 @@ import { Env } from "~/lib/utils/Env";
 export function createAppContainer(env = new Env()): ServiceContainer {
 	const container = new ServiceContainer();
 	container.set(env);
+
+	container.set(
+		new Logger({
+			level: logLevelFromName(env.string("ADACTA_LOG_LEVEL", "info")),
+			stream: stdout,
+		}),
+	);
+
 	return container;
 }
 

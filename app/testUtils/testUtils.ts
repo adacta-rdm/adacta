@@ -18,6 +18,7 @@ import { join } from "node:path";
 import { BetterAuth } from "~/app/services/BetterAuth";
 import { RepoManager } from "~/app/services/RepoManager";
 import { Security } from "~/app/services/Security";
+import { SilentLogger } from "~/lib/logger/SilentLogger";
 import { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
 import { Env, type EnvSource } from "~/lib/utils/Env";
 
@@ -33,6 +34,7 @@ export const TEST_USER = {
 export function setupTestEnvironment(env: EnvSource = {}, mode = "test"): ServiceContainer {
 	const container = new ServiceContainer();
 	container.set(new Env(env, mode));
+	container.set(new SilentLogger());
 	return container;
 }
 

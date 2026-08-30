@@ -9,6 +9,7 @@ import {
 	User,
 	Verification,
 } from "~/drizzle/schema/system.BetterAuth";
+import { Logger } from "~/lib/logger/Logger";
 import { service } from "~/lib/serviceContainer/ServiceContainer";
 
 /**
@@ -19,9 +20,16 @@ import { service } from "~/lib/serviceContainer/ServiceContainer";
  * Better Auth stores the passwords. The user table has no password column of
  * its own.
  */
-export const BetterAuth = service(SystemDB)((db) => {
+export const BetterAuth = service(
+	SystemDB,
+	Logger,
+)((db, logger) => {
 	return betterAuth({
 		emailAndPassword: { enabled: true },
+
+		// Better Auth writes through the application logger. A test run therefore
+		// stays quiet. A server keeps its messages in one place.
+		logger: { level: "debug", log: (level, message) => logger[level](message) },
 
 		advanced: { database: { joins: true } },
 
