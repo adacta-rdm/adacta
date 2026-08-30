@@ -6,10 +6,12 @@
  * RepoAccess before its data is written. Nothing here reaches for a raw
  * database handle, so the seed exercises the real access path.
  *
- * Re-running clears the inventory of each repository and leaves the rest alone.
- * Run with "bun run db:seed".
+ * Migrations run first, so this works on an empty database directory. Re-running
+ * on a populated one clears the inventory of each repository and leaves users
+ * and repositories alone.
+ *
+ * Run with "bun run db:seed", or "bun run db:setup" to start from a wipe.
  */
-import { createAppContainer } from "~/app/createAppContainer.server";
 import { BetterAuth } from "~/app/services/BetterAuth";
 import { RepoAccess } from "~/app/services/RepoAccess";
 import { RepoDB } from "~/app/services/RepoDB";
@@ -60,24 +62,28 @@ const repositories: Seed[] = [
 	},
 ];
 
-const container = createAppContainer();
-const manager = container.get(RepoManager);
+/**
+ * Write the development fixtures into the databases of this container.
+ */
+export async function seedDatabase(container: ServiceContainer): Promise<void> {
+	const manager = container.get(RepoManager);
 
-manager.migrateAll();
+	manager.migrateAll();
 
-const userId = await ensureUser(container);
+	const userId = await ensureUser(container);
 
-for (const seed of repositories) {
-	ensureRepository(manager, seed);
-	manager.grantAccess(userId, seed.slug);
+	for (const seed of repositories) {
+		ensureRepository(manager, seed);
+		manager.grantAccess(userId, seed.slug);
 
-	writeInventory(scopeFor(container, userId, seed.slug), seed);
+		writeInventory(scopeFor(container, userId, seed.slug), seed);
 
-	console.log(`seeded ${seed.slug}: ${seed.entries.length} inventory entries`);
+		console.log(`seeded ${seed.slug}: ${seed.entries.length} inventory entries`);
+	}
+
+	console.log(`user: ${USER.email} / ${USER.password}`);
+	console.log(`repositories: ${repositories.map((r) => r.slug).join(", ")}`);
 }
-
-console.log(`user: ${USER.email} / ${USER.password}`);
-console.log(`repositories: ${repositories.map((r) => r.slug).join(", ")}`);
 
 /**
  * Sign the seed user up through Better Auth, or find them if they exist.
