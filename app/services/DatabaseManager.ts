@@ -1,5 +1,5 @@
 import { Database as SQLite } from "bun:sqlite";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readdirSync, rmSync } from "node:fs";
 
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
@@ -11,6 +11,8 @@ import { Env } from "~/lib/utils/Env";
  * See drizzle/schema/system.*.ts for what the system database holds.
  */
 const SYSTEM_DB_NAME = "_system";
+
+const SUFFIX = ".sqlite";
 
 const SYSTEM_MIGRATIONS = "drizzle/migrations/system";
 const REPO_MIGRATIONS = "drizzle/migrations/repo";
@@ -58,11 +60,38 @@ export class DatabaseManager {
 		migrate(this.repoDb(slug), { migrationsFolder: REPO_MIGRATIONS });
 	}
 
+	/**
+	 * Delete the system database. Everything it holds goes with it.
+	 */
+	dropSystem(): void {
+		this.#drop(SYSTEM_DB_NAME);
+	}
+
+	/**
+	 * Delete one repository's database, with all of its data.
+	 */
+	dropRepository(slug: string): void {
+		this.#drop(this.#validated(slug));
+	}
+
+	/**
+	 * Delete every database in the directory, the system one included.
+	 *
+	 * This works from the files rather than from the repository records. A file
+	 * that no record refers to is therefore deleted as well. A reset reaches the
+	 * same state whether the directory was empty or still held old files.
+	 */
+	dropAll(): void {
+		for (const file of readdirSync(this.#dbDir)) {
+			if (file.endsWith(SUFFIX)) this.#drop(file.slice(0, -SUFFIX.length));
+		}
+	}
+
 	#open(dbName: string) {
 		let connection = this.#connections.get(dbName);
 
 		if (!connection) {
-			const client = new SQLite(`${this.#dbDir}/${dbName}.sqlite`);
+			const client = new SQLite(`${this.#dbDir}/${dbName}${SUFFIX}`);
 
 			// SQLite checks foreign keys only when asked. The setting belongs to the
 			// connection rather than to the file. Every connection therefore turns it
@@ -76,6 +105,21 @@ export class DatabaseManager {
 		}
 
 		return connection;
+	}
+
+	/**
+	 * Close the connection before removing the file. Forget it as well. A later
+	 * open then builds a new database instead of returning the closed
+	 * connection.
+	 *
+	 * Deleting a database that is not there is not an error. The end state is
+	 * the one the caller asked for.
+	 */
+	#drop(dbName: string): void {
+		this.#connections.get(dbName)?.$client.close();
+		this.#connections.delete(dbName);
+
+		rmSync(`${this.#dbDir}/${dbName}${SUFFIX}`, { force: true });
 	}
 
 	/**

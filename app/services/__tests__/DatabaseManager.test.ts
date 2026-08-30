@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { sql } from "drizzle-orm";
@@ -115,6 +115,96 @@ describe("DatabaseManager", () => {
 			const databases = environment().get(DatabaseManager);
 
 			expect(() => databases.repoDb("demo-1_A")).not.toThrow();
+		});
+	});
+
+	describe("dropping", () => {
+		test("removes the repository file", () => {
+			const container = environment();
+			const databases = container.get(DatabaseManager);
+			databases.migrateRepository("demo");
+
+			databases.dropRepository("demo");
+
+			expect(existsSync(join(dbDir(container), "demo.sqlite"))).toBe(false);
+		});
+
+		test("removes the system file", () => {
+			const container = environment();
+			const databases = container.get(DatabaseManager);
+			databases.migrateSystem();
+
+			databases.dropSystem();
+
+			expect(existsSync(join(dbDir(container), "_system.sqlite"))).toBe(false);
+		});
+
+		test("a dropped repository comes back as a usable empty database", () => {
+			const databases = environment().get(DatabaseManager);
+			databases.migrateRepository("demo");
+
+			databases.dropRepository("demo");
+
+			// A closed handle would throw here. Opening again has to build a new
+			// database. That database starts without the migrated tables.
+			const db = databases.repoDb("demo");
+			db.run(sql`CREATE TABLE t (id integer primary key)`);
+
+			expect(db.all(sql`SELECT * FROM t`)).toEqual([]);
+			expect(() => db.select().from(InventoryEntry).all()).toThrow();
+		});
+
+		test("leaves other databases alone", () => {
+			const databases = environment().get(DatabaseManager);
+			databases.migrateRepository("demo");
+			databases.migrateRepository("pilot");
+
+			databases.dropRepository("demo");
+
+			expect(() => databases.repoDb("pilot").select().from(InventoryEntry).all()).not.toThrow();
+		});
+
+		test("dropping a repository that does not exist is not an error", () => {
+			const databases = environment().get(DatabaseManager);
+
+			expect(() => databases.dropRepository("never-created")).not.toThrow();
+		});
+
+		test.each([["../escape"], ["a/b"], ["_system"]])("rejects unsafe name %p", (slug) => {
+			const databases = environment().get(DatabaseManager);
+
+			expect(() => databases.dropRepository(slug)).toThrow(InvalidDatabaseNameError);
+		});
+
+		test("dropAll empties the directory", () => {
+			const container = environment();
+			const databases = container.get(DatabaseManager);
+			databases.migrateSystem();
+			databases.migrateRepository("demo");
+			databases.migrateRepository("pilot");
+
+			databases.dropAll();
+
+			expect(readdirSync(dbDir(container))).toEqual([]);
+		});
+
+		test("dropAll removes a file no repository record knows about", () => {
+			const container = environment();
+			const databases = container.get(DatabaseManager);
+			writeFileSync(join(dbDir(container), "orphan.sqlite"), "");
+
+			databases.dropAll();
+
+			expect(existsSync(join(dbDir(container), "orphan.sqlite"))).toBe(false);
+		});
+
+		test("deletes nothing when the name is rejected", () => {
+			const container = environment();
+			const databases = container.get(DatabaseManager);
+			databases.migrateSystem();
+
+			expect(() => databases.dropRepository("_system")).toThrow();
+			expect(existsSync(join(dbDir(container), "_system.sqlite"))).toBe(true);
 		});
 	});
 

@@ -106,6 +106,46 @@ describe("RepoManager", () => {
 		);
 	});
 
+	test("deletes a repository", async () => {
+		const container = environment();
+		const manager = container.get(RepoManager);
+		manager.createRepository("demo");
+		manager.createRepository("pilot");
+
+		manager.deleteRepository("demo");
+
+		expect(manager.repositories()).toEqual(["pilot"]);
+	});
+
+	test("deletes the repository database", () => {
+		const container = environment();
+		const manager = container.get(RepoManager);
+		manager.createRepository("demo");
+
+		manager.deleteRepository("demo");
+
+		const dbDir = container.get(Env).string("ADACTA_DB_DIR");
+		expect(existsSync(join(dbDir, "demo.sqlite"))).toBe(false);
+	});
+
+	test("deletes the grants with the repository", async () => {
+		const container = environment();
+		const manager = container.get(RepoManager);
+		const userId = await signUpTestUser(container);
+		manager.createRepository("demo");
+		manager.grantAccess(userId, "demo");
+
+		manager.deleteRepository("demo");
+
+		expect(container.get(SystemDB).select().from(UserRepository).all()).toEqual([]);
+	});
+
+	test("rejects deleting a repository that does not exist", () => {
+		const manager = environment().get(RepoManager);
+
+		expect(() => manager.deleteRepository("nope")).toThrow(RepositoryNotFoundError);
+	});
+
 	test("lists nothing before anything is created", () => {
 		expect(environment().get(RepoManager).repositories()).toEqual([]);
 	});

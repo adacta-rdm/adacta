@@ -49,6 +49,25 @@ export class RepoManager {
 	}
 
 	/**
+	 * Delete a repository: forget the record, then remove its database.
+	 *
+	 * The record goes first. An orphaned file is invisible to the application,
+	 * while a record whose database is gone breaks every request that opens it.
+	 * The foreign key deletes the grants together with the record.
+	 *
+	 * @throws RepositoryNotFoundError if no such repository exists.
+	 */
+	deleteRepository(slug: string): void {
+		if (!this.find(slug)) {
+			throw new RepositoryNotFoundError(slug);
+		}
+
+		this.system.delete(Repository).where(eq(Repository.slug, slug)).run();
+
+		this.databases.dropRepository(slug);
+	}
+
+	/**
 	 * Apply pending migrations to the system database and every repository.
 	 */
 	migrateAll(): void {
