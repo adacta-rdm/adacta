@@ -28,7 +28,10 @@ export async function sessionAuth({ request, context }: MiddlewareArgs): Promise
 	}
 
 	// The bypass is a development convenience and is never read in production.
-	const devUserEmail = env.isProduction() ? undefined : env.string("ADACTA_DEV_USER", undefined);
+	const devUserEmail =
+		import.meta.env.NODE_ENV === "production"
+			? undefined
+			: env.string("ADACTA_DEV_USER", undefined);
 
 	if (devUserEmail === undefined) {
 		throw redirect("/login");

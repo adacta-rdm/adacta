@@ -60,8 +60,8 @@ Use `db:setup` when a database is in an unclear state. It starts from an empty
 directory. The result is therefore the same whether databases were present or
 not.
 
-`db:reset`, `db:setup`, and `db:seed` stop with an error when `APP_ENV` names a
-production environment. `db:migrations:migrate` is allowed in any environment.
+`db:reset`, `db:setup`, and `db:seed` stop with an error when `NODE_ENV` is
+`production`. `db:migrations:migrate` is always allowed.
 
 Running `db:seed` again is safe. It replaces the inventory of each repository
 and leaves the users and the repositories unchanged.
@@ -93,10 +93,9 @@ there.
 | Variable           | Meaning                                                                   |
 | ------------------ | ------------------------------------------------------------------------- |
 | `ADACTA_DB_DIR`    | Directory that holds the SQLite files. Defaults to `.adacta/db`           |
-| `APP_ENV`          | Name of the environment. Defaults to `dev`                                |
 | `ADACTA_DEV_USER`  | Email address of an existing user to sign in as, without the login form   |
 | `ADACTA_LOG_LEVEL` | One of silent, fatal, error, warn, info, debug, trace. Defaults to `info` |
 | `PORT`             | Port for `bun run start`. Defaults to 3000                                |
 
-`ADACTA_DEV_USER` is meant for development. It is never read when `APP_ENV`
-names a production environment.
+`ADACTA_DEV_USER` is meant for development. It is never read when `NODE_ENV` is
+`production`.

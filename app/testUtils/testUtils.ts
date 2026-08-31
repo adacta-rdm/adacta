@@ -3,9 +3,7 @@
  *
  * Setup functions operate on service containers and return only the configured
  * container. Tests construct their own inputs and resolve the services or data
- * they need from that container. Environment overrides are passed as raw values,
- * and install in the `test` environment unless a test names another one, which
- * is what a test of production-only behavior needs.
+ * they need from that container. Environment overrides are passed as raw values.
  *
  * The setups build on each other: an environment, then databases, then a
  * migrated schema, then a registered user. Each step uses the same services the
@@ -31,9 +29,9 @@ export const TEST_USER = {
 /**
  * Create the root service-container environment shared by more specialized test fixtures.
  */
-export function setupTestEnvironment(env: EnvSource = {}, mode = "test"): ServiceContainer {
+export function setupTestEnvironment(env: EnvSource = {}): ServiceContainer {
 	const container = new ServiceContainer();
-	container.set(new Env(env, mode));
+	container.set(new Env(env));
 	container.set(new SilentLogger());
 	return container;
 }
@@ -45,20 +43,17 @@ export function setupTestEnvironment(env: EnvSource = {}, mode = "test"): Servic
  * The directory is left behind on purpose. It costs nothing, and it means the
  * SQLite file of a failing test can still be opened afterwards.
  */
-export function setupTestDatabaseEnvironment(env: EnvSource = {}, mode = "test"): ServiceContainer {
+export function setupTestDatabaseEnvironment(env: EnvSource = {}): ServiceContainer {
 	const dbDir = mkdtempSync(join(tmpdir(), "adacta-test-"));
 
-	return setupTestEnvironment({ ADACTA_DB_DIR: dbDir, ...env }, mode);
+	return setupTestEnvironment({ ADACTA_DB_DIR: dbDir, ...env });
 }
 
 /**
  * Create an environment with a migrated system database and no data in it.
  */
-export function setupEmptyTestDatabaseEnvironment(
-	env: EnvSource = {},
-	mode = "test",
-): ServiceContainer {
-	const container = setupTestDatabaseEnvironment(env, mode);
+export function setupEmptyTestDatabaseEnvironment(env: EnvSource = {}): ServiceContainer {
+	const container = setupTestDatabaseEnvironment(env);
 
 	container.get(RepoManager).migrateAll();
 
@@ -69,11 +64,8 @@ export function setupEmptyTestDatabaseEnvironment(
  * Create a database environment containing one user registered through the
  * production authentication service. That user is set as the current identity.
  */
-export async function setupTestUserEnvironment(
-	env: EnvSource = {},
-	mode = "test",
-): Promise<ServiceContainer> {
-	const container = setupEmptyTestDatabaseEnvironment(env, mode);
+export async function setupTestUserEnvironment(env: EnvSource = {}): Promise<ServiceContainer> {
+	const container = setupEmptyTestDatabaseEnvironment(env);
 
 	container.get(Security).setCurrentUserId(await signUpTestUser(container));
 

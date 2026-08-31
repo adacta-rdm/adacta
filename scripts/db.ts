@@ -15,7 +15,6 @@
 import { createAppContainer } from "~/app/createAppContainer.server";
 import { DatabaseManager } from "~/app/services/DatabaseManager";
 import { RepoManager } from "~/app/services/RepoManager";
-import { Env } from "~/lib/utils/Env";
 import { seedDatabase } from "~/seed/seed";
 
 const COMMANDS = "migrate, reset, setup, seed";
@@ -25,11 +24,10 @@ const [command, ...rest] = process.argv.slice(2);
 if (rest.length > 0) fail(`db commands take no arguments (got "${rest[0]}")`);
 
 const container = createAppContainer();
-const env = container.get(Env);
 
 // Migrating is safe anywhere. Everything else deletes data.
-if (command !== "migrate" && env.isProduction()) {
-	fail(`Refusing production environment "${env.environment}".`);
+if (command !== "migrate" && import.meta.env.NODE_ENV === "production") {
+	fail(`Refusing production environment.`);
 }
 
 switch (command) {

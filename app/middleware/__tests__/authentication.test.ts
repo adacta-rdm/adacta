@@ -57,19 +57,24 @@ describe("sessionAuth", () => {
 	});
 
 	test("ignores ADACTA_DEV_USER in production", async () => {
-		const container = setupEmptyTestDatabaseEnvironment(
-			{ ADACTA_DEV_USER: TEST_USER.email },
-			"production",
-		);
+		const container = setupEmptyTestDatabaseEnvironment({ ADACTA_DEV_USER: TEST_USER.email });
 		await signUpTestUser(container);
 
 		const [args] = createMiddlewareArgs(container);
-		const thrown = await sessionAuth(args).then(
-			() => undefined,
-			(error: unknown) => error,
-		);
+		const previousNodeEnv = process.env.NODE_ENV;
 
-		expect(thrown).toBeInstanceOf(Response);
-		expect((thrown as Response).headers.get("location")).toBe("/login");
+		try {
+			process.env.NODE_ENV = "production";
+			const thrown = await sessionAuth(args).then(
+				() => undefined,
+				(error: unknown) => error,
+			);
+
+			expect(thrown).toBeInstanceOf(Response);
+			expect((thrown as Response).headers.get("location")).toBe("/login");
+		} finally {
+			if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+			else process.env.NODE_ENV = previousNodeEnv;
+		}
 	});
 });

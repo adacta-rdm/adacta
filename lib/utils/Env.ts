@@ -1,22 +1,15 @@
 /**
  * Reads environment values as strings, numbers, booleans, or URLs.
  */
-export type EnvSource = Record<string, string | undefined>;
-
 export class Env {
 	readonly values: EnvSource;
-	readonly environment: string;
 
-	constructor(
-		values: EnvSource = process.env,
-		environment = values.APP_ENV ?? process.env.APP_ENV ?? "dev",
-	) {
+	constructor(values: EnvSource = process.env) {
 		this.values = values;
-		this.environment = environment;
 	}
 
 	/**
-	 * Copies the values and `APP_ENV` to an object.
+	 * Copies the values to an object.
 	 *
 	 * Existing values are kept unless `overrideExisting` is `true`.
 	 *
@@ -26,21 +19,9 @@ export class Env {
 	 * ```
 	 */
 	populate(target: EnvSource = process.env, overrideExisting = false): void {
-		const values = { ...this.values, APP_ENV: this.environment };
-
-		for (const [name, value] of Object.entries(values)) {
+		for (const [name, value] of Object.entries(this.values)) {
 			if (overrideExisting || target[name] === undefined) target[name] = value;
 		}
-	}
-
-	isDevelopment(): boolean {
-		const env = this.environment.trim().toLowerCase();
-		return env === "dev" || env === "development";
-	}
-
-	isProduction(): boolean {
-		const env = this.environment.trim().toLowerCase();
-		return env === "prod" || env === "production";
 	}
 
 	string(name: string): string;
@@ -142,3 +123,5 @@ export class InvalidEnvTypeError extends TypeError {
 		this.name = "InvalidEnvTypeError";
 	}
 }
+
+export type EnvSource = Record<string, string | undefined>;

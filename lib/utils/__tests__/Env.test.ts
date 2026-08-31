@@ -3,47 +3,29 @@ import { describe, expect, test } from "bun:test";
 import { Env, type EnvSource, InvalidEnvTypeError, MissingEnvError } from "~/lib/utils/Env";
 
 describe("Env", () => {
-	describe("isDevelopment", () => {
-		test("recognizes development environment names", () => {
-			expect(new Env({}, "dev").isDevelopment()).toBe(true);
-			expect(new Env({}, "development").isDevelopment()).toBe(true);
-			expect(new Env({}, " Development ").isDevelopment()).toBe(true);
-			expect(new Env({}, "staging").isDevelopment()).toBe(false);
-		});
-	});
-
-	describe("isProduction", () => {
-		test("recognizes production environment names", () => {
-			expect(new Env({}, "prod").isProduction()).toBe(true);
-			expect(new Env({}, "production").isProduction()).toBe(true);
-			expect(new Env({}, " Production ").isProduction()).toBe(true);
-			expect(new Env({}, "staging").isProduction()).toBe(false);
-		});
-	});
-
 	describe("populate", () => {
-		test("adds values and the environment to a target", () => {
+		test("adds values to a target", () => {
 			const target: EnvSource = { EXISTING: "value" };
 
-			new Env({ ADDED: "value" }, "staging").populate(target);
+			new Env({ ADDED: "value" }).populate(target);
 
-			expect(target).toEqual({ EXISTING: "value", ADDED: "value", APP_ENV: "staging" });
+			expect(target).toEqual({ EXISTING: "value", ADDED: "value" });
 		});
 
 		test("preserves existing values by default", () => {
-			const target: EnvSource = { VALUE: "existing", APP_ENV: "production" };
+			const target: EnvSource = { VALUE: "existing" };
 
-			new Env({ VALUE: "loaded" }, "staging").populate(target);
+			new Env({ VALUE: "loaded" }).populate(target);
 
-			expect(target).toEqual({ VALUE: "existing", APP_ENV: "production" });
+			expect(target).toEqual({ VALUE: "existing" });
 		});
 
 		test("overrides existing values when requested", () => {
-			const target: EnvSource = { VALUE: "existing", APP_ENV: "production" };
+			const target: EnvSource = { VALUE: "existing" };
 
-			new Env({ VALUE: "loaded" }, "staging").populate(target, true);
+			new Env({ VALUE: "loaded" }).populate(target, true);
 
-			expect(target).toEqual({ VALUE: "loaded", APP_ENV: "staging" });
+			expect(target).toEqual({ VALUE: "loaded" });
 		});
 	});
 
