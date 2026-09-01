@@ -5,7 +5,12 @@
  * Building -> Room -> Entry tree; Catalog and Samples are plain links until
  * they grow their own navigation.
  */
-import { BuildingOffice2Icon, CubeIcon, RectangleGroupIcon } from "@heroicons/react/20/solid";
+import {
+	ArrowUpTrayIcon,
+	BuildingOffice2Icon,
+	CubeIcon,
+	RectangleGroupIcon,
+} from "@heroicons/react/20/solid";
 import type { ReactNode } from "react";
 import { useLocation, useParams } from "react-router";
 
@@ -136,6 +141,14 @@ export function AppLayout({
 						<SidebarSection>
 							<SidebarItem href={`/${repo}/samples`} current={isCurrent("samples")}>
 								<SidebarLabel>All samples</SidebarLabel>
+							</SidebarItem>
+						</SidebarSection>
+
+						<SidebarHeading className="mt-6">Data</SidebarHeading>
+						<SidebarSection>
+							<SidebarItem href={`/${repo}/import`} current={isCurrent("import")}>
+								<ArrowUpTrayIcon />
+								<SidebarLabel>Import</SidebarLabel>
 							</SidebarItem>
 						</SidebarSection>
 					</SidebarBody>
