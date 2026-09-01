@@ -12,7 +12,7 @@ import { SystemDB } from "~/app/services/SystemDB";
 import { setupEmptyTestDatabaseEnvironment, signUpTestUser } from "~/app/testUtils/testUtils";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
 import { UserRepository } from "~/drizzle/schema/system.UserRepository";
-import { Env } from "~/lib/utils/Env";
+import { Env } from "~/lib/env/Env";
 
 /**
  * A container with a migrated system database and nothing in it.

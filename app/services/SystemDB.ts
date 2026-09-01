@@ -1,5 +1,5 @@
 import { DatabaseManager } from "~/app/services/DatabaseManager";
-import { service } from "~/lib/serviceContainer/ServiceContainer";
+import { service } from "~/lib/service-container/ServiceContainer";
 
 /**
  * Convenience: lets a service declare that it touches the system database.

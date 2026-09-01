@@ -1,4 +1,4 @@
-import { Service } from "~/lib/serviceContainer/ServiceContainer";
+import { Service } from "~/lib/service-container/ServiceContainer";
 
 /**
  * The authenticated identity for the current request scope.

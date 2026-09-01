@@ -16,9 +16,9 @@ import { join } from "node:path";
 import { BetterAuth } from "~/app/services/BetterAuth";
 import { RepoManager } from "~/app/services/RepoManager";
 import { Security } from "~/app/services/Security";
+import { Env, type EnvSource } from "~/lib/env/Env";
 import { SilentLogger } from "~/lib/logger/SilentLogger";
-import { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
-import { Env, type EnvSource } from "~/lib/utils/Env";
+import { ServiceContainer } from "~/lib/service-container/ServiceContainer";
 
 export const TEST_USER = {
 	name: "Test User",

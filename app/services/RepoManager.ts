@@ -4,7 +4,7 @@ import { DatabaseManager } from "~/app/services/DatabaseManager";
 import { SystemDB } from "~/app/services/SystemDB";
 import { Repository } from "~/drizzle/schema/system.Repository";
 import { UserRepository } from "~/drizzle/schema/system.UserRepository";
-import { Service } from "~/lib/serviceContainer/ServiceContainer";
+import { Service } from "~/lib/service-container/ServiceContainer";
 
 /**
  * Repositories as records: which ones exist and who may open them.

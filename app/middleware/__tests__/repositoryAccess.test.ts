@@ -6,7 +6,7 @@ import { RepoManager } from "~/app/services/RepoManager";
 import { Security } from "~/app/services/Security";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
 import { setupTestUserEnvironment } from "~/app/testUtils/testUtils";
-import type { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
 
 /**
  * A signed-in scope. This is the state sessionAuth leaves behind. Repositories

@@ -4,7 +4,7 @@ import { RepoAccess, RepositoryAccessDeniedError } from "~/app/services/RepoAcce
 import { RepoManager } from "~/app/services/RepoManager";
 import { Security } from "~/app/services/Security";
 import { setupTestUserEnvironment, signUpTestUser } from "~/app/testUtils/testUtils";
-import type { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
 
 /**
  * One environment for the whole file. Signing a user up runs a real password

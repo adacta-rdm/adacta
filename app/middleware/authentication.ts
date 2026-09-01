@@ -1,13 +1,12 @@
 import { eq } from "drizzle-orm";
-import { redirect } from "react-router";
+import { redirect, type MiddlewareFunction } from "react-router";
 
-import { services } from "~/app/context";
-import type { MiddlewareArgs } from "~/app/middleware/types";
+import { services } from "~/app/.server/context";
 import { BetterAuth } from "~/app/services/BetterAuth";
 import { Security } from "~/app/services/Security";
 import { SystemDB } from "~/app/services/SystemDB";
 import { User } from "~/drizzle/schema/system.BetterAuth";
-import { Env } from "~/lib/utils/Env";
+import { Env } from "~/lib/env/Env";
 
 /**
  * Establishes the request's user from its Better Auth session cookie.
@@ -16,7 +15,7 @@ import { Env } from "~/lib/utils/Env";
  * sign in as. This keeps the login step out of the way while working. Every
  * other request without a session is redirected to the login page.
  */
-export async function sessionAuth({ request, context }: MiddlewareArgs): Promise<void> {
+export const sessionAuth = (async ({ request, context }) => {
 	const container = context.get(services);
 	const [env, auth, security] = container.get(Env, BetterAuth, Security);
 
@@ -49,4 +48,4 @@ export async function sessionAuth({ request, context }: MiddlewareArgs): Promise
 	}
 
 	security.setCurrentUserId(user.id);
-}
+}) satisfies MiddlewareFunction<Response>;

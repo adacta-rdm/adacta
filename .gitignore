@@ -2,7 +2,7 @@
 
 # Local environment and secrets
 .env
-env/
+/env/
 
 # Editor and OS files
 .idea

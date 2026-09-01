@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { Link } from "react-router";
 
-import { services } from "~/app/context";
+import { services } from "~/app/.server/context";
 import { sessionAuth } from "~/app/middleware/authentication";
 import { Security } from "~/app/services/Security";
 import { SystemDB } from "~/app/services/SystemDB";

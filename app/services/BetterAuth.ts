@@ -10,7 +10,7 @@ import {
 	Verification,
 } from "~/drizzle/schema/system.BetterAuth";
 import { Logger } from "~/lib/logger/Logger";
-import { service } from "~/lib/serviceContainer/ServiceContainer";
+import { service } from "~/lib/service-container/ServiceContainer";
 
 /**
  * The configured Better Auth server.

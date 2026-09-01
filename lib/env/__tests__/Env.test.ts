@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { Env, type EnvSource, InvalidEnvTypeError, MissingEnvError } from "~/lib/utils/Env";
+import { Env, type EnvSource, InvalidEnvTypeError, MissingEnvError } from "~/lib/env/Env";
 
 describe("Env", () => {
 	describe("populate", () => {

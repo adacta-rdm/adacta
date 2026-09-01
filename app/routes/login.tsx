@@ -1,12 +1,14 @@
+import { createAuthClient } from "better-auth/react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
-import { authClient } from "~/app/lib/auth.client";
 import { Button } from "~/catalyst-ui/button";
 import { Field, Fieldset, Label } from "~/catalyst-ui/fieldset";
 import { Heading } from "~/catalyst-ui/heading";
 import { Input } from "~/catalyst-ui/input";
 import { Text } from "~/catalyst-ui/text";
+
+const authClient = createAuthClient();
 
 export function meta() {
 	return [{ title: "Sign in — Adacta" }];

@@ -8,8 +8,8 @@ import { DatabaseManager, InvalidDatabaseNameError } from "~/app/services/Databa
 import { setupTestDatabaseEnvironment } from "~/app/testUtils/testUtils";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
 import { Repository } from "~/drizzle/schema/system.Repository";
-import type { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
-import { Env } from "~/lib/utils/Env";
+import { Env } from "~/lib/env/Env";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
 
 /**
  * A container whose databases live in a fresh temporary directory.

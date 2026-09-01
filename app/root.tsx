@@ -7,7 +7,7 @@ import {
 	ScrollRestoration,
 } from "react-router";
 
-import { serviceContainerMiddleware } from "~/app/root.middleware";
+import { container } from "~/app/middleware/container";
 
 import type { Route } from "./+types/root";
 
@@ -29,7 +29,7 @@ export const links: Route.LinksFunction = () => [
 /**
  * Runs before every loader and action in the app.
  */
-export const middleware: Route.MiddlewareFunction[] = [serviceContainerMiddleware];
+export const middleware: Route.MiddlewareFunction[] = [container];
 
 export function Layout({ children }: { children: React.ReactNode }) {
 	return (

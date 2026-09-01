@@ -18,7 +18,7 @@ import { RepoDB } from "~/app/services/RepoDB";
 import { RepoManager, RepositoryAlreadyExistsError } from "~/app/services/RepoManager";
 import { Security } from "~/app/services/Security";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
-import type { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
 
 const USER = {
 	name: "Test User",

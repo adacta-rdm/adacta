@@ -1,6 +1,6 @@
 import { createContext, type RouterContext } from "react-router";
 
-import type { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
 
 /**
  * The service container scoped to the current request. Root middleware provides

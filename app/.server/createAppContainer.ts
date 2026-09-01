@@ -1,8 +1,8 @@
 import { stdout } from "node:process";
 
+import { Env } from "~/lib/env/Env";
 import { Logger, logLevelFromName } from "~/lib/logger/Logger";
-import { ServiceContainer } from "~/lib/serviceContainer/ServiceContainer";
-import { Env } from "~/lib/utils/Env";
+import { ServiceContainer } from "~/lib/service-container/ServiceContainer";
 
 /**
  * The process-wide container. Request scopes are clones of it. A service
@@ -24,10 +24,4 @@ export function createAppContainer(env = new Env()): ServiceContainer {
 	);
 
 	return container;
-}
-
-const root = createAppContainer();
-
-export function createRequestContainer(): ServiceContainer {
-	return root.clone();
 }

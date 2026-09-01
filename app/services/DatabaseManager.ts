@@ -4,8 +4,8 @@ import { mkdirSync, readdirSync, rmSync } from "node:fs";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 
-import { Service } from "~/lib/serviceContainer/ServiceContainer";
-import { Env } from "~/lib/utils/Env";
+import { Env } from "~/lib/env/Env";
+import { Service } from "~/lib/service-container/ServiceContainer";
 
 /**
  * See drizzle/schema/system.*.ts for what the system database holds.

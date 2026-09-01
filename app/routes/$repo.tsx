@@ -1,7 +1,7 @@
 import { isNull } from "drizzle-orm";
 import { Outlet } from "react-router";
 
-import { services } from "~/app/context";
+import { services } from "~/app/.server/context";
 import { AppLayout } from "~/app/layout/AppLayout";
 import { sessionAuth } from "~/app/middleware/authentication";
 import { repositoryAccess } from "~/app/middleware/repositoryAccess";

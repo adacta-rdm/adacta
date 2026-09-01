@@ -1,5 +1,6 @@
-import { services } from "~/app/context";
-import type { MiddlewareArgs } from "~/app/middleware/types";
+import type { MiddlewareFunction } from "react-router";
+
+import { services } from "~/app/.server/context";
 import { RepoAccess, RepositoryAccessDeniedError } from "~/app/services/RepoAccess";
 
 /**
@@ -9,7 +10,7 @@ import { RepoAccess, RepositoryAccessDeniedError } from "~/app/services/RepoAcce
  *
  * A missing parameter is a 404; a missing grant is a 403.
  */
-export function repositoryAccess({ params, context }: MiddlewareArgs): void {
+export const repositoryAccess = (({ params, context }) => {
 	const { repo } = params;
 
 	if (!repo) {
@@ -23,4 +24,4 @@ export function repositoryAccess({ params, context }: MiddlewareArgs): void {
 
 		throw new Response(`No access to repository "${repo}"`, { status: 403 });
 	}
-}
+}) satisfies MiddlewareFunction<Response>;

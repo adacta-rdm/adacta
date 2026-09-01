@@ -1,6 +1,6 @@
 import { DatabaseManager } from "~/app/services/DatabaseManager";
 import { RepoAccess } from "~/app/services/RepoAccess";
-import { service } from "~/lib/serviceContainer/ServiceContainer";
+import { service } from "~/lib/service-container/ServiceContainer";
 
 /**
  * The database of the repository bound to this scope.

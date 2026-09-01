@@ -12,7 +12,7 @@
  * Environment values come from the process. Bun loads a .env file into it
  * on its own.
  */
-import { createAppContainer } from "~/app/createAppContainer.server";
+import { createAppContainer } from "~/app/.server/createAppContainer";
 import { DatabaseManager } from "~/app/services/DatabaseManager";
 import { RepoManager } from "~/app/services/RepoManager";
 import { seedDatabase } from "~/seed/seed";

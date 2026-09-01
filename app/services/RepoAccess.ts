@@ -4,7 +4,7 @@ import { Security } from "~/app/services/Security";
 import { SystemDB } from "~/app/services/SystemDB";
 import { Repository } from "~/drizzle/schema/system.Repository";
 import { UserRepository } from "~/drizzle/schema/system.UserRepository";
-import { Service } from "~/lib/serviceContainer/ServiceContainer";
+import { Service } from "~/lib/service-container/ServiceContainer";
 
 /**
  * The scope's authenticated user holds no grant for the repository.
