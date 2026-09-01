@@ -90,12 +90,14 @@ change an existing table. See [`drizzle/README.md`](drizzle/README.md).
 Bun reads a `.env` file in the project root. These variables can be set
 there.
 
-| Variable           | Meaning                                                                   |
-| ------------------ | ------------------------------------------------------------------------- |
-| `ADACTA_DB_DIR`    | Directory that holds the SQLite files. Defaults to `.adacta/db`           |
-| `ADACTA_DEV_USER`  | Email address of an existing user to sign in as, without the login form   |
-| `ADACTA_LOG_LEVEL` | One of silent, fatal, error, warn, info, debug, trace. Defaults to `info` |
-| `PORT`             | Port for `bun run start`. Defaults to 3000                                |
+| Variable             | Meaning                                                                         |
+| -------------------- | ------------------------------------------------------------------------------- |
+| `ADACTA_DB_DIR`      | Directory that holds the SQLite files. Defaults to `.adacta/db`                 |
+| `ADACTA_URL`         | Address the application is reached at. Defaults to `http://localhost:5173`      |
+| `ADACTA_AUTH_SECRET` | Secret for signing cookies and tokens. Required when `NODE_ENV` is `production` |
+| `ADACTA_DEV_USER`    | Email address of an existing user to sign in as, without the login form         |
+| `ADACTA_LOG_LEVEL`   | One of silent, fatal, error, warn, info, debug, trace. Defaults to `info`       |
+| `PORT`               | Port for `bun run start`. Defaults to 3000                                      |
 
 `ADACTA_DEV_USER` is meant for development. It is never read when `NODE_ENV` is
 `production`.
