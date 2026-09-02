@@ -2,9 +2,10 @@
  * `db:*` — commands that act on the databases as a whole. They take no
  * <repo> argument; repository administration lives in scripts/repo.ts.
  *
- *   bun scripts/db.ts <migrate|reset|setup|seed>
+ *   bun scripts/db.ts <migrate|refresh|reset|setup|seed>
  *
  *   migrate  apply pending migrations to the system database and every repository
+ *   refresh  replace both migration histories with current baseline migrations
  *   reset    delete every database, then migrate from scratch
  *   setup    reset, then load the development seed
  *   seed     load the development seed
@@ -15,24 +16,29 @@
 import { createAppContainer } from "~/app/.server/createAppContainer";
 import { DatabaseManager } from "~/app/services/DatabaseManager";
 import { RepoManager } from "~/app/services/RepoManager";
+import { refreshMigrations } from "~/scripts/db/refreshMigrations";
 import { seedDatabase } from "~/seed/seed";
 
-const COMMANDS = "migrate, reset, setup, seed";
+const COMMANDS = "migrate, refresh, reset, setup, seed";
 
 const [command, ...rest] = process.argv.slice(2);
 
 if (rest.length > 0) fail(`db commands take no arguments (got "${rest[0]}")`);
 
-const container = createAppContainer();
+let container: ReturnType<typeof createAppContainer> | undefined;
 
-// Migrating is safe anywhere. Everything else deletes data.
-if (command !== "migrate" && import.meta.env.NODE_ENV === "production") {
+// Migration commands do not delete database contents. The remaining commands do.
+if (command !== "migrate" && command !== "refresh" && import.meta.env.NODE_ENV === "production") {
 	fail(`Refusing production environment.`);
 }
 
 switch (command) {
 	case "migrate":
 		migrate();
+		break;
+
+	case "refresh":
+		await refreshMigrations();
 		break;
 
 	case "reset":
@@ -43,11 +49,11 @@ switch (command) {
 		// Deleting first makes a seeded database the same every time, whatever
 		// state it was in before.
 		reset();
-		await seedDatabase(container);
+		await seedDatabase(app());
 		break;
 
 	case "seed":
-		await seedDatabase(container);
+		await seedDatabase(app());
 		break;
 
 	case undefined:
@@ -59,7 +65,7 @@ switch (command) {
 }
 
 function migrate(): void {
-	container.get(RepoManager).migrateAll();
+	app().get(RepoManager).migrateAll();
 
 	console.log("Migrations applied.");
 }
@@ -70,11 +76,15 @@ function migrate(): void {
  * or not.
  */
 function reset(): void {
-	container.get(DatabaseManager).dropAll();
+	app().get(DatabaseManager).dropAll();
 
 	console.log("Databases dropped.");
 
 	migrate();
+}
+
+function app(): ReturnType<typeof createAppContainer> {
+	return (container ??= createAppContainer());
 }
 
 function fail(message: string): never {

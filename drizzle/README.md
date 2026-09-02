@@ -1,7 +1,7 @@
 # `drizzle`
 
-The database layer: the table definitions in `schema/`, the generated
-migrations in `migrations/`, and the drizzle-kit configuration.
+The database layer: the table definitions in `schema/`, the generated migration
+baselines in `migrations/`, and the drizzle-kit configuration.
 
 ## Two databases
 
@@ -12,9 +12,25 @@ A table belongs to one of two databases. The file name says which:
 - `schema/repo.*.ts` — one repository's research data. Every repository has its
   own SQLite file with these tables.
 
-The two have separate migration histories, under `migrations/system` and
-`migrations/repo`, and separate drizzle-kit configurations. See the root
-[README](../README.md) for the commands that generate and apply them.
+The two have separate migration baselines under `migrations/system` and
+`migrations/repo`. See the root [README](../README.md) for the commands that
+generate and apply them.
+
+## Migration baselines
+
+Migration SQL is an application input. `RepoManager` creates a repository
+database by asking `DatabaseManager` to apply the repository migration files.
+Drizzle Kit can push the schema only to a database that already exists. It
+therefore cannot replace this initialization path.
+
+`bun run db:migrations:refresh` replaces both histories with one migration from
+an empty database to the current schema. It installs each migration under the
+fixed `19861014000000_baseline` directory and gives its snapshot a fixed
+identifier. A repeated refresh therefore changes only the generated schema
+description.
+
+The existing migration directories are deleted before generation. A failed
+refresh can be rerun, or the previous files can be restored with Git.
 
 ## Foreign keys
 

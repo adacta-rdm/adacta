@@ -40,28 +40,28 @@ Set `ADACTA_DB_DIR` to store the files in another directory.
 
 ## Commands
 
-| Command                          | What it does                                                         |
-| -------------------------------- | -------------------------------------------------------------------- |
-| `bun run dev`                    | Start the development server on <http://localhost:5173>              |
-| `bun run build`                  | Build the client and server bundles into `build/`                    |
-| `bun run start`                  | Serve a build, on `PORT` or on port 3000                             |
-| `bun run db:migrations:generate` | Write a migration from the schema files                              |
-| `bun run db:migrations:migrate`  | Apply pending migrations to the system database and every repository |
-| `bun run db:reset`               | Delete every database, then migrate from scratch                     |
-| `bun run db:setup`               | Reset, then seed                                                     |
-| `bun run db:seed`                | Load the development seed                                            |
-| `bun test`                       | Run the test suite                                                   |
-| `bun run typecheck`              | Generate route types, then run `tsc`                                 |
-| `bun run lint`                   | Run oxlint                                                           |
-| `bun run format`                 | Format with oxfmt                                                    |
-| `bun run format:check`           | Report formatting problems without changing files                    |
+| Command                         | What it does                                                         |
+| ------------------------------- | -------------------------------------------------------------------- |
+| `bun run dev`                   | Start the development server on <http://localhost:5173>              |
+| `bun run build`                 | Build the client and server bundles into `build/`                    |
+| `bun run start`                 | Serve a build, on `PORT` or on port 3000                             |
+| `bun run db:migrations:refresh` | Rebuild the system and repository migration baselines                |
+| `bun run db:migrations:migrate` | Apply pending migrations to the system database and every repository |
+| `bun run db:reset`              | Delete every database, then migrate from scratch                     |
+| `bun run db:setup`              | Reset, then seed                                                     |
+| `bun run db:seed`               | Load the development seed                                            |
+| `bun test`                      | Run the test suite                                                   |
+| `bun run typecheck`             | Generate route types, then run `tsc`                                 |
+| `bun run lint`                  | Run oxlint                                                           |
+| `bun run format`                | Format with oxfmt                                                    |
+| `bun run format:check`          | Report formatting problems without changing files                    |
 
 Use `db:setup` when a database is in an unclear state. It starts from an empty
 directory. The result is therefore the same whether databases were present or
 not.
 
 `db:reset`, `db:setup`, and `db:seed` stop with an error when `NODE_ENV` is
-`production`. `db:migrations:migrate` is always allowed.
+`production`. The migration refresh and migrate commands are always allowed.
 
 Running `db:seed` again is safe. It replaces the inventory of each repository
 and leaves the users and the repositories unchanged.
@@ -69,18 +69,27 @@ and leaves the users and the repositories unchanged.
 ## Changing the schema
 
 Tables live in `drizzle/schema/`, named after the database they belong to:
-`system.*.ts` for the system database, `repo.*.ts` for a repository. The two
-databases have separate migration histories under `drizzle/migrations/`.
+`system.*.ts` for the system database, `repo.*.ts` for a repository.
+
+Adacta keeps generated migration SQL because `RepoManager` uses it to initialize
+each new repository database. Drizzle Kit can push a schema to one existing
+database, but it cannot provide the SQL needed when a repository is created
+later.
+
+Refresh both migration baselines after changing a table, then rebuild the
+development databases:
 
 ```bash
 # after editing a file in drizzle/schema/
-bun run db:migrations:generate    # write the migration
-bun run db:migrations:migrate     # apply it
+bun run db:migrations:refresh
+bun run db:setup
 ```
 
-`db:migrations:generate` runs drizzle-kit once per database. To generate for a
-single database, use `db:migrations:generate:system` or
-`db:migrations:generate:repo`.
+The refresh command deletes both existing migration histories and generates new
+baselines. Their directory names and snapshot identifiers are stable. Git
+therefore shows the schema changes within the same files. The baseline describes an empty
+database becoming the current schema. It is therefore used with `db:setup`,
+which deletes the development databases first.
 
 Foreign keys are enforced on every connection. This limits how a migration may
 change an existing table. See [`drizzle/README.md`](drizzle/README.md).
