@@ -122,7 +122,7 @@ export default function Repository({ loaderData }: Route.ComponentProps) {
 		if (files.length === 0) return;
 		addSourceFiles(files);
 
-		const importPath = `/${loaderData.repository}/import`;
+		const importPath = `/${loaderData.repository}/files/import`;
 		if (location.pathname !== importPath) void navigate(importPath);
 	}
 

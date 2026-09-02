@@ -146,9 +146,9 @@ export function AppLayout({
 
 						<SidebarHeading className="mt-6">Data</SidebarHeading>
 						<SidebarSection>
-							<SidebarItem href={`/${repo}/import`} current={isCurrent("import")}>
+							<SidebarItem href={`/${repo}/files/import`} current={isCurrent("files")}>
 								<ArrowUpTrayIcon />
-								<SidebarLabel>Import</SidebarLabel>
+								<SidebarLabel>Import files</SidebarLabel>
 							</SidebarItem>
 						</SidebarSection>
 					</SidebarBody>

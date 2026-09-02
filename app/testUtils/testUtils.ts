@@ -5,19 +5,21 @@
  * container. Tests construct their own inputs and resolve the services or data
  * they need from that container. Environment overrides are passed as raw values.
  *
- * The setups build on each other: an environment, then databases, then a
- * migrated schema, then a registered user. Each step uses the same services the
- * application uses, so a test never restates what the application already does.
+ * The setups build on each other. They add an environment, isolated
+ * persistence, a migrated schema, a registered user, and a bound repository.
+ * Each step uses the same services the application uses. A test therefore
+ * never restates what the application already does.
  */
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { createAppContainer } from "~/app/.server/createAppContainer";
 import { BetterAuth } from "~/app/services/BetterAuth";
+import { RepoAccess } from "~/app/services/RepoAccess";
 import { RepoManager } from "~/app/services/RepoManager";
 import { Security } from "~/app/services/Security";
 import { Env, type EnvSource } from "~/lib/env/Env";
-import { SilentLogger } from "~/lib/logger/SilentLogger";
 import { ServiceContainer } from "~/lib/service-container/ServiceContainer";
 
 export const TEST_USER = {
@@ -30,30 +32,28 @@ export const TEST_USER = {
  * Create the root service-container environment shared by more specialized test fixtures.
  */
 export function setupTestEnvironment(env: EnvSource = {}): ServiceContainer {
-	const container = new ServiceContainer();
-	container.set(new Env(env));
-	container.set(new SilentLogger());
-	return container;
+	return createAppContainer(new Env({ ...env, ADACTA_LOG_LEVEL: "silent" }));
 }
 
 /**
- * Create an environment whose databases live in a fresh temporary directory, so
- * one test never sees another's data. No migrations have run yet.
- *
- * The directory is left behind on purpose. It costs nothing, and it means the
- * SQLite file of a failing test can still be opened afterwards.
+ * Create an environment whose databases and stored files live in a fresh
+ * temporary directory. No migrations have run yet.
  */
-export function setupTestDatabaseEnvironment(env: EnvSource = {}): ServiceContainer {
-	const dbDir = mkdtempSync(join(tmpdir(), "adacta-test-"));
+export function setupTestPersistenceEnvironment(env: EnvSource = {}): ServiceContainer {
+	const tmpDir = mkdtempSync(join(tmpdir(), "adacta-test-"));
 
-	return setupTestEnvironment({ ADACTA_DB_DIR: dbDir, ...env });
+	return setupTestEnvironment({
+		ADACTA_DB_DIR: join(tmpDir, "db"),
+		ADACTA_STORAGE_DIR: join(tmpDir, "storage"),
+		...env,
+	});
 }
 
 /**
  * Create an environment with a migrated system database and no data in it.
  */
 export function setupEmptyTestDatabaseEnvironment(env: EnvSource = {}): ServiceContainer {
-	const container = setupTestDatabaseEnvironment(env);
+	const container = setupTestPersistenceEnvironment(env);
 
 	container.get(RepoManager).migrateAll();
 
@@ -70,6 +70,25 @@ export async function setupTestUserEnvironment(env: EnvSource = {}): Promise<Ser
 	container.get(Security).setCurrentUserId(await signUpTestUser(container));
 
 	return container;
+}
+
+/**
+ * Create a user environment with one repository and return a scope bound to it.
+ */
+export async function setupTestRepositoryEnvironment(
+	repository = "test",
+	env: EnvSource = {},
+): Promise<ServiceContainer> {
+	const container = await setupTestUserEnvironment(env);
+	const userId = container.get(Security).userId;
+	const repositories = container.get(RepoManager);
+
+	repositories.createRepository(repository);
+	repositories.grantAccess(userId, repository);
+
+	const scope = container.clone();
+	scope.get(RepoAccess).selectRepository(repository);
+	return scope;
 }
 
 type TestUserOverrides = { name?: string; email?: string; password?: string };

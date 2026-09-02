@@ -19,7 +19,7 @@ import type { ServiceContainer } from "~/lib/service-container/ServiceContainer"
 
 const DEFAULT_URL = "http://localhost/";
 
-type MiddlewareArgsOptions = {
+type MiddlewareArgsOptions<Params extends Record<string, string>> = {
 	/**
 	 * The incoming request. Defaults to a plain GET without headers.
 	 */
@@ -28,13 +28,15 @@ type MiddlewareArgsOptions = {
 	/**
 	 * Route parameters, for example `{ repo: "test" }`. Defaults to none.
 	 */
-	params?: Record<string, string>;
+	params?: Params;
 };
 
-export function createMiddlewareArgs(
+export function createMiddlewareArgs<Params extends Record<string, string> = Record<string, never>>(
 	container: ServiceContainer,
-	{ request = new Request(DEFAULT_URL), params = {} }: MiddlewareArgsOptions = {},
+	options: MiddlewareArgsOptions<Params> = {},
 ) {
+	const request = options.request ?? new Request(DEFAULT_URL);
+	const params = options.params ?? ({} as Params);
 	const context = new RouterContextProvider();
 	context.set(services, container);
 

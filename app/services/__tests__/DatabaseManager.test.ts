@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { sql } from "drizzle-orm";
 
 import { DatabaseManager, InvalidDatabaseNameError } from "~/app/services/DatabaseManager";
-import { setupTestDatabaseEnvironment } from "~/app/testUtils/testUtils";
+import { setupTestPersistenceEnvironment } from "~/app/testUtils/testUtils";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
 import { Repository } from "~/drizzle/schema/system.Repository";
 import { Env } from "~/lib/env/Env";
@@ -14,7 +14,7 @@ import type { ServiceContainer } from "~/lib/service-container/ServiceContainer"
 /**
  * A container whose databases live in a fresh temporary directory.
  */
-const environment = setupTestDatabaseEnvironment;
+const environment = setupTestPersistenceEnvironment;
 
 function dbDir(container: ServiceContainer) {
 	return container.get(Env).string("ADACTA_DB_DIR");

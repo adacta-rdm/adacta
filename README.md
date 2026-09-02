@@ -32,11 +32,30 @@ database, holds the users, the sessions, and the list of repositories.
 ```
 .adacta/db/
   _system.sqlite     users, sessions, repositories, and who may open them
-  demo.sqlite        one repository's data
-  pilot.sqlite
+  repo1.sqlite        one repository's data
+  repo2.sqlite
 ```
 
 Set `ADACTA_DB_DIR` to store the files in another directory.
+
+## Source files
+
+Imported source files are stored separately for each repository. The server
+assigns each file an identifier instead of using its browser filename as a
+storage path.
+
+```
+.adacta/storage/
+  repo1/uploads/<bundle id>/<artifact id>              staged uploads
+  repo1/source-artifacts/<artifact id>                  original file bytes
+  repo2/...
+```
+
+The repository database holds the bundle and artifact metadata. These records
+are written only after every artifact has moved out of the upload directory. An
+incomplete upload therefore does not appear as a source bundle.
+
+Set `ADACTA_STORAGE_DIR` to store the files in another directory.
 
 ## Commands
 
@@ -102,6 +121,7 @@ there.
 | Variable             | Meaning                                                                         |
 | -------------------- | ------------------------------------------------------------------------------- |
 | `ADACTA_DB_DIR`      | Directory that holds the SQLite files. Defaults to `.adacta/db`                 |
+| `ADACTA_STORAGE_DIR` | Directory that holds imported source files. Defaults to `.adacta/storage`       |
 | `ADACTA_URL`         | Address the application is reached at. Defaults to `http://localhost:5173`      |
 | `ADACTA_AUTH_SECRET` | Secret for signing cookies and tokens. Required when `NODE_ENV` is `production` |
 | `ADACTA_DEV_USER`    | Email address of an existing user to sign in as, without the login form         |

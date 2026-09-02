@@ -32,6 +32,16 @@ description.
 The existing migration directories are deleted before generation. A failed
 refresh can be rerun, or the previous files can be restored with Git.
 
+## Entity types
+
+`Schema.ts` registers every table under its TypeScript name. `Entity<"Table">`
+is the complete row returned when that table is selected. `NewEntity<"Table">`
+is the value accepted when a row is inserted. Columns with database defaults
+may therefore be optional.
+
+Both types are inferred from the table definition. A schema change therefore
+changes the corresponding entity types without a second declaration.
+
 ## Foreign keys
 
 Foreign keys are enforced on every connection. `DatabaseManager` turns them on

@@ -9,6 +9,14 @@
 			"entityType": "tables"
 		},
 		{
+			"name": "SourceArtifact",
+			"entityType": "tables"
+		},
+		{
+			"name": "SourceBundle",
+			"entityType": "tables"
+		},
+		{
 			"type": "integer",
 			"notNull": false,
 			"autoincrement": true,
@@ -99,10 +107,155 @@
 			"table": "InventoryEntry"
 		},
 		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "source_artifact_id",
+			"entityType": "columns",
+			"table": "SourceArtifact"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "source_bundle_id",
+			"entityType": "columns",
+			"table": "SourceArtifact"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "original_name",
+			"entityType": "columns",
+			"table": "SourceArtifact"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "media_type",
+			"entityType": "columns",
+			"table": "SourceArtifact"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "byte_size",
+			"entityType": "columns",
+			"table": "SourceArtifact"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "SourceArtifact"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "SourceArtifact"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_deleted_at",
+			"entityType": "columns",
+			"table": "SourceArtifact"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "source_bundle_id",
+			"entityType": "columns",
+			"table": "SourceBundle"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "SourceBundle"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "SourceBundle"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_deleted_at",
+			"entityType": "columns",
+			"table": "SourceBundle"
+		},
+		{
+			"columns": ["source_bundle_id"],
+			"tableTo": "SourceBundle",
+			"columnsTo": ["source_bundle_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_SourceArtifact_source_bundle_id_SourceBundle_source_bundle_id_fk",
+			"entityType": "fks",
+			"table": "SourceArtifact"
+		},
+		{
 			"columns": ["inventory_entry_id"],
 			"nameExplicit": false,
 			"name": "InventoryEntry_pk",
 			"table": "InventoryEntry",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["source_artifact_id"],
+			"nameExplicit": false,
+			"name": "SourceArtifact_pk",
+			"table": "SourceArtifact",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["source_bundle_id"],
+			"nameExplicit": false,
+			"name": "SourceBundle_pk",
+			"table": "SourceBundle",
 			"entityType": "pks"
 		}
 	],

@@ -1,8 +1,11 @@
+import { join } from "node:path";
 import { stdout } from "node:process";
 
+import { RepoAccess } from "~/app/services/RepoAccess";
 import { Env } from "~/lib/env/Env";
 import { Logger, logLevelFromName } from "~/lib/logger/Logger";
 import { ServiceContainer } from "~/lib/service-container/ServiceContainer";
+import { FileSystemStorageEngine } from "~/lib/storage-engine/FileSystemStorageEngine";
 
 /**
  * The process-wide container. Request scopes are clones of it. A service
@@ -21,6 +24,13 @@ export function createAppContainer(env = new Env()): ServiceContainer {
 			level: logLevelFromName(env.string("ADACTA_LOG_LEVEL", "info")),
 			stream: stdout,
 		}),
+	);
+
+	const storageDirectory = env.path("ADACTA_STORAGE_DIR", ".adacta/storage");
+	container.configure(
+		FileSystemStorageEngine,
+		(scope) =>
+			new FileSystemStorageEngine(join(storageDirectory, scope.get(RepoAccess).repository)),
 	);
 
 	return container;
