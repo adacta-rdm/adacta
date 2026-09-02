@@ -32,5 +32,5 @@
 		"rootDirs": [".", "./.react-router/types"]
 	},
 	"include": ["**/*", "**/.server/**/*", "**/.client/**/*", ".react-router/types/**/*"],
-	"exclude": ["node_modules", "build", ".react-router"]
+	"exclude": ["node_modules", "build"]
 }
