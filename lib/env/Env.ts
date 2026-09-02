@@ -1,5 +1,5 @@
 /**
- * Reads environment values as strings, numbers, booleans, or URLs.
+ * Reads environment values as strings, paths, numbers, booleans, or URLs.
  */
 export class Env {
 	readonly values: EnvSource;
@@ -37,6 +37,16 @@ export class Env {
 		if (arguments.length > 1) return defaultValue;
 
 		throw new MissingEnvError(name);
+	}
+
+	path(name: string): string;
+	path(name: string, defaultValue: string): string;
+	path(name: string, defaultValue: undefined): string | undefined;
+	path(name: string, defaultValue?: string): string | undefined {
+		const value = arguments.length > 1 ? this.string(name, defaultValue) : this.string(name);
+		if (value === undefined || value.endsWith("/")) return value;
+
+		return `${value}/`;
 	}
 
 	int(name: string): number;

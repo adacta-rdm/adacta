@@ -39,6 +39,18 @@ describe("Env", () => {
 		});
 	});
 
+	describe("path", () => {
+		test("returns a path with a trailing slash", () => {
+			expect(new Env({ DATA_DIR: "/var/lib/adacta" }).path("DATA_DIR")).toBe("/var/lib/adacta/");
+			expect(new Env({ DATA_DIR: "/var/lib/adacta/" }).path("DATA_DIR")).toBe("/var/lib/adacta/");
+		});
+
+		test("uses a default path", () => {
+			expect(new Env({}).path("DATA_DIR", ".adacta/data")).toBe(".adacta/data/");
+			expect(new Env({}).path("DATA_DIR", undefined)).toBeUndefined();
+		});
+	});
+
 	describe("int", () => {
 		test("reads an integer", () => {
 			expect(new Env({ PORT: "5432" }).int("PORT")).toBe(5432);
