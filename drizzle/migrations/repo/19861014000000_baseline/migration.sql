@@ -1,5 +1,6 @@
 CREATE TABLE `InventoryEntry` (
 	`inventory_entry_id` integer PRIMARY KEY AUTOINCREMENT,
+	`slug` text NOT NULL,
 	`name` text NOT NULL,
 	`kind` text NOT NULL,
 	`location_building_identifier` text,
@@ -54,6 +55,7 @@ CREATE TABLE `SourceBundle` (
 	`metadata_archived_at` integer
 );
 --> statement-breakpoint
+CREATE UNIQUE INDEX `InventoryEntry_slug_unique` ON `InventoryEntry` (`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Sample_batch_name_unique` ON `Sample` (`sample_batch_id`,`name`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Sample_batch_slug_unique` ON `Sample` (`sample_batch_id`,`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `SampleBatch_slug_unique` ON `SampleBatch` (`slug`);

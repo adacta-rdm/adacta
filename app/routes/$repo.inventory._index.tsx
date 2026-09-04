@@ -1,6 +1,6 @@
-import { CubeIcon, RectangleGroupIcon } from "@heroicons/react/20/solid";
 import { Link, useRouteLoaderData } from "react-router";
 
+import { KindIcon } from "~/app/components/KindIcon";
 import { formatLocation } from "~/app/lib/location";
 import { Badge } from "~/catalyst-ui/badge";
 import { Heading, Subheading } from "~/catalyst-ui/heading";
@@ -27,14 +27,10 @@ export default function InventoryIndex() {
 				{data.entries.map((entry) => (
 					<li key={entry.id}>
 						<Link
-							to={`/${data.repository}/inventory/${entry.id}`}
+							to={`/${data.repository}/inventory/${entry.slug}`}
 							className="flex items-center gap-3 py-3 hover:bg-zinc-950/[2.5%] dark:hover:bg-white/5"
 						>
-							{entry.kind === "rig" ? (
-								<RectangleGroupIcon className="size-5 shrink-0 fill-zinc-500" />
-							) : (
-								<CubeIcon className="size-5 shrink-0 fill-zinc-500" />
-							)}
+							<KindIcon kind={entry.kind} className="size-5 shrink-0 text-foreground-muted" />
 
 							<span className="flex-1 font-medium">{entry.name}</span>
 

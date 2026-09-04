@@ -40,6 +40,16 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
+			"name": "slug",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
 			"name": "name",
 			"entityType": "columns",
 			"table": "InventoryEntry"
@@ -470,6 +480,20 @@
 			"name": "SourceBundle_pk",
 			"table": "SourceBundle",
 			"entityType": "pks"
+		},
+		{
+			"columns": [
+				{
+					"value": "slug",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "InventoryEntry_slug_unique",
+			"entityType": "indexes",
+			"table": "InventoryEntry"
 		},
 		{
 			"columns": [

@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 import { metadata } from "~/drizzle/schemaHelpers/metadata";
 
@@ -13,20 +13,30 @@ import { metadata } from "~/drizzle/schemaHelpers/metadata";
  * NAMING: "InventoryEntry" is a placeholder. The term for this concept has not
  * been chosen yet. "Facility" is deliberately not used.
  */
-export const InventoryEntry = sqliteTable("InventoryEntry", {
-	id: integer("inventory_entry_id").primaryKey({ autoIncrement: true }),
+export const InventoryEntry = sqliteTable(
+	"InventoryEntry",
+	{
+		id: integer("inventory_entry_id").primaryKey({ autoIncrement: true }),
 
-	name: text("name").notNull(),
+		/**
+		 * The URL segment for this entry, taken from its name. A reader of a
+		 * pasted link can therefore tell which entry it points at.
+		 */
+		slug: text("slug").notNull(),
 
-	kind: text("kind", { enum: ["rig", "equipment"] }).notNull(),
+		name: text("name").notNull(),
 
-	/**
-	 * Where the entry stands. The identifiers are organization-specific. They are
-	 * text: building and room labels are often alphanumeric, for example "B3".
-	 */
-	locationBuildingIdentifier: text("location_building_identifier"),
-	locationRoomIdentifier: text("location_room_identifier"),
-	locationLabel: text("location_label"),
+		kind: text("kind", { enum: ["rig", "equipment"] }).notNull(),
 
-	...metadata(),
-});
+		/**
+		 * Where the entry stands. The identifiers are organization-specific. They are
+		 * text: building and room labels are often alphanumeric, for example "B3".
+		 */
+		locationBuildingIdentifier: text("location_building_identifier"),
+		locationRoomIdentifier: text("location_room_identifier"),
+		locationLabel: text("location_label"),
+
+		...metadata(),
+	},
+	(table) => [uniqueIndex("InventoryEntry_slug_unique").on(table.slug)],
+);

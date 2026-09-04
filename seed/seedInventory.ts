@@ -6,7 +6,12 @@
  *
  * An entry that has no fixed place omits "location". A spare part in a drawer
  * is such an entry.
+ *
+ * Slugs are not written by hand. An entry takes its slug from its name through
+ * "availableSlug", which is what the application does. The seed therefore
+ * cannot produce a slug the application could not produce.
  */
+import { availableSlug } from "~/app/lib/slugs";
 import { RepoDB } from "~/app/services/RepoDB";
 import { Security } from "~/app/services/Security";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
@@ -48,19 +53,28 @@ export function seedInventory(scope: ServiceContainer, repository: string): numb
 
 	const entries = files.map((file) => readJson<SeedInventoryEntry>(file));
 
-	db.insert(InventoryEntry)
-		.values(
-			entries.map((entry) => ({
-				name: entry.name,
-				kind: entry.kind,
-				locationBuildingIdentifier: entry.location?.buildingIdentifier ?? null,
-				locationRoomIdentifier: entry.location?.roomIdentifier ?? null,
-				locationLabel: entry.location?.label ?? null,
-				metadataCreatorId: creatorId,
-				metadataCreationTimestamp: createdAt,
-			})),
-		)
-		.run();
+	// The table was emptied above, so the slugs taken so far are the ones handed
+	// out in this loop. Two names that reduce to the same slug push the second
+	// one to a numbered variant.
+	const takenSlugs: string[] = [];
+
+	const rows = entries.map((entry) => {
+		const slug = availableSlug(entry.name, takenSlugs);
+		takenSlugs.push(slug);
+
+		return {
+			slug,
+			name: entry.name,
+			kind: entry.kind,
+			locationBuildingIdentifier: entry.location?.buildingIdentifier ?? null,
+			locationRoomIdentifier: entry.location?.roomIdentifier ?? null,
+			locationLabel: entry.location?.label ?? null,
+			metadataCreatorId: creatorId,
+			metadataCreationTimestamp: createdAt,
+		};
+	});
+
+	db.insert(InventoryEntry).values(rows).run();
 
 	return entries.length;
 }

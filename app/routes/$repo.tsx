@@ -41,6 +41,7 @@ export function loader({ context, request }: Route.LoaderArgs) {
 		.all()
 		.map((row) => ({
 			id: row.id,
+			slug: row.slug,
 			name: row.name,
 			kind: row.kind,
 			location: {

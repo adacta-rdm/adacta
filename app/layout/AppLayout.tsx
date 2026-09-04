@@ -9,13 +9,12 @@ import {
 	ArrowUpTrayIcon,
 	BeakerIcon,
 	BuildingOffice2Icon,
-	CubeIcon,
 	PlusIcon,
-	RectangleGroupIcon,
 } from "@heroicons/react/20/solid";
 import type { ReactNode } from "react";
 import { useLocation, useParams } from "react-router";
 
+import { KindIcon, type InventoryKind } from "~/app/components/KindIcon";
 import { SidebarLayout } from "~/app/layout/SidebarLayout";
 import type { BatchGroup } from "~/app/lib/batchComposition";
 import type { Building, Located } from "~/app/lib/location";
@@ -30,32 +29,22 @@ import {
 	SidebarSection,
 } from "~/catalyst-ui/sidebar";
 import type { Entity } from "~/drizzle/Schema";
-import type { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
-
-/**
- * Custom rigs carry a P&ID; standalone equipment does not.
- */
-type InventoryKind = (typeof InventoryEntry.$inferSelect)["kind"];
 
 /**
  * What the sidebar tree is built from: a named, placed entry with a kind.
  */
-type Entry = Located & { id: number; kind: InventoryKind };
+type Entry = Located & { id: number; slug: string; kind: InventoryKind };
 
 type Batch = Pick<Entity<"SampleBatch">, "id" | "slug" | "name" | "activeMaterial" | "support">;
-
-function KindIcon({ kind }: { kind: InventoryKind }) {
-	return kind === "rig" ? <RectangleGroupIcon /> : <CubeIcon />;
-}
 
 function LocationTree({
 	buildings,
 	repo,
-	entryId,
+	entrySlug,
 }: {
 	buildings: Building<Entry>[];
 	repo: string | undefined;
-	entryId: string | undefined;
+	entrySlug: string | undefined;
 }) {
 	return (
 		<ul aria-label="Inventory by location" className="space-y-2">
@@ -79,8 +68,8 @@ function LocationTree({
 									{room.entries.map((entry) => (
 										<li key={entry.id}>
 											<SidebarItem
-												href={`/${repo}/inventory/${entry.id}`}
-												current={String(entry.id) === entryId}
+												href={`/${repo}/inventory/${entry.slug}`}
+												current={entry.slug === entrySlug}
 											>
 												<KindIcon kind={entry.kind} />
 												<SidebarLabel>{entry.name}</SidebarLabel>
@@ -168,7 +157,7 @@ export function AppLayout({
 	children: ReactNode;
 }) {
 	const { pathname } = useLocation();
-	const { repo, entryId, batchSlug } = useParams();
+	const { repo, entrySlug, batchSlug } = useParams();
 
 	const title = repository;
 
@@ -189,10 +178,13 @@ export function AppLayout({
 					<SidebarBody>
 						<SidebarHeading>Inventory</SidebarHeading>
 						<SidebarSection>
-							<SidebarItem href={`/${repo}/inventory`} current={isCurrent("inventory") && !entryId}>
+							<SidebarItem
+								href={`/${repo}/inventory`}
+								current={isCurrent("inventory") && !entrySlug}
+							>
 								<SidebarLabel>All entries</SidebarLabel>
 							</SidebarItem>
-							<LocationTree buildings={buildings} repo={repo} entryId={entryId} />
+							<LocationTree buildings={buildings} repo={repo} entrySlug={entrySlug} />
 						</SidebarSection>
 
 						<SidebarHeading className="mt-6">Samples</SidebarHeading>
