@@ -16,6 +16,7 @@ import {
 import type { ReactNode } from "react";
 import { useLocation, useParams } from "react-router";
 
+import { SidebarLayout } from "~/app/layout/SidebarLayout";
 import type { BatchGroup } from "~/app/lib/batchComposition";
 import type { Building, Located } from "~/app/lib/location";
 import { Navbar, NavbarSection, NavbarSpacer } from "~/catalyst-ui/navbar";
@@ -28,7 +29,6 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from "~/catalyst-ui/sidebar";
-import { SidebarLayout } from "~/catalyst-ui/sidebar-layout";
 import type { Entity } from "~/drizzle/Schema";
 import type { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
 
@@ -149,6 +149,7 @@ function BatchTree({
 
 export function AppLayout({
 	repository,
+	sidebarWidth,
 	buildings,
 	batchGroups,
 	children,
@@ -157,6 +158,11 @@ export function AppLayout({
 	 * The slug of the repository in scope.
 	 */
 	repository: string;
+
+	/**
+	 * The width sent with this request. The first page drawn is already right.
+	 */
+	sidebarWidth: number;
 	buildings: Building<Entry>[];
 	batchGroups: BatchGroup<Batch>[];
 	children: ReactNode;
@@ -173,6 +179,7 @@ export function AppLayout({
 
 	return (
 		<SidebarLayout
+			sidebarWidth={sidebarWidth}
 			sidebar={
 				<Sidebar>
 					<SidebarHeader>

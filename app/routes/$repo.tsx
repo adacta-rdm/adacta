@@ -15,6 +15,7 @@ import { AppLayout } from "~/app/layout/AppLayout";
 import { appendUniqueFiles } from "~/app/lib/appendUniqueFiles";
 import { groupBatchesByComposition } from "~/app/lib/batchComposition";
 import { groupByLocation } from "~/app/lib/location";
+import { sidebarWidthFromCookie } from "~/app/lib/sidebarWidth";
 import { sessionAuth } from "~/app/middleware/authentication";
 import { repositoryAccess } from "~/app/middleware/repositoryAccess";
 import { RepoAccess } from "~/app/services/RepoAccess";
@@ -29,7 +30,7 @@ import type { Route } from "./+types/$repo";
  */
 export const middleware: Route.MiddlewareFunction[] = [sessionAuth, repositoryAccess];
 
-export function loader({ context }: Route.LoaderArgs) {
+export function loader({ context, request }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const [access, db] = container.get(RepoAccess, RepoDB);
 
@@ -57,6 +58,7 @@ export function loader({ context }: Route.LoaderArgs) {
 		.all();
 
 	return {
+		sidebarWidth: sidebarWidthFromCookie(request.headers.get("cookie")),
 		repository: access.repository,
 		entries,
 		buildings: groupByLocation(entries),
@@ -120,6 +122,7 @@ export default function Repository({ loaderData }: Route.ComponentProps) {
 	return (
 		<RepositoryFileDropTarget onDropFiles={importSourceFiles}>
 			<AppLayout
+				sidebarWidth={loaderData.sidebarWidth}
 				repository={loaderData.repository}
 				buildings={loaderData.buildings}
 				batchGroups={loaderData.batchGroups}
