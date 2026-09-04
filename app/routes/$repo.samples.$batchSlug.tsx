@@ -5,6 +5,7 @@ import { data, redirect } from "react-router";
 import { services } from "~/app/.server/context";
 import { addSample } from "~/app/lib/addSample";
 import { formatBatchComposition } from "~/app/lib/batchComposition";
+import { formatCalendarDate } from "~/app/lib/dates";
 import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError";
 import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError";
 import { compareSampleNames } from "~/app/lib/sampleNames";
@@ -166,7 +167,7 @@ export default function RepoSamplesBatchSlug({ loaderData }: Route.ComponentProp
 				<Heading>{batch.name}</Heading>
 				<p className="mt-2 text-sm text-foreground-muted">
 					Preparation date:{" "}
-					<time dateTime={batch.preparationDate}>{formatDateOnly(batch.preparationDate)}</time>
+					<time dateTime={batch.preparationDate}>{formatCalendarDate(batch.preparationDate)}</time>
 				</p>
 				<p className="mt-2 text-sm text-foreground-muted">
 					Prepared by: {batch.preparedBy?.name ?? "Unknown"}
@@ -183,12 +184,6 @@ export default function RepoSamplesBatchSlug({ loaderData }: Route.ComponentProp
 
 			<SampleTable />
 		</div>
-	);
-}
-
-function formatDateOnly(date: string): string {
-	return new Intl.DateTimeFormat("en", { dateStyle: "medium", timeZone: "UTC" }).format(
-		new Date(`${date}T00:00:00.000Z`),
 	);
 }
 

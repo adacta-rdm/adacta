@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { isCalendarDate } from "~/app/lib/dates";
+import { formatCalendarDate, formatTimestamp, isCalendarDate } from "~/app/lib/dates";
 
 describe("isCalendarDate", () => {
 	test("accepts a date written as year-month-day", () => {
@@ -26,5 +26,24 @@ describe("isCalendarDate", () => {
 	test("rejects empty text", () => {
 		expect(isCalendarDate("")).toBe(false);
 		expect(isCalendarDate("   ")).toBe(false);
+	});
+});
+
+describe("formatCalendarDate", () => {
+	test("writes the day the text names", () => {
+		expect(formatCalendarDate("2025-01-15")).toBe("Jan 15, 2025");
+	});
+
+	test("writes the same day in every time zone", () => {
+		// A calendar date names one day everywhere. Read as a local time, an
+		// early-morning date would fall back to the previous day west of UTC.
+		expect(formatCalendarDate("2024-05-17")).toBe("May 17, 2024");
+		expect(formatCalendarDate("2024-01-01")).toBe("Jan 1, 2024");
+	});
+});
+
+describe("formatTimestamp", () => {
+	test("writes the day the moment falls on", () => {
+		expect(formatTimestamp(new Date("2025-01-15T12:00:00.000Z"))).toBe("Jan 15, 2025");
 	});
 });

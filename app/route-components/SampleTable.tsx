@@ -1,6 +1,7 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/20/solid";
 import { Form, useActionData, useNavigation, useRouteLoaderData } from "react-router";
 
+import { formatTimestamp } from "~/app/lib/dates";
 import { nextSampleName } from "~/app/lib/sampleNames";
 import type { action, loader } from "~/app/routes/$repo.samples.$batchSlug";
 import { Subheading } from "~/catalyst-ui/heading";
@@ -63,7 +64,7 @@ export function SampleTable() {
 									</td>
 									<td className="py-3 pr-4 text-foreground-muted">
 										<time dateTime={sample.metadataCreationTimestamp.toISOString()}>
-											{formatDate(sample.metadataCreationTimestamp)}
+											{formatTimestamp(sample.metadataCreationTimestamp)}
 										</time>
 									</td>
 									<td className="py-3 pr-5 text-left">
@@ -155,8 +156,4 @@ export function SampleTable() {
 			</div>
 		</section>
 	);
-}
-
-function formatDate(date: Date): string {
-	return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(date);
 }

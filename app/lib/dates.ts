@@ -20,3 +20,34 @@ export function isCalendarDate(value: string): boolean {
 
 	return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
 }
+
+/**
+ * A calendar date written for a reader, as "Jan 15, 2025".
+ *
+ * The text is read as UTC, because a calendar date names one day everywhere.
+ * Read as a local time instead, "2025-01-15" would fall back to January 14
+ * for a reader west of UTC.
+ */
+export function formatCalendarDate(value: string): string {
+	return CALENDAR_DATE_FORMAT.format(new Date(`${value}T00:00:00.000Z`));
+}
+
+/**
+ * A moment in time written for a reader, as "Jan 15, 2025".
+ *
+ * The day is the one the moment falls on where the text is written. A record
+ * created just before midnight is therefore dated differently in Karlsruhe
+ * and in Chicago.
+ */
+export function formatTimestamp(value: Date): string {
+	return TIMESTAMP_FORMAT.format(value);
+}
+
+// The formatters are built once. Building one is expensive, and these are
+// called for every row of a table.
+const CALENDAR_DATE_FORMAT = new Intl.DateTimeFormat("en", {
+	dateStyle: "medium",
+	timeZone: "UTC",
+});
+
+const TIMESTAMP_FORMAT = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
