@@ -9,6 +9,8 @@ import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError";
 
 import type { Route } from "./+types/$repo.files.$bundleId";
 
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+
 export function meta() {
 	return [{ title: "Source bundle — Adacta" }];
 }

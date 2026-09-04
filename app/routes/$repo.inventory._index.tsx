@@ -11,6 +11,8 @@ import type { loader as repoLoader } from "./$repo";
  * No loader here. The repository route already loaded the inventory for the
  * sidebar tree. This reads the same data instead of querying again.
  */
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+
 export default function InventoryIndex() {
 	const data = useRouteLoaderData<typeof repoLoader>("routes/$repo");
 

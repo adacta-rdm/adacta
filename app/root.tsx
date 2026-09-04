@@ -1,12 +1,6 @@
-import {
-	isRouteErrorResponse,
-	Links,
-	Meta,
-	Outlet,
-	Scripts,
-	ScrollRestoration,
-} from "react-router";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 
+import { ErrorPanel, ErrorPanelAction } from "~/app/components/ErrorPanel";
 import { container } from "~/app/middleware/container";
 
 import type { Route } from "./+types/root";
@@ -53,29 +47,17 @@ export default function App() {
 	return <Outlet />;
 }
 
+/**
+ * Catches what no route below has caught. A repository page is caught by the
+ * repository layout instead, which keeps the sidebar. This page therefore has
+ * no sidebar to offer, so it sends the reader to the repository list.
+ */
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-	let message = "Oops!";
-	let details = "An unexpected error occurred.";
-	let stack: string | undefined;
-
-	if (isRouteErrorResponse(error)) {
-		message = error.status === 404 ? "404" : "Error";
-		details =
-			error.status === 404 ? "The requested page could not be found." : error.statusText || details;
-	} else if (import.meta.env.DEV && error && error instanceof Error) {
-		details = error.message;
-		stack = error.stack;
-	}
-
 	return (
-		<main className="pt-16 p-4 container mx-auto">
-			<h1>{message}</h1>
-			<p>{details}</p>
-			{stack && (
-				<pre className="w-full p-4 overflow-x-auto">
-					<code>{stack}</code>
-				</pre>
-			)}
+		<main className="flex min-h-svh flex-col justify-center bg-canvas">
+			<ErrorPanel error={error}>
+				<ErrorPanelAction href="/">Back to repositories</ErrorPanelAction>
+			</ErrorPanel>
 		</main>
 	);
 }

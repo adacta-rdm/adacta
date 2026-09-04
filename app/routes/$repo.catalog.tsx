@@ -1,6 +1,8 @@
 import { Heading, Subheading } from "~/catalyst-ui/heading";
 import { Text } from "~/catalyst-ui/text";
 
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+
 export function meta() {
 	return [{ title: "Catalog — Adacta" }];
 }

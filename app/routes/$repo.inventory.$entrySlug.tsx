@@ -19,8 +19,14 @@ import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
 
 import type { Route } from "./+types/$repo.inventory.$entrySlug";
 
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+
+/**
+ * The route has an error boundary, so it can render without loader data. The
+ * title then names the section rather than an entry.
+ */
 export function meta({ loaderData }: Route.MetaArgs) {
-	return [{ title: `${loaderData.entry.name} — Adacta` }];
+	return [{ title: loaderData ? `${loaderData.entry.name} — Adacta` : "Inventory — Adacta" }];
 }
 
 export async function loader({ context, params }: Route.LoaderArgs) {

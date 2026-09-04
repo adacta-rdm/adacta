@@ -1,5 +1,7 @@
 import { Outlet } from "react-router";
 
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+
 export function meta() {
 	return [{ title: "Samples — Adacta" }];
 }

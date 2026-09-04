@@ -19,6 +19,8 @@ import { Text } from "~/catalyst-ui/text";
 
 import type { Route } from "./+types/$repo.files.import";
 
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+
 export function meta() {
 	return [{ title: "Import files — Adacta" }];
 }
