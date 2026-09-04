@@ -1,9 +1,11 @@
 import { Database as SQLite } from "bun:sqlite";
 import { mkdirSync, readdirSync, rmSync } from "node:fs";
 
+import type { AnyRelations } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 
+import { authRelations } from "~/drizzle/schema/system.BetterAuth";
 import { Env } from "~/lib/env/Env";
 import { Service } from "~/lib/service-container/ServiceContainer";
 
@@ -42,14 +44,14 @@ export class DatabaseManager {
 	 * The one system database.
 	 */
 	system() {
-		return this.#open(SYSTEM_DB_NAME);
+		return this.#open(SYSTEM_DB_NAME, authRelations);
 	}
 
 	/**
 	 * One repository's database. The slug is also the file name.
 	 */
 	repoDb(slug: string) {
-		return this.#open(this.#validated(slug));
+		return this.#open(this.#validated(slug), undefined);
 	}
 
 	migrateSystem(): void {
@@ -87,7 +89,7 @@ export class DatabaseManager {
 		}
 	}
 
-	#open(dbName: string) {
+	#open<TRelations extends AnyRelations | undefined>(dbName: string, relations: TRelations) {
 		let connection = this.#connections.get(dbName);
 
 		if (!connection) {
@@ -100,7 +102,7 @@ export class DatabaseManager {
 			// transaction.
 			client.run("PRAGMA foreign_keys = ON");
 
-			connection = drizzle({ client });
+			connection = drizzle({ client, relations });
 			this.#connections.set(dbName, connection);
 		}
 
