@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { eq } from "drizzle-orm";
 
-import { loader } from "~/app/routes/$repo.samples._index";
+import { action, loader } from "~/app/routes/$repo.samples._index";
 import { RepoDB } from "~/app/services/RepoDB";
 import { Security } from "~/app/services/Security";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
@@ -65,6 +65,62 @@ describe("samples index loader", () => {
 		expect((await load(scope)).batches).toEqual([]);
 	});
 });
+
+describe("samples index action", () => {
+	test("archives a batch and keeps its samples", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		const batch = addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
+
+		const response = await archive(scope, batch.slug);
+
+		expect(response).toBeInstanceOf(Response);
+		expect((await load(scope)).batches).toEqual([]);
+
+		// The batch leaves the workflow. The record and its samples remain.
+		const stored = scope.get(RepoDB).select().from(SampleBatch).get();
+		expect(stored?.metadataArchivedAt).toBeInstanceOf(Date);
+		expect(scope.get(RepoDB).select().from(Sample).all()).toHaveLength(2);
+	});
+
+	test("answers 404 for a batch that is not there", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+
+		expect(archive(scope, "no-such-batch")).rejects.toMatchObject({ status: 404 });
+	});
+
+	test("answers 404 for a batch that is already archived", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		const batch = addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
+		await archive(scope, batch.slug);
+
+		expect(archive(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
+	});
+
+	test("reports an unrecognized operation", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
+
+		const response = await submit(scope, {});
+		if (response instanceof Response) throw new Error("Expected action data.");
+
+		expect(response.init?.status).toBe(400);
+		expect(response.data).toEqual({ errors: { form: "The batch action is not recognized." } });
+	});
+});
+
+function submit(scope: ServiceContainer, fields: Record<string, string>) {
+	const form = new FormData();
+	for (const [name, value] of Object.entries(fields)) form.set(name, value);
+
+	const request = new Request("http://localhost/demo/samples", { method: "POST", body: form });
+	const [args] = createMiddlewareArgs(scope, { request, params: { repo: "demo" } });
+
+	return action(args);
+}
+
+function archive(scope: ServiceContainer, slug: string) {
+	return submit(scope, { archive: slug });
+}
 
 async function load(scope: ServiceContainer) {
 	const [args] = createMiddlewareArgs(scope, { params: { repo: "demo" } });
