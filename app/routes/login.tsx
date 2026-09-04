@@ -2,12 +2,17 @@ import { createAuthClient } from "better-auth/react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
+import { AuthLayout } from "~/catalyst-ui/auth-layout";
 import { Button } from "~/catalyst-ui/button";
 import { Field, Fieldset, Label } from "~/catalyst-ui/fieldset";
 import { Heading } from "~/catalyst-ui/heading";
 import { Input } from "~/catalyst-ui/input";
 import { Text } from "~/catalyst-ui/text";
 
+/**
+ * Better Auth keeps the session in a cookie that it sets from the browser. The
+ * form therefore posts through the client rather than through a route action.
+ */
 const authClient = createAuthClient();
 
 export function meta() {
@@ -20,27 +25,39 @@ export default function Login() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
+	const [signingIn, setSigningIn] = useState(false);
 
 	async function signIn(event: React.SyntheticEvent<HTMLFormElement>) {
 		event.preventDefault();
-		setError("");
+
+		setSigningIn(true);
 
 		await authClient.signIn.email(
 			{ email, password },
 			{
 				onSuccess: () => void navigate("/"),
-				onError: (context) => setError(context.error.message),
+
+				// The page stays put on a failure, so the button is released again.
+				// A success navigates away and leaves it disabled.
+				onError: (context) => {
+					setError(context.error.message);
+					setSigningIn(false);
+				},
 			},
 		);
 	}
 
 	return (
-		<div className="mx-auto grid min-h-svh max-w-sm place-items-center p-8">
-			<form onSubmit={signIn} className="w-full">
-				<Heading>Sign in</Heading>
+		<AuthLayout>
+			<form onSubmit={signIn} className="w-full max-w-sm">
+				{/*
+				 * This page names the product. It is the only page a visitor sees
+				 * before signing in, and the application shell carries no name.
+				 */}
+				<Heading>Adacta</Heading>
 				<Text className="mt-1">Sign in to open a repository.</Text>
 
-				<Fieldset className="mt-6">
+				<Fieldset className="mt-8">
 					<Field>
 						<Label>Email</Label>
 						<Input
@@ -64,12 +81,16 @@ export default function Login() {
 					</Field>
 				</Fieldset>
 
-				{error ? <Text className="mt-4 text-red-600 dark:text-red-400">{error}</Text> : null}
+				{error ? (
+					<p role="alert" className="mt-4 text-sm text-danger">
+						{error}
+					</p>
+				) : null}
 
-				<Button type="submit" className="mt-6 w-full">
-					Sign in
+				<Button type="submit" disabled={signingIn} className="mt-6 w-full">
+					{signingIn ? "Signing in…" : "Sign in"}
 				</Button>
 			</form>
-		</div>
+		</AuthLayout>
 	);
 }
