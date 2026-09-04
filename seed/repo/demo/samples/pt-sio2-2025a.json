@@ -1,0 +1,8 @@
+{
+	"name": "Pt/SiO2 (1 wt%) 2025-A",
+	"preparationDate": "2025-03-04",
+	"preparedBy": "dev",
+	"activeMaterial": "Pt",
+	"support": "SiO2",
+	"samples": ["#01", "#02", "#03", "#04"]
+}

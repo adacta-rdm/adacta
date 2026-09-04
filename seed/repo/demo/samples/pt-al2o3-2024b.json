@@ -1,0 +1,8 @@
+{
+	"name": "Pt/Al2O3 (0.5 wt%) 2024-B",
+	"preparationDate": "2024-11-12",
+	"preparedBy": "gossler",
+	"activeMaterial": "Pt",
+	"support": "Al2O3",
+	"samples": ["#01", "#02", "#03", "#04"]
+}

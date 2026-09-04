@@ -1,0 +1,8 @@
+{
+	"name": "Pd/Al2O3 (0.5 wt%) 2024-A",
+	"preparationDate": "2024-06-21",
+	"preparedBy": "dev",
+	"activeMaterial": "Pd",
+	"support": "Al2O3",
+	"samples": ["#01", "#02", "#03", "#04", "#05"]
+}

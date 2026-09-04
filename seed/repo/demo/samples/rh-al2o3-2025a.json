@@ -1,0 +1,8 @@
+{
+	"name": "Rh/Al2O3 (1 wt%) 2025-A",
+	"preparationDate": "2025-05-07",
+	"preparedBy": "gossler",
+	"activeMaterial": "Rh",
+	"support": "Al2O3",
+	"samples": ["#01", "#02", "#03"]
+}

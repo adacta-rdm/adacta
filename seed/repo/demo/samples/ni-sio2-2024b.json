@@ -1,0 +1,8 @@
+{
+	"name": "Ni/SiO2 (10 wt%) 2024-B",
+	"preparationDate": "2024-09-05",
+	"preparedBy": "dev",
+	"activeMaterial": "Ni",
+	"support": "SiO2",
+	"samples": ["#01", "#02", "#03", "#04"]
+}

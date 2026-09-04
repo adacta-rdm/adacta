@@ -1,0 +1,8 @@
+{
+	"name": "Co/Al2O3 (15 wt%) 2024-A",
+	"preparationDate": "2024-04-16",
+	"preparedBy": "riedel",
+	"activeMaterial": "Co",
+	"support": "Al2O3",
+	"samples": ["#01", "#02", "#03", "#04"]
+}

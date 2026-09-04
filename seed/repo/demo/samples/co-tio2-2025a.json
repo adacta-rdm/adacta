@@ -1,0 +1,8 @@
+{
+	"name": "Co/TiO2 (20 wt%) 2025-A",
+	"preparationDate": "2025-01-22",
+	"preparedBy": "gossler",
+	"activeMaterial": "Co",
+	"support": "TiO2",
+	"samples": ["#01", "#02", "#03", "#04", "#05"]
+}

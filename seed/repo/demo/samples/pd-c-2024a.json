@@ -1,0 +1,8 @@
+{
+	"name": "Pd/C (5 wt%) 2024-A",
+	"preparationDate": "2024-07-09",
+	"preparedBy": "gossler",
+	"activeMaterial": "Pd",
+	"support": "C",
+	"samples": ["#01", "#02", "#03", "#04", "#05", "#05b"]
+}

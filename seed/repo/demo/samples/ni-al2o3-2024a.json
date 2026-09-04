@@ -1,0 +1,8 @@
+{
+	"name": "Ni/Al2O3 (15 wt%) 2024-A",
+	"preparationDate": "2024-05-17",
+	"preparedBy": "dev",
+	"activeMaterial": "Ni",
+	"support": "Al2O3",
+	"samples": ["#01", "#02", "#03", "#04", "#05", "#06"]
+}

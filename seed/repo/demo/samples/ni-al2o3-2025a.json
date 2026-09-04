@@ -1,0 +1,8 @@
+{
+	"name": "Ni/Al2O3 (25 wt%) 2025-A",
+	"preparationDate": "2025-01-28",
+	"preparedBy": "gossler",
+	"activeMaterial": "Ni",
+	"support": "Al2O3",
+	"samples": ["#01", "#02", "#03", "#04"]
+}

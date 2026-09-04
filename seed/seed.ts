@@ -13,24 +13,15 @@
  *
  * Run with "bun run db:seed", or "bun run db:setup" to start from a wipe.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { basename, join } from "node:path";
-
 import { BetterAuth } from "~/app/services/BetterAuth";
 import { RepoAccess } from "~/app/services/RepoAccess";
 import { RepoDB } from "~/app/services/RepoDB";
 import { RepoManager, RepositoryAlreadyExistsError } from "~/app/services/RepoManager";
 import { Security } from "~/app/services/Security";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
-import { Sample } from "~/drizzle/schema/repo.Sample";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
-
-/**
- * The seed tree sits beside this file. Paths are resolved against the module.
- * The seed therefore runs from any working directory.
- */
-const SEED = import.meta.dir;
+import { jsonFiles, keyOf, readJson } from "~/seed/files";
+import { seedSamples } from "~/seed/seedSamples";
 
 /**
  * The user whose name appears on every seeded record.
@@ -61,16 +52,6 @@ type Seed = {
 		room?: string;
 		label?: string;
 	}[];
-	batches: BatchSeed[];
-};
-
-type BatchSeed = {
-	slug: string;
-	name: string;
-	preparationDate: string;
-	activeMaterial: string;
-	support: string;
-	sampleCount: number;
 };
 
 const repositories: Seed[] = [
@@ -85,96 +66,6 @@ const repositories: Seed[] = [
 			{ name: "Methanation Test Stand", kind: "rig", building: "B7", room: "12" },
 			{ name: "Mass Flow Controller (spare)", kind: "equipment" },
 		],
-		batches: [
-			{
-				slug: "au-tio2-2025b",
-				name: "Au/TiO2 (1 wt%) 2025-B",
-				preparationDate: "2025-02-12",
-				activeMaterial: "Au",
-				support: "TiO2",
-				sampleCount: 4,
-			},
-			{
-				slug: "co-tio2-2025a",
-				name: "Co/TiO2 (20 wt%) 2025-A",
-				preparationDate: "2025-01-22",
-				activeMaterial: "Co",
-				support: "TiO2",
-				sampleCount: 5,
-			},
-			{
-				slug: "cu-zno-al2o3-2024a",
-				name: "Cu/ZnO/Al2O3 (60:30:10) 2024-A",
-				preparationDate: "2024-03-14",
-				activeMaterial: "Cu",
-				support: "ZnO/Al2O3",
-				sampleCount: 5,
-			},
-			{
-				slug: "h-zsm5-2024a",
-				name: "H-ZSM-5 (Si/Al 25) 2024-A",
-				preparationDate: "2024-04-09",
-				activeMaterial: "H",
-				support: "ZSM-5",
-				sampleCount: 5,
-			},
-			{
-				slug: "ni-al2o3-2024a",
-				name: "Ni/Al2O3 (15 wt%) 2024-A",
-				preparationDate: "2024-05-17",
-				activeMaterial: "Ni",
-				support: "Al2O3",
-				sampleCount: 6,
-			},
-			{
-				slug: "ni-sio2-2024b",
-				name: "Ni/SiO2 (10 wt%) 2024-B",
-				preparationDate: "2024-09-05",
-				activeMaterial: "Ni",
-				support: "SiO2",
-				sampleCount: 4,
-			},
-			{
-				slug: "pd-al2o3-2025a",
-				name: "Pd/Al2O3 (0.03 wt%) 2025-A",
-				preparationDate: "2025-03-11",
-				activeMaterial: "Pd",
-				support: "Al2O3",
-				sampleCount: 3,
-			},
-			{
-				slug: "pd-c-2024a",
-				name: "Pd/C (5 wt%) 2024-A",
-				preparationDate: "2024-06-21",
-				activeMaterial: "Pd",
-				support: "C",
-				sampleCount: 6,
-			},
-			{
-				slug: "pt-al2o3-2024a",
-				name: "Pt/Al2O3 (2 wt%) 2024-A",
-				preparationDate: "2024-08-30",
-				activeMaterial: "Pt",
-				support: "Al2O3",
-				sampleCount: 7,
-			},
-			{
-				slug: "pt-sn-al2o3-2025a",
-				name: "Pt-Sn/Al2O3 (0.5-1 wt%) 2025-A",
-				preparationDate: "2025-04-18",
-				activeMaterial: "Pt-Sn",
-				support: "Al2O3",
-				sampleCount: 4,
-			},
-			{
-				slug: "ru-k-c-2025a",
-				name: "Ru-K/C (5 wt%) 2025-A",
-				preparationDate: "2025-05-07",
-				activeMaterial: "Ru-K",
-				support: "C",
-				sampleCount: 3,
-			},
-		],
 	},
 	{
 		slug: "pilot",
@@ -184,7 +75,6 @@ const repositories: Seed[] = [
 			{ name: "Steam Reformer", kind: "rig", building: "H1", room: "Hall", label: "North bay" },
 			{ name: "Gas Chromatograph 8890", kind: "equipment", building: "H1", room: "204" },
 		],
-		batches: [],
 	},
 ];
 
@@ -210,10 +100,12 @@ export async function seedDatabase(container: ServiceContainer): Promise<void> {
 
 		const scope = scopeFor(container, creatorId, seed.slug);
 		writeInventory(scope, seed);
-		writeSamples(scope, seed);
+
+		const { batches, samples } = await seedSamples(scope, seed.slug, userIds);
 
 		console.log(
-			`seeded ${seed.slug}: ${seed.entries.length} inventory entries, ${seed.batches.length} sample batches`,
+			`seeded ${seed.slug}: ${seed.entries.length} inventory entries, ` +
+				`${batches} sample batches, ${samples} samples`,
 		);
 	}
 
@@ -227,11 +119,10 @@ export async function seedDatabase(container: ServiceContainer): Promise<void> {
  * becomes the key "dev". Later fixtures name their author by that key.
  */
 async function seedUsers(app: ServiceContainer): Promise<Map<string, string>> {
-	const directory = join(SEED, "users");
 	const auth = app.get(BetterAuth);
 
-	const files = jsonFiles(directory);
-	if (files.length === 0) throw new Error(`No user files in ${directory}.`);
+	const files = jsonFiles("users");
+	if (files.length === 0) throw new Error("No user files in seed/users/.");
 
 	const idsByKey = new Map<string, string>();
 
@@ -314,65 +205,6 @@ function writeInventory(scope: ServiceContainer, seed: Seed): void {
 		.run();
 }
 
-function writeSamples(scope: ServiceContainer, seed: Seed): void {
-	const db = scope.get(RepoDB);
-	const creatorId = userIdOf(scope);
-	const createdAt = new Date();
-
-	db.delete(Sample).run();
-	db.delete(SampleBatch).run();
-
-	for (const batch of seed.batches) {
-		const { id: batchId } = db
-			.insert(SampleBatch)
-			.values({
-				slug: batch.slug,
-				name: batch.name,
-				preparationDate: batch.preparationDate,
-				preparedById: creatorId,
-				activeMaterial: batch.activeMaterial,
-				support: batch.support,
-				metadataCreatorId: creatorId,
-				metadataCreationTimestamp: createdAt,
-			})
-			.returning({ id: SampleBatch.id })
-			.get();
-
-		const samples = Array.from({ length: batch.sampleCount }, (_, index) => ({
-			batchId,
-			slug: String(index + 1).padStart(2, "0"),
-			name: `#${String(index + 1).padStart(2, "0")}`,
-			preparedById: creatorId,
-			metadataCreatorId: creatorId,
-			metadataCreationTimestamp: createdAt,
-		}));
-		db.insert(Sample).values(samples).run();
-	}
-}
-
 function userIdOf(scope: ServiceContainer): string {
 	return scope.get(Security).userId;
-}
-
-/**
- * The key of a seed file, which is its name without the extension. For example
- * "seed/users/dev.json" has the key "dev".
- */
-function keyOf(file: string): string {
-	return basename(file, ".json");
-}
-
-/**
- * Every JSON file in a seed directory, as full paths in name order. A missing
- * directory holds no files.
- */
-function jsonFiles(directory: string): string[] {
-	return readdirSync(directory)
-		.filter((file) => file.endsWith(".json"))
-		.sort()
-		.map((file) => join(directory, file));
-}
-
-function readJson<T>(file: string): T {
-	return JSON.parse(readFileSync(file, "utf-8")) as T;
 }
