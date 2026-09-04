@@ -1,10 +1,11 @@
 /**
  * Development seed.
  *
- * This goes through the same services the application uses. Users are created
- * with Better Auth. Repositories are created with RepoManager. A repository is
- * bound with RepoAccess before its data is written. Nothing here reaches for a
- * raw database handle. The seed therefore exercises the real access path.
+ * This goes through the same services the application uses. Users are read from
+ * "seed/users/" and created with Better Auth. Repositories are created with
+ * RepoManager. A repository is bound with RepoAccess before its data is
+ * written. Nothing here reaches for a raw database handle. The seed therefore
+ * exercises the real access path.
  *
  * Migrations run first. This works on an empty database directory. Running it
  * again on a populated one replaces the inventory, the sample batches, and the
@@ -12,6 +13,9 @@
  *
  * Run with "bun run db:seed", or "bun run db:setup" to start from a wipe.
  */
+import { readdirSync, readFileSync } from "node:fs";
+import { basename, join } from "node:path";
+
 import { BetterAuth } from "~/app/services/BetterAuth";
 import { RepoAccess } from "~/app/services/RepoAccess";
 import { RepoDB } from "~/app/services/RepoDB";
@@ -22,11 +26,30 @@ import { Sample } from "~/drizzle/schema/repo.Sample";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
 
-const USER = {
-	name: "Test User",
-	email: "dev@adacta.test",
-	password: "password",
-} as const;
+/**
+ * The seed tree sits beside this file. Paths are resolved against the module.
+ * The seed therefore runs from any working directory.
+ */
+const SEED = import.meta.dir;
+
+/**
+ * The user whose name appears on every seeded record.
+ *
+ * The remaining fixtures are still literals in this file. They carry no author
+ * of their own. Once they move to the seed tree, each one names its own
+ * creator. This constant is then no longer needed.
+ */
+const CREATOR = "dev";
+
+/**
+ * One file in "seed/users/". The file name is the key. The file therefore holds
+ * no key of its own.
+ */
+type SeedUser = {
+	email: string;
+	name: string;
+	password: string;
+};
 
 type Seed = {
 	slug: string;
@@ -173,13 +196,19 @@ export async function seedDatabase(container: ServiceContainer): Promise<void> {
 
 	manager.migrateAll();
 
-	const userId = await ensureUser(container);
+	const userIds = await seedUsers(container);
+
+	const creatorId = userIds.get(CREATOR);
+	if (creatorId === undefined) throw new Error(`No user file named "${CREATOR}.json".`);
 
 	for (const seed of repositories) {
 		ensureRepository(manager, seed);
-		manager.grantAccess(userId, seed.slug);
 
-		const scope = scopeFor(container, userId, seed.slug);
+		// Everyone works in every repository. A development login is meant to
+		// reach the whole fixture set.
+		for (const userId of userIds.values()) manager.grantAccess(userId, seed.slug);
+
+		const scope = scopeFor(container, creatorId, seed.slug);
 		writeInventory(scope, seed);
 		writeSamples(scope, seed);
 
@@ -188,29 +217,56 @@ export async function seedDatabase(container: ServiceContainer): Promise<void> {
 		);
 	}
 
-	console.log(`user: ${USER.email} / ${USER.password}`);
 	console.log(`repositories: ${repositories.map((r) => r.slug).join(", ")}`);
 }
 
 /**
- * Sign the seed user up through Better Auth, or find them if they exist.
+ * Register every user in "seed/users/" and return their ids by key.
+ *
+ * The key is the file name without its extension. For example "dev.json"
+ * becomes the key "dev". Later fixtures name their author by that key.
  */
-async function ensureUser(app: ServiceContainer): Promise<string> {
+async function seedUsers(app: ServiceContainer): Promise<Map<string, string>> {
+	const directory = join(SEED, "users");
 	const auth = app.get(BetterAuth);
 
+	const files = jsonFiles(directory);
+	if (files.length === 0) throw new Error(`No user files in ${directory}.`);
+
+	const idsByKey = new Map<string, string>();
+
+	for (const file of files) {
+		const user = readJson<SeedUser>(file);
+		const userId = await ensureUser(auth, user);
+
+		idsByKey.set(keyOf(file), userId);
+
+		console.log(`user: ${user.email} / ${user.password}`);
+	}
+
+	return idsByKey;
+}
+
+/**
+ * Sign a seed user up through Better Auth, or find them if they exist.
+ *
+ * Sign-up goes through the server API rather than through an insert. The
+ * password is therefore hashed the way a normal registration hashes it.
+ */
+async function ensureUser(auth: BetterAuth, user: SeedUser): Promise<string> {
 	const response = await auth.api.signUpEmail({
-		body: { name: USER.name, email: USER.email, password: USER.password },
+		body: { name: user.name, email: user.email, password: user.password },
 		asResponse: true,
 	});
 
 	if (response.ok) {
-		const { user } = (await response.json()) as { user: { id: string } };
-		return user.id;
+		const { user: created } = (await response.json()) as { user: { id: string } };
+		return created.id;
 	}
 
 	// The user was signed up on an earlier run. Sign in instead.
 	const session = await auth.api.signInEmail({
-		body: { email: USER.email, password: USER.password },
+		body: { email: user.email, password: user.password },
 	});
 
 	return session.user.id;
@@ -296,4 +352,27 @@ function writeSamples(scope: ServiceContainer, seed: Seed): void {
 
 function userIdOf(scope: ServiceContainer): string {
 	return scope.get(Security).userId;
+}
+
+/**
+ * The key of a seed file, which is its name without the extension. For example
+ * "seed/users/dev.json" has the key "dev".
+ */
+function keyOf(file: string): string {
+	return basename(file, ".json");
+}
+
+/**
+ * Every JSON file in a seed directory, as full paths in name order. A missing
+ * directory holds no files.
+ */
+function jsonFiles(directory: string): string[] {
+	return readdirSync(directory)
+		.filter((file) => file.endsWith(".json"))
+		.sort()
+		.map((file) => join(directory, file));
+}
+
+function readJson<T>(file: string): T {
+	return JSON.parse(readFileSync(file, "utf-8")) as T;
 }
