@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { formatLocation, groupByLocation, type Location } from "~/app/utils/location";
+import { formatLocation, groupByLocation, type Location } from "~/app/lib/location";
 
 function location(parts: Partial<Location> = {}): Location {
 	return { building: null, room: null, label: null, ...parts };

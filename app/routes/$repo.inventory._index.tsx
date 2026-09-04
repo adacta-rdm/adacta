@@ -1,7 +1,7 @@
 import { CubeIcon, RectangleGroupIcon } from "@heroicons/react/20/solid";
 import { Link, useRouteLoaderData } from "react-router";
 
-import { formatLocation } from "~/app/utils/location";
+import { formatLocation } from "~/app/lib/location";
 import { Badge } from "~/catalyst-ui/badge";
 import { Heading, Subheading } from "~/catalyst-ui/heading";
 

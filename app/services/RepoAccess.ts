@@ -1,7 +1,8 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 
 import { Security } from "~/app/services/Security";
 import { SystemDB } from "~/app/services/SystemDB";
+import { User } from "~/drizzle/schema/system.BetterAuth";
 import { Repository } from "~/drizzle/schema/system.Repository";
 import { UserRepository } from "~/drizzle/schema/system.UserRepository";
 import { Service } from "~/lib/service-container/ServiceContainer";
@@ -20,12 +21,16 @@ export class RepositoryAccessDeniedError extends Error {
 }
 
 /**
- * The repository a scope works on, and the only way to bind one.
+ * The repository a scope works on. This is the only place that binds one.
  *
- * A scope works on exactly one repository. Access is by grant, recorded in the
- * system `UserRepository` table, so binding always means checking the grant of
- * the authenticated user first. The selection is held here, so there is no way
- * to reach a repository without passing that check.
+ * A scope works on exactly one repository. Access is given by a grant. Grants
+ * are recorded in the system `UserRepository` table. Binding therefore checks
+ * the grant of the authenticated user first. The selection is held here. No
+ * code can reach a repository without passing that check.
+ *
+ * `RepoManager` writes the grants. It administers repositories and takes a slug
+ * for each call. The grants are read here, where the slug is the bound one. A
+ * caller can therefore not ask about a repository it was not given.
  */
 @Service(SystemDB, Security)
 export class RepoAccess {
@@ -77,6 +82,23 @@ export class RepoAccess {
 		}
 
 		return this.#slug;
+	}
+
+	/**
+	 * The users who may open the bound repository, ordered by name.
+	 *
+	 * For example, a form that credits one of them as the author of a record
+	 * offers this list. Two users with the same name are ordered by id. The
+	 * order is therefore stable.
+	 */
+	async users(): Promise<{ id: string; name: string }[]> {
+		return this.db
+			.select({ id: User.id, name: User.name })
+			.from(User)
+			.innerJoin(UserRepository, eq(UserRepository.userId, User.id))
+			.innerJoin(Repository, eq(Repository.id, UserRepository.repositoryId))
+			.where(eq(Repository.slug, this.repository))
+			.orderBy(asc(User.name), asc(User.id));
 	}
 
 	/**

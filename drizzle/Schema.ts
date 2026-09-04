@@ -1,4 +1,6 @@
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
+import { Sample } from "~/drizzle/schema/repo.Sample";
+import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
 import { SourceArtifact } from "~/drizzle/schema/repo.SourceArtifact";
 import { SourceBundle } from "~/drizzle/schema/repo.SourceBundle";
 import { Account, Session, User, Verification } from "~/drizzle/schema/system.BetterAuth";
@@ -9,6 +11,8 @@ const Schema = {
 	Account,
 	InventoryEntry,
 	Repository,
+	Sample,
+	SampleBatch,
 	Session,
 	SourceArtifact,
 	SourceBundle,

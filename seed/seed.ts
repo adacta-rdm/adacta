@@ -1,14 +1,14 @@
 /**
  * Development seed.
  *
- * Goes through the same services the application uses: users are created with
- * Better Auth, repositories with RepoManager, and a repository is bound with
- * RepoAccess before its data is written. Nothing here reaches for a raw
- * database handle, so the seed exercises the real access path.
+ * This goes through the same services the application uses. Users are created
+ * with Better Auth. Repositories are created with RepoManager. A repository is
+ * bound with RepoAccess before its data is written. Nothing here reaches for a
+ * raw database handle. The seed therefore exercises the real access path.
  *
- * Migrations run first, so this works on an empty database directory. Re-running
- * on a populated one clears the inventory of each repository and leaves users
- * and repositories alone.
+ * Migrations run first. This works on an empty database directory. Running it
+ * again on a populated one replaces the inventory, the sample batches, and the
+ * samples of each repository. Users and repository records remain.
  *
  * Run with "bun run db:seed", or "bun run db:setup" to start from a wipe.
  */
@@ -18,6 +18,8 @@ import { RepoDB } from "~/app/services/RepoDB";
 import { RepoManager, RepositoryAlreadyExistsError } from "~/app/services/RepoManager";
 import { Security } from "~/app/services/Security";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
+import { Sample } from "~/drizzle/schema/repo.Sample";
+import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
 
 const USER = {
@@ -36,6 +38,16 @@ type Seed = {
 		room?: string;
 		label?: string;
 	}[];
+	batches: BatchSeed[];
+};
+
+type BatchSeed = {
+	slug: string;
+	name: string;
+	preparationDate: string;
+	activeMaterial: string;
+	support: string;
+	sampleCount: number;
 };
 
 const repositories: Seed[] = [
@@ -50,6 +62,96 @@ const repositories: Seed[] = [
 			{ name: "Methanation Test Stand", kind: "rig", building: "B7", room: "12" },
 			{ name: "Mass Flow Controller (spare)", kind: "equipment" },
 		],
+		batches: [
+			{
+				slug: "au-tio2-2025b",
+				name: "Au/TiO2 (1 wt%) 2025-B",
+				preparationDate: "2025-02-12",
+				activeMaterial: "Au",
+				support: "TiO2",
+				sampleCount: 4,
+			},
+			{
+				slug: "co-tio2-2025a",
+				name: "Co/TiO2 (20 wt%) 2025-A",
+				preparationDate: "2025-01-22",
+				activeMaterial: "Co",
+				support: "TiO2",
+				sampleCount: 5,
+			},
+			{
+				slug: "cu-zno-al2o3-2024a",
+				name: "Cu/ZnO/Al2O3 (60:30:10) 2024-A",
+				preparationDate: "2024-03-14",
+				activeMaterial: "Cu",
+				support: "ZnO/Al2O3",
+				sampleCount: 5,
+			},
+			{
+				slug: "h-zsm5-2024a",
+				name: "H-ZSM-5 (Si/Al 25) 2024-A",
+				preparationDate: "2024-04-09",
+				activeMaterial: "H",
+				support: "ZSM-5",
+				sampleCount: 5,
+			},
+			{
+				slug: "ni-al2o3-2024a",
+				name: "Ni/Al2O3 (15 wt%) 2024-A",
+				preparationDate: "2024-05-17",
+				activeMaterial: "Ni",
+				support: "Al2O3",
+				sampleCount: 6,
+			},
+			{
+				slug: "ni-sio2-2024b",
+				name: "Ni/SiO2 (10 wt%) 2024-B",
+				preparationDate: "2024-09-05",
+				activeMaterial: "Ni",
+				support: "SiO2",
+				sampleCount: 4,
+			},
+			{
+				slug: "pd-al2o3-2025a",
+				name: "Pd/Al2O3 (0.03 wt%) 2025-A",
+				preparationDate: "2025-03-11",
+				activeMaterial: "Pd",
+				support: "Al2O3",
+				sampleCount: 3,
+			},
+			{
+				slug: "pd-c-2024a",
+				name: "Pd/C (5 wt%) 2024-A",
+				preparationDate: "2024-06-21",
+				activeMaterial: "Pd",
+				support: "C",
+				sampleCount: 6,
+			},
+			{
+				slug: "pt-al2o3-2024a",
+				name: "Pt/Al2O3 (2 wt%) 2024-A",
+				preparationDate: "2024-08-30",
+				activeMaterial: "Pt",
+				support: "Al2O3",
+				sampleCount: 7,
+			},
+			{
+				slug: "pt-sn-al2o3-2025a",
+				name: "Pt-Sn/Al2O3 (0.5-1 wt%) 2025-A",
+				preparationDate: "2025-04-18",
+				activeMaterial: "Pt-Sn",
+				support: "Al2O3",
+				sampleCount: 4,
+			},
+			{
+				slug: "ru-k-c-2025a",
+				name: "Ru-K/C (5 wt%) 2025-A",
+				preparationDate: "2025-05-07",
+				activeMaterial: "Ru-K",
+				support: "C",
+				sampleCount: 3,
+			},
+		],
 	},
 	{
 		slug: "pilot",
@@ -59,6 +161,7 @@ const repositories: Seed[] = [
 			{ name: "Steam Reformer", kind: "rig", building: "H1", room: "Hall", label: "North bay" },
 			{ name: "Gas Chromatograph 8890", kind: "equipment", building: "H1", room: "204" },
 		],
+		batches: [],
 	},
 ];
 
@@ -76,9 +179,13 @@ export async function seedDatabase(container: ServiceContainer): Promise<void> {
 		ensureRepository(manager, seed);
 		manager.grantAccess(userId, seed.slug);
 
-		writeInventory(scopeFor(container, userId, seed.slug), seed);
+		const scope = scopeFor(container, userId, seed.slug);
+		writeInventory(scope, seed);
+		writeSamples(scope, seed);
 
-		console.log(`seeded ${seed.slug}: ${seed.entries.length} inventory entries`);
+		console.log(
+			`seeded ${seed.slug}: ${seed.entries.length} inventory entries, ${seed.batches.length} sample batches`,
+		);
 	}
 
 	console.log(`user: ${USER.email} / ${USER.password}`);
@@ -149,6 +256,42 @@ function writeInventory(scope: ServiceContainer, seed: Seed): void {
 			})),
 		)
 		.run();
+}
+
+function writeSamples(scope: ServiceContainer, seed: Seed): void {
+	const db = scope.get(RepoDB);
+	const creatorId = userIdOf(scope);
+	const createdAt = new Date();
+
+	db.delete(Sample).run();
+	db.delete(SampleBatch).run();
+
+	for (const batch of seed.batches) {
+		const { id: batchId } = db
+			.insert(SampleBatch)
+			.values({
+				slug: batch.slug,
+				name: batch.name,
+				preparationDate: batch.preparationDate,
+				preparedById: creatorId,
+				activeMaterial: batch.activeMaterial,
+				support: batch.support,
+				metadataCreatorId: creatorId,
+				metadataCreationTimestamp: createdAt,
+			})
+			.returning({ id: SampleBatch.id })
+			.get();
+
+		const samples = Array.from({ length: batch.sampleCount }, (_, index) => ({
+			batchId,
+			slug: String(index + 1).padStart(2, "0"),
+			name: `#${String(index + 1).padStart(2, "0")}`,
+			preparedById: creatorId,
+			metadataCreatorId: creatorId,
+			metadataCreationTimestamp: createdAt,
+		}));
+		db.insert(Sample).values(samples).run();
+	}
 }
 
 function userIdOf(scope: ServiceContainer): string {

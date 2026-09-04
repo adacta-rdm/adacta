@@ -15,6 +15,7 @@ import type { ServiceContainer } from "~/lib/service-container/ServiceContainer"
  */
 let app: ServiceContainer;
 let userId: string;
+let secondUserId: string;
 
 beforeAll(async () => {
 	app = await setupTestUserEnvironment();
@@ -28,6 +29,13 @@ beforeAll(async () => {
 
 	manager.grantAccess(userId, "demo");
 	manager.grantAccess(userId, "pilot");
+
+	// A second user of "demo". The user list then has more than one entry to order.
+	secondUserId = await signUpTestUser(app, {
+		name: "Zoe Researcher",
+		email: "zoe.researcher@example.com",
+	});
+	manager.grantAccess(secondUserId, "demo");
 
 	const otherUser = await signUpTestUser(app, { email: "other@example.com" });
 	manager.grantAccess(otherUser, "foreign");
@@ -117,5 +125,35 @@ describe("RepoAccess", () => {
 		first.get(RepoAccess).selectRepository("demo");
 
 		expect(() => scope().get(RepoAccess).repository).toThrow(/No repository is available/);
+	});
+
+	describe("users", () => {
+		test("lists the users who may open the bound repository", async () => {
+			const access = scope().get(RepoAccess);
+			access.selectRepository("demo");
+
+			expect(await access.users()).toEqual([
+				{ id: userId, name: "Test User" },
+				{ id: secondUserId, name: "Zoe Researcher" },
+			]);
+		});
+
+		test("leaves out a user who holds no grant for it", async () => {
+			const access = scope().get(RepoAccess);
+			access.selectRepository("pilot");
+
+			expect((await access.users()).map((user) => user.id)).toEqual([userId]);
+		});
+
+		test("throws when no repository is bound", async () => {
+			const error = await scope()
+				.get(RepoAccess)
+				.users()
+				.catch((error: unknown) => error);
+
+			expect(error).toBeInstanceOf(Error);
+			if (!(error instanceof Error)) return;
+			expect(error.message).toMatch(/No repository is available/);
+		});
 	});
 });

@@ -39,21 +39,21 @@ export class SourceManager {
 	/**
 	 * Returns one published source bundle and the metadata of all its artifacts.
 	 *
-	 * A deleted bundle is treated as absent. Deleted artifacts are omitted. The
+	 * An archived bundle is treated as absent. Archived artifacts are omitted. The
 	 * method throws `SourceFileNotFoundError` when the bundle is absent.
 	 */
 	getBundle(id: string) {
 		const bundle = this.database
 			.select()
 			.from(SourceBundle)
-			.where(and(eq(SourceBundle.id, id), isNull(SourceBundle.metadataDeletedAt)))
+			.where(and(eq(SourceBundle.id, id), isNull(SourceBundle.metadataArchivedAt)))
 			.get();
 		if (!bundle) throw new SourceFileNotFoundError(id);
 
 		const artifacts = this.database
 			.select()
 			.from(SourceArtifact)
-			.where(and(eq(SourceArtifact.sourceBundleId, id), isNull(SourceArtifact.metadataDeletedAt)))
+			.where(and(eq(SourceArtifact.sourceBundleId, id), isNull(SourceArtifact.metadataArchivedAt)))
 			.all();
 
 		return { ...bundle, artifacts };
@@ -63,8 +63,8 @@ export class SourceManager {
 	 * Returns metadata and read access for one published source artifact.
 	 *
 	 * The returned `read()` method opens a new stream of the original bytes. The
-	 * stored file is not opened by `getArtifact()`. A deleted artifact or an
-	 * artifact in a deleted bundle is treated as absent.
+	 * stored file is not opened by `getArtifact()`. An archived artifact or an
+	 * artifact in an archived bundle is treated as absent.
 	 */
 	getArtifact(id: string) {
 		const result = this.database
@@ -74,8 +74,8 @@ export class SourceManager {
 			.where(
 				and(
 					eq(SourceArtifact.id, id),
-					isNull(SourceBundle.metadataDeletedAt),
-					isNull(SourceArtifact.metadataDeletedAt),
+					isNull(SourceBundle.metadataArchivedAt),
+					isNull(SourceArtifact.metadataArchivedAt),
 				),
 			)
 			.get();

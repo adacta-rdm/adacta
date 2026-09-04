@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
-import { createFileProbe } from "~/app/import/FileProbe";
-import { readTextPreview } from "~/app/import/textPreview";
+import { createFileProbe } from "~/app/lib/FileProbe";
+import { readTextPreview } from "~/app/lib/textPreview";
 
 describe("FileProbe", () => {
 	test("reads only the requested byte range", async () => {

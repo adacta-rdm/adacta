@@ -1,4 +1,4 @@
-import type { FileProbe } from "~/app/import/FileProbe";
+import type { FileProbe } from "~/app/lib/FileProbe";
 
 export type TextPreview = {
 	text: string;

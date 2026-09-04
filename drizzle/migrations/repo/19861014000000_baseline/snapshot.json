@@ -9,6 +9,14 @@
 			"entityType": "tables"
 		},
 		{
+			"name": "Sample",
+			"entityType": "tables"
+		},
+		{
+			"name": "SampleBatch",
+			"entityType": "tables"
+		},
+		{
 			"name": "SourceArtifact",
 			"entityType": "tables"
 		},
@@ -78,7 +86,7 @@
 		},
 		{
 			"type": "text",
-			"notNull": false,
+			"notNull": true,
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
@@ -102,9 +110,189 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
-			"name": "metadata_deleted_at",
+			"name": "metadata_archived_at",
 			"entityType": "columns",
 			"table": "InventoryEntry"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": true,
+			"default": null,
+			"generated": null,
+			"name": "sample_id",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sample_batch_id",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "slug",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "prepared_by",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": true,
+			"default": null,
+			"generated": null,
+			"name": "sample_batch_id",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "slug",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "preparation_date",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "prepared_by",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "active_material",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "support",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "SampleBatch"
 		},
 		{
 			"type": "text",
@@ -158,7 +346,7 @@
 		},
 		{
 			"type": "text",
-			"notNull": false,
+			"notNull": true,
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
@@ -182,7 +370,7 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
-			"name": "metadata_deleted_at",
+			"name": "metadata_archived_at",
 			"entityType": "columns",
 			"table": "SourceArtifact"
 		},
@@ -198,7 +386,7 @@
 		},
 		{
 			"type": "text",
-			"notNull": false,
+			"notNull": true,
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
@@ -222,9 +410,20 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
-			"name": "metadata_deleted_at",
+			"name": "metadata_archived_at",
 			"entityType": "columns",
 			"table": "SourceBundle"
+		},
+		{
+			"columns": ["sample_batch_id"],
+			"tableTo": "SampleBatch",
+			"columnsTo": ["sample_batch_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Sample_sample_batch_id_SampleBatch_sample_batch_id_fk",
+			"entityType": "fks",
+			"table": "Sample"
 		},
 		{
 			"columns": ["source_bundle_id"],
@@ -245,6 +444,20 @@
 			"entityType": "pks"
 		},
 		{
+			"columns": ["sample_id"],
+			"nameExplicit": false,
+			"name": "Sample_pk",
+			"table": "Sample",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["sample_batch_id"],
+			"nameExplicit": false,
+			"name": "SampleBatch_pk",
+			"table": "SampleBatch",
+			"entityType": "pks"
+		},
+		{
 			"columns": ["source_artifact_id"],
 			"nameExplicit": false,
 			"name": "SourceArtifact_pk",
@@ -257,6 +470,56 @@
 			"name": "SourceBundle_pk",
 			"table": "SourceBundle",
 			"entityType": "pks"
+		},
+		{
+			"columns": [
+				{
+					"value": "sample_batch_id",
+					"isExpression": false
+				},
+				{
+					"value": "name",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "Sample_batch_name_unique",
+			"entityType": "indexes",
+			"table": "Sample"
+		},
+		{
+			"columns": [
+				{
+					"value": "sample_batch_id",
+					"isExpression": false
+				},
+				{
+					"value": "slug",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "Sample_batch_slug_unique",
+			"entityType": "indexes",
+			"table": "Sample"
+		},
+		{
+			"columns": [
+				{
+					"value": "slug",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "SampleBatch_slug_unique",
+			"entityType": "indexes",
+			"table": "SampleBatch"
 		}
 	],
 	"renames": []

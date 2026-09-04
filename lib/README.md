@@ -16,6 +16,7 @@ their public APIs.
 | Path                 | Purpose                                                           |
 | -------------------- | ----------------------------------------------------------------- |
 | `env/`               | Reads environment values as typed values.                         |
+| `form-values/`       | Reads submitted form fields as typed values.                      |
 | `logger/`            | Writes structured log messages to a stream.                       |
 | `service-container/` | Resolves services and provides independently configurable scopes. |
 | `storage-engine/`    | Stores files as streams behind a common interface.                |
