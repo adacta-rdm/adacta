@@ -1,0 +1,8 @@
+{
+	"name": "SO2 Oxidation Rig",
+	"kind": "rig",
+	"location": {
+		"buildingIdentifier": "B3",
+		"roomIdentifier": "101"
+	}
+}

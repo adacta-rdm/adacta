@@ -23,13 +23,36 @@ export function keyOf(file: string): string {
 }
 
 /**
+ * A path inside the seed tree.
+ */
+export function seedPath(...segments: string[]): string {
+	return join(SEED, ...segments);
+}
+
+/**
+ * The subdirectories of a seed directory, in name order. Each one is an entity
+ * that holds more than a single file. For example "repo/demo" is a repository
+ * with its own inventory and samples.
+ */
+export function subdirs(...segments: string[]): string[] {
+	const directory = seedPath(...segments);
+
+	if (!existsSync(directory)) return [];
+
+	return readdirSync(directory, { withFileTypes: true })
+		.filter((entry) => entry.isDirectory())
+		.map((entry) => entry.name)
+		.sort();
+}
+
+/**
  * Every JSON file in a seed directory, as full paths in name order.
  *
  * A missing directory holds no files. A repository that seeds no samples
  * therefore needs no empty "samples" directory.
  */
 export function jsonFiles(...segments: string[]): string[] {
-	const directory = join(SEED, ...segments);
+	const directory = seedPath(...segments);
 
 	if (!existsSync(directory)) return [];
 

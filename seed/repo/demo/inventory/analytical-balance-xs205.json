@@ -1,0 +1,8 @@
+{
+	"name": "Analytical Balance XS205",
+	"kind": "equipment",
+	"location": {
+		"buildingIdentifier": "B3",
+		"roomIdentifier": "102"
+	}
+}

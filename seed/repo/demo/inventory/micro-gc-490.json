@@ -1,0 +1,9 @@
+{
+	"name": "Micro GC 490",
+	"kind": "equipment",
+	"location": {
+		"buildingIdentifier": "B3",
+		"roomIdentifier": "102",
+		"label": "Cabinet A"
+	}
+}

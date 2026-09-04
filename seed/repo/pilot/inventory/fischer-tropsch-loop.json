@@ -1,0 +1,8 @@
+{
+	"name": "Fischer-Tropsch Loop",
+	"kind": "rig",
+	"location": {
+		"buildingIdentifier": "H1",
+		"roomIdentifier": "Hall"
+	}
+}

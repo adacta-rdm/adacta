@@ -1,0 +1,8 @@
+{
+	"name": "Methanation Test Stand",
+	"kind": "rig",
+	"location": {
+		"buildingIdentifier": "B7",
+		"roomIdentifier": "12"
+	}
+}

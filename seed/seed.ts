@@ -1,11 +1,11 @@
 /**
  * Development seed.
  *
- * This goes through the same services the application uses. Users are read from
- * "seed/users/" and created with Better Auth. Repositories are created with
- * RepoManager. A repository is bound with RepoAccess before its data is
- * written. Nothing here reaches for a raw database handle. The seed therefore
- * exercises the real access path.
+ * Everything written here comes from the "seed/" tree. Users are read from
+ * "seed/users/" and created with Better Auth. Each subdirectory of "seed/repo/"
+ * is one repository, created with RepoManager and bound with RepoAccess before
+ * its data is written. Nothing here reaches for a raw database handle. The seed
+ * therefore exercises the real access path.
  *
  * Migrations run first. This works on an empty database directory. Running it
  * again on a populated one replaces the inventory, the sample batches, and the
@@ -15,20 +15,20 @@
  */
 import { BetterAuth } from "~/app/services/BetterAuth";
 import { RepoAccess } from "~/app/services/RepoAccess";
-import { RepoDB } from "~/app/services/RepoDB";
 import { RepoManager, RepositoryAlreadyExistsError } from "~/app/services/RepoManager";
 import { Security } from "~/app/services/Security";
-import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
-import { jsonFiles, keyOf, readJson } from "~/seed/files";
+import { jsonFiles, keyOf, readJson, seedPath, subdirs } from "~/seed/files";
+import { seedInventory } from "~/seed/seedInventory";
 import { seedSamples } from "~/seed/seedSamples";
 
 /**
- * The user whose name appears on every seeded record.
+ * The user recorded as the creator of every seeded record.
  *
- * The remaining fixtures are still literals in this file. They carry no author
- * of their own. Once they move to the seed tree, each one names its own
- * creator. This constant is then no longer needed.
+ * A seed file describes a thing in the laboratory. It does not say who typed it
+ * into Adacta. One development user therefore stands as the author of the whole
+ * fixture set. A batch still names the person who prepared it, which is a fact
+ * about the material rather than about the record.
  */
 const CREATOR = "dev";
 
@@ -42,41 +42,13 @@ type SeedUser = {
 	password: string;
 };
 
-type Seed = {
-	slug: string;
+/**
+ * The "repository.json" of one repository directory. The directory name is
+ * the slug, so the file carries only what the slug cannot say.
+ */
+type SeedRepository = {
 	name: string;
-	entries: {
-		name: string;
-		kind: "rig" | "equipment";
-		building?: string;
-		room?: string;
-		label?: string;
-	}[];
 };
-
-const repositories: Seed[] = [
-	{
-		slug: "demo",
-		name: "Demo Laboratory",
-		entries: [
-			{ name: "Ammonia Synthesis Rig", kind: "rig", building: "B3", room: "101", label: "Bench 2" },
-			{ name: "SO2 Oxidation Rig", kind: "rig", building: "B3", room: "101" },
-			{ name: "Analytical Balance XS205", kind: "equipment", building: "B3", room: "102" },
-			{ name: "Micro GC 490", kind: "equipment", building: "B3", room: "102", label: "Cabinet A" },
-			{ name: "Methanation Test Stand", kind: "rig", building: "B7", room: "12" },
-			{ name: "Mass Flow Controller (spare)", kind: "equipment" },
-		],
-	},
-	{
-		slug: "pilot",
-		name: "Pilot Plant",
-		entries: [
-			{ name: "Fischer-Tropsch Loop", kind: "rig", building: "H1", room: "Hall" },
-			{ name: "Steam Reformer", kind: "rig", building: "H1", room: "Hall", label: "North bay" },
-			{ name: "Gas Chromatograph 8890", kind: "equipment", building: "H1", room: "204" },
-		],
-	},
-];
 
 /**
  * Write the development fixtures into the databases of this container.
@@ -91,25 +63,28 @@ export async function seedDatabase(container: ServiceContainer): Promise<void> {
 	const creatorId = userIds.get(CREATOR);
 	if (creatorId === undefined) throw new Error(`No user file named "${CREATOR}.json".`);
 
-	for (const seed of repositories) {
-		ensureRepository(manager, seed);
+	const slugs = subdirs("repo");
+	if (slugs.length === 0) throw new Error("No repository directories in seed/repo/.");
+
+	for (const slug of slugs) {
+		ensureRepository(manager, slug);
 
 		// Everyone works in every repository. A development login is meant to
 		// reach the whole fixture set.
-		for (const userId of userIds.values()) manager.grantAccess(userId, seed.slug);
+		for (const userId of userIds.values()) manager.grantAccess(userId, slug);
 
-		const scope = scopeFor(container, creatorId, seed.slug);
-		writeInventory(scope, seed);
+		const scope = scopeFor(container, creatorId, slug);
 
-		const { batches, samples } = await seedSamples(scope, seed.slug, userIds);
+		const entries = seedInventory(scope, slug);
+		const { batches, samples } = await seedSamples(scope, slug, userIds);
 
 		console.log(
-			`seeded ${seed.slug}: ${seed.entries.length} inventory entries, ` +
+			`seeded ${slug}: ${entries} inventory entries, ` +
 				`${batches} sample batches, ${samples} samples`,
 		);
 	}
 
-	console.log(`repositories: ${repositories.map((r) => r.slug).join(", ")}`);
+	console.log(`repositories: ${slugs.join(", ")}`);
 }
 
 /**
@@ -163,9 +138,15 @@ async function ensureUser(auth: BetterAuth, user: SeedUser): Promise<string> {
 	return session.user.id;
 }
 
-function ensureRepository(repoManager: RepoManager, seed: Seed): void {
+/**
+ * Create the repository unless it is already there. The directory name is the
+ * slug. The display name comes from that directory's "repository.json".
+ */
+function ensureRepository(manager: RepoManager, slug: string): void {
+	const { name } = readJson<SeedRepository>(seedPath("repo", slug, "repository.json"));
+
 	try {
-		repoManager.createRepository(seed.slug, seed.name);
+		manager.createRepository(slug, name);
 	} catch (error) {
 		if (!(error instanceof RepositoryAlreadyExistsError)) throw error;
 	}
@@ -173,7 +154,7 @@ function ensureRepository(repoManager: RepoManager, seed: Seed): void {
 
 /**
  * A request-like scope with the seed user authenticated and one repository
- * bound. RepoDatabase needs both to resolve.
+ * bound. RepoDB needs both before it resolves.
  */
 function scopeFor(app: ServiceContainer, userId: string, slug: string): ServiceContainer {
 	const scope = app.clone();
@@ -182,29 +163,4 @@ function scopeFor(app: ServiceContainer, userId: string, slug: string): ServiceC
 	scope.get(RepoAccess).selectRepository(slug);
 
 	return scope;
-}
-
-function writeInventory(scope: ServiceContainer, seed: Seed): void {
-	const db = scope.get(RepoDB);
-	const now = new Date();
-
-	db.delete(InventoryEntry).run();
-
-	db.insert(InventoryEntry)
-		.values(
-			seed.entries.map((entry) => ({
-				name: entry.name,
-				kind: entry.kind,
-				locationBuildingIdentifier: entry.building ?? null,
-				locationRoomIdentifier: entry.room ?? null,
-				locationLabel: entry.label ?? null,
-				metadataCreatorId: userIdOf(scope),
-				metadataCreationTimestamp: now,
-			})),
-		)
-		.run();
-}
-
-function userIdOf(scope: ServiceContainer): string {
-	return scope.get(Security).userId;
 }
