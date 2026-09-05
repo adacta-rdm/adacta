@@ -23,6 +23,9 @@ scratch
 .deployed
 @
 
+# Catalog images, copied out of seed/catalog by the seed
+/public/catalog/
+
 # React Router
 /.react-router/
 /build/

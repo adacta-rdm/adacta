@@ -19,6 +19,7 @@ import { RepoManager, RepositoryAlreadyExistsError } from "~/app/services/RepoMa
 import { Security } from "~/app/services/Security";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
 import { jsonFiles, keyOf, readJson, seedPath, subdirs } from "~/seed/files";
+import { seedCatalog } from "~/seed/seedCatalog";
 import { seedInventory } from "~/seed/seedInventory";
 import { seedSamples } from "~/seed/seedSamples";
 
@@ -78,9 +79,13 @@ export async function seedDatabase(container: ServiceContainer): Promise<void> {
 		const entries = seedInventory(scope, slug);
 		const { batches, samples } = await seedSamples(scope, slug, userIds);
 
+		const catalog = seedCatalog(scope, slug);
+
 		console.log(
 			`seeded ${slug}: ${entries} inventory entries, ` +
-				`${batches} sample batches, ${samples} samples`,
+				`${batches} sample batches, ${samples} samples, ` +
+				`${catalog.manufacturers} manufacturers, ${catalog.products} products ` +
+				`(${catalog.specifications} specifications, ${catalog.channels} channels)`,
 		);
 	}
 
