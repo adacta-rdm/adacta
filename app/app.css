@@ -1,10 +1,32 @@
 @import "tailwindcss";
 @import "./theme.css";
 
+/*
+ * We serve Inter ourselves because the build published by Google Fonts leaves
+ * out the character variants selected below.
+ *
+ * Another aspect is that loading it from Google would also send the reader's
+ * IP address to a Google server. Without their consent that can be a legal
+ * problem.
+ */
+@font-face {
+	font-family: InterVariable;
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url("../vendor/inter/InterVariable.woff2") format("woff2");
+}
+
 @theme {
 	--font-sans:
-		"Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+		InterVariable, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
 		"Segoe UI Symbol", "Noto Color Emoji";
+
+	/*
+	 * The forms the Tailwind Plus examples use. "cv11" is the single-story a.
+	 * The others open up the 4, the 6, and the 9.
+	 */
+	--font-sans--font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 html,

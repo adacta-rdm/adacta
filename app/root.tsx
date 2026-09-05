@@ -2,21 +2,27 @@ import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 
 import { ErrorPanel, ErrorPanelAction } from "~/app/components/ErrorPanel";
 import { container } from "~/app/middleware/container";
+import interVariable from "~/vendor/inter/InterVariable.woff2?url";
 
 import type { Route } from "./+types/root";
 
 import "./app.css";
 
+/**
+ * Preloading starts the font download with the page. Without it, the font is
+ * found only once the stylesheet is read, and text drawn before then changes
+ * face when the font arrives. That change is a flash of unstyled text, or FOUT.
+ *
+ * A font is always fetched under CORS rules, so "crossOrigin" is required even
+ * on this origin. Without it the file is fetched twice.
+ */
 export const links: Route.LinksFunction = () => [
-	{ rel: "preconnect", href: "https://fonts.googleapis.com" },
 	{
-		rel: "preconnect",
-		href: "https://fonts.gstatic.com",
+		rel: "preload",
+		href: interVariable,
+		as: "font",
+		type: "font/woff2",
 		crossOrigin: "anonymous",
-	},
-	{
-		rel: "stylesheet",
-		href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
 	},
 ];
 
