@@ -8,6 +8,7 @@
 import {
 	ArrowUpTrayIcon,
 	BeakerIcon,
+	BookOpenIcon,
 	BuildingOffice2Icon,
 	PlusIcon,
 } from "@heroicons/react/20/solid";
@@ -176,7 +177,15 @@ export function AppLayout({
 					</SidebarHeader>
 
 					<SidebarBody>
-						<SidebarHeading>Inventory</SidebarHeading>
+						<SidebarHeading>Catalog</SidebarHeading>
+						<SidebarSection>
+							<SidebarItem href={`/${repo}/catalog`} current={isCurrent("catalog")}>
+								<BookOpenIcon />
+								<SidebarLabel>Browse the catalog</SidebarLabel>
+							</SidebarItem>
+						</SidebarSection>
+
+						<SidebarHeading className="mt-6">Inventory</SidebarHeading>
 						<SidebarSection>
 							<SidebarItem
 								href={`/${repo}/inventory`}
@@ -199,13 +208,6 @@ export function AppLayout({
 							>
 								<PlusIcon />
 								<SidebarLabel>Create batch</SidebarLabel>
-							</SidebarItem>
-						</SidebarSection>
-
-						<SidebarHeading className="mt-6">Catalog</SidebarHeading>
-						<SidebarSection>
-							<SidebarItem href={`/${repo}/catalog`} current={isCurrent("catalog")}>
-								<SidebarLabel>Manufacturers</SidebarLabel>
 							</SidebarItem>
 						</SidebarSection>
 

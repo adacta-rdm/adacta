@@ -1,5 +1,4 @@
-import { Heading, Subheading } from "~/catalyst-ui/heading";
-import { Text } from "~/catalyst-ui/text";
+import { Outlet } from "react-router";
 
 export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
 
@@ -7,12 +6,9 @@ export function meta() {
 	return [{ title: "Catalog — Adacta" }];
 }
 
+/**
+ * Provides the page content selected within the catalog section.
+ */
 export default function Catalog() {
-	return (
-		<>
-			<Heading>Catalog</Heading>
-			<Subheading className="mt-1">Not built yet.</Subheading>
-			<Text className="mt-6">Nothing here yet.</Text>
-		</>
-	);
+	return <Outlet />;
 }
