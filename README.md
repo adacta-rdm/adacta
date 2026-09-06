@@ -69,6 +69,7 @@ Set `ADACTA_STORAGE_DIR` to store the files in another directory.
 | `bun run db:reset`              | Delete every database, then migrate from scratch                     |
 | `bun run db:setup`              | Reset, then seed                                                     |
 | `bun run db:seed`               | Load the development seed                                            |
+| `bun run precommit`             | Type check, lint, format, then run the tests. Repairs what it can    |
 | `bun test`                      | Run the test suite                                                   |
 | `bun run typecheck`             | Generate route types, then run `tsc`                                 |
 | `bun run lint`                  | Run oxlint                                                           |
