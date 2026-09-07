@@ -1,0 +1,32 @@
+{
+	"version": 1,
+	"dataFile": "ftir-gas-analysis.csv",
+	"csv": {
+		"delimiter": ",",
+		"decimalSeparator": ".",
+		"headerRows": 1
+	},
+	"columns": [
+		{
+			"index": 0,
+			"name": "Recorded at",
+			"channel": "time"
+		},
+		{
+			"index": 1,
+			"name": "Ammonia concentration",
+			"deviceId": "FTIR-01",
+			"channel": "nh3-concentration",
+			"role": "measurement",
+			"unit": "ppm"
+		},
+		{
+			"index": 2,
+			"name": "Water concentration",
+			"deviceId": "FTIR-01",
+			"channel": "h2o-concentration",
+			"role": "measurement",
+			"unit": "ppm"
+		}
+	]
+}

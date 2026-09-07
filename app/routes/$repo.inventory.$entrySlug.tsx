@@ -1,15 +1,15 @@
+import clsx from "clsx";
 /**
  * One inventory entry.
  *
- * The page shows what the record itself holds: the name, the kind, the place,
- * and who entered it. Cross references to samples and data come later, once
- * those relations exist.
+ * The page shows the selected inventory entry. A rig keeps its selected view
+ * in the path and renders that view below the shared heading.
  */
 import { and, eq, isNull } from "drizzle-orm";
+import { NavLink, Outlet } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import { KindIcon } from "~/app/components/KindIcon.tsx";
-import { formatTimestamp } from "~/app/lib/dates.ts";
 import { formatLocation } from "~/app/lib/location.ts";
 import { RepoAccess } from "~/app/services/RepoAccess.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
@@ -72,7 +72,7 @@ export default function RepoInventoryEntrySlug({ loaderData }: Route.ComponentPr
 	const location = formatLocation(entry.location);
 
 	return (
-		<div className="space-y-8">
+		<div className="space-y-6">
 			<div>
 				<Heading>{entry.name}</Heading>
 
@@ -86,16 +86,43 @@ export default function RepoInventoryEntrySlug({ loaderData }: Route.ComponentPr
 				) : (
 					<Text className="mt-2">No location has been recorded.</Text>
 				)}
-
-				<p className="mt-2 text-sm text-foreground-muted">
-					Added by: {entry.createdBy?.name ?? "Unknown"}
-				</p>
-
-				<p className="mt-2 text-sm text-foreground-muted">
-					Added to Adacta:{" "}
-					<time dateTime={entry.createdAt.toISOString()}>{formatTimestamp(entry.createdAt)}</time>
-				</p>
 			</div>
+
+			{isRig ? <RigTabs /> : null}
+
+			<Outlet />
 		</div>
+	);
+}
+
+function RigTabs() {
+	return (
+		<nav aria-label="Rig views" className="border-b border-border">
+			<div className="-mb-px flex gap-6 overflow-x-auto">
+				<RigTab end to=".">
+					Overview
+				</RigTab>
+				<RigTab to="data">Data</RigTab>
+			</div>
+		</nav>
+	);
+}
+
+function RigTab({ to, end, children }: { to: string; end?: boolean; children: React.ReactNode }) {
+	return (
+		<NavLink
+			to={to}
+			end={end}
+			className={({ isActive }) =>
+				clsx(
+					"border-b-2 px-1 pb-3 text-sm font-semibold whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
+					isActive
+						? "border-accent text-foreground"
+						: "border-transparent text-foreground-muted hover:border-border-strong hover:text-foreground",
+				)
+			}
+		>
+			{children}
+		</NavLink>
 	);
 }

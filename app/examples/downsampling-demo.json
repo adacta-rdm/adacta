@@ -1,0 +1,32 @@
+{
+	"version": 1,
+	"dataFile": "downsampling-demo.csv",
+	"csv": {
+		"delimiter": ",",
+		"decimalSeparator": ".",
+		"headerRows": 1
+	},
+	"columns": [
+		{
+			"index": 0,
+			"name": "Recorded at",
+			"channel": "time"
+		},
+		{
+			"index": 1,
+			"name": "Reactor temperature",
+			"deviceId": "TC-REACTOR-01",
+			"channel": "temperature",
+			"role": "measurement",
+			"unit": "°C"
+		},
+		{
+			"index": 2,
+			"name": "Reactor pressure",
+			"deviceId": "PT-REACTOR-01",
+			"channel": "pressure",
+			"role": "measurement",
+			"unit": "bar"
+		}
+	]
+}

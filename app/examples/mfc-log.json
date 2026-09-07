@@ -1,0 +1,48 @@
+{
+	"version": 1,
+	"dataFile": "mfc-log.csv",
+	"csv": {
+		"delimiter": ",",
+		"decimalSeparator": ".",
+		"headerRows": 1
+	},
+	"columns": [
+		{
+			"index": 0,
+			"name": "Recorded at",
+			"channel": "time"
+		},
+		{
+			"index": 1,
+			"name": "Nitrogen requested flow",
+			"deviceId": "MFC-N2-01",
+			"channel": "flow",
+			"role": "setpoint",
+			"unit": "ml/min"
+		},
+		{
+			"index": 2,
+			"name": "Nitrogen measured flow",
+			"deviceId": "MFC-N2-01",
+			"channel": "flow",
+			"role": "measurement",
+			"unit": "ml/min"
+		},
+		{
+			"index": 3,
+			"name": "Hydrogen requested flow",
+			"deviceId": "MFC-H2-01",
+			"channel": "flow",
+			"role": "setpoint",
+			"unit": "ml/min"
+		},
+		{
+			"index": 4,
+			"name": "Hydrogen measured flow",
+			"deviceId": "MFC-H2-01",
+			"channel": "flow",
+			"role": "measurement",
+			"unit": "ml/min"
+		}
+	]
+}
