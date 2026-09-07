@@ -3,11 +3,11 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-import { createAppContainer } from "~/app/.server/createAppContainer";
-import { RepoAccess } from "~/app/services/RepoAccess";
-import { Env } from "~/lib/env/Env";
-import { FileSystemStorageEngine } from "~/lib/storage-engine/FileSystemStorageEngine";
-import { StorageEngine } from "~/lib/storage-engine/StorageEngine";
+import { createAppContainer } from "~/app/.server/createAppContainer.ts";
+import { RepoAccess } from "~/app/services/RepoAccess.ts";
+import { Env } from "~/lib/env/Env.ts";
+import { FileSystemStorageEngine } from "~/lib/storage-engine/FileSystemStorageEngine.ts";
+import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
 
 const directories: string[] = [];
 

@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
-import { repositoryAccess } from "~/app/middleware/repositoryAccess";
-import { RepoAccess } from "~/app/services/RepoAccess";
-import { RepoManager } from "~/app/services/RepoManager";
-import { Security } from "~/app/services/Security";
-import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
-import { setupTestUserEnvironment } from "~/app/testUtils/testUtils";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
+import { repositoryAccess } from "~/app/middleware/repositoryAccess.ts";
+import { RepoAccess } from "~/app/services/RepoAccess.ts";
+import { RepoManager } from "~/app/services/RepoManager.ts";
+import { Security } from "~/app/services/Security.ts";
+import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
+import { setupTestUserEnvironment } from "~/app/testUtils/testUtils.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 /**
  * A signed-in scope. This is the state sessionAuth leaves behind. Repositories

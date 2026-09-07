@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
-import { loader } from "~/app/routes/$repo.inventory.$entrySlug";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Security } from "~/app/services/Security";
-import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
-import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils";
-import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
+import { loader } from "~/app/routes/$repo.inventory.$entrySlug.tsx";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Security } from "~/app/services/Security.ts";
+import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
+import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
+import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 describe("inventory entry loader", () => {
 	test("returns the entry that carries the slug", async () => {

@@ -2,9 +2,9 @@ import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
-import { MobileNavigation } from "~/app/components/docs/MobileNavigation";
-import { Navigation } from "~/app/components/docs/Navigation";
-import { Search } from "~/app/components/docs/Search";
+import { MobileNavigation } from "~/app/components/docs/MobileNavigation.tsx";
+import { Navigation } from "~/app/components/docs/Navigation.tsx";
+import { Search } from "~/app/components/docs/Search.tsx";
 
 function GitHubIcon(props: React.ComponentPropsWithoutRef<"svg">) {
 	return (

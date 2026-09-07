@@ -2,12 +2,12 @@ import { createAuthClient } from "better-auth/react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
-import { AuthLayout } from "~/catalyst-ui/auth-layout";
-import { Button } from "~/catalyst-ui/button";
-import { Field, Fieldset, Label } from "~/catalyst-ui/fieldset";
-import { Heading } from "~/catalyst-ui/heading";
-import { Input } from "~/catalyst-ui/input";
-import { Text } from "~/catalyst-ui/text";
+import { AuthLayout } from "~/catalyst-ui/auth-layout.tsx";
+import { Button } from "~/catalyst-ui/button.tsx";
+import { Field, Fieldset, Label } from "~/catalyst-ui/fieldset.tsx";
+import { Heading } from "~/catalyst-ui/heading.tsx";
+import { Input } from "~/catalyst-ui/input.tsx";
+import { Text } from "~/catalyst-ui/text.tsx";
 
 /**
  * Better Auth keeps the session in a cookie that it sets from the browser. The

@@ -4,17 +4,17 @@ import { eq, isNull } from "drizzle-orm";
 import { useEffect } from "react";
 import { Link, Form, useSubmit, useNavigation } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Heading } from "~/catalyst-ui/heading";
-import { Text } from "~/catalyst-ui/text";
-import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer";
-import { Product } from "~/drizzle/schema/repo.Product";
-import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries";
+import { services } from "~/app/.server/context.ts";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Heading } from "~/catalyst-ui/heading.tsx";
+import { Text } from "~/catalyst-ui/text.tsx";
+import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
+import { Product } from "~/drizzle/schema/repo.Product.ts";
+import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries.ts";
 
-import type { Route } from "./+types/$repo.catalog._index";
+import type { Route } from "./+types/$repo.catalog._index.ts";
 
-export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
 /**
  * "Nabertherm" sorts before "NETZSCH", and "B2" before "B10".

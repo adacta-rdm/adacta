@@ -1,18 +1,18 @@
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { isCalendarDate } from "~/app/lib/dates";
-import { availableSlug, slugify } from "~/app/lib/slugs";
-import { RepoAccess } from "~/app/services/RepoAccess";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Security } from "~/app/services/Security";
-import { Heading } from "~/catalyst-ui/heading";
-import { Text } from "~/catalyst-ui/text";
-import type { NewEntity } from "~/drizzle/Schema";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
-import { FormValues } from "~/lib/form-values/FormValues";
+import { services } from "~/app/.server/context.ts";
+import { isCalendarDate } from "~/app/lib/dates.ts";
+import { availableSlug, slugify } from "~/app/lib/slugs.ts";
+import { RepoAccess } from "~/app/services/RepoAccess.ts";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Security } from "~/app/services/Security.ts";
+import { Heading } from "~/catalyst-ui/heading.tsx";
+import { Text } from "~/catalyst-ui/text.tsx";
+import type { NewEntity } from "~/drizzle/Schema.ts";
+import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { FormValues } from "~/lib/form-values/FormValues.ts";
 
-import type { Route } from "./+types/$repo.samples.new";
+import type { Route } from "./+types/$repo.samples.new.ts";
 
 export function meta() {
 	return [{ title: "Create sample batch — Adacta" }];

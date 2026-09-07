@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 
-import { Icon } from "~/app/components/docs/Icon";
+import { Icon } from "~/app/components/docs/Icon.tsx";
 
 /**
  * Grid container for a set of QuickLink cards. Rendered from the Markdoc

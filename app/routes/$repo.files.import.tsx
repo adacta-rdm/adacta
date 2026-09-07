@@ -9,17 +9,17 @@ import {
 	useSubmit,
 } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { SourceBundleForm } from "~/app/components/SourceBundleForm";
-import type { RepositoryContext } from "~/app/routes/$repo";
-import { Security } from "~/app/services/Security";
-import { SourceManager } from "~/app/services/SourceManager";
-import { Heading } from "~/catalyst-ui/heading";
-import { Text } from "~/catalyst-ui/text";
+import { services } from "~/app/.server/context.ts";
+import { SourceBundleForm } from "~/app/components/SourceBundleForm.tsx";
+import type { RepositoryContext } from "~/app/routes/$repo.tsx";
+import { Security } from "~/app/services/Security.ts";
+import { SourceManager } from "~/app/services/SourceManager.ts";
+import { Heading } from "~/catalyst-ui/heading.tsx";
+import { Text } from "~/catalyst-ui/text.tsx";
 
-import type { Route } from "./+types/$repo.files.import";
+import type { Route } from "./+types/$repo.files.import.ts";
 
-export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
 export function meta() {
 	return [{ title: "Import files — Adacta" }];

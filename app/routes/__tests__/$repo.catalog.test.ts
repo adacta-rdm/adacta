@@ -2,19 +2,19 @@ import { describe, expect, test } from "bun:test";
 
 import { eq } from "drizzle-orm";
 
-import { loader as productLoader } from "~/app/routes/$repo.catalog.$manufacturerSlug.$productSlug";
-import { loader as manufacturerLoader } from "~/app/routes/$repo.catalog.$manufacturerSlug._index";
-import { loader as indexLoader } from "~/app/routes/$repo.catalog._index";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Security } from "~/app/services/Security";
-import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
-import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils";
-import { Channel } from "~/drizzle/schema/repo.Channel";
-import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer";
-import { Product } from "~/drizzle/schema/repo.Product";
-import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries";
-import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
+import { loader as productLoader } from "~/app/routes/$repo.catalog.$manufacturerSlug.$productSlug.tsx";
+import { loader as manufacturerLoader } from "~/app/routes/$repo.catalog.$manufacturerSlug._index.tsx";
+import { loader as indexLoader } from "~/app/routes/$repo.catalog._index.tsx";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Security } from "~/app/services/Security.ts";
+import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
+import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
+import { Channel } from "~/drizzle/schema/repo.Channel.ts";
+import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
+import { Product } from "~/drizzle/schema/repo.Product.ts";
+import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries.ts";
+import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 describe("catalog index loader", () => {
 	test("lists every product with the family it belongs to", async () => {

@@ -8,16 +8,16 @@ import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
 import { and, count, countDistinct, eq, isNull } from "drizzle-orm";
 import { Link, Outlet } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { ManufacturerLogo } from "~/app/components/ManufacturerLogo";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Heading } from "~/catalyst-ui/heading";
-import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer";
-import { Product } from "~/drizzle/schema/repo.Product";
+import { services } from "~/app/.server/context.ts";
+import { ManufacturerLogo } from "~/app/components/ManufacturerLogo.tsx";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Heading } from "~/catalyst-ui/heading.tsx";
+import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
+import { Product } from "~/drizzle/schema/repo.Product.ts";
 
-import type { Route } from "./+types/$repo.catalog.$manufacturerSlug";
+import type { Route } from "./+types/$repo.catalog.$manufacturerSlug.ts";
 
-export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
 export function meta({ loaderData }: Route.MetaArgs) {
 	return [{ title: loaderData ? `${loaderData.manufacturer.name} — Adacta` : "Catalog — Adacta" }];

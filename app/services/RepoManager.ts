@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
 
-import { DatabaseManager } from "~/app/services/DatabaseManager";
-import { SystemDB } from "~/app/services/SystemDB";
-import { Repository } from "~/drizzle/schema/system.Repository";
-import { UserRepository } from "~/drizzle/schema/system.UserRepository";
-import { Service } from "~/lib/service-container/ServiceContainer";
+import { DatabaseManager } from "~/app/services/DatabaseManager.ts";
+import { SystemDB } from "~/app/services/SystemDB.ts";
+import { Repository } from "~/drizzle/schema/system.Repository.ts";
+import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
+import { Service } from "~/lib/service-container/ServiceContainer.ts";
 
 /**
  * Repositories as records: which ones exist and who may open them.

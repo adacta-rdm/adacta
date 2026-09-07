@@ -2,7 +2,7 @@ import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 
-import { docsSearchIndexPlugin } from "./lib/docsSearchIndexPlugin";
+import { docsSearchIndexPlugin } from "./lib/docsSearchIndexPlugin.ts";
 
 export default defineConfig({
 	define: {

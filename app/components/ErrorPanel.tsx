@@ -9,9 +9,9 @@
  */
 import type { ReactNode } from "react";
 
-import { describeError } from "~/app/lib/error/describeError";
-import { Heading } from "~/catalyst-ui/heading";
-import { Text } from "~/catalyst-ui/text";
+import { describeError } from "~/app/lib/error/describeError.ts";
+import { Heading } from "~/catalyst-ui/heading.tsx";
+import { Text } from "~/catalyst-ui/text.tsx";
 
 export function ErrorPanel({ error, children }: { error: unknown; children?: ReactNode }) {
 	const { status, title, message } = describeError(error);

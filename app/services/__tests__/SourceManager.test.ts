@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
-import { Security } from "~/app/services/Security";
-import { SourceFileNotFoundError, SourceManager } from "~/app/services/SourceManager";
-import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils";
+import { Security } from "~/app/services/Security.ts";
+import { SourceFileNotFoundError, SourceManager } from "~/app/services/SourceManager.ts";
+import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
 
 describe("SourceManager", () => {
 	test("finalizes uploaded artifacts as one source bundle", async () => {

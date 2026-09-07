@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { loader } from "~/app/routes/$repo.files.$bundleId";
-import { Security } from "~/app/services/Security";
-import { SourceManager } from "~/app/services/SourceManager";
-import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
-import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils";
+import { loader } from "~/app/routes/$repo.files.$bundleId.tsx";
+import { Security } from "~/app/services/Security.ts";
+import { SourceManager } from "~/app/services/SourceManager.ts";
+import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
+import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
 
 describe("file bundle loader", () => {
 	test("returns the original file metadata", async () => {

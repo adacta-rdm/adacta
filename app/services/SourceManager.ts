@@ -1,11 +1,11 @@
 import { and, eq, isNull } from "drizzle-orm";
 
-import { RepoDB } from "~/app/services/RepoDB";
-import type { NewEntity } from "~/drizzle/Schema";
-import { SourceArtifact } from "~/drizzle/schema/repo.SourceArtifact";
-import { SourceBundle } from "~/drizzle/schema/repo.SourceBundle";
-import { Service } from "~/lib/service-container/ServiceContainer";
-import { StorageEngine } from "~/lib/storage-engine/StorageEngine";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import type { NewEntity } from "~/drizzle/Schema.ts";
+import { SourceArtifact } from "~/drizzle/schema/repo.SourceArtifact.ts";
+import { SourceBundle } from "~/drizzle/schema/repo.SourceBundle.ts";
+import { Service } from "~/lib/service-container/ServiceContainer.ts";
+import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
 
 /**
  * Stores uploaded files and makes their metadata and original bytes available

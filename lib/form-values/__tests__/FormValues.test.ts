@@ -4,7 +4,7 @@ import {
 	FormValues,
 	InvalidFormFieldTypeError,
 	MissingFormFieldError,
-} from "~/lib/form-values/FormValues";
+} from "~/lib/form-values/FormValues.ts";
 
 function values(fields: Record<string, string>): FormValues {
 	const form = new FormData();

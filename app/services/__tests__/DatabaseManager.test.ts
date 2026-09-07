@@ -4,12 +4,12 @@ import { join } from "node:path";
 
 import { sql } from "drizzle-orm";
 
-import { DatabaseManager, InvalidDatabaseNameError } from "~/app/services/DatabaseManager";
-import { setupTestPersistenceEnvironment } from "~/app/testUtils/testUtils";
-import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
-import { Repository } from "~/drizzle/schema/system.Repository";
-import { Env } from "~/lib/env/Env";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
+import { DatabaseManager, InvalidDatabaseNameError } from "~/app/services/DatabaseManager.ts";
+import { setupTestPersistenceEnvironment } from "~/app/testUtils/testUtils.ts";
+import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
+import { Repository } from "~/drizzle/schema/system.Repository.ts";
+import { Env } from "~/lib/env/Env.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 /**
  * A container whose databases live in a fresh temporary directory.

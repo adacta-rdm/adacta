@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
-import { Security } from "~/app/services/Security";
-import { setupTestEnvironment } from "~/app/testUtils/testUtils";
+import { Security } from "~/app/services/Security.ts";
+import { setupTestEnvironment } from "~/app/testUtils/testUtils.ts";
 
 describe("Security", () => {
 	test("holds the authenticated user", () => {

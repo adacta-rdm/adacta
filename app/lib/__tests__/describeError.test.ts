@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { describeError } from "~/app/lib/error/describeError";
+import { describeError } from "~/app/lib/error/describeError.ts";
 
 /**
  * A route error as React Router presents it. "internal" is true for the errors

@@ -1,8 +1,8 @@
-import { DocsHeader } from "~/app/components/docs/DocsHeader";
-import { PrevNextLinks } from "~/app/components/docs/PrevNextLinks";
-import { Prose } from "~/app/components/docs/Prose";
-import { TableOfContents } from "~/app/components/docs/TableOfContents";
-import type { TocSection } from "~/app/lib/docs/collectSections";
+import { DocsHeader } from "~/app/components/docs/DocsHeader.tsx";
+import { PrevNextLinks } from "~/app/components/docs/PrevNextLinks.tsx";
+import { Prose } from "~/app/components/docs/Prose.tsx";
+import { TableOfContents } from "~/app/components/docs/TableOfContents.tsx";
+import type { TocSection } from "~/app/lib/docs/collectSections.ts";
 
 /**
  * The per-page article frame: the doc heading, the prose body, prev/next links,

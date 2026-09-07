@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
-import { BetterAuth } from "~/app/services/BetterAuth";
-import { setupEmptyTestDatabaseEnvironment } from "~/app/testUtils/testUtils";
-import { MissingEnvError } from "~/lib/env/Env";
+import { BetterAuth } from "~/app/services/BetterAuth.ts";
+import { setupEmptyTestDatabaseEnvironment } from "~/app/testUtils/testUtils.ts";
+import { MissingEnvError } from "~/lib/env/Env.ts";
 
 /**
  * Run `body` as if the process were in production. NODE_ENV is process-wide, so

@@ -1,11 +1,11 @@
 import { and, asc, eq } from "drizzle-orm";
 
-import { Security } from "~/app/services/Security";
-import { SystemDB } from "~/app/services/SystemDB";
-import { User } from "~/drizzle/schema/system.BetterAuth";
-import { Repository } from "~/drizzle/schema/system.Repository";
-import { UserRepository } from "~/drizzle/schema/system.UserRepository";
-import { Service } from "~/lib/service-container/ServiceContainer";
+import { Security } from "~/app/services/Security.ts";
+import { SystemDB } from "~/app/services/SystemDB.ts";
+import { User } from "~/drizzle/schema/system.BetterAuth.ts";
+import { Repository } from "~/drizzle/schema/system.Repository.ts";
+import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
+import { Service } from "~/lib/service-container/ServiceContainer.ts";
 
 /**
  * The scope's authenticated user holds no grant for the repository.

@@ -13,7 +13,7 @@
  */
 import { useRouteError } from "react-router";
 
-import { ErrorPanel } from "~/app/components/ErrorPanel";
+import { ErrorPanel } from "~/app/components/ErrorPanel.tsx";
 
 export function SectionErrorBoundary() {
 	return <ErrorPanel error={useRouteError()} />;

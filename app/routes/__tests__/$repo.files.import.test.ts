@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-import { action } from "~/app/routes/$repo.files.import";
-import { SourceManager } from "~/app/services/SourceManager";
-import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
-import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils";
+import { action } from "~/app/routes/$repo.files.import.tsx";
+import { SourceManager } from "~/app/services/SourceManager.ts";
+import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
+import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
 
 describe("import action", () => {
 	test("rejects a form without source files", async () => {

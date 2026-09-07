@@ -6,9 +6,9 @@
  * gone. Throwing here puts the report inside the layout, so the reader keeps
  * the sidebar and can navigate away.
  */
-import type { Route } from "./+types/$repo.$";
+import type { Route } from "./+types/$repo.$.ts";
 
-export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
 export function loader({ params }: Route.LoaderArgs) {
 	const path = params["*"] ?? "";

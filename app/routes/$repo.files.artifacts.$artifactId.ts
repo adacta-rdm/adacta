@@ -1,8 +1,8 @@
-import { services } from "~/app/.server/context";
-import { SourceFileNotFoundError, SourceManager } from "~/app/services/SourceManager";
-import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError";
+import { services } from "~/app/.server/context.ts";
+import { SourceFileNotFoundError, SourceManager } from "~/app/services/SourceManager.ts";
+import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
 
-import type { Route } from "./+types/$repo.files.artifacts.$artifactId";
+import type { Route } from "./+types/$repo.files.artifacts.$artifactId.ts";
 
 /**
  * Downloads one original file.

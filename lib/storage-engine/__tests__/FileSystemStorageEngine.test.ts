@@ -3,11 +3,11 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { FileAlreadyExistsError } from "~/lib/storage-engine/FileAlreadyExistsError";
-import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError";
-import { FileSystemStorageEngine } from "~/lib/storage-engine/FileSystemStorageEngine";
-import { InvalidStoragePathError } from "~/lib/storage-engine/InvalidStoragePathError";
-import type { StorageEngine } from "~/lib/storage-engine/StorageEngine";
+import { FileAlreadyExistsError } from "~/lib/storage-engine/FileAlreadyExistsError.ts";
+import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
+import { FileSystemStorageEngine } from "~/lib/storage-engine/FileSystemStorageEngine.ts";
+import { InvalidStoragePathError } from "~/lib/storage-engine/InvalidStoragePathError.ts";
+import type { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
 
 describe("FileSystemStorageEngine", () => {
 	let directory: string;

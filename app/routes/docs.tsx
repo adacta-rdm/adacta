@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 
-import { DocsShell } from "~/app/components/docs/DocsShell";
+import { DocsShell } from "~/app/components/docs/DocsShell.tsx";
 
 /**
  * Layout route for the whole /docs subsystem. flatRoutes nests docs._index and

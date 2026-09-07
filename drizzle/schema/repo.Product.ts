@@ -1,8 +1,8 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer";
-import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries";
-import { metadata } from "~/drizzle/schemaHelpers/metadata";
+import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
+import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries.ts";
+import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
  * One thing a manufacturer sells, described once for everyone.

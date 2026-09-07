@@ -1,6 +1,6 @@
-import { DatabaseManager } from "~/app/services/DatabaseManager";
-import { RepoAccess } from "~/app/services/RepoAccess";
-import { service } from "~/lib/service-container/ServiceContainer";
+import { DatabaseManager } from "~/app/services/DatabaseManager.ts";
+import { RepoAccess } from "~/app/services/RepoAccess.ts";
+import { service } from "~/lib/service-container/ServiceContainer.ts";
 
 /**
  * The database of the repository bound to this scope.

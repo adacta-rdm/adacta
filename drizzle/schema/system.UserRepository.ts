@@ -1,7 +1,7 @@
 import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-import { User } from "~/drizzle/schema/system.BetterAuth";
-import { Repository } from "~/drizzle/schema/system.Repository";
+import { User } from "~/drizzle/schema/system.BetterAuth.ts";
+import { Repository } from "~/drizzle/schema/system.Repository.ts";
 
 /**
  * Which repositories a user may open.

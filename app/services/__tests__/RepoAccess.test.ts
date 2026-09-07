@@ -1,10 +1,10 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 
-import { RepoAccess, RepositoryAccessDeniedError } from "~/app/services/RepoAccess";
-import { RepoManager } from "~/app/services/RepoManager";
-import { Security } from "~/app/services/Security";
-import { setupTestUserEnvironment, signUpTestUser } from "~/app/testUtils/testUtils";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
+import { RepoAccess, RepositoryAccessDeniedError } from "~/app/services/RepoAccess.ts";
+import { RepoManager } from "~/app/services/RepoManager.ts";
+import { Security } from "~/app/services/Security.ts";
+import { setupTestUserEnvironment, signUpTestUser } from "~/app/testUtils/testUtils.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 /**
  * One environment for the whole file. Signing a user up runs a real password

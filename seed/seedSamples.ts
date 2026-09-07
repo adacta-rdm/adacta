@@ -10,14 +10,14 @@
  * sample by hand. The seed therefore cannot produce a slug the application
  * would not.
  */
-import { addSample } from "~/app/lib/addSample";
-import { availableSlug } from "~/app/lib/slugs";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Security } from "~/app/services/Security";
-import { Sample } from "~/drizzle/schema/repo.Sample";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
-import { jsonFiles, readJson } from "~/seed/files";
+import { addSample } from "~/app/lib/addSample.ts";
+import { availableSlug } from "~/app/lib/slugs.ts";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Security } from "~/app/services/Security.ts";
+import { Sample } from "~/drizzle/schema/repo.Sample.ts";
+import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
+import { jsonFiles, readJson } from "~/seed/files.ts";
 
 /**
  * One file in a repository's "samples/" directory.

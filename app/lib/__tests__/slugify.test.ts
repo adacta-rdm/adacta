@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { slugify } from "~/app/lib/slugs";
+import { slugify } from "~/app/lib/slugs.ts";
 
 describe("slugFromName", () => {
 	test("turns a scientific name into a readable URL segment", () => {

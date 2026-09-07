@@ -3,9 +3,9 @@ import clsx from "clsx";
 import { useEffect, useRef, useState, type RefObject, type SubmitEventHandler } from "react";
 import { Form } from "react-router";
 
-import { createFileProbe } from "~/app/lib/FileProbe";
-import { readTextPreview, type TextPreview } from "~/app/lib/textPreview";
-import { Subheading } from "~/catalyst-ui/heading";
+import { createFileProbe } from "~/app/lib/FileProbe.ts";
+import { readTextPreview, type TextPreview } from "~/app/lib/textPreview.ts";
+import { Subheading } from "~/catalyst-ui/heading.tsx";
 
 type PreviewState =
 	| { file: File; status: "ready"; preview: TextPreview }

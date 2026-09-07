@@ -1,17 +1,17 @@
 import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 import { betterAuth } from "better-auth";
 
-import { SystemDB } from "~/app/services/SystemDB";
+import { SystemDB } from "~/app/services/SystemDB.ts";
 import {
 	Account,
 	authRelations,
 	Session,
 	User,
 	Verification,
-} from "~/drizzle/schema/system.BetterAuth";
-import { Env } from "~/lib/env/Env";
-import { Logger } from "~/lib/logger/Logger";
-import { service } from "~/lib/service-container/ServiceContainer";
+} from "~/drizzle/schema/system.BetterAuth.ts";
+import { Env } from "~/lib/env/Env.ts";
+import { Logger } from "~/lib/logger/Logger.ts";
+import { service } from "~/lib/service-container/ServiceContainer.ts";
 
 /**
  * A secret is needed to sign cookies and tokens. Development uses this one. A

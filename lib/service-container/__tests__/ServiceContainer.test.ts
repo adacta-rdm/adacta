@@ -16,7 +16,7 @@ import {
 	Service,
 	ServiceContainer,
 	ServiceNotConfiguredError,
-} from "../ServiceContainer";
+} from "../ServiceContainer.ts";
 
 describe("ServiceContainer", () => {
 	let spyA: Mock<() => void>;

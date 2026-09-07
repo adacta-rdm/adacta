@@ -1,12 +1,12 @@
 import { eq } from "drizzle-orm";
 import { redirect, type MiddlewareFunction } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { BetterAuth } from "~/app/services/BetterAuth";
-import { Security } from "~/app/services/Security";
-import { SystemDB } from "~/app/services/SystemDB";
-import { User } from "~/drizzle/schema/system.BetterAuth";
-import { Env } from "~/lib/env/Env";
+import { services } from "~/app/.server/context.ts";
+import { BetterAuth } from "~/app/services/BetterAuth.ts";
+import { Security } from "~/app/services/Security.ts";
+import { SystemDB } from "~/app/services/SystemDB.ts";
+import { User } from "~/drizzle/schema/system.BetterAuth.ts";
+import { Env } from "~/lib/env/Env.ts";
 
 /**
  * Establishes the request's user from its Better Auth session cookie.

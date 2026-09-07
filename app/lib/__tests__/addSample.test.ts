@@ -2,15 +2,15 @@ import { describe, expect, test } from "bun:test";
 
 import { eq } from "drizzle-orm";
 
-import { addSample } from "~/app/lib/addSample";
-import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError";
-import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Security } from "~/app/services/Security";
-import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils";
-import type { Entity, NewEntity } from "~/drizzle/Schema";
-import { Sample } from "~/drizzle/schema/repo.Sample";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
+import { addSample } from "~/app/lib/addSample.ts";
+import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError.ts";
+import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError.ts";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Security } from "~/app/services/Security.ts";
+import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
+import type { Entity, NewEntity } from "~/drizzle/Schema.ts";
+import { Sample } from "~/drizzle/schema/repo.Sample.ts";
+import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
 
 const CREATION_TIME = new Date("2026-01-15T12:00:00.000Z");
 

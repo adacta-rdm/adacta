@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { compareSpecifications } from "~/app/lib/specificationComparison";
+import { compareSpecifications } from "~/app/lib/specificationComparison.ts";
 
 function product(...pairs: [string, string][]) {
 	return { specifications: pairs.map(([name, value]) => ({ name, value })) };

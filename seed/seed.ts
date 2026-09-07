@@ -13,15 +13,15 @@
  *
  * Run with "bun run db:seed", or "bun run db:setup" to start from a wipe.
  */
-import { BetterAuth } from "~/app/services/BetterAuth";
-import { RepoAccess } from "~/app/services/RepoAccess";
-import { RepoManager, RepositoryAlreadyExistsError } from "~/app/services/RepoManager";
-import { Security } from "~/app/services/Security";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
-import { jsonFiles, keyOf, readJson, seedPath, subdirs } from "~/seed/files";
-import { seedCatalog } from "~/seed/seedCatalog";
-import { seedInventory } from "~/seed/seedInventory";
-import { seedSamples } from "~/seed/seedSamples";
+import { BetterAuth } from "~/app/services/BetterAuth.ts";
+import { RepoAccess } from "~/app/services/RepoAccess.ts";
+import { RepoManager, RepositoryAlreadyExistsError } from "~/app/services/RepoManager.ts";
+import { Security } from "~/app/services/Security.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
+import { jsonFiles, keyOf, readJson, seedPath, subdirs } from "~/seed/files.ts";
+import { seedCatalog } from "~/seed/seedCatalog.ts";
+import { seedInventory } from "~/seed/seedInventory.ts";
+import { seedSamples } from "~/seed/seedSamples.ts";
 
 /**
  * The user recorded as the creator of every seeded record.

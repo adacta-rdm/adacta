@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 
-export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
 export function meta() {
 	return [{ title: "Catalog — Adacta" }];

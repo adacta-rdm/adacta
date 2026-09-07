@@ -13,18 +13,18 @@ import { ArchiveBoxArrowDownIcon, PlusIcon } from "@heroicons/react/20/solid";
 import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { formatBatchComposition } from "~/app/lib/batchComposition";
-import { formatCalendarDate } from "~/app/lib/dates";
-import { RepoAccess } from "~/app/services/RepoAccess";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Heading, Subheading } from "~/catalyst-ui/heading";
-import { Text } from "~/catalyst-ui/text";
-import { Sample } from "~/drizzle/schema/repo.Sample";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
-import { FormValues } from "~/lib/form-values/FormValues";
+import { services } from "~/app/.server/context.ts";
+import { formatBatchComposition } from "~/app/lib/batchComposition.ts";
+import { formatCalendarDate } from "~/app/lib/dates.ts";
+import { RepoAccess } from "~/app/services/RepoAccess.ts";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
+import { Text } from "~/catalyst-ui/text.tsx";
+import { Sample } from "~/drizzle/schema/repo.Sample.ts";
+import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { FormValues } from "~/lib/form-values/FormValues.ts";
 
-import type { Route } from "./+types/$repo.samples._index";
+import type { Route } from "./+types/$repo.samples._index.ts";
 
 export async function loader({ context }: Route.LoaderArgs) {
 	const container = context.get(services);

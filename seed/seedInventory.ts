@@ -11,12 +11,12 @@
  * "availableSlug", which is what the application does. The seed therefore
  * cannot produce a slug the application could not produce.
  */
-import { availableSlug } from "~/app/lib/slugs";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Security } from "~/app/services/Security";
-import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
-import { jsonFiles, readJson } from "~/seed/files";
+import { availableSlug } from "~/app/lib/slugs.ts";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Security } from "~/app/services/Security.ts";
+import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
+import { jsonFiles, readJson } from "~/seed/files.ts";
 
 /**
  * One file in a repository's "inventory/" directory.

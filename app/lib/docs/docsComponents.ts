@@ -1,7 +1,7 @@
-import { Callout } from "~/app/components/docs/Callout";
-import { Fence } from "~/app/components/docs/Fence";
-import { Figure } from "~/app/components/docs/Figure";
-import { QuickLink, QuickLinks } from "~/app/components/docs/QuickLinks";
+import { Callout } from "~/app/components/docs/Callout.tsx";
+import { Fence } from "~/app/components/docs/Fence.tsx";
+import { Figure } from "~/app/components/docs/Figure.tsx";
+import { QuickLink, QuickLinks } from "~/app/components/docs/QuickLinks.tsx";
 
 /**
  * Custom components rendered by the Markdoc schema, keyed by the string names

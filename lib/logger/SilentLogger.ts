@@ -1,6 +1,6 @@
 import { PassThrough } from "node:stream";
 
-import { LOG_LEVEL, Logger } from "~/lib/logger/Logger";
+import { LOG_LEVEL, Logger } from "~/lib/logger/Logger.ts";
 
 /**
  * A logger that writes nothing. Useful for testing.

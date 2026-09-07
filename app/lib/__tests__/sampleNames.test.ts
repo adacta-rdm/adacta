@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { compareSampleNames, nextSampleName } from "~/app/lib/sampleNames";
+import { compareSampleNames, nextSampleName } from "~/app/lib/sampleNames.ts";
 
 describe("nextSampleName", () => {
 	test("starts at one and continues after the highest number", () => {

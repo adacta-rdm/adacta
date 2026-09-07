@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { BetterAuth } from "~/app/services/BetterAuth";
+import { services } from "~/app/.server/context.ts";
+import { BetterAuth } from "~/app/services/BetterAuth.ts";
 
 /**
  * Catch-all resource route for Better Auth's HTTP API under `/api/auth/*`.

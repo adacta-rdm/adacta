@@ -1,16 +1,16 @@
 import { eq } from "drizzle-orm";
 import { Link } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { sessionAuth } from "~/app/middleware/authentication";
-import { Security } from "~/app/services/Security";
-import { SystemDB } from "~/app/services/SystemDB";
-import { Heading } from "~/catalyst-ui/heading";
-import { Text } from "~/catalyst-ui/text";
-import { Repository } from "~/drizzle/schema/system.Repository";
-import { UserRepository } from "~/drizzle/schema/system.UserRepository";
+import { services } from "~/app/.server/context.ts";
+import { sessionAuth } from "~/app/middleware/authentication.ts";
+import { Security } from "~/app/services/Security.ts";
+import { SystemDB } from "~/app/services/SystemDB.ts";
+import { Heading } from "~/catalyst-ui/heading.tsx";
+import { Text } from "~/catalyst-ui/text.tsx";
+import { Repository } from "~/drizzle/schema/system.Repository.ts";
+import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
 
-import type { Route } from "./+types/_index";
+import type { Route } from "./+types/_index.ts";
 
 export function meta() {
 	return [{ title: "Repositories — Adacta" }];

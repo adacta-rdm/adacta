@@ -3,8 +3,8 @@ import Markdoc, { type RenderableTreeNode } from "@markdoc/markdoc";
 // which the upstream template imported as `import yaml from "js-yaml"`).
 import { load as parseYaml } from "js-yaml";
 
-import { collectSections, type TocSection } from "~/app/lib/docs/collectSections";
-import { markdocConfig } from "~/app/lib/docs/markdocSchema";
+import { collectSections, type TocSection } from "~/app/lib/docs/collectSections.ts";
+import { markdocConfig } from "~/app/lib/docs/markdocSchema.ts";
 
 /**
  * Frontmatter parsed from a doc's leading YAML block. Only `title` is used by

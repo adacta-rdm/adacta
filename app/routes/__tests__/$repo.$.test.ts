@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
-import { loader } from "~/app/routes/$repo.$";
-import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
-import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils";
+import { loader } from "~/app/routes/$repo.$.tsx";
+import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
+import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
 
 describe("repository catch-all loader", () => {
 	test("reports the address that names no page", async () => {

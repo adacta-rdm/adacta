@@ -1,7 +1,7 @@
 import Markdoc, { type RenderableTreeNode } from "@markdoc/markdoc";
 import * as React from "react";
 
-import { docsComponents } from "~/app/lib/docs/docsComponents";
+import { docsComponents } from "~/app/lib/docs/docsComponents.ts";
 
 /**
  * Renders a transformed Markdoc tree to React elements, resolving the schema's

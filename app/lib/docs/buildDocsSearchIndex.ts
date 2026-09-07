@@ -8,8 +8,8 @@ import {
 	searchDocumentOptions,
 	type SearchIndexData,
 	type SearchMeta,
-} from "~/app/lib/docs/searchConfig";
-import { transformDoc } from "~/app/lib/docs/transformDoc";
+} from "~/app/lib/docs/searchConfig.ts";
+import { transformDoc } from "~/app/lib/docs/transformDoc.ts";
 
 /**
  * Builds the docs search index in Node at build time and serializes it. The

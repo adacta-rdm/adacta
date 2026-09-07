@@ -13,11 +13,11 @@
  * Environment values come from the process. Bun loads a .env file into it
  * on its own.
  */
-import { createAppContainer } from "~/app/.server/createAppContainer";
-import { DatabaseManager } from "~/app/services/DatabaseManager";
-import { RepoManager } from "~/app/services/RepoManager";
-import { refreshMigrations } from "~/scripts/db/refreshMigrations";
-import { seedDatabase } from "~/seed/seed";
+import { createAppContainer } from "~/app/.server/createAppContainer.ts";
+import { DatabaseManager } from "~/app/services/DatabaseManager.ts";
+import { RepoManager } from "~/app/services/RepoManager.ts";
+import { refreshMigrations } from "~/scripts/db/refreshMigrations.ts";
+import { seedDatabase } from "~/seed/seed.ts";
 
 const COMMANDS = "migrate, refresh, reset, setup, seed";
 

@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
 
-import type { TocSection, TocSubsection } from "~/app/lib/docs/collectSections";
+import type { TocSection, TocSubsection } from "~/app/lib/docs/collectSections.ts";
 
 /**
  * The "On this page" sidebar. Highlights the section currently scrolled into

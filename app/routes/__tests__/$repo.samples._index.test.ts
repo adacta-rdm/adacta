@@ -2,14 +2,14 @@ import { describe, expect, test } from "bun:test";
 
 import { eq } from "drizzle-orm";
 
-import { action, loader } from "~/app/routes/$repo.samples._index";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Security } from "~/app/services/Security";
-import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
-import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils";
-import { Sample } from "~/drizzle/schema/repo.Sample";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
+import { action, loader } from "~/app/routes/$repo.samples._index.tsx";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Security } from "~/app/services/Security.ts";
+import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
+import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
+import { Sample } from "~/drizzle/schema/repo.Sample.ts";
+import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 describe("samples index loader", () => {
 	test("describes each batch", async () => {

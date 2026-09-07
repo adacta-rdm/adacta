@@ -1,7 +1,7 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
-import { metadata } from "~/drizzle/schemaHelpers/metadata";
+import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
  * One physical portion of a sample batch.

@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { Link, useLocation } from "react-router";
 
-import { navigation } from "~/app/docs/navigation";
+import { navigation } from "~/app/docs/navigation.ts";
 
 /**
  * The docs sidebar: renders the section/link tree from navigation.ts and marks

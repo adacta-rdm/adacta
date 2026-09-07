@@ -1,15 +1,15 @@
 import { ArrowDownTrayIcon, DocumentTextIcon } from "@heroicons/react/20/solid";
 import { Link } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { SourceFileNotFoundError, SourceManager } from "~/app/services/SourceManager";
-import { Heading, Subheading } from "~/catalyst-ui/heading";
-import { Text } from "~/catalyst-ui/text";
-import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError";
+import { services } from "~/app/.server/context.ts";
+import { SourceFileNotFoundError, SourceManager } from "~/app/services/SourceManager.ts";
+import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
+import { Text } from "~/catalyst-ui/text.tsx";
+import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
 
-import type { Route } from "./+types/$repo.files.$bundleId";
+import type { Route } from "./+types/$repo.files.$bundleId.ts";
 
-export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
 export function meta() {
 	return [{ title: "Source bundle — Adacta" }];

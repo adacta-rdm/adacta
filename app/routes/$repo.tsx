@@ -9,21 +9,21 @@ import { asc, isNull } from "drizzle-orm";
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { RepositoryFileDropTarget } from "~/app/components/RepositoryFileDropTarget";
-import { AppLayout } from "~/app/layout/AppLayout";
-import { appendUniqueFiles } from "~/app/lib/appendUniqueFiles";
-import { groupBatchesByComposition } from "~/app/lib/batchComposition";
-import { groupByLocation } from "~/app/lib/location";
-import { sidebarWidthFromCookie } from "~/app/lib/sidebarWidth";
-import { sessionAuth } from "~/app/middleware/authentication";
-import { repositoryAccess } from "~/app/middleware/repositoryAccess";
-import { RepoAccess } from "~/app/services/RepoAccess";
-import { RepoDB } from "~/app/services/RepoDB";
-import { InventoryEntry as InventoryEntryTable } from "~/drizzle/schema/repo.InventoryEntry";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
+import { services } from "~/app/.server/context.ts";
+import { RepositoryFileDropTarget } from "~/app/components/RepositoryFileDropTarget.tsx";
+import { AppLayout } from "~/app/layout/AppLayout.tsx";
+import { appendUniqueFiles } from "~/app/lib/appendUniqueFiles.ts";
+import { groupBatchesByComposition } from "~/app/lib/batchComposition.ts";
+import { groupByLocation } from "~/app/lib/location.ts";
+import { sidebarWidthFromCookie } from "~/app/lib/sidebarWidth.ts";
+import { sessionAuth } from "~/app/middleware/authentication.ts";
+import { repositoryAccess } from "~/app/middleware/repositoryAccess.ts";
+import { RepoAccess } from "~/app/services/RepoAccess.ts";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { InventoryEntry as InventoryEntryTable } from "~/drizzle/schema/repo.InventoryEntry.ts";
+import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
 
-import type { Route } from "./+types/$repo";
+import type { Route } from "./+types/$repo.ts";
 
 /**
  * Authenticate, then bind the repository, before any loader runs.

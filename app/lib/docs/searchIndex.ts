@@ -1,9 +1,9 @@
 import { Document } from "flexsearch";
 import { meta, shards } from "virtual:docs-search-index";
 
-import { searchDocumentOptions, type SearchResult } from "~/app/lib/docs/searchConfig";
+import { searchDocumentOptions, type SearchResult } from "~/app/lib/docs/searchConfig.ts";
 
-export type { SearchResult } from "~/app/lib/docs/searchConfig";
+export type { SearchResult } from "~/app/lib/docs/searchConfig.ts";
 
 /**
  * Client-side docs search. The index itself is built in Node at build time

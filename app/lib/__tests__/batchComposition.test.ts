@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { formatBatchComposition, groupBatchesByComposition } from "~/app/lib/batchComposition";
+import { formatBatchComposition, groupBatchesByComposition } from "~/app/lib/batchComposition.ts";
 
 describe("groupBatchesByComposition", () => {
 	test("groups and sorts batches by active material and support", () => {

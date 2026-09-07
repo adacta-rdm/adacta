@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { Writable } from "node:stream";
 
-import { LOG_LEVEL, Logger, logLevelFromName } from "~/lib/logger/Logger";
-import { SilentLogger } from "~/lib/logger/SilentLogger";
+import { LOG_LEVEL, Logger, logLevelFromName } from "~/lib/logger/Logger.ts";
+import { SilentLogger } from "~/lib/logger/SilentLogger.ts";
 
 /**
  * A stream that keeps what was written to it, one entry per line.

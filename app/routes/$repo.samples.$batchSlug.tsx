@@ -2,27 +2,27 @@ import { BeakerIcon } from "@heroicons/react/20/solid";
 import { and, eq, isNull } from "drizzle-orm";
 import { data, redirect } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { addSample } from "~/app/lib/addSample";
-import { formatBatchComposition } from "~/app/lib/batchComposition";
-import { formatCalendarDate } from "~/app/lib/dates";
-import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError";
-import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError";
-import { compareSampleNames } from "~/app/lib/sampleNames";
-import { SampleTable } from "~/app/route-components/SampleTable";
-import { RepoAccess } from "~/app/services/RepoAccess";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Security } from "~/app/services/Security";
-import { Heading } from "~/catalyst-ui/heading";
-import { Text } from "~/catalyst-ui/text";
-import type { Entity } from "~/drizzle/Schema";
-import { Sample } from "~/drizzle/schema/repo.Sample";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
-import { FormValues } from "~/lib/form-values/FormValues";
-import { Logger } from "~/lib/logger/Logger";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
+import { services } from "~/app/.server/context.ts";
+import { addSample } from "~/app/lib/addSample.ts";
+import { formatBatchComposition } from "~/app/lib/batchComposition.ts";
+import { formatCalendarDate } from "~/app/lib/dates.ts";
+import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError.ts";
+import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError.ts";
+import { compareSampleNames } from "~/app/lib/sampleNames.ts";
+import { SampleTable } from "~/app/route-components/SampleTable.tsx";
+import { RepoAccess } from "~/app/services/RepoAccess.ts";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Security } from "~/app/services/Security.ts";
+import { Heading } from "~/catalyst-ui/heading.tsx";
+import { Text } from "~/catalyst-ui/text.tsx";
+import type { Entity } from "~/drizzle/Schema.ts";
+import { Sample } from "~/drizzle/schema/repo.Sample.ts";
+import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { FormValues } from "~/lib/form-values/FormValues.ts";
+import { Logger } from "~/lib/logger/Logger.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
-import type { Route } from "./+types/$repo.samples.$batchSlug";
+import type { Route } from "./+types/$repo.samples.$batchSlug.ts";
 
 type ActionErrors = Partial<Record<"form" | "name" | "preparedById", string>>;
 

@@ -1,4 +1,4 @@
-import type { Entity, EntityName } from "~/drizzle/Schema";
+import type { Entity, EntityName } from "~/drizzle/Schema.ts";
 
 /**
  * Another entity already has the value of a field that must be unique.

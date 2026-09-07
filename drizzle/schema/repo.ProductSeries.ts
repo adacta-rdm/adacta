@@ -1,7 +1,7 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer";
-import { metadata } from "~/drizzle/schemaHelpers/metadata";
+import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
+import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
  * A family of products a manufacturer sells together.

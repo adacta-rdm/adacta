@@ -14,8 +14,8 @@ import {
 	MAX_SIDEBAR_WIDTH,
 	MIN_SIDEBAR_WIDTH,
 	SIDEBAR_WIDTH_COOKIE,
-} from "~/app/lib/sidebarWidth";
-import { NavbarItem } from "~/catalyst-ui/navbar";
+} from "~/app/lib/sidebarWidth.ts";
+import { NavbarItem } from "~/catalyst-ui/navbar.tsx";
 
 const KEYBOARD_RESIZE_STEP = 16;
 const RESIZE_KEYS = new Set(["ArrowLeft", "ArrowRight", "Home", "End"]);

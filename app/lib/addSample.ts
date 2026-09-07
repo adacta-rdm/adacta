@@ -1,11 +1,11 @@
 import { DrizzleQueryError } from "drizzle-orm";
 
-import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError";
-import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError";
-import { slugify } from "~/app/lib/slugs";
-import type { RepoDB } from "~/app/services/RepoDB";
-import type { Entity, NewEntity } from "~/drizzle/Schema";
-import { Sample } from "~/drizzle/schema/repo.Sample";
+import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError.ts";
+import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError.ts";
+import { slugify } from "~/app/lib/slugs.ts";
+import type { RepoDB } from "~/app/services/RepoDB.ts";
+import type { Entity, NewEntity } from "~/drizzle/Schema.ts";
+import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 
 type SampleValues = Omit<NewEntity<"Sample">, "slug">;
 

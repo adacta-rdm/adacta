@@ -27,17 +27,17 @@
 import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { basename, join } from "node:path";
 
-import { availableSlug } from "~/app/lib/slugs";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Security } from "~/app/services/Security";
-import { CatalogSource } from "~/drizzle/schema/repo.CatalogSource";
-import { Channel } from "~/drizzle/schema/repo.Channel";
-import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer";
-import { Product } from "~/drizzle/schema/repo.Product";
-import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries";
-import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
-import { jsonFiles, keyOf, readJson, seedPath, subdirs } from "~/seed/files";
+import { availableSlug } from "~/app/lib/slugs.ts";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Security } from "~/app/services/Security.ts";
+import { CatalogSource } from "~/drizzle/schema/repo.CatalogSource.ts";
+import { Channel } from "~/drizzle/schema/repo.Channel.ts";
+import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
+import { Product } from "~/drizzle/schema/repo.Product.ts";
+import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries.ts";
+import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
+import { jsonFiles, keyOf, readJson, seedPath, subdirs } from "~/seed/files.ts";
 
 /**
  * Where a catalog record was read from. A manufacturer cites several; a series

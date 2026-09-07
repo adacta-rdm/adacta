@@ -1,7 +1,7 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-import { Product } from "~/drizzle/schema/repo.Product";
-import { metadata } from "~/drizzle/schemaHelpers/metadata";
+import { Product } from "~/drizzle/schema/repo.Product.ts";
+import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
  * A stream of values a product can report, and therefore a capability of every

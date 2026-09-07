@@ -1,6 +1,6 @@
 import { data } from "react-router";
 
-import { transformDoc, type TransformedDoc } from "~/app/lib/docs/transformDoc";
+import { transformDoc, type TransformedDoc } from "~/app/lib/docs/transformDoc.ts";
 
 /**
  * Raw markdown for every doc, keyed by module path. `eager` inlines the strings

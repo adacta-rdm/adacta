@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { formatCalendarDate, formatTimestamp, isCalendarDate } from "~/app/lib/dates";
+import { formatCalendarDate, formatTimestamp, isCalendarDate } from "~/app/lib/dates.ts";
 
 describe("isCalendarDate", () => {
 	test("accepts a date written as year-month-day", () => {

@@ -1,4 +1,4 @@
-import { DarkMode, Gradient, LightMode } from "~/app/components/docs/Icon";
+import { DarkMode, Gradient, LightMode } from "~/app/components/docs/Icon.tsx";
 
 export function WarningIcon({
 	id,

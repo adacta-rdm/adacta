@@ -1,17 +1,17 @@
 import { Link, useRouteLoaderData } from "react-router";
 
-import { KindIcon } from "~/app/components/KindIcon";
-import { formatLocation } from "~/app/lib/location";
-import { Badge } from "~/catalyst-ui/badge";
-import { Heading, Subheading } from "~/catalyst-ui/heading";
+import { KindIcon } from "~/app/components/KindIcon.tsx";
+import { formatLocation } from "~/app/lib/location.ts";
+import { Badge } from "~/catalyst-ui/badge.tsx";
+import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 
-import type { loader as repoLoader } from "./$repo";
+import type { loader as repoLoader } from "./$repo.tsx";
 
 /**
  * No loader here. The repository route already loaded the inventory for the
  * sidebar tree. This reads the same data instead of querying again.
  */
-export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
 export default function InventoryIndex() {
 	const data = useRouteLoaderData<typeof repoLoader>("routes/$repo");

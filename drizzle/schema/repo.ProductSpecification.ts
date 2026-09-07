@@ -1,7 +1,7 @@
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-import { Product } from "~/drizzle/schema/repo.Product";
-import { metadata } from "~/drizzle/schemaHelpers/metadata";
+import { Product } from "~/drizzle/schema/repo.Product.ts";
+import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
  * One line of the technical description of a product.

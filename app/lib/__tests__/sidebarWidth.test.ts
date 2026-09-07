@@ -6,7 +6,7 @@ import {
 	MAX_SIDEBAR_WIDTH,
 	MIN_SIDEBAR_WIDTH,
 	sidebarWidthFromCookie,
-} from "~/app/lib/sidebarWidth";
+} from "~/app/lib/sidebarWidth.ts";
 
 describe("clampSidebarWidth", () => {
 	test("keeps a width that is within the bounds", () => {

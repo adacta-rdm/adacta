@@ -14,8 +14,8 @@ import { mock } from "bun:test";
 
 import { RouterContextProvider } from "react-router";
 
-import { services } from "~/app/.server/context";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
+import { services } from "~/app/.server/context.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 const DEFAULT_URL = "http://localhost/";
 

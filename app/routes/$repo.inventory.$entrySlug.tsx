@@ -7,19 +7,19 @@
  */
 import { and, eq, isNull } from "drizzle-orm";
 
-import { services } from "~/app/.server/context";
-import { KindIcon } from "~/app/components/KindIcon";
-import { formatTimestamp } from "~/app/lib/dates";
-import { formatLocation } from "~/app/lib/location";
-import { RepoAccess } from "~/app/services/RepoAccess";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Heading } from "~/catalyst-ui/heading";
-import { Text } from "~/catalyst-ui/text";
-import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
+import { services } from "~/app/.server/context.ts";
+import { KindIcon } from "~/app/components/KindIcon.tsx";
+import { formatTimestamp } from "~/app/lib/dates.ts";
+import { formatLocation } from "~/app/lib/location.ts";
+import { RepoAccess } from "~/app/services/RepoAccess.ts";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Heading } from "~/catalyst-ui/heading.tsx";
+import { Text } from "~/catalyst-ui/text.tsx";
+import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
 
-import type { Route } from "./+types/$repo.inventory.$entrySlug";
+import type { Route } from "./+types/$repo.inventory.$entrySlug.ts";
 
-export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
 /**
  * The route has an error boundary, so it can render without loader data. The

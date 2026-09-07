@@ -1,4 +1,4 @@
-import { buildDocsSearchIndex } from "~/app/lib/docs/buildDocsSearchIndex";
+import { buildDocsSearchIndex } from "~/app/lib/docs/buildDocsSearchIndex.ts";
 
 /**
  * Prints the serialized docs search index as JSON to stdout. Invoked by the

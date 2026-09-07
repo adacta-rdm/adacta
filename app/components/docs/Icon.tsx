@@ -1,12 +1,12 @@
 import clsx from "clsx";
 import { useId } from "react";
 
-import { InstallationIcon } from "~/app/components/docs/icons/InstallationIcon";
-import { LightbulbIcon } from "~/app/components/docs/icons/LightbulbIcon";
-import { PluginsIcon } from "~/app/components/docs/icons/PluginsIcon";
-import { PresetsIcon } from "~/app/components/docs/icons/PresetsIcon";
-import { ThemingIcon } from "~/app/components/docs/icons/ThemingIcon";
-import { WarningIcon } from "~/app/components/docs/icons/WarningIcon";
+import { InstallationIcon } from "~/app/components/docs/icons/InstallationIcon.tsx";
+import { LightbulbIcon } from "~/app/components/docs/icons/LightbulbIcon.tsx";
+import { PluginsIcon } from "~/app/components/docs/icons/PluginsIcon.tsx";
+import { PresetsIcon } from "~/app/components/docs/icons/PresetsIcon.tsx";
+import { ThemingIcon } from "~/app/components/docs/icons/ThemingIcon.tsx";
+import { WarningIcon } from "~/app/components/docs/icons/WarningIcon.tsx";
 
 const icons = {
 	installation: InstallationIcon,

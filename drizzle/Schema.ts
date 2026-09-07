@@ -1,17 +1,17 @@
-import { CatalogSource } from "~/drizzle/schema/repo.CatalogSource";
-import { Channel } from "~/drizzle/schema/repo.Channel";
-import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
-import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer";
-import { Product } from "~/drizzle/schema/repo.Product";
-import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries";
-import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification";
-import { Sample } from "~/drizzle/schema/repo.Sample";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
-import { SourceArtifact } from "~/drizzle/schema/repo.SourceArtifact";
-import { SourceBundle } from "~/drizzle/schema/repo.SourceBundle";
-import { Account, Session, User, Verification } from "~/drizzle/schema/system.BetterAuth";
-import { Repository } from "~/drizzle/schema/system.Repository";
-import { UserRepository } from "~/drizzle/schema/system.UserRepository";
+import { CatalogSource } from "~/drizzle/schema/repo.CatalogSource.ts";
+import { Channel } from "~/drizzle/schema/repo.Channel.ts";
+import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
+import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
+import { Product } from "~/drizzle/schema/repo.Product.ts";
+import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries.ts";
+import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification.ts";
+import { Sample } from "~/drizzle/schema/repo.Sample.ts";
+import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { SourceArtifact } from "~/drizzle/schema/repo.SourceArtifact.ts";
+import { SourceBundle } from "~/drizzle/schema/repo.SourceBundle.ts";
+import { Account, Session, User, Verification } from "~/drizzle/schema/system.BetterAuth.ts";
+import { Repository } from "~/drizzle/schema/system.Repository.ts";
+import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
 
 const Schema = {
 	Account,

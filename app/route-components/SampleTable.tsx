@@ -1,10 +1,10 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/20/solid";
 import { Form, useActionData, useNavigation, useRouteLoaderData } from "react-router";
 
-import { formatTimestamp } from "~/app/lib/dates";
-import { nextSampleName } from "~/app/lib/sampleNames";
-import type { action, loader } from "~/app/routes/$repo.samples.$batchSlug";
-import { Subheading } from "~/catalyst-ui/heading";
+import { formatTimestamp } from "~/app/lib/dates.ts";
+import { nextSampleName } from "~/app/lib/sampleNames.ts";
+import type { action, loader } from "~/app/routes/$repo.samples.$batchSlug.tsx";
+import { Subheading } from "~/catalyst-ui/heading.tsx";
 
 /**
  * The samples of one batch, including the row that adds another one.

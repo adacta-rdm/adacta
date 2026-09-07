@@ -1,6 +1,6 @@
-import type { Route } from "~/.react-router/types/app/+types/root";
-import { services } from "~/app/.server/context";
-import { createAppContainer } from "~/app/.server/createAppContainer";
+import type { Route } from "~/.react-router/types/app/+types/root.ts";
+import { services } from "~/app/.server/context.ts";
+import { createAppContainer } from "~/app/.server/createAppContainer.ts";
 
 const root = createAppContainer();
 

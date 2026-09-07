@@ -1,10 +1,10 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 
-import { ErrorPanel, ErrorPanelAction } from "~/app/components/ErrorPanel";
-import { container } from "~/app/middleware/container";
+import { ErrorPanel, ErrorPanelAction } from "~/app/components/ErrorPanel.tsx";
+import { container } from "~/app/middleware/container.ts";
 import interVariable from "~/vendor/inter/InterVariable-latin.woff2?url";
 
-import type { Route } from "./+types/root";
+import type { Route } from "./+types/root.ts";
 
 import "./app.css";
 

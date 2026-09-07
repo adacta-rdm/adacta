@@ -9,8 +9,8 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
-import { navigation } from "~/app/docs/navigation";
-import { search, type SearchResult } from "~/app/lib/docs/searchIndex";
+import { navigation } from "~/app/docs/navigation.ts";
+import { search, type SearchResult } from "~/app/lib/docs/searchIndex.ts";
 
 function SearchIcon(props: React.ComponentPropsWithoutRef<"svg">) {
 	return (

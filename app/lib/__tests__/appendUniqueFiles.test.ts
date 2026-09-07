@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { appendUniqueFiles } from "~/app/lib/appendUniqueFiles";
+import { appendUniqueFiles } from "~/app/lib/appendUniqueFiles.ts";
 
 describe("appendUniqueFiles", () => {
 	test("adds files to the source bundle in selection order", () => {

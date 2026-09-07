@@ -1,6 +1,6 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-import { metadata } from "~/drizzle/schemaHelpers/metadata";
+import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
  * A physical thing that sits somewhere in the laboratory.

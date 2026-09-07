@@ -1,10 +1,10 @@
 import { mkdir, rename } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
-import { FileAlreadyExistsError } from "~/lib/storage-engine/FileAlreadyExistsError";
-import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError";
-import { InvalidStoragePathError } from "~/lib/storage-engine/InvalidStoragePathError";
-import { StorageEngine, type StorageReadOptions } from "~/lib/storage-engine/StorageEngine";
+import { FileAlreadyExistsError } from "~/lib/storage-engine/FileAlreadyExistsError.ts";
+import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
+import { InvalidStoragePathError } from "~/lib/storage-engine/InvalidStoragePathError.ts";
+import { StorageEngine, type StorageReadOptions } from "~/lib/storage-engine/StorageEngine.ts";
 
 /**
  * Stores files below one directory on the local filesystem.

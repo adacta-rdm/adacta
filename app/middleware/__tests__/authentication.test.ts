@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test";
 
-import { sessionAuth } from "~/app/middleware/authentication";
-import { Security } from "~/app/services/Security";
-import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
+import { sessionAuth } from "~/app/middleware/authentication.ts";
+import { Security } from "~/app/services/Security.ts";
+import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
 import {
 	setupEmptyTestDatabaseEnvironment,
 	TEST_USER,
 	signInTestUser,
 	signUpTestUser,
-} from "~/app/testUtils/testUtils";
+} from "~/app/testUtils/testUtils.ts";
 
 describe("sessionAuth", () => {
 	test("redirects to the login page when there is no session", async () => {

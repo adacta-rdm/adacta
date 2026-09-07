@@ -16,11 +16,11 @@ import {
 import type { ReactNode } from "react";
 import { useLocation, useParams } from "react-router";
 
-import { KindIcon, type InventoryKind } from "~/app/components/KindIcon";
-import { SidebarLayout } from "~/app/layout/SidebarLayout";
-import type { BatchGroup } from "~/app/lib/batchComposition";
-import type { Building, Located } from "~/app/lib/location";
-import { Navbar, NavbarSection, NavbarSpacer } from "~/catalyst-ui/navbar";
+import { KindIcon, type InventoryKind } from "~/app/components/KindIcon.tsx";
+import { SidebarLayout } from "~/app/layout/SidebarLayout.tsx";
+import type { BatchGroup } from "~/app/lib/batchComposition.ts";
+import type { Building, Located } from "~/app/lib/location.ts";
+import { Navbar, NavbarSection, NavbarSpacer } from "~/catalyst-ui/navbar.tsx";
 import {
 	Sidebar,
 	SidebarBody,
@@ -30,8 +30,8 @@ import {
 	SidebarItem,
 	SidebarLabel,
 	SidebarSection,
-} from "~/catalyst-ui/sidebar";
-import type { Entity } from "~/drizzle/Schema";
+} from "~/catalyst-ui/sidebar.tsx";
+import type { Entity } from "~/drizzle/Schema.ts";
 
 /**
  * What the sidebar tree is built from: a named, placed entry with a kind.

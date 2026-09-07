@@ -1,6 +1,6 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-import { metadata } from "~/drizzle/schemaHelpers/metadata";
+import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
  * Material prepared together and represented by one or more physical samples.

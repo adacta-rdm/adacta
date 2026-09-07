@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-import { loader } from "~/app/routes/$repo.files.artifacts.$artifactId";
-import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
+import { loader } from "~/app/routes/$repo.files.artifacts.$artifactId.ts";
+import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
 
-import { setupBundle } from "./$repo.files.$bundleId.test";
+import { setupBundle } from "./$repo.files.$bundleId.test.ts";
 
 describe("source artifact download", () => {
 	test("downloads the original bytes with their file metadata", async () => {

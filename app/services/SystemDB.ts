@@ -1,5 +1,5 @@
-import { DatabaseManager } from "~/app/services/DatabaseManager";
-import { service } from "~/lib/service-container/ServiceContainer";
+import { DatabaseManager } from "~/app/services/DatabaseManager.ts";
+import { service } from "~/lib/service-container/ServiceContainer.ts";
 
 /**
  * Convenience: lets a service declare that it touches the system database.

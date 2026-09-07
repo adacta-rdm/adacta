@@ -12,19 +12,19 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { Link } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { compareSpecifications, type Specification } from "~/app/lib/specificationComparison";
-import { RepoDB } from "~/app/services/RepoDB";
-import { Subheading } from "~/catalyst-ui/heading";
-import { Text } from "~/catalyst-ui/text";
-import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer";
-import { Product } from "~/drizzle/schema/repo.Product";
-import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries";
-import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification";
+import { services } from "~/app/.server/context.ts";
+import { compareSpecifications, type Specification } from "~/app/lib/specificationComparison.ts";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Subheading } from "~/catalyst-ui/heading.tsx";
+import { Text } from "~/catalyst-ui/text.tsx";
+import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
+import { Product } from "~/drizzle/schema/repo.Product.ts";
+import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries.ts";
+import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification.ts";
 
-import type { Route } from "./+types/$repo.catalog.$manufacturerSlug._index";
+import type { Route } from "./+types/$repo.catalog.$manufacturerSlug._index.ts";
 
-export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary";
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
 type CatalogProduct = {
 	slug: string;

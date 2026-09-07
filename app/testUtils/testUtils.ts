@@ -14,13 +14,13 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { createAppContainer } from "~/app/.server/createAppContainer";
-import { BetterAuth } from "~/app/services/BetterAuth";
-import { RepoAccess } from "~/app/services/RepoAccess";
-import { RepoManager } from "~/app/services/RepoManager";
-import { Security } from "~/app/services/Security";
-import { Env, type EnvSource } from "~/lib/env/Env";
-import { ServiceContainer } from "~/lib/service-container/ServiceContainer";
+import { createAppContainer } from "~/app/.server/createAppContainer.ts";
+import { BetterAuth } from "~/app/services/BetterAuth.ts";
+import { RepoAccess } from "~/app/services/RepoAccess.ts";
+import { RepoManager } from "~/app/services/RepoManager.ts";
+import { Security } from "~/app/services/Security.ts";
+import { Env, type EnvSource } from "~/lib/env/Env.ts";
+import { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 export const TEST_USER = {
 	name: "Test User",

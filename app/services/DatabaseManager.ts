@@ -5,9 +5,9 @@ import type { AnyRelations } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 
-import { authRelations } from "~/drizzle/schema/system.BetterAuth";
-import { Env } from "~/lib/env/Env";
-import { Service } from "~/lib/service-container/ServiceContainer";
+import { authRelations } from "~/drizzle/schema/system.BetterAuth.ts";
+import { Env } from "~/lib/env/Env.ts";
+import { Service } from "~/lib/service-container/ServiceContainer.ts";
 
 /**
  * See drizzle/schema/system.*.ts for what the system database holds.

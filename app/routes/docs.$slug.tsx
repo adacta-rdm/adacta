@@ -1,8 +1,8 @@
-import { DocBody } from "~/app/components/docs/DocBody";
-import { DocsLayout } from "~/app/components/docs/DocsLayout";
-import { loadDoc } from "~/app/lib/docs/loadDoc";
+import { DocBody } from "~/app/components/docs/DocBody.tsx";
+import { DocsLayout } from "~/app/components/docs/DocsLayout.tsx";
+import { loadDoc } from "~/app/lib/docs/loadDoc.ts";
 
-import type { Route } from "./+types/docs.$slug";
+import type { Route } from "./+types/docs.$slug.ts";
 
 export async function loader({ params }: Route.LoaderArgs) {
 	return loadDoc(params.slug);

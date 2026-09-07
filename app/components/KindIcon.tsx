@@ -6,7 +6,7 @@
  */
 import { CubeIcon, RectangleGroupIcon } from "@heroicons/react/20/solid";
 
-import type { Entity } from "~/drizzle/Schema";
+import type { Entity } from "~/drizzle/Schema.ts";
 
 /**
  * Custom rigs carry a P&ID; standalone equipment does not.

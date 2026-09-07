@@ -2,7 +2,7 @@ import { Dialog, DialogPanel } from "@headlessui/react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
 
-import { Navigation } from "~/app/components/docs/Navigation";
+import { Navigation } from "~/app/components/docs/Navigation.tsx";
 
 function MenuIcon(props: React.ComponentPropsWithoutRef<"svg">) {
 	return (

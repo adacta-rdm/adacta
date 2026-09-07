@@ -1,7 +1,7 @@
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-import { SourceBundle } from "~/drizzle/schema/repo.SourceBundle";
-import { metadata } from "~/drizzle/schemaHelpers/metadata";
+import { SourceBundle } from "~/drizzle/schema/repo.SourceBundle.ts";
+import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
  * One immutable original file within a source bundle.

@@ -6,17 +6,17 @@ import { eq } from "drizzle-orm";
 import {
 	action as batchAction,
 	loader as batchLoader,
-} from "~/app/routes/$repo.samples.$batchSlug";
-import { action as newBatchAction } from "~/app/routes/$repo.samples.new";
-import { RepoDB } from "~/app/services/RepoDB";
-import { RepoManager } from "~/app/services/RepoManager";
-import { Security } from "~/app/services/Security";
-import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
-import { setupTestRepositoryEnvironment, signUpTestUser } from "~/app/testUtils/testUtils";
-import { Sample } from "~/drizzle/schema/repo.Sample";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch";
-import { LOG_LEVEL, Logger } from "~/lib/logger/Logger";
-import type { ServiceContainer } from "~/lib/service-container/ServiceContainer";
+} from "~/app/routes/$repo.samples.$batchSlug.tsx";
+import { action as newBatchAction } from "~/app/routes/$repo.samples.new.tsx";
+import { RepoDB } from "~/app/services/RepoDB.ts";
+import { RepoManager } from "~/app/services/RepoManager.ts";
+import { Security } from "~/app/services/Security.ts";
+import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
+import { setupTestRepositoryEnvironment, signUpTestUser } from "~/app/testUtils/testUtils.ts";
+import { Sample } from "~/drizzle/schema/repo.Sample.ts";
+import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { LOG_LEVEL, Logger } from "~/lib/logger/Logger.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 /**
  * A signed-in scope working on the "demo" repository.

@@ -2,17 +2,17 @@ import { describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
-import { DatabaseManager, InvalidDatabaseNameError } from "~/app/services/DatabaseManager";
+import { DatabaseManager, InvalidDatabaseNameError } from "~/app/services/DatabaseManager.ts";
 import {
 	RepoManager,
 	RepositoryAlreadyExistsError,
 	RepositoryNotFoundError,
-} from "~/app/services/RepoManager";
-import { SystemDB } from "~/app/services/SystemDB";
-import { setupEmptyTestDatabaseEnvironment, signUpTestUser } from "~/app/testUtils/testUtils";
-import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry";
-import { UserRepository } from "~/drizzle/schema/system.UserRepository";
-import { Env } from "~/lib/env/Env";
+} from "~/app/services/RepoManager.ts";
+import { SystemDB } from "~/app/services/SystemDB.ts";
+import { setupEmptyTestDatabaseEnvironment, signUpTestUser } from "~/app/testUtils/testUtils.ts";
+import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
+import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
+import { Env } from "~/lib/env/Env.ts";
 
 /**
  * A container with a migrated system database and nothing in it.

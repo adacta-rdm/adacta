@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { loader } from "~/app/routes/_index";
-import { RepoManager } from "~/app/services/RepoManager";
-import { Security } from "~/app/services/Security";
-import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs";
-import { setupTestUserEnvironment, signUpTestUser } from "~/app/testUtils/testUtils";
+import { loader } from "~/app/routes/_index.tsx";
+import { RepoManager } from "~/app/services/RepoManager.ts";
+import { Security } from "~/app/services/Security.ts";
+import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
+import { setupTestUserEnvironment, signUpTestUser } from "~/app/testUtils/testUtils.ts";
 
 describe("_index loader", () => {
 	test("lists only the repositories the user may open", async () => {

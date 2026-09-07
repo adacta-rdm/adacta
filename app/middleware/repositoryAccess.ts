@@ -1,7 +1,7 @@
 import type { MiddlewareFunction } from "react-router";
 
-import { services } from "~/app/.server/context";
-import { RepoAccess, RepositoryAccessDeniedError } from "~/app/services/RepoAccess";
+import { services } from "~/app/.server/context.ts";
+import { RepoAccess, RepositoryAccessDeniedError } from "~/app/services/RepoAccess.ts";
 
 /**
  * Binds the repository named in the route to this request's scope, after
