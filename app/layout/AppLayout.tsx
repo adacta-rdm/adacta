@@ -6,6 +6,7 @@
  * support -> batch tree.
  */
 import {
+	AcademicCapIcon,
 	ArrowUpTrayIcon,
 	BeakerIcon,
 	BookOpenIcon,
@@ -23,6 +24,7 @@ import { Navbar, NavbarSection, NavbarSpacer } from "~/catalyst-ui/navbar";
 import {
 	Sidebar,
 	SidebarBody,
+	SidebarFooter,
 	SidebarHeader,
 	SidebarHeading,
 	SidebarItem,
@@ -219,6 +221,16 @@ export function AppLayout({
 							</SidebarItem>
 						</SidebarSection>
 					</SidebarBody>
+
+					<SidebarFooter>
+						<SidebarSection>
+							{/* The manual is not scoped to a repository, so it sits apart. */}
+							<SidebarItem href="/docs" current={pathname.startsWith("/docs")}>
+								<AcademicCapIcon />
+								<SidebarLabel>User manual</SidebarLabel>
+							</SidebarItem>
+						</SidebarSection>
+					</SidebarFooter>
 				</Sidebar>
 			}
 			navbar={

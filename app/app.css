@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "./theme.css";
 
+/* The `prose` classes the docs pages render markdown with. */
+@plugin "@tailwindcss/typography";
+
 /*
  * We serve Inter ourselves because the build published by Google Fonts leaves
  * out the character variants selected below.
@@ -27,6 +30,19 @@
 	 * The others open up the 4, the 6, and the 9.
 	 */
 	--font-sans--font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+
+	/*
+	 * The docs chrome uses `font-display` for headings and the wordmark. It maps
+	 * to the app's Inter so the docs match the application's look and feel rather
+	 * than introducing a separate display face.
+	 */
+	--font-display: var(--font-sans);
+
+	/*
+	 * `max-w-8xl` on the docs shell needs this container size. Tailwind's default
+	 * scale stops at 7xl.
+	 */
+	--container-8xl: 88rem;
 }
 
 html,
@@ -36,4 +52,58 @@ body {
 	@media (prefers-color-scheme: dark) {
 		color-scheme: dark;
 	}
+}
+
+/*
+ * Prism token colors, ported from the Tailwind "Syntax" template. Fence.tsx
+ * runs prism-react-renderer with an empty theme, so it emits `.token.<type>`
+ * class names instead of inline styles. These rules color them against the dark
+ * prose-pre background set in Prose.tsx.
+ */
+pre[class*="language-"] {
+	color: var(--color-slate-50);
+}
+
+.token.tag,
+.token.class-name,
+.token.selector,
+.token.selector .class,
+.token.selector.class,
+.token.function {
+	color: var(--color-pink-400);
+}
+
+.token.attr-name,
+.token.keyword,
+.token.rule,
+.token.pseudo-class,
+.token.important {
+	color: var(--color-slate-300);
+}
+
+.token.module {
+	color: var(--color-pink-400);
+}
+
+.token.attr-value,
+.token.class,
+.token.string,
+.token.property {
+	color: var(--color-sky-300);
+}
+
+.token.punctuation,
+.token.attr-equals {
+	color: var(--color-slate-500);
+}
+
+.token.unit,
+.language-css .token.function {
+	color: var(--color-teal-200);
+}
+
+.token.comment,
+.token.operator,
+.token.combinator {
+	color: var(--color-slate-400);
 }
