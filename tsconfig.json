@@ -32,5 +32,10 @@
 		"rootDirs": [".", "./.react-router/types"]
 	},
 	"include": ["**/*", "**/.server/**/*", "**/.client/**/*", ".react-router/types/**/*"],
-	"exclude": ["node_modules", "build"]
+	// vendor/syntax-ts is the unmodified Tailwind "Syntax" template, kept as a
+	// reference for the docs port. It is a Next.js app with its own dependencies,
+	// none of which are installed, so tsc must not walk into it. The rest of
+	// vendor/ stays included: app code imports it through the "~/catalyst-ui/*"
+	// path above.
+	"exclude": ["node_modules", "build", "vendor/syntax-ts/**/*"]
 }
