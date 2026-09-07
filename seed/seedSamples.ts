@@ -31,6 +31,10 @@ type SeedBatch = {
 	preparedBy: string;
 	activeMaterial: string;
 	support: string;
+	/**
+	 * The labels of the samples cut from this batch. A batch prepared but not
+	 * yet cut has none.
+	 */
 	samples: string[];
 };
 
