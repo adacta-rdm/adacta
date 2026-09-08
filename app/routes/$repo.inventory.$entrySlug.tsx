@@ -102,6 +102,7 @@ function RigTabs() {
 				<RigTab end to=".">
 					Overview
 				</RigTab>
+				<RigTab to="pid">P&amp;ID</RigTab>
 				<RigTab to="data">Data</RigTab>
 			</div>
 		</nav>

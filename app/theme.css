@@ -34,6 +34,7 @@
 	--adacta-color-foreground-muted: light-dark(var(--color-zinc-600), var(--color-zinc-400));
 	--adacta-color-border: light-dark(var(--color-zinc-200), var(--color-zinc-800));
 	--adacta-color-border-strong: light-dark(var(--color-zinc-300), var(--color-zinc-700));
+	--adacta-color-diagram-surface: var(--color-white);
 	--adacta-color-series-1: light-dark(var(--color-sky-600), var(--color-sky-400));
 	--adacta-color-series-2: light-dark(var(--color-orange-600), var(--color-orange-400));
 
@@ -127,6 +128,7 @@
 	--color-border-strong: var(--adacta-color-border-strong);
 	--color-scrim: var(--adacta-color-scrim);
 	--color-scrim-foreground: var(--adacta-color-scrim-foreground);
+	--color-diagram-surface: var(--adacta-color-diagram-surface);
 	--color-series-1: var(--adacta-color-series-1);
 	--color-series-2: var(--adacta-color-series-2);
 

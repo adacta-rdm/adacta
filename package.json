@@ -36,6 +36,7 @@
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",
 		"@visx/xychart": "^3.12.0",
+		"@xyflow/react": "^12.3.2",
 		"better-auth": "^1.7.2",
 		"clsx": "^2.1.1",
 		"drizzle-kit": "^1.0.0-rc.4",
