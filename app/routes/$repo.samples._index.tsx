@@ -8,9 +8,14 @@
  * A batch is archived rather than deleted. Its samples point at it, and its
  * preparation is a record of work that was done. Archiving takes it out of
  * the workflow and leaves both intact.
+ *
+ * The page has two tabs. "Active" is the workflow and is what opens by
+ * default. "Archived" holds what has been put aside, and a batch can be
+ * restored from there. Each tab is its own address, so a link to either one
+ * opens on the right tab.
  */
-import { ArchiveBoxArrowDownIcon, PlusIcon } from "@heroicons/react/20/solid";
-import { and, count, desc, eq, isNull } from "drizzle-orm";
+import { ArchiveBoxArrowDownIcon, ArrowUturnLeftIcon, PlusIcon } from "@heroicons/react/20/solid";
+import { and, count, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
@@ -26,16 +31,50 @@ import { FormValues } from "~/lib/form-values/FormValues.ts";
 
 import type { Route } from "./+types/$repo.samples._index.ts";
 
-export async function loader({ context }: Route.LoaderArgs) {
+/** The address of the archived tab, for example /demo/samples?show=archived. */
+const TAB_PARAM = "show";
+const ARCHIVED_TAB = "archived";
+
+/**
+ * Which tab the address asks for. Anything other than "archived" is the
+ * active tab, so a hand-edited address opens the workflow rather than an
+ * error.
+ */
+function readTab(request: Request): boolean {
+	return new URL(request.url).searchParams.get(TAB_PARAM) === ARCHIVED_TAB;
+}
+
+export async function loader({ context, request }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const [db, access] = container.get(RepoDB, RepoAccess);
+	const showArchived = readTab(request);
 
 	const rows = db
 		.select()
 		.from(SampleBatch)
-		.where(isNull(SampleBatch.metadataArchivedAt))
+		.where(
+			showArchived
+				? isNotNull(SampleBatch.metadataArchivedAt)
+				: isNull(SampleBatch.metadataArchivedAt),
+		)
 		.orderBy(desc(SampleBatch.preparationDate), SampleBatch.name)
 		.all();
+
+	/*
+		Both counts are read on either tab. The archived tab is easy to overlook,
+		so its label carries the number of batches waiting in it.
+	*/
+	const archivedCount = db
+		.select({ total: count() })
+		.from(SampleBatch)
+		.where(isNotNull(SampleBatch.metadataArchivedAt))
+		.get();
+
+	const activeCount = db
+		.select({ total: count() })
+		.from(SampleBatch)
+		.where(isNull(SampleBatch.metadataArchivedAt))
+		.get();
 
 	// One count for every batch, rather than one query per row.
 	const sampleCounts = new Map(
@@ -54,9 +93,12 @@ export async function loader({ context }: Route.LoaderArgs) {
 	const users = new Map((await access.users()).map((user) => [user.id, user]));
 
 	return {
+		showArchived,
+		counts: { active: activeCount?.total ?? 0, archived: archivedCount?.total ?? 0 },
 		batches: rows.map((batch) => ({
 			slug: batch.slug,
 			name: batch.name,
+			archivedAt: batch.metadataArchivedAt,
 			preparationDate: batch.preparationDate,
 			activeMaterial: batch.activeMaterial,
 			support: batch.support,
@@ -73,30 +115,100 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	// The clicked submit button carries the operation and its target.
 	// For example { archive: "pt-al2o3" }.
 	const archivedSlug = values.string("archive", null);
+	const restoredSlug = values.string("restore", null);
 
-	if (archivedSlug === null) {
+	const slug = archivedSlug ?? restoredSlug;
+
+	if (slug === null) {
 		return data({ errors: { form: "The batch action is not recognized." } }, { status: 400 });
 	}
 
-	const archived = db
+	const archiving = archivedSlug !== null;
+
+	/*
+		A batch is archived only while it is active, and restored only while it is
+		archived. Two people working at the same time therefore cannot undo each
+		other. The second click changes no row and answers 404.
+	*/
+	const changed = db
 		.update(SampleBatch)
-		.set({ metadataArchivedAt: new Date() })
-		.where(and(eq(SampleBatch.slug, archivedSlug), isNull(SampleBatch.metadataArchivedAt)))
+		.set({ metadataArchivedAt: archiving ? new Date() : null })
+		.where(
+			and(
+				eq(SampleBatch.slug, slug),
+				archiving
+					? isNull(SampleBatch.metadataArchivedAt)
+					: isNotNull(SampleBatch.metadataArchivedAt),
+			),
+		)
 		.run();
 
-	if (archived.changes === 0) {
-		throw new Response(`Batch "${archivedSlug}" not found.`, { status: 404 });
+	if (changed.changes === 0) {
+		throw new Response(`Batch "${slug}" not found.`, { status: 404 });
 	}
 
-	return redirect(`/${params.repo}/samples`, 303);
+	// Stay on the tab the click came from. Archiving leaves the active tab, so
+	// the batch is gone from the list that comes back.
+	const tab = archiving ? "" : `?${TAB_PARAM}=${ARCHIVED_TAB}`;
+
+	return redirect(`/${params.repo}/samples${tab}`, 303);
+}
+
+/**
+ * The day a batch was archived. The moment is stored, and only the day is
+ * shown, because that is what a reader looks for in the list.
+ */
+function ArchivedOn({ at }: { at: Date | null }) {
+	if (at === null) return <>Unknown</>;
+
+	const day = new Date(at).toISOString().slice(0, 10);
+
+	return <time dateTime={day}>{formatCalendarDate(day)}</time>;
+}
+
+/**
+ * One tab of the batch list. The tab in view is a plain label, so only the
+ * other tab can be clicked.
+ */
+function Tab({
+	to,
+	label,
+	count: total,
+	current,
+}: {
+	to: string;
+	label: string;
+	count: number;
+	current: boolean;
+}) {
+	const shared = "-mb-px flex items-center gap-2 border-b-2 px-1 pb-2 text-sm font-medium";
+
+	const style = current
+		? "border-accent text-foreground"
+		: "border-transparent text-foreground-muted hover:border-border-strong hover:text-foreground";
+
+	return (
+		<Link
+			to={to}
+			aria-current={current ? "page" : undefined}
+			className={`${shared} ${style} focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus`}
+		>
+			{label}
+			<span className="rounded-full bg-canvas-sunken px-2 py-0.5 text-xs text-foreground-muted">
+				{total}
+			</span>
+		</Link>
+	);
 }
 
 export default function RepoSamplesIndex({ loaderData, params }: Route.ComponentProps) {
-	const { batches } = loaderData;
+	const { batches, counts, showArchived } = loaderData;
 
 	const navigation = useNavigation();
 	const submitted = navigation.state === "submitting" ? navigation.formData : undefined;
-	const archivingSlug = submitted?.get("archive");
+	const workingSlug = submitted?.get("archive") ?? submitted?.get("restore");
+
+	const samplesPath = `/${params.repo}/samples`;
 
 	return (
 		<div className="space-y-8">
@@ -113,29 +225,46 @@ export default function RepoSamplesIndex({ loaderData, params }: Route.Component
 					<Subheading>Batches</Subheading>
 				</div>
 
+				<div className="mt-3 flex gap-6 border-b border-border px-5">
+					<Tab to={samplesPath} label="Active" count={counts.active} current={!showArchived} />
+					<Tab
+						to={`${samplesPath}?${TAB_PARAM}=${ARCHIVED_TAB}`}
+						label="Archived"
+						count={counts.archived}
+						current={showArchived}
+					/>
+				</div>
+
 				{batches.length === 0 ? (
-					<Text className="px-5 pt-2 pb-5">No batches have been recorded yet.</Text>
+					<Text className="px-5 py-5">
+						{showArchived ? "No batches have been archived." : "No batches have been recorded yet."}
+					</Text>
 				) : (
-					<div className="mt-4 overflow-x-auto">
+					<div className="overflow-x-auto">
 						<table className="w-full text-left text-sm">
 							<thead className="border-b border-border text-xs font-medium text-foreground-muted">
 								<tr>
-									<th scope="col" className="pb-2 pl-5 pr-4">
+									<th scope="col" className="pt-4 pb-2 pr-4 pl-5">
 										Batch
 									</th>
-									<th scope="col" className="pb-2 pr-4">
+									<th scope="col" className="pt-4 pb-2 pr-4">
 										Composition
 									</th>
-									<th scope="col" className="pb-2 pr-4">
+									<th scope="col" className="pt-4 pb-2 pr-4">
 										Samples
 									</th>
-									<th scope="col" className="pb-2 pr-4">
+									<th scope="col" className="pt-4 pb-2 pr-4">
 										Prepared by
 									</th>
-									<th scope="col" className="pb-2 pr-4">
+									<th scope="col" className="pt-4 pb-2 pr-4">
 										Prepared on
 									</th>
-									<th scope="col" className="w-28 pb-2 pr-5 text-left">
+									{showArchived && (
+										<th scope="col" className="pt-4 pb-2 pr-4">
+											Archived on
+										</th>
+									)}
+									<th scope="col" className="w-28 pt-4 pb-2 pr-5 text-left">
 										<span className="sr-only">Actions</span>
 									</th>
 								</tr>
@@ -144,9 +273,9 @@ export default function RepoSamplesIndex({ loaderData, params }: Route.Component
 							<tbody className="divide-y divide-border">
 								{batches.map((batch) => (
 									<tr key={batch.slug}>
-										<th scope="row" className="py-3 pl-5 pr-4 font-normal">
+										<th scope="row" className="py-3 pr-4 pl-5 font-normal">
 											<Link
-												to={`/${params.repo}/samples/${batch.slug}`}
+												to={`${samplesPath}/${batch.slug}`}
 												className="font-medium text-link hover:text-link-hover"
 											>
 												{batch.name}
@@ -169,19 +298,39 @@ export default function RepoSamplesIndex({ loaderData, params }: Route.Component
 											</time>
 										</td>
 
+										{showArchived && (
+											<td className="py-3 pr-4 text-foreground-muted">
+												<ArchivedOn at={batch.archivedAt} />
+											</td>
+										)}
+
 										<td className="py-3 pr-5 text-left">
 											<Form method="post">
-												<button
-													type="submit"
-													name="archive"
-													value={batch.slug}
-													disabled={submitted !== undefined}
-													aria-label={`Archive ${batch.name}`}
-													className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-danger-surface hover:text-danger-surface-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
-												>
-													<ArchiveBoxArrowDownIcon className="size-4" />
-													{archivingSlug === batch.slug ? "Archiving…" : "Archive"}
-												</button>
+												{showArchived ? (
+													<button
+														type="submit"
+														name="restore"
+														value={batch.slug}
+														disabled={submitted !== undefined}
+														aria-label={`Restore ${batch.name}`}
+														className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-canvas-sunken hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
+													>
+														<ArrowUturnLeftIcon className="size-4" />
+														{workingSlug === batch.slug ? "Restoring…" : "Restore"}
+													</button>
+												) : (
+													<button
+														type="submit"
+														name="archive"
+														value={batch.slug}
+														disabled={submitted !== undefined}
+														aria-label={`Archive ${batch.name}`}
+														className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-danger-surface hover:text-danger-surface-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
+													>
+														<ArchiveBoxArrowDownIcon className="size-4" />
+														{workingSlug === batch.slug ? "Archiving…" : "Archive"}
+													</button>
+												)}
 											</Form>
 										</td>
 									</tr>
@@ -193,7 +342,7 @@ export default function RepoSamplesIndex({ loaderData, params }: Route.Component
 			</section>
 
 			<Link
-				to={`/${params.repo}/samples/new`}
+				to={`${samplesPath}/new`}
 				className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-accent-foreground hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
 			>
 				<PlusIcon className="size-4" />
