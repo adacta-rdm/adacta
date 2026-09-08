@@ -1,4 +1,4 @@
-import { ArchiveBoxIcon, BeakerIcon } from "@heroicons/react/20/solid";
+import { ArchiveBoxIcon, BeakerIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
 import { and, eq, isNull } from "drizzle-orm";
 import { data, Link, redirect } from "react-router";
 
@@ -183,7 +183,20 @@ export default function RepoSamplesBatchSlug({ loaderData, params }: Route.Compo
 			)}
 
 			<div>
-				<Heading>{batch.name}</Heading>
+				<div className="flex items-start justify-between gap-4">
+					<Heading>{batch.name}</Heading>
+
+					{archived ? null : (
+						<Link
+							to={`/${params.repo}/samples/${batch.slug}/edit`}
+							className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-sm text-foreground-muted hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
+						>
+							<PencilSquareIcon className="size-4" />
+							Edit
+						</Link>
+					)}
+				</div>
+
 				<p className="mt-2 text-sm text-foreground-muted">
 					Preparation date:{" "}
 					<time dateTime={batch.preparationDate}>{formatCalendarDate(batch.preparationDate)}</time>

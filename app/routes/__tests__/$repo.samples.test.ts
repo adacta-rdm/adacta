@@ -7,6 +7,10 @@ import {
 	action as batchAction,
 	loader as batchLoader,
 } from "~/app/routes/$repo.samples.$batchSlug.tsx";
+import {
+	action as editBatchAction,
+	loader as editBatchLoader,
+} from "~/app/routes/$repo.samples.$batchSlug_.edit.tsx";
 import { action as newBatchAction } from "~/app/routes/$repo.samples.new.tsx";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { RepoManager } from "~/app/services/RepoManager.ts";
@@ -439,3 +443,138 @@ function archive(scope: ServiceContainer, slug: string) {
 		.where(eq(SampleBatch.slug, slug))
 		.run();
 }
+
+/**
+ * Submit the edit page. Every field it shows is sent, the way a browser does.
+ */
+async function editBatch(
+	scope: ServiceContainer,
+	batchSlug: string,
+	fields: Record<string, string> = {},
+) {
+	const request = post({
+		name: "Pt batch",
+		preparationDate: "2026-01-15",
+		preparedById: scope.get(Security).userId,
+		activeMaterial: "",
+		support: "",
+		...fields,
+	});
+	const [args] = createMiddlewareArgs(scope, {
+		request,
+		params: { repo: "demo", batchSlug },
+	});
+
+	return editBatchAction(args);
+}
+
+async function loadEditBatch(scope: ServiceContainer, batchSlug: string) {
+	const [args] = createMiddlewareArgs(scope, { params: { repo: "demo", batchSlug } });
+
+	return editBatchLoader(args);
+}
+
+describe("$repo.samples.$batchSlug edit loader", () => {
+	test("returns the batch and the people who may prepare it", async () => {
+		const scope = await environment();
+		const batch = insertBatchRecord(scope);
+
+		const loaded = await loadEditBatch(scope, batch.slug);
+
+		expect(loaded.batch).toMatchObject({ name: "Pt batch", preparationDate: "2026-01-15" });
+		expect(loaded.preparers.length).toBeGreaterThan(0);
+	});
+
+	test("answers 404 for a batch that is not there", async () => {
+		const scope = await environment();
+
+		expect(loadEditBatch(scope, "no-such-batch")).rejects.toMatchObject({ status: 404 });
+	});
+
+	test("answers 404 for an archived batch", async () => {
+		const scope = await environment();
+		const batch = insertBatchRecord(scope);
+		archive(scope, batch.slug);
+
+		expect(loadEditBatch(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
+	});
+});
+
+describe("$repo.samples.$batchSlug edit action", () => {
+	test("stores the new values and returns to the batch page", async () => {
+		const scope = await environment();
+		const batch = insertBatchRecord(scope);
+
+		const response = await editBatch(scope, batch.slug, {
+			name: "Pd batch",
+			preparationDate: "2026-03-02",
+			activeMaterial: "Pd",
+			support: "Al2O3",
+		});
+
+		expect(response).toBeInstanceOf(Response);
+
+		const stored = scope.get(RepoDB).select().from(SampleBatch).get();
+		expect(stored).toMatchObject({
+			name: "Pd batch",
+			preparationDate: "2026-03-02",
+			activeMaterial: "Pd",
+			support: "Al2O3",
+		});
+	});
+
+	test("keeps the slug when the name changes, so old links still work", async () => {
+		const scope = await environment();
+		const batch = insertBatchRecord(scope);
+
+		await editBatch(scope, batch.slug, { name: "A completely different name" });
+
+		expect(scope.get(RepoDB).select().from(SampleBatch).get()?.slug).toBe(batch.slug);
+	});
+
+	test("an empty active material is stored as no value", async () => {
+		const scope = await environment();
+		const batch = insertBatchRecord(scope);
+		await editBatch(scope, batch.slug, { activeMaterial: "Pt" });
+
+		await editBatch(scope, batch.slug, { activeMaterial: "" });
+
+		expect(scope.get(RepoDB).select().from(SampleBatch).get()?.activeMaterial).toBeNull();
+	});
+
+	test("refuses an empty name", async () => {
+		const scope = await environment();
+		const batch = insertBatchRecord(scope);
+
+		const response = await editBatch(scope, batch.slug, { name: "" });
+
+		expect(response).toMatchObject({ init: { status: 400 } });
+		expect(scope.get(RepoDB).select().from(SampleBatch).get()?.name).toBe("Pt batch");
+	});
+
+	test("refuses a date that is not a calendar date", async () => {
+		const scope = await environment();
+		const batch = insertBatchRecord(scope);
+
+		const response = await editBatch(scope, batch.slug, { preparationDate: "2026-02-31" });
+
+		expect(response).toMatchObject({ init: { status: 400 } });
+	});
+
+	test("refuses a preparer who cannot open the repository", async () => {
+		const scope = await environment();
+		const batch = insertBatchRecord(scope);
+
+		const response = await editBatch(scope, batch.slug, { preparedById: "someone-else" });
+
+		expect(response).toMatchObject({ init: { status: 400 } });
+	});
+
+	test("answers 404 for an archived batch", async () => {
+		const scope = await environment();
+		const batch = insertBatchRecord(scope);
+		archive(scope, batch.slug);
+
+		expect(editBatch(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
+	});
+});
