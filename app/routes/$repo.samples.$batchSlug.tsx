@@ -3,19 +3,21 @@ import { and, eq, isNull } from "drizzle-orm";
 import { data, Link, redirect } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
-import { addSample } from "~/app/lib/addSample.ts";
 import { formatBatchComposition } from "~/app/lib/batchComposition.ts";
 import { formatCalendarDate } from "~/app/lib/dates.ts";
-import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError.ts";
-import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError.ts";
 import { compareSampleNames } from "~/app/lib/sampleNames.ts";
+import {
+	addSubmittedSample,
+	deleteSubmittedSample,
+	type SampleContext,
+	type SampleErrors,
+} from "~/app/lib/sampleSubmission.ts";
 import { SampleTable } from "~/app/route-components/SampleTable.tsx";
 import { RepoAccess } from "~/app/services/RepoAccess.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
-import { Heading } from "~/catalyst-ui/heading.tsx";
+import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
-import type { Entity } from "~/drizzle/Schema.ts";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
 import { FormValues } from "~/lib/form-values/FormValues.ts";
@@ -23,8 +25,6 @@ import { Logger } from "~/lib/logger/Logger.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 import type { Route } from "./+types/$repo.samples.$batchSlug.ts";
-
-type ActionErrors = Partial<Record<"form" | "name" | "preparedById", string>>;
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const container = context.get(services);
@@ -81,12 +81,12 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	// { add: "", name: "#01", preparedById: "" }
 	// { delete: "17" }
 	const deletedSampleId = values.integer("delete", null);
-	let errors: ActionErrors | undefined;
+	let errors: SampleErrors | undefined;
 
 	if (deletedSampleId !== null) {
 		deleteSubmittedSample(db, deletedSampleId);
 	} else if (values.has("add")) {
-		errors = await addSubmittedSample(container, batch, values, params.repo);
+		errors = await addSubmittedSample(await sampleContext(container, params.repo), batch, values);
 	} else {
 		errors = { form: "The sample action is not recognized." };
 	}
@@ -96,74 +96,31 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	return redirect(`/${params.repo}/samples/${batch.slug}`, 303);
 }
 
-function deleteSubmittedSample(db: RepoDB, sampleId: number): void {
-	const deleted = db
-		.delete(Sample)
-		.where(and(eq(Sample.id, sampleId), isNull(Sample.metadataArchivedAt)))
-		.run();
-
-	if (deleted.changes === 0) {
-		throw new Response("Sample not found.", { status: 404 });
-	}
-}
-
-async function addSubmittedSample(
+/**
+ * The pieces app/lib needs to add a sample. They are read from the container
+ * here, so the rules themselves stay free of it.
+ */
+async function sampleContext(
 	container: ServiceContainer,
-	batch: Entity<"SampleBatch">,
-	values: FormValues,
 	repository: string,
-): Promise<ActionErrors | undefined> {
+): Promise<SampleContext> {
 	const [db, access, security, logger] = container.get(RepoDB, RepoAccess, Security, Logger);
-	const errors: ActionErrors = {};
-	const name = values.string("name");
-	const preparedById = values.string("preparedById", batch.preparedById);
 
-	if (!name) errors.name = "A sample name is required.";
-
-	if (!(await access.users()).some((user) => user.id === preparedById)) {
-		errors.preparedById = "The selected preparer cannot access this repository.";
-	}
-
-	if (Object.keys(errors).length > 0) return errors;
-
-	try {
-		await addSample(db, {
-			batchId: batch.id,
-			name,
-			preparedById,
-			metadataCreatorId: security.userId,
-			metadataCreationTimestamp: new Date(),
-		});
-	} catch (error) {
-		if (error instanceof EntityAlreadyExistsError) {
-			return { name: `This batch already contains a sample named "${name}".` };
-		}
-
-		if (error instanceof SlugAllocationError) {
-			logger
-				.bind({
-					event: "sample_slug_allocation_failed",
-					repository,
-					batchId: batch.id,
-					sampleName: name,
-					baseSlug: error.base,
-					attempts: error.attempts,
-				})
-				.error(error.message);
-
-			return {
-				name: "A URL identifier could not be created for this sample. Choose a name that differs by more than punctuation.",
-			};
-		}
-
-		throw error;
-	}
-
-	return undefined;
+	return {
+		db,
+		logger,
+		preparerIds: (await access.users()).map((user) => user.id),
+		creatorId: security.userId,
+		repository,
+	};
 }
 
-export default function RepoSamplesBatchSlug({ loaderData, params }: Route.ComponentProps) {
-	const { batch, archived } = loaderData;
+export default function RepoSamplesBatchSlug({
+	actionData,
+	loaderData,
+	params,
+}: Route.ComponentProps) {
+	const { batch, samples, users, archived } = loaderData;
 	const composition = formatBatchComposition(batch);
 
 	return (
@@ -214,7 +171,20 @@ export default function RepoSamplesBatchSlug({ loaderData, params }: Route.Compo
 				)}
 			</div>
 
-			<SampleTable />
+			<section className="overflow-hidden rounded-xl border border-border bg-surface">
+				<div className="px-5 pt-5 pb-4">
+					<Subheading>Samples</Subheading>
+				</div>
+
+				<SampleTable
+					batch={batch}
+					batchSlug={batch.slug}
+					samples={samples}
+					preparers={[...users.values()]}
+					archived={archived}
+					errors={actionData?.errors}
+				/>
+			</section>
 		</div>
 	);
 }

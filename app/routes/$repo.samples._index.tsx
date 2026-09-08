@@ -14,26 +14,49 @@
  * restored from there. Each tab is its own address, so a link to either one
  * opens on the right tab.
  */
-import { ArchiveBoxArrowDownIcon, ArrowUturnLeftIcon, PlusIcon } from "@heroicons/react/20/solid";
+import {
+	ArchiveBoxArrowDownIcon,
+	ArrowUturnLeftIcon,
+	ChevronRightIcon,
+	PlusIcon,
+} from "@heroicons/react/20/solid";
 import { and, count, desc, eq, isNotNull, isNull } from "drizzle-orm";
+import { Fragment } from "react";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import { formatBatchComposition } from "~/app/lib/batchComposition.ts";
 import { formatCalendarDate } from "~/app/lib/dates.ts";
+import { compareSampleNames } from "~/app/lib/sampleNames.ts";
+import {
+	addSubmittedSample,
+	deleteSubmittedSample,
+	type SampleErrors,
+} from "~/app/lib/sampleSubmission.ts";
+import { SampleRows } from "~/app/route-components/SampleTable.tsx";
 import { RepoAccess } from "~/app/services/RepoAccess.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
+import { Security } from "~/app/services/Security.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
 import { FormValues } from "~/lib/form-values/FormValues.ts";
+import { Logger } from "~/lib/logger/Logger.ts";
+import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 import type { Route } from "./+types/$repo.samples._index.ts";
 
 /** The address of the archived tab, for example /demo/samples?show=archived. */
 const TAB_PARAM = "show";
 const ARCHIVED_TAB = "archived";
+
+/**
+ * The address of the open row, for example /demo/samples?open=pt-al2o3. The
+ * row of that batch shows its samples. Only that batch is read, so a list of
+ * many batches stays one query for the list and one for the open row.
+ */
+const OPEN_PARAM = "open";
 
 /**
  * Which tab the address asks for. Anything other than "archived" is the
@@ -92,12 +115,35 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 	// undefined.
 	const users = new Map((await access.users()).map((user) => [user.id, user]));
 
+	/*
+		A row can only be open when it is on the tab in view. An address naming a
+		batch of the other tab, or naming nothing at all, opens no row.
+	*/
+	const requested = new URL(request.url).searchParams.get(OPEN_PARAM);
+	const openBatch = rows.find((batch) => batch.slug === requested);
+
 	return {
+		open: openBatch?.slug ?? null,
+		preparers: [...users.values()],
+
+		// Archived samples are read as well. The add row suggests the next free
+		// label, and a label that was used before is not free.
+		openSamples: openBatch
+			? db
+					.select()
+					.from(Sample)
+					.where(eq(Sample.batchId, openBatch.id))
+					.all()
+					.sort((left, right) => compareSampleNames(left.name, right.name))
+					.map((sample) => ({ ...sample, preparedBy: users.get(sample.preparedById) }))
+			: null,
+
 		showArchived,
 		counts: { active: activeCount?.total ?? 0, archived: archivedCount?.total ?? 0 },
 		batches: rows.map((batch) => ({
 			slug: batch.slug,
 			name: batch.name,
+			preparedById: batch.preparedById,
 			archivedAt: batch.metadataArchivedAt,
 			preparationDate: batch.preparationDate,
 			activeMaterial: batch.activeMaterial,
@@ -110,13 +156,24 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 
 export async function action({ context, request, params }: Route.ActionArgs) {
 	const values = new FormValues(await request.formData());
-	const db = context.get(services).get(RepoDB);
+	const container = context.get(services);
+	const db = container.get(RepoDB);
+
+	/*
+		The open row carries the sample table of its batch. Its forms post here,
+		so a rejected label is reported in the row the person is looking at. A
+		post to the batch page would answer on that page instead.
+	*/
+	const batchSlug = values.string("batch", null);
+
+	if (batchSlug !== null) {
+		return editSamples(container, db, values, batchSlug, params.repo);
+	}
 
 	// The clicked submit button carries the operation and its target.
 	// For example { archive: "pt-al2o3" }.
 	const archivedSlug = values.string("archive", null);
 	const restoredSlug = values.string("restore", null);
-
 	const slug = archivedSlug ?? restoredSlug;
 
 	if (slug === null) {
@@ -152,6 +209,56 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	const tab = archiving ? "" : `?${TAB_PARAM}=${ARCHIVED_TAB}`;
 
 	return redirect(`/${params.repo}/samples${tab}`, 303);
+}
+
+/**
+ * Add or delete a sample of the open row. The row stays open afterwards, so
+ * the person sees the table they were working in.
+ */
+async function editSamples(
+	container: ServiceContainer,
+	db: RepoDB,
+	values: FormValues,
+	batchSlug: string,
+	repository: string,
+) {
+	// An archived batch is treated as absent. Its samples are read only.
+	const batch = db
+		.select()
+		.from(SampleBatch)
+		.where(and(eq(SampleBatch.slug, batchSlug), isNull(SampleBatch.metadataArchivedAt)))
+		.get();
+
+	if (!batch) {
+		throw new Response(`Batch "${batchSlug}" not found.`, { status: 404 });
+	}
+
+	const deletedSampleId = values.integer("delete", null);
+	let errors: SampleErrors | undefined;
+
+	if (deletedSampleId !== null) {
+		deleteSubmittedSample(db, deletedSampleId);
+	} else if (values.has("add")) {
+		const [access, security, logger] = container.get(RepoAccess, Security, Logger);
+
+		errors = await addSubmittedSample(
+			{
+				db,
+				logger,
+				preparerIds: (await access.users()).map((user) => user.id),
+				creatorId: security.userId,
+				repository,
+			},
+			batch,
+			values,
+		);
+	} else {
+		errors = { form: "The sample action is not recognized." };
+	}
+
+	if (errors) return data({ errors }, { status: 400 });
+
+	return redirect(`/${repository}/samples?${OPEN_PARAM}=${batch.slug}`, 303);
 }
 
 /**
@@ -201,8 +308,8 @@ function Tab({
 	);
 }
 
-export default function RepoSamplesIndex({ loaderData, params }: Route.ComponentProps) {
-	const { batches, counts, showArchived } = loaderData;
+export default function RepoSamplesIndex({ actionData, loaderData, params }: Route.ComponentProps) {
+	const { batches, counts, showArchived, open, openSamples, preparers } = loaderData;
 
 	const navigation = useNavigation();
 
@@ -215,6 +322,21 @@ export default function RepoSamplesIndex({ loaderData, params }: Route.Component
 	const workingSlug = submitted?.get("archive") ?? submitted?.get("restore");
 
 	const samplesPath = `/${params.repo}/samples`;
+
+	/*
+		The name of a batch opens its row and closes it again.
+
+		The address carries the fragment of the row. The row is therefore brought
+		into view, whether the address was clicked here or opened from a link
+		someone sent. A row far down a long list does not stay below the fold.
+	*/
+	const rowHref = (slug: string) => {
+		const tab = showArchived ? `${TAB_PARAM}=${ARCHIVED_TAB}&` : "";
+
+		return open === slug
+			? `${samplesPath}?${tab.slice(0, -1)}`
+			: `${samplesPath}?${tab}${OPEN_PARAM}=${slug}#batch-${slug}`;
+	};
 
 	return (
 		<div className="space-y-8">
@@ -274,68 +396,127 @@ export default function RepoSamplesIndex({ loaderData, params }: Route.Component
 
 							<tbody className="divide-y divide-border">
 								{batches.map((batch) => (
-									<tr key={batch.slug}>
-										<th scope="row" className="py-3 pr-4 pl-5 font-normal">
-											<Link
-												to={`${samplesPath}/${batch.slug}`}
-												className="font-medium text-link hover:text-link-hover"
-											>
-												{batch.name}
-											</Link>
-										</th>
+									<Fragment key={batch.slug}>
+										<tr id={`batch-${batch.slug}`}>
+											<th scope="row" className="py-3 pr-4 pl-5 font-normal">
+												<Link
+													to={rowHref(batch.slug)}
+													preventScrollReset
+													aria-expanded={open === batch.slug}
+													aria-controls={`samples-of-${batch.slug}`}
+													className="flex items-center gap-1.5 text-left font-medium text-link hover:text-link-hover"
+												>
+													<ChevronRightIcon
+														className={`size-4 shrink-0 transition-transform ${
+															open === batch.slug ? "rotate-90" : ""
+														}`}
+													/>
+													{batch.name}
+												</Link>
+											</th>
 
-										<td className="py-3 pr-4 text-foreground-muted">
-											{formatBatchComposition(batch) ?? "Not recorded"}
-										</td>
-
-										<td className="py-3 pr-4 text-foreground-muted">{batch.sampleCount}</td>
-
-										<td className="py-3 pr-4 text-foreground-muted">
-											{batch.preparedBy?.name ?? "Unknown"}
-										</td>
-
-										<td className="py-3 pr-4 text-foreground-muted">
-											<time dateTime={batch.preparationDate}>
-												{formatCalendarDate(batch.preparationDate)}
-											</time>
-										</td>
-
-										{showArchived && (
 											<td className="py-3 pr-4 text-foreground-muted">
-												<ArchivedOn at={batch.archivedAt} />
+												{formatBatchComposition(batch) ?? "Not recorded"}
 											</td>
+
+											<td className="py-3 pr-4 text-foreground-muted">{batch.sampleCount}</td>
+
+											<td className="py-3 pr-4 text-foreground-muted">
+												{batch.preparedBy?.name ?? "Unknown"}
+											</td>
+
+											<td className="py-3 pr-4 text-foreground-muted">
+												<time dateTime={batch.preparationDate}>
+													{formatCalendarDate(batch.preparationDate)}
+												</time>
+											</td>
+
+											{showArchived && (
+												<td className="py-3 pr-4 text-foreground-muted">
+													<ArchivedOn at={batch.archivedAt} />
+												</td>
+											)}
+
+											<td className="py-3 pr-5 text-left">
+												<Form method="post">
+													{showArchived ? (
+														<button
+															type="submit"
+															name="restore"
+															value={batch.slug}
+															disabled={submitted !== undefined}
+															aria-label={`Restore ${batch.name}`}
+															className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-canvas-sunken hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
+														>
+															<ArrowUturnLeftIcon className="size-4" />
+															{workingSlug === batch.slug ? "Restoring…" : "Restore"}
+														</button>
+													) : (
+														<button
+															type="submit"
+															name="archive"
+															value={batch.slug}
+															disabled={submitted !== undefined}
+															aria-label={`Archive ${batch.name}`}
+															className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-danger-surface hover:text-danger-surface-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
+														>
+															<ArchiveBoxArrowDownIcon className="size-4" />
+															{workingSlug === batch.slug ? "Archiving…" : "Archive"}
+														</button>
+													)}
+												</Form>
+											</td>
+										</tr>
+
+										{open === batch.slug && openSamples !== null && (
+											<SampleRows
+												batch={batch}
+												batchSlug={batch.slug}
+												samples={openSamples}
+												preparers={preparers}
+												columns={{
+													total: showArchived ? 7 : 6,
+													label: 0,
+													preparedBy: 3,
+													preparedOn: 4,
+													actions: showArchived ? 6 : 5,
+												}}
+												archived={showArchived}
+												indent
+												errors={actionData?.errors}
+												hiddenFields={{ batch: batch.slug }}
+												preventScrollReset
+											/>
 										)}
 
-										<td className="py-3 pr-5 text-left">
-											<Form method="post">
-												{showArchived ? (
-													<button
-														type="submit"
-														name="restore"
-														value={batch.slug}
-														disabled={submitted !== undefined}
-														aria-label={`Restore ${batch.name}`}
-														className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-canvas-sunken hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
-													>
-														<ArrowUturnLeftIcon className="size-4" />
-														{workingSlug === batch.slug ? "Restoring…" : "Restore"}
-													</button>
-												) : (
-													<button
-														type="submit"
-														name="archive"
-														value={batch.slug}
-														disabled={submitted !== undefined}
-														aria-label={`Archive ${batch.name}`}
-														className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-danger-surface hover:text-danger-surface-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
-													>
-														<ArchiveBoxArrowDownIcon className="size-4" />
-														{workingSlug === batch.slug ? "Archiving…" : "Archive"}
-													</button>
-												)}
-											</Form>
-										</td>
-									</tr>
+										{/*
+											The name of the batch opens the row, so it is no longer a
+											link. These two carry on to the batch itself.
+										*/}
+										{open === batch.slug && (
+											<tr>
+												<td colSpan={showArchived ? 7 : 6} className="py-2 pr-5 pl-10">
+													<div className="flex gap-4 text-sm">
+														<Link
+															to={`${samplesPath}/${batch.slug}`}
+															className="text-link hover:text-link-hover"
+														>
+															Open batch page
+														</Link>
+
+														{showArchived ? null : (
+															<Link
+																to={`${samplesPath}/${batch.slug}/edit`}
+																className="text-foreground-muted hover:text-foreground"
+															>
+																Edit batch
+															</Link>
+														)}
+													</div>
+												</td>
+											</tr>
+										)}
+									</Fragment>
 								))}
 							</tbody>
 						</table>

@@ -162,6 +162,74 @@ describe("samples index archived tab", () => {
 	});
 });
 
+describe("samples index open batch", () => {
+	test("no batch is open when the address does not ask for one", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
+
+		const loaded = await load(scope);
+
+		expect(loaded.open).toBeNull();
+		expect(loaded.openSamples).toBeNull();
+	});
+
+	test("the samples of the open batch are read", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
+
+		const loaded = await load(scope, "?open=pt-al2o3");
+
+		expect(loaded.open).toBe("pt-al2o3");
+		expect(loaded.openSamples?.map((sample) => sample.name)).toEqual(["#01", "#02"]);
+	});
+
+	test("the samples of the other batches are not read", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
+		addBatch(scope, { slug: "pd-al2o3", name: "Pd/Al2O3" }, 3);
+
+		const loaded = await load(scope, "?open=pt-al2o3");
+
+		expect(loaded.openSamples).toHaveLength(2);
+	});
+
+	test("an open batch with no samples reads an empty list, not nothing", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
+
+		expect((await load(scope, "?open=pt-al2o3")).openSamples).toEqual([]);
+	});
+
+	test("a batch that is not in the list is not open", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		addBatch(scope, { slug: "gone", name: "Gone" }, 2);
+		markArchived(scope, "gone");
+
+		// The active tab does not hold this batch, so its row cannot be open.
+		const loaded = await load(scope, "?open=gone");
+
+		expect(loaded.open).toBeNull();
+		expect(loaded.openSamples).toBeNull();
+	});
+
+	test("a batch of the archived tab can be open there", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		addBatch(scope, { slug: "gone", name: "Gone" }, 2);
+		markArchived(scope, "gone");
+
+		const loaded = await load(scope, "?show=archived&open=gone");
+
+		expect(loaded.open).toBe("gone");
+		expect(loaded.openSamples).toHaveLength(2);
+	});
+
+	test("a slug that is not a batch is ignored", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+
+		expect((await load(scope, "?open=no-such-batch")).open).toBeNull();
+	});
+});
+
 describe("samples index restore", () => {
 	test("restores an archived batch to the active tab", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
@@ -187,6 +255,63 @@ describe("samples index restore", () => {
 		const batch = addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
 
 		expect(restore(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
+	});
+});
+
+describe("samples index samples in the open row", () => {
+	test("adds a sample and leaves the row open", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
+
+		const response = await submit(scope, { batch: "pt-al2o3", add: "", name: "#01" });
+
+		expect(response).toBeInstanceOf(Response);
+		expect((response as Response).headers.get("Location")).toBe("/demo/samples?open=pt-al2o3");
+		expect((await load(scope, "?open=pt-al2o3")).openSamples?.map((s) => s.name)).toEqual(["#01"]);
+	});
+
+	test("reports a label the batch already holds, without leaving the list", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 1);
+
+		const response = await submit(scope, { batch: "pt-al2o3", add: "", name: "#01" });
+
+		expect(response).toMatchObject({ init: { status: 400 } });
+		expect((response as { data: { errors: { name?: string } } }).data.errors.name).toContain("#01");
+	});
+
+	test("deletes a sample and leaves the row open", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		const batch = addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
+		const sample = scope
+			.get(RepoDB)
+			.select()
+			.from(Sample)
+			.where(eq(Sample.batchId, batch.id))
+			.get();
+
+		const response = await submit(scope, { batch: "pt-al2o3", delete: String(sample?.id) });
+
+		expect((response as Response).headers.get("Location")).toBe("/demo/samples?open=pt-al2o3");
+		expect((await load(scope, "?open=pt-al2o3")).openSamples).toHaveLength(1);
+	});
+
+	test("answers 404 for a batch that is not there", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+
+		expect(submit(scope, { batch: "no-such-batch", add: "", name: "#01" })).rejects.toMatchObject({
+			status: 404,
+		});
+	});
+
+	test("answers 404 for an archived batch", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		addBatch(scope, { slug: "gone", name: "Gone" });
+		markArchived(scope, "gone");
+
+		expect(submit(scope, { batch: "gone", add: "", name: "#01" })).rejects.toMatchObject({
+			status: 404,
+		});
 	});
 });
 
