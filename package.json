@@ -14,7 +14,7 @@
 		"db:reset": "bun scripts/db.ts reset",
 		"db:setup": "bun scripts/db.ts setup",
 		"db:seed": "bun scripts/db.ts seed",
-		"precommit": "bun run typecheck && oxlint --fix && oxfmt && bun test",
+		"precommit": "bun install --dry-run --frozen-lockfile --silent && bun run typecheck && oxlint --fix && oxfmt && bun test",
 		"typegen": "bun --bun react-router typegen",
 		"typecheck": "bun run typegen && tsc",
 		"test": "bun test",
