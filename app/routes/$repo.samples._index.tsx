@@ -23,7 +23,7 @@ import { formatBatchComposition } from "~/app/lib/batchComposition.ts";
 import { formatCalendarDate } from "~/app/lib/dates.ts";
 import { RepoAccess } from "~/app/services/RepoAccess.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
-import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
+import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
@@ -205,7 +205,13 @@ export default function RepoSamplesIndex({ loaderData, params }: Route.Component
 	const { batches, counts, showArchived } = loaderData;
 
 	const navigation = useNavigation();
-	const submitted = navigation.state === "submitting" ? navigation.formData : undefined;
+
+	// A submission is busy until the new page data has arrived. React Router
+	// reports "submitting" while the action runs, then "loading" while the
+	// loaders run again. The form data is set during both. Reading only
+	// "submitting" releases the buttons for the few milliseconds before the
+	// new rows arrive, and that shows as a flicker.
+	const submitted = navigation.formData;
 	const workingSlug = submitted?.get("archive") ?? submitted?.get("restore");
 
 	const samplesPath = `/${params.repo}/samples`;
@@ -221,11 +227,7 @@ export default function RepoSamplesIndex({ loaderData, params }: Route.Component
 			</div>
 
 			<section className="overflow-hidden rounded-xl border border-border bg-surface">
-				<div className="px-5 pt-5">
-					<Subheading>Batches</Subheading>
-				</div>
-
-				<div className="mt-3 flex gap-6 border-b border-border px-5">
+				<div className="flex gap-6 border-b border-border px-5 pt-4">
 					<Tab to={samplesPath} label="Active" count={counts.active} current={!showArchived} />
 					<Tab
 						to={`${samplesPath}?${TAB_PARAM}=${ARCHIVED_TAB}`}

@@ -90,7 +90,9 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 
 export default function NewSampleBatch({ actionData, loaderData, params }: Route.ComponentProps) {
 	const navigation = useNavigation();
-	const submitting = navigation.state === "submitting";
+	// Busy until the new page has loaded, not only while the action runs.
+	// See SampleTable for why.
+	const submitting = navigation.formData !== undefined;
 
 	return (
 		<>

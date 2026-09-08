@@ -20,7 +20,14 @@ export function SampleTable() {
 	const preparerError = actionErrors?.preparedById;
 
 	const navigation = useNavigation();
-	const submitted = navigation.state === "submitting" ? navigation.formData : undefined;
+	/*
+		A submission is busy until the new page data has arrived. React Router
+		reports "submitting" while the action runs, then "loading" while the
+		loaders run again. The form data is set during both. Reading only
+		"submitting" releases the buttons for the few milliseconds before the
+		new rows arrive, and that shows as a flicker.
+	*/
+	const submitted = navigation.formData;
 	const isSubmitting = submitted !== undefined;
 	const isAdding = submitted?.has("add") ?? false;
 	const deletingSampleId = submitted?.get("delete");
