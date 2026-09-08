@@ -2,16 +2,25 @@ import clsx from "clsx";
 
 import { Icon } from "~/app/components/docs/Icon.tsx";
 
+/**
+ * A callout sits on a colored surface, so its text must take the foreground
+ * paired with that surface. Typography would otherwise color bold text and
+ * links for the page background, and on a dark surface that text disappears.
+ * Every prose color is therefore set to the current text color.
+ */
+const INHERIT_PROSE_COLORS =
+	"[--tw-prose-body:currentColor] [--tw-prose-bold:currentColor] [--tw-prose-headings:currentColor] [--tw-prose-links:currentColor] [--tw-prose-code:currentColor] [--tw-prose-bullets:currentColor] [--tw-prose-counters:currentColor]";
+
 const styles = {
 	note: {
-		container: "bg-sky-50 dark:bg-slate-800/60 dark:ring-1 dark:ring-slate-300/10",
-		title: "text-sky-900 dark:text-sky-400",
-		body: "text-sky-800 [--tw-prose-background:var(--color-sky-50)] prose-a:text-sky-900 prose-code:text-sky-900 dark:text-slate-300 dark:prose-code:text-slate-300",
+		container: "bg-info-surface ring-1 ring-info-border",
+		title: "text-info-surface-foreground",
+		body: "text-info-surface-foreground",
 	},
 	warning: {
-		container: "bg-amber-50 dark:bg-slate-800/60 dark:ring-1 dark:ring-slate-300/10",
-		title: "text-amber-900 dark:text-amber-500",
-		body: "text-amber-800 [--tw-prose-underline:var(--color-amber-400)] [--tw-prose-background:var(--color-amber-50)] prose-a:text-amber-900 prose-code:text-amber-900 dark:text-slate-300 dark:[--tw-prose-underline:var(--color-sky-700)] dark:prose-code:text-slate-300",
+		container: "bg-warning-surface ring-1 ring-warning-border",
+		title: "text-warning-surface-foreground",
+		body: "text-warning-surface-foreground",
 	},
 };
 
@@ -21,8 +30,8 @@ const icons = {
 };
 
 /**
- * A highlighted note/warning admonition. Rendered from the Markdoc `callout`
- * tag; `type` selects the color scheme and leading icon.
+ * A highlighted note or warning. Rendered from the Markdoc `callout` tag.
+ * `type` selects the surface and the leading icon.
  */
 export function Callout({
 	title,
@@ -40,7 +49,9 @@ export function Callout({
 			<IconComponent className="h-8 w-8 flex-none" />
 			<div className="ml-4 flex-auto">
 				<p className={clsx("not-prose font-display text-xl", styles[type].title)}>{title}</p>
-				<div className={clsx("prose mt-2.5", styles[type].body)}>{children}</div>
+				<div className={clsx("prose mt-2.5", INHERIT_PROSE_COLORS, styles[type].body)}>
+					{children}
+				</div>
 			</div>
 		</div>
 	);

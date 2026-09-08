@@ -15,12 +15,11 @@ function GitHubIcon(props: React.ComponentPropsWithoutRef<"svg">) {
 }
 
 /**
- * The sticky top bar. Gains a shadow/background once the page is scrolled (the
- * template's isScrolled effect, kept as a post-hydration client effect).
+ * The sticky top bar. It gains a shadow once the page is scrolled, so the bar
+ * reads as lifted over the content it covers.
  *
- * The template's Search and ThemeSelector slots are intentionally omitted:
- * search is a later step, and the docs are light-only for now so there is no
- * theme toggle.
+ * The template's ThemeSelector slot is omitted. The theme follows the reader's
+ * system setting, the same as the rest of the application.
  */
 function Header() {
 	const [isScrolled, setIsScrolled] = useState(false);
@@ -39,10 +38,10 @@ function Header() {
 	return (
 		<header
 			className={clsx(
-				"sticky top-0 z-50 flex flex-none flex-wrap items-center justify-between bg-white px-4 py-5 shadow-md shadow-slate-900/5 transition duration-500 sm:px-6 lg:px-8 dark:shadow-none",
-				isScrolled
-					? "dark:bg-slate-900/95 dark:backdrop-blur-sm dark:[@supports(backdrop-filter:blur(0))]:bg-slate-900/75"
-					: "dark:bg-transparent",
+				"sticky top-0 z-50 flex flex-none flex-wrap items-center justify-between bg-surface px-4 py-5 transition duration-500 sm:px-6 lg:px-8",
+				// The shadow marks the header as lifted off the page once it covers
+				// content. At the top of the page there is nothing to lift over.
+				isScrolled ? "shadow-md shadow-foreground/5" : "shadow-none",
 			)}
 		>
 			<div className="mr-6 flex lg:hidden">
@@ -52,7 +51,7 @@ function Header() {
 				<Link
 					to="/docs"
 					aria-label="Docs home"
-					className="font-display text-2xl font-bold text-slate-900 dark:text-white"
+					className="font-display text-2xl font-bold text-foreground"
 				>
 					Adacta
 				</Link>
@@ -62,10 +61,7 @@ function Header() {
 				{/* Leave the docs and return to the application. "/" resolves to the
 				    user's landing spot (login, account, or their repo inventory), so
 				    a bare link is enough — no need to know where they came from. */}
-				<Link
-					to="/"
-					className="text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-				>
+				<Link to="/" className="text-sm font-medium text-foreground-muted hover:text-foreground">
 					Back to app
 				</Link>
 				<a
@@ -75,7 +71,7 @@ function Header() {
 					target="_blank"
 					rel="noreferrer"
 				>
-					<GitHubIcon className="h-6 w-6 fill-slate-400 group-hover:fill-slate-500 dark:group-hover:fill-slate-300" />
+					<GitHubIcon className="h-6 w-6 fill-foreground-muted group-hover:fill-foreground" />
 				</a>
 			</div>
 		</header>
@@ -95,9 +91,7 @@ export function DocsShell({ children }: { children: React.ReactNode }) {
 
 			<div className="relative mx-auto flex w-full max-w-8xl flex-auto justify-center sm:px-2 lg:px-8 xl:px-12">
 				<div className="hidden lg:relative lg:block lg:flex-none">
-					<div className="absolute inset-y-0 right-0 w-[50vw] bg-slate-50 dark:hidden" />
-					<div className="absolute top-16 right-0 bottom-0 hidden h-12 w-px bg-linear-to-t from-slate-800 dark:block" />
-					<div className="absolute top-28 right-0 bottom-0 hidden w-px bg-slate-800 dark:block" />
+					<div className="absolute inset-y-0 right-0 w-[50vw] border-r border-border bg-surface-muted" />
 					<div className="sticky top-19 -ml-0.5 h-[calc(100vh-4.75rem)] w-64 overflow-x-hidden overflow-y-auto py-16 pr-8 pl-0.5 xl:w-72 xl:pr-16">
 						<Navigation />
 					</div>

@@ -88,25 +88,25 @@ export function Search() {
 			<button
 				type="button"
 				onClick={() => setOpen(true)}
-				className="group flex h-6 w-6 items-center justify-center sm:justify-start md:h-auto md:w-60 md:flex-none md:rounded-lg md:py-2.5 md:pr-3.5 md:pl-4 md:text-sm md:ring-1 md:ring-slate-200 md:hover:ring-slate-300"
+				className="group flex h-6 w-6 items-center justify-center sm:justify-start md:h-auto md:w-60 md:flex-none md:rounded-lg md:py-2.5 md:pr-3.5 md:pl-4 md:text-sm md:ring-1 md:ring-border md:hover:ring-border-strong"
 			>
-				<SearchIcon className="h-5 w-5 flex-none fill-slate-400 group-hover:fill-slate-500" />
-				<span className="sr-only md:not-sr-only md:ml-2 md:text-slate-500">Search docs</span>
-				<kbd className="ml-auto hidden font-medium text-slate-400 md:block">
+				<SearchIcon className="h-5 w-5 flex-none fill-foreground-muted group-hover:fill-foreground" />
+				<span className="sr-only md:not-sr-only md:ml-2 md:text-foreground-muted">Search docs</span>
+				<kbd className="ml-auto hidden font-medium text-foreground-muted md:block">
 					<kbd className="font-sans">⌘</kbd>
 					<kbd className="font-sans">K</kbd>
 				</kbd>
 			</button>
 
 			<Dialog open={open} onClose={() => setOpen(false)} className="fixed inset-0 z-50">
-				<div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" aria-hidden="true" />
+				<div className="fixed inset-0 bg-scrim backdrop-blur-sm" aria-hidden="true" />
 				{/* A prominent close affordance at the corner of the viewport, separate
 				    from the in-field clear button below (which only empties the query). */}
 				<button
 					type="button"
 					onClick={() => setOpen(false)}
 					aria-label="Close search"
-					className="fixed top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+					className="fixed top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-accent-foreground hover:bg-white/20"
 				>
 					<CloseIcon className="h-6 w-6" />
 				</button>
@@ -124,7 +124,7 @@ export function Search() {
 								setOpen(false);
 							}
 						}}
-						className="mx-auto overflow-hidden rounded-xl bg-white shadow-xl sm:max-w-xl"
+						className="mx-auto overflow-hidden rounded-xl bg-surface shadow-xl sm:max-w-xl"
 					>
 						<Combobox
 							onChange={(hit: SearchResult | null) => {
@@ -132,14 +132,14 @@ export function Search() {
 							}}
 						>
 							<div className="relative flex h-12 items-center">
-								<SearchIcon className="pointer-events-none absolute left-4 h-5 w-5 fill-slate-400" />
+								<SearchIcon className="pointer-events-none absolute left-4 h-5 w-5 fill-foreground-muted" />
 								<ComboboxInput
 									ref={inputRef}
 									autoFocus
 									value={query}
 									onChange={(event) => setQuery(event.target.value)}
 									placeholder="Find something..."
-									className="flex-auto appearance-none bg-transparent pl-12 text-slate-900 outline-hidden placeholder:text-slate-400 sm:text-sm [&::-webkit-search-cancel-button]:hidden"
+									className="flex-auto appearance-none bg-transparent pl-12 text-foreground outline-hidden placeholder:text-foreground-muted sm:text-sm [&::-webkit-search-cancel-button]:hidden"
 								/>
 								{query !== "" && (
 									<button
@@ -149,14 +149,14 @@ export function Search() {
 											inputRef.current?.focus();
 										}}
 										aria-label="Clear search"
-										className="mr-3 flex h-6 w-6 flex-none items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+										className="mr-3 flex h-6 w-6 flex-none items-center justify-center rounded-md text-foreground-muted hover:bg-surface-muted hover:text-foreground"
 									>
 										<CloseIcon className="h-4 w-4" />
 									</button>
 								)}
 							</div>
 							{query !== "" && (
-								<div className="border-t border-slate-200 bg-white px-2 py-3">
+								<div className="border-t border-border bg-surface px-2 py-3">
 									{results.length > 0 ? (
 										<ComboboxOptions static>
 											{results.map((hit) => {
@@ -165,14 +165,14 @@ export function Search() {
 													<ComboboxOption
 														key={hit.url}
 														value={hit}
-														className="group block cursor-pointer rounded-lg px-3 py-2 data-focus:bg-slate-100"
+														className="group block cursor-pointer rounded-lg px-3 py-2 data-focus:bg-surface-muted"
 													>
-														<div className="text-sm text-slate-700 group-data-focus:text-sky-600">
+														<div className="text-sm text-foreground group-data-focus:text-link">
 															{hit.title}
 														</div>
 														{trail.length > 0 && (
-															<div className="mt-0.5 truncate text-xs whitespace-nowrap text-slate-500">
-																{trail.join(" / ")}
+															<div className="mt-0.5 truncate text-xs whitespace-nowrap text-foreground-muted">
+																{trail.join("/")}
 															</div>
 														)}
 													</ComboboxOption>
@@ -180,20 +180,21 @@ export function Search() {
 											})}
 										</ComboboxOptions>
 									) : (
-										<p className="px-4 py-8 text-center text-sm text-slate-700">
+										<p className="px-4 py-8 text-center text-sm text-foreground">
 											No results for &ldquo;
-											<span className="wrap-break-word text-slate-900">{query}</span>
+											<span className="wrap-break-word text-foreground">{query}</span>
 											&rdquo;
 										</p>
 									)}
 								</div>
 							)}
-							<div className="flex justify-end border-t border-slate-200 px-4 py-2.5 text-xs text-slate-400">
+							<div className="flex justify-end border-t border-border px-4 py-2.5 text-xs text-foreground-muted">
 								<span>
-									Press{" "}
-									<kbd className="rounded border border-slate-200 bg-slate-50 px-1 font-sans text-slate-500">
+									Press{""}
+									<kbd className="rounded border border-border bg-surface-muted px-1 font-sans text-foreground-muted">
 										Esc
-									</kbd>{" "}
+									</kbd>
+									{""}
 									to close
 								</span>
 							</div>

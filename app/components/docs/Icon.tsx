@@ -17,6 +17,10 @@ const icons = {
 	warning: WarningIcon,
 };
 
+/*
+	These fills are read by the light drawing alone, which never shows on a dark
+	page. They are therefore fixed light values rather than theme roles.
+*/
 const iconStyles = {
 	blue: "[--icon-foreground:var(--color-slate-900)] [--icon-background:var(--color-white)]",
 	amber: "[--icon-foreground:var(--color-amber-900)] [--icon-background:var(--color-amber-100)]",
@@ -75,18 +79,15 @@ export function Gradient({
 }
 
 /**
- * Renders its children only in light mode. Under the current light-only docs
- * setup the sibling DarkMode group never shows, so this group is effectively
- * always visible; both wrappers are kept verbatim from the template so dark
- * mode can be re-enabled later without touching every icon.
+ * Renders its children only in light mode. Each icon is drawn twice, because
+ * the light drawing uses a flat fill that would disappear on a dark page.
  */
 export function LightMode({ className, ...props }: React.ComponentPropsWithoutRef<"g">) {
 	return <g className={clsx("dark:hidden", className)} {...props} />;
 }
 
 /**
- * Renders its children only in dark mode. Inert while docs are light-only (no
- * `.dark` ancestor is ever applied); retained for a future dark-mode toggle.
+ * Renders its children only in dark mode, as the counterpart to LightMode.
  */
 export function DarkMode({ className, ...props }: React.ComponentPropsWithoutRef<"g">) {
 	return <g className={clsx("hidden dark:inline", className)} {...props} />;

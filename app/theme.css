@@ -15,12 +15,19 @@
 	--adacta-color-border: var(--color-zinc-200);
 	--adacta-color-border-strong: var(--color-zinc-300);
 
+	/*
+	 * The wash behind a dialog. It darkens the page in both themes, so it is
+	 * not derived from the foreground, which is near white on a dark page.
+	 */
+	--adacta-color-scrim: rgb(0 0 0 / 0.4);
+
 	--adacta-color-accent: var(--color-sky-700);
 	--adacta-color-accent-hover: var(--color-sky-800);
 	--adacta-color-accent-active: var(--color-sky-900);
 	--adacta-color-accent-foreground: var(--color-white);
 	--adacta-color-link: var(--color-sky-700);
 	--adacta-color-link-hover: var(--color-sky-800);
+	--adacta-color-link-underline: var(--color-sky-300);
 	--adacta-color-focus: var(--color-sky-600);
 
 	--adacta-color-danger: var(--color-red-700);
@@ -40,6 +47,19 @@
 	--adacta-color-success-surface: var(--color-green-50);
 	--adacta-color-success-surface-foreground: var(--color-green-800);
 	--adacta-color-success-border: var(--color-green-200);
+
+	--adacta-color-info: var(--color-sky-700);
+	--adacta-color-info-surface: var(--color-sky-50);
+	--adacta-color-info-surface-foreground: var(--color-sky-900);
+	--adacta-color-info-border: var(--color-sky-200);
+
+	/*
+	 * A code block keeps a dark background in both themes. The syntax colors in
+	 * app.css are chosen against it, so they hold whichever theme is in use.
+	 */
+	--adacta-color-code-surface: var(--color-slate-900);
+	--adacta-color-code-foreground: var(--color-slate-50);
+	--adacta-color-code-border: transparent;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -52,8 +72,11 @@
 		--adacta-color-border: var(--color-zinc-800);
 		--adacta-color-border-strong: var(--color-zinc-700);
 
+		--adacta-color-scrim: rgb(0 0 0 / 0.6);
+
 		--adacta-color-link: var(--color-sky-400);
 		--adacta-color-link-hover: var(--color-sky-300);
+		--adacta-color-link-underline: var(--color-sky-800);
 		--adacta-color-focus: var(--color-sky-400);
 
 		--adacta-color-danger-surface: var(--color-red-950);
@@ -69,6 +92,14 @@
 		--adacta-color-success-surface: var(--color-green-950);
 		--adacta-color-success-surface-foreground: var(--color-green-200);
 		--adacta-color-success-border: var(--color-green-800);
+
+		--adacta-color-info: var(--color-sky-400);
+		--adacta-color-info-surface: var(--color-sky-950);
+		--adacta-color-info-surface-foreground: var(--color-sky-100);
+		--adacta-color-info-border: var(--color-sky-800);
+
+		--adacta-color-code-surface: var(--color-slate-800);
+		--adacta-color-code-border: var(--color-slate-700);
 	}
 }
 
@@ -80,6 +111,7 @@
 	--color-foreground-muted: var(--adacta-color-foreground-muted);
 	--color-border: var(--adacta-color-border);
 	--color-border-strong: var(--adacta-color-border-strong);
+	--color-scrim: var(--adacta-color-scrim);
 
 	--color-accent: var(--adacta-color-accent);
 	--color-accent-hover: var(--adacta-color-accent-hover);
@@ -87,6 +119,7 @@
 	--color-accent-foreground: var(--adacta-color-accent-foreground);
 	--color-link: var(--adacta-color-link);
 	--color-link-hover: var(--adacta-color-link-hover);
+	--color-link-underline: var(--adacta-color-link-underline);
 	--color-focus: var(--adacta-color-focus);
 
 	--color-danger: var(--adacta-color-danger);
@@ -106,4 +139,13 @@
 	--color-success-surface: var(--adacta-color-success-surface);
 	--color-success-surface-foreground: var(--adacta-color-success-surface-foreground);
 	--color-success-border: var(--adacta-color-success-border);
+
+	--color-info: var(--adacta-color-info);
+	--color-info-surface: var(--adacta-color-info-surface);
+	--color-info-surface-foreground: var(--adacta-color-info-surface-foreground);
+	--color-info-border: var(--adacta-color-info-border);
+
+	--color-code-surface: var(--adacta-color-code-surface);
+	--color-code-foreground: var(--adacta-color-code-foreground);
+	--color-code-border: var(--adacta-color-code-border);
 }

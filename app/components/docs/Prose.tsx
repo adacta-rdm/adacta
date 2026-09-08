@@ -1,12 +1,16 @@
 import clsx from "clsx";
 
 /**
- * Typographic wrapper for rendered markdown. Applies the Tailwind Typography
- * `prose` styles plus the template's docs-specific tweaks (heading scroll
- * offset for the sticky header, custom link underline effect, code-block
- * chrome). Polymorphic via `as` so it can wrap an <article>, <div>, etc.
+ * Typographic wrapper for rendered markdown. It applies the Tailwind Typography
+ * `prose` styles plus the docs-specific tweaks: a heading scroll offset for the
+ * sticky header, the link underline effect, and the code block chrome.
  *
- * dark: utilities are retained but inert under the current light-only setup.
+ * Colors come from the semantic roles in theme.css. Typography draws its own
+ * colors from `--tw-prose-*` variables, so each role is assigned to the
+ * matching variable here. One theme therefore drives both the prose and the
+ * surrounding chrome.
+ *
+ * Polymorphic via `as` so it can wrap an <article>, <div>, or similar.
  */
 export function Prose<T extends React.ElementType = "div">({
 	as,
@@ -21,19 +25,22 @@ export function Prose<T extends React.ElementType = "div">({
 		<Component
 			className={clsx(
 				className,
-				"prose max-w-none prose-slate dark:text-slate-400 dark:prose-invert",
+				"prose max-w-none",
+				// Typography reads its colors from these variables.
+				"[--tw-prose-body:var(--color-foreground-muted)] [--tw-prose-headings:var(--color-foreground)] [--tw-prose-bold:var(--color-foreground)] [--tw-prose-lead:var(--color-foreground-muted)] [--tw-prose-links:var(--color-link)] [--tw-prose-counters:var(--color-foreground-muted)] [--tw-prose-bullets:var(--color-border-strong)] [--tw-prose-hr:var(--color-border)] [--tw-prose-quotes:var(--color-foreground)] [--tw-prose-quote-borders:var(--color-border)] [--tw-prose-captions:var(--color-foreground-muted)] [--tw-prose-code:var(--color-foreground)] [--tw-prose-th-borders:var(--color-border-strong)] [--tw-prose-td-borders:var(--color-border)]",
 				// headings
 				"prose-headings:scroll-mt-28 prose-headings:font-display prose-headings:font-normal lg:prose-headings:scroll-mt-34",
-				// lead
-				"prose-lead:text-slate-500 dark:prose-lead:text-slate-400",
-				// links
-				"prose-a:font-semibold dark:prose-a:text-sky-400",
-				// link underline
-				"dark:[--tw-prose-background:var(--color-slate-900)] prose-a:no-underline prose-a:shadow-[inset_0_-2px_0_0_var(--tw-prose-background,#fff),inset_0_calc(-1*(var(--tw-prose-underline-size,4px)+2px))_0_0_var(--tw-prose-underline,var(--color-sky-300))] prose-a:hover:[--tw-prose-underline-size:6px] dark:prose-a:shadow-[inset_0_calc(-1*var(--tw-prose-underline-size,2px))_0_0_var(--tw-prose-underline,var(--color-sky-800))] dark:prose-a:hover:[--tw-prose-underline-size:6px]",
-				// pre
-				"prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:shadow-lg dark:prose-pre:bg-slate-800/60 dark:prose-pre:shadow-none dark:prose-pre:ring-1 dark:prose-pre:ring-slate-300/10",
-				// hr
-				"dark:prose-hr:border-slate-800",
+				/*
+					The link underline is drawn as an inset shadow rather than a border,
+					so it can sit below the text baseline. The background color is the
+					page behind it, which erases the part of the line the descenders
+					cross.
+				*/
+				"prose-a:font-semibold prose-a:no-underline",
+				"[--tw-prose-background:var(--color-canvas)] [--tw-prose-underline:var(--color-link-underline)]",
+				"prose-a:shadow-[inset_0_-2px_0_0_var(--tw-prose-background),inset_0_calc(-1*(var(--tw-prose-underline-size,4px)+2px))_0_0_var(--tw-prose-underline)] prose-a:hover:[--tw-prose-underline-size:6px]",
+				// A code block stays dark in both themes; see theme.css.
+				"prose-pre:rounded-xl prose-pre:bg-code-surface prose-pre:text-code-foreground prose-pre:ring-1 prose-pre:ring-code-border prose-pre:shadow-lg",
 			)}
 			{...props}
 		/>
