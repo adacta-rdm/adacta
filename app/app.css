@@ -73,6 +73,7 @@ body {
 }
 
 .pid-editor {
+	--pid-detail-line-width: 1px;
 	--pid-line-width: 1.5px;
 }
 
@@ -84,8 +85,12 @@ body {
 	stroke-linejoin: round;
 }
 
+.pid-symbol-detail {
+	stroke-width: var(--pid-detail-line-width, 1px);
+}
+
 /* Keep symbols and process lines at the same visible weight across view boxes. */
-.pid-symbol-drawing > * {
+.pid-symbol-drawing :is(path, ellipse, rect, line, polyline, polygon) {
 	vector-effect: non-scaling-stroke;
 }
 

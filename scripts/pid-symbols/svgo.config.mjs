@@ -16,16 +16,17 @@ export default {
 		{
 			name: "removeAttrs",
 			params: {
-				attrs: [
-					"path:style",
-					"path:(color|display|overflow|visibility|opacity|fill.*|stroke.*|marker.*)",
-				],
+				attrs: ".*:(style|color|display|overflow|visibility|opacity|fill.*|stroke.*|marker.*)",
 			},
 		},
 		{
 			name: "preset-default",
 			params: {
 				overrides: {
+					convertShapeToPath: {
+						convertArcs: true,
+						floatPrecision: 3,
+					},
 					convertPathData: {
 						applyTransforms: true,
 						applyTransformsStroked: true,

@@ -13,7 +13,8 @@ The original SVG files remain in `vendor/pid-symbols/` as references.
 Normalized drawings use the `pid-symbol-drawing` class. It supplies the fill,
 color, line width, caps, and joins. The `--pid-line-width` property is also used
 by process lines, so their visible weights remain equal. Individual paths keep
-only their geometry.
+only their geometry. Secondary construction details use the
+`pid-symbol-detail` class and `--pid-detail-line-width`.
 
 The SVGO configuration in `scripts/pid-symbols/` removes presentation attributes
 and flattens transforms. Its output is reviewed before the path data is copied
