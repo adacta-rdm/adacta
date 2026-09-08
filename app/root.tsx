@@ -31,9 +31,22 @@ export const links: Route.LinksFunction = () => [
  */
 export const middleware: Route.MiddlewareFunction[] = [container];
 
+/**
+ * The theme every page is drawn in.
+ *
+ * "light" and "dark" pin the interface to one theme, whatever the reader's
+ * operating system asks for. "auto" follows the operating system instead.
+ *
+ * Dark mode is held off while each page is still being checked in it. Change
+ * this to "auto" to turn it back on. Nothing else has to change, because a
+ * component names a color role and never a light or dark value. The roles are
+ * in theme.css, and the `dark:` variant in app.css reads the same attribute.
+ */
+const THEME: "light" | "dark" | "auto" = "light";
+
 export function Layout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en">
+		<html lang="en" data-theme={THEME === "auto" ? undefined : THEME}>
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
