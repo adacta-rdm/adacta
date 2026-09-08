@@ -13,7 +13,9 @@ const ports = [
 export function ValveSymbol(props: PidSymbolProps) {
 	return (
 		<SymbolSvg {...props} viewBox={[0, 0, 37, 19.618]}>
-			<path fill="none" stroke="#000" d="M.5.809v18l36-18v18Z" />
+			<g className="pid-symbol-drawing" fill="none">
+				<path d="M.5.809v18l36-18v18Z" />
+			</g>
 		</SymbolSvg>
 	);
 }

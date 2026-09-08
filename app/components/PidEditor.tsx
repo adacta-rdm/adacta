@@ -22,6 +22,7 @@ import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 
 import {
 	getPidSymbol,
+	maximumSizeForPidSymbol,
 	PidSymbol,
 	pidSymbolGroups,
 	type PidOrientation,
@@ -409,6 +410,7 @@ function PidEditorContents() {
 
 function PidSymbolNode({ id, data, selected }: NodeProps<PidNode>) {
 	const ConnectableSymbol = getPidSymbolComponents(data.kind).ConnectableSymbol;
+	const maximumSize = maximumSizeForPidSymbol(data.kind, 56);
 
 	return (
 		<div className="group/pid-node flex flex-col items-center text-foreground">
@@ -416,7 +418,7 @@ function PidSymbolNode({ id, data, selected }: NodeProps<PidNode>) {
 				nodeId={id}
 				selected={selected}
 				orientation={data.orientation}
-				maximumSize={56}
+				maximumSize={maximumSize}
 			/>
 			<span className="mt-1 max-w-32 rounded bg-surface/90 px-1 text-center text-xs font-medium">
 				{data.label || "Unnamed"}

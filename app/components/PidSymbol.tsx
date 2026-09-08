@@ -21,7 +21,7 @@ export const pidSymbolGroups = [
 	{
 		label: "Valves and dampers",
 		symbols: [
-			{ kind: "valve", label: "Valve" },
+			{ kind: "valve", label: "Valve", footprint: "inline" },
 			{ kind: "three-way-valve", label: "3-way valve" },
 			{ kind: "check-valve", label: "Check valve" },
 			{ kind: "ball-valve", label: "Ball valve" },
@@ -79,9 +79,29 @@ export type { PidOrientation };
 const pidSymbols: readonly PidSymbolDefinition[] = pidSymbolGroups.flatMap((group) => [
 	...group.symbols,
 ]);
+const pidSymbolMaximumSizes = { inline: 32 } as const;
 
 export function getPidSymbol(kind: PidSymbolKind): PidSymbolDefinition {
 	return pidSymbols.find((symbol) => symbol.kind === kind)!;
+}
+
+/**
+ * Caps inline symbols by their port-to-port span. Other symbols keep the size
+ * selected by their rendering context.
+ */
+export function maximumSizeForPidSymbol(
+	kind: PidSymbolKind,
+	maximumSize?: number,
+): number | undefined {
+	const symbol = getPidSymbol(kind);
+	const footprint = "footprint" in symbol ? symbol.footprint : undefined;
+	const footprintMaximumSize =
+		footprint === undefined ? undefined : pidSymbolMaximumSizes[footprint];
+
+	if (footprintMaximumSize === undefined) return maximumSize;
+	if (maximumSize === undefined) return footprintMaximumSize;
+
+	return Math.min(maximumSize, footprintMaximumSize);
 }
 
 /**
@@ -99,6 +119,9 @@ export function PidSymbol({
 	className?: string;
 }) {
 	const Symbol = getPidSymbolComponents(kind).Symbol;
+	const renderedMaximumSize = maximumSizeForPidSymbol(kind, maximumSize);
 
-	return <Symbol orientation={orientation} maximumSize={maximumSize} className={className} />;
+	return (
+		<Symbol orientation={orientation} maximumSize={renderedMaximumSize} className={className} />
+	);
 }
