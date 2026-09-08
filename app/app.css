@@ -1,6 +1,28 @@
 @import "tailwindcss";
 @import "./theme.css";
 
+/*
+ * Adacta-authored components use the semantic roles in theme.css and carry no
+ * `dark:` classes. The vendored Catalyst components do carry them, so the
+ * variant has to answer the same question theme.css answers: follow the
+ * operating system unless the root element says otherwise.
+ *
+ * Tailwind's own `dark:` reads only the operating system. It would therefore
+ * ignore a reader's choice, and a page would be drawn with dark roles and
+ * light Catalyst chrome.
+ */
+@custom-variant dark {
+	@media (prefers-color-scheme: dark) {
+		&:where(html:not([data-theme="light"]), html:not([data-theme="light"]) *) {
+			@slot;
+		}
+	}
+
+	&:where(html[data-theme="dark"], html[data-theme="dark"] *) {
+		@slot;
+	}
+}
+
 /* The `prose` classes the docs pages render markdown with. */
 @plugin "@tailwindcss/typography";
 
@@ -48,10 +70,6 @@
 html,
 body {
 	@apply bg-canvas text-foreground;
-
-	@media (prefers-color-scheme: dark) {
-		color-scheme: dark;
-	}
 }
 
 /*

@@ -106,7 +106,7 @@ export function Search() {
 					type="button"
 					onClick={() => setOpen(false)}
 					aria-label="Close search"
-					className="fixed top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-accent-foreground hover:bg-white/20"
+					className="fixed top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-scrim-foreground/10 text-scrim-foreground hover:bg-scrim-foreground/20"
 				>
 					<CloseIcon className="h-6 w-6" />
 				</button>

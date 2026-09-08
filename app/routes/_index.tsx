@@ -55,7 +55,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 							<li key={repository.slug}>
 								<Link
 									to={`/${repository.slug}`}
-									className="block rounded-lg px-4 py-3 ring-1 ring-zinc-950/10 hover:bg-zinc-50 dark:ring-white/10 dark:hover:bg-zinc-800"
+									className="block rounded-lg px-4 py-3 ring-1 ring-border hover:bg-surface-muted"
 								>
 									{repository.name}
 								</Link>

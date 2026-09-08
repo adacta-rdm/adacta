@@ -1,110 +1,122 @@
 /*
  * Semantic colors used by Adacta-authored UI.
  *
- * Components should use these roles instead of Tailwind palette colors. The
- * palette values are intentionally kept in this file so the visual theme can
- * change without editing component markup.
+ * A component names a role, such as `bg-surface`. It never names a palette
+ * color, and it never carries a `dark:` class. Each role below holds both of
+ * its values, and `color-scheme` chooses between them. Adding a color to the
+ * interface therefore means adding a role here, not editing a component.
+ *
+ * The page follows the operating system. A `data-theme` attribute on the root
+ * element overrides that. A theme switch has only to set that attribute; no
+ * component has to know about it.
  */
 
 :root {
-	--adacta-color-canvas: var(--color-white);
-	--adacta-color-surface: var(--color-white);
-	--adacta-color-surface-muted: var(--color-zinc-50);
-	--adacta-color-foreground: var(--color-zinc-950);
-	--adacta-color-foreground-muted: var(--color-zinc-600);
-	--adacta-color-border: var(--color-zinc-200);
-	--adacta-color-border-strong: var(--color-zinc-300);
+	/*
+	 * `light dark` means the operating system decides. The two rules after this
+	 * block pin the page to one value instead. `light-dark()` reads whichever
+	 * value is in force, and so do native controls such as scrollbars.
+	 */
+	color-scheme: light dark;
+
+	/* Page and text */
+	--adacta-color-canvas: light-dark(var(--color-white), var(--color-zinc-950));
+
+	/*
+	 * The ground the application shell draws its content card on. The card is
+	 * `surface`, and it is the lighter of the two in both themes, so it reads
+	 * as raised above this.
+	 */
+	--adacta-color-canvas-sunken: light-dark(var(--color-zinc-100), var(--color-zinc-950));
+	--adacta-color-surface: light-dark(var(--color-white), var(--color-zinc-900));
+	--adacta-color-surface-muted: light-dark(var(--color-zinc-50), var(--color-zinc-800));
+	--adacta-color-foreground: light-dark(var(--color-zinc-950), var(--color-zinc-50));
+	--adacta-color-foreground-muted: light-dark(var(--color-zinc-600), var(--color-zinc-400));
+	--adacta-color-border: light-dark(var(--color-zinc-200), var(--color-zinc-800));
+	--adacta-color-border-strong: light-dark(var(--color-zinc-300), var(--color-zinc-700));
 
 	/*
 	 * The wash behind a dialog. It darkens the page in both themes, so it is
 	 * not derived from the foreground, which is near white on a dark page.
 	 */
-	--adacta-color-scrim: rgb(0 0 0 / 0.4);
+	--adacta-color-scrim: light-dark(rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.6));
 
+	/* A control drawn on the scrim, such as the close button of a dialog. */
+	--adacta-color-scrim-foreground: var(--color-white);
+
+	/* Accent and links */
 	--adacta-color-accent: var(--color-sky-700);
 	--adacta-color-accent-hover: var(--color-sky-800);
 	--adacta-color-accent-active: var(--color-sky-900);
 	--adacta-color-accent-foreground: var(--color-white);
-	--adacta-color-link: var(--color-sky-700);
-	--adacta-color-link-hover: var(--color-sky-800);
-	--adacta-color-link-underline: var(--color-sky-300);
-	--adacta-color-focus: var(--color-sky-600);
+	--adacta-color-link: light-dark(var(--color-sky-700), var(--color-sky-400));
+	--adacta-color-link-hover: light-dark(var(--color-sky-800), var(--color-sky-300));
+	--adacta-color-focus: light-dark(var(--color-sky-600), var(--color-sky-400));
 
+	/*
+	 * The underline is drawn below the word rather than through it. It has to
+	 * sit back from the link color, or a bright line reads as a strikethrough.
+	 */
+	--adacta-color-link-underline: light-dark(var(--color-sky-300), var(--color-sky-800));
+
+	/* Danger */
 	--adacta-color-danger: var(--color-red-700);
 	--adacta-color-danger-hover: var(--color-red-800);
 	--adacta-color-danger-active: var(--color-red-900);
 	--adacta-color-danger-foreground: var(--color-white);
-	--adacta-color-danger-surface: var(--color-red-50);
-	--adacta-color-danger-surface-foreground: var(--color-red-800);
-	--adacta-color-danger-border: var(--color-red-200);
+	--adacta-color-danger-surface: light-dark(var(--color-red-50), var(--color-red-950));
+	--adacta-color-danger-surface-foreground: light-dark(var(--color-red-800), var(--color-red-200));
+	--adacta-color-danger-border: light-dark(var(--color-red-200), var(--color-red-800));
 
-	--adacta-color-warning: var(--color-amber-700);
-	--adacta-color-warning-surface: var(--color-amber-50);
-	--adacta-color-warning-surface-foreground: var(--color-amber-900);
-	--adacta-color-warning-border: var(--color-amber-200);
+	/* Warning */
+	--adacta-color-warning: light-dark(var(--color-amber-700), var(--color-amber-400));
+	--adacta-color-warning-surface: light-dark(var(--color-amber-50), var(--color-amber-950));
+	--adacta-color-warning-surface-foreground: light-dark(
+		var(--color-amber-900),
+		var(--color-amber-200)
+	);
+	--adacta-color-warning-border: light-dark(var(--color-amber-200), var(--color-amber-800));
 
-	--adacta-color-success: var(--color-green-700);
-	--adacta-color-success-surface: var(--color-green-50);
-	--adacta-color-success-surface-foreground: var(--color-green-800);
-	--adacta-color-success-border: var(--color-green-200);
+	/* Success */
+	--adacta-color-success: light-dark(var(--color-green-700), var(--color-green-400));
+	--adacta-color-success-surface: light-dark(var(--color-green-50), var(--color-green-950));
+	--adacta-color-success-surface-foreground: light-dark(
+		var(--color-green-800),
+		var(--color-green-200)
+	);
+	--adacta-color-success-border: light-dark(var(--color-green-200), var(--color-green-800));
 
-	--adacta-color-info: var(--color-sky-700);
-	--adacta-color-info-surface: var(--color-sky-50);
-	--adacta-color-info-surface-foreground: var(--color-sky-900);
-	--adacta-color-info-border: var(--color-sky-200);
+	/* Info, for a note that is neither a warning nor a failure */
+	--adacta-color-info: light-dark(var(--color-sky-700), var(--color-sky-400));
+	--adacta-color-info-surface: light-dark(var(--color-sky-50), var(--color-sky-950));
+	--adacta-color-info-surface-foreground: light-dark(var(--color-sky-900), var(--color-sky-100));
+	--adacta-color-info-border: light-dark(var(--color-sky-200), var(--color-sky-800));
 
 	/*
 	 * A code block keeps a dark background in both themes. The syntax colors in
 	 * app.css are chosen against it, so they hold whichever theme is in use.
 	 */
-	--adacta-color-code-surface: var(--color-slate-900);
+	--adacta-color-code-surface: light-dark(var(--color-slate-900), var(--color-slate-800));
 	--adacta-color-code-foreground: var(--color-slate-50);
-	--adacta-color-code-border: transparent;
+	--adacta-color-code-border: light-dark(transparent, var(--color-slate-700));
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
-		--adacta-color-canvas: var(--color-zinc-950);
-		--adacta-color-surface: var(--color-zinc-900);
-		--adacta-color-surface-muted: var(--color-zinc-800);
-		--adacta-color-foreground: var(--color-zinc-50);
-		--adacta-color-foreground-muted: var(--color-zinc-400);
-		--adacta-color-border: var(--color-zinc-800);
-		--adacta-color-border-strong: var(--color-zinc-700);
+/*
+ * The reader's own choice, when there is one. The same attribute drives the
+ * `dark:` variant declared in app.css, so the roles above and the vendored
+ * components that still carry `dark:` classes always agree.
+ */
+:root[data-theme="light"] {
+	color-scheme: light;
+}
 
-		--adacta-color-scrim: rgb(0 0 0 / 0.6);
-
-		--adacta-color-link: var(--color-sky-400);
-		--adacta-color-link-hover: var(--color-sky-300);
-		--adacta-color-link-underline: var(--color-sky-800);
-		--adacta-color-focus: var(--color-sky-400);
-
-		--adacta-color-danger-surface: var(--color-red-950);
-		--adacta-color-danger-surface-foreground: var(--color-red-200);
-		--adacta-color-danger-border: var(--color-red-800);
-
-		--adacta-color-warning: var(--color-amber-400);
-		--adacta-color-warning-surface: var(--color-amber-950);
-		--adacta-color-warning-surface-foreground: var(--color-amber-200);
-		--adacta-color-warning-border: var(--color-amber-800);
-
-		--adacta-color-success: var(--color-green-400);
-		--adacta-color-success-surface: var(--color-green-950);
-		--adacta-color-success-surface-foreground: var(--color-green-200);
-		--adacta-color-success-border: var(--color-green-800);
-
-		--adacta-color-info: var(--color-sky-400);
-		--adacta-color-info-surface: var(--color-sky-950);
-		--adacta-color-info-surface-foreground: var(--color-sky-100);
-		--adacta-color-info-border: var(--color-sky-800);
-
-		--adacta-color-code-surface: var(--color-slate-800);
-		--adacta-color-code-border: var(--color-slate-700);
-	}
+:root[data-theme="dark"] {
+	color-scheme: dark;
 }
 
 @theme inline {
 	--color-canvas: var(--adacta-color-canvas);
+	--color-canvas-sunken: var(--adacta-color-canvas-sunken);
 	--color-surface: var(--adacta-color-surface);
 	--color-surface-muted: var(--adacta-color-surface-muted);
 	--color-foreground: var(--adacta-color-foreground);
@@ -112,6 +124,7 @@
 	--color-border: var(--adacta-color-border);
 	--color-border-strong: var(--adacta-color-border-strong);
 	--color-scrim: var(--adacta-color-scrim);
+	--color-scrim-foreground: var(--adacta-color-scrim-foreground);
 
 	--color-accent: var(--adacta-color-accent);
 	--color-accent-hover: var(--adacta-color-accent-hover);
