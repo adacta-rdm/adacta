@@ -1,5 +1,6 @@
 ---
 title: Planned data import and traceability
+navTitle: Planned data import
 ---
 
 {% callout type="warning" title="Planned feature" %}

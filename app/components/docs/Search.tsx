@@ -9,7 +9,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
-import { navigation } from "~/app/docs/navigation.ts";
+import { navigation } from "~/app/lib/docs/navigation.ts";
 import { search, type SearchResult } from "~/app/lib/docs/searchIndex.ts";
 
 function SearchIcon(props: React.ComponentPropsWithoutRef<"svg">) {

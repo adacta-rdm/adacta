@@ -1,11 +1,11 @@
 import clsx from "clsx";
 import { Link, useLocation } from "react-router";
 
-import { navigation } from "~/app/docs/navigation.ts";
+import { navigation } from "~/app/lib/docs/navigation.ts";
 
 /**
- * The docs sidebar: renders the section/link tree from navigation.ts and marks
- * the link matching the current path as active. Ported from the template's
+ * The docs sidebar: renders the section/link tree built by navigation.ts and
+ * marks the link matching the current path as active. Ported from the template's
  * Navigation; next/link -> react-router Link and usePathname -> useLocation.
  */
 export function Navigation({

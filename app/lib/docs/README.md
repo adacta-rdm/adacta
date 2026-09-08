@@ -2,8 +2,32 @@
 
 The docs are plain Markdown files in `app/docs/`. Each file becomes a page.
 `transformDoc.ts` converts the Markdown into a render tree (via Markdoc) that
-the route renders. Adding a page requires a Markdown file and one line in
+the route renders. Adding a page requires a Markdown file and one slug in
 `navigation.ts`, and nothing further.
+
+## The sidebar
+
+`navigation.ts` holds named groups of slugs, in reading order. It holds nothing
+else. A page title is read from the `title` in the file's own frontmatter, and
+the route is derived from the slug, so neither is written twice. A page whose
+sidebar label should be shorter than its title sets `navTitle` in its
+frontmatter as well.
+
+The titles reach the browser as the `virtual:docs-titles` module, built by the
+Vite plugin in `../../../lib/docsTitlesPlugin.ts`. The plugin reads frontmatter
+with Markdoc, the same parser that renders the pages, so the sidebar and the
+page always agree on a title. Only the titles are emitted, never the prose.
+In development, editing a doc rebuilds the module automatically.
+
+The files:
+
+- `navigation.ts` — the authored slug list, and the only file besides the
+  Markdown that a documentation author edits.
+- `buildNavigation.ts` — turns slugs plus titles into sidebar links. It also
+  holds `docHref`, the rule that the Introduction is served at `/docs` and every
+  other doc under its slug. The search index builder uses the same rule.
+- `../../../lib/docsTitlesPlugin.ts` — the Vite plugin that reads frontmatter
+  and serves `virtual:docs-titles`.
 
 ## Search
 

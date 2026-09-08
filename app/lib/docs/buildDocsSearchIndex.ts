@@ -4,6 +4,7 @@ import * as path from "node:path";
 import type { RenderableTreeNode } from "@markdoc/markdoc";
 import { Document } from "flexsearch";
 
+import { docHref } from "~/app/lib/docs/buildNavigation.ts";
 import {
 	searchDocumentOptions,
 	type SearchIndexData,
@@ -46,16 +47,6 @@ function textOf(node: RenderableTreeNode): string {
 }
 
 /**
- * The route a doc slug is served at. The Introduction is the docs landing at
- * /docs (see docs._index.tsx and navigation.ts), so its hits point there rather
- * than /docs/introduction, which keeps search urls consistent with the
- * navigation.
- */
-function slugToUrl(slug: string): string {
-	return slug === "introduction" ? "/docs" : `/docs/${slug}`;
-}
-
-/**
  * One indexed unit before serialization: the searchable text (`content`) keyed
  * by `url`, plus the display metadata that will travel in the meta map.
  */
@@ -74,7 +65,7 @@ interface IndexedSection {
  */
 function sectionsForDoc(slug: string, markdown: string): IndexedSection[] {
 	const { content, frontmatter } = transformDoc(markdown);
-	const url = slugToUrl(slug);
+	const url = docHref(slug);
 	const pageTitle = frontmatter.title ?? slug;
 
 	const sections: IndexedSection[] = [{ url, content: pageTitle, meta: { title: pageTitle } }];

@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { Link, useLocation } from "react-router";
 
-import { navigation } from "~/app/docs/navigation.ts";
+import { navigation } from "~/app/lib/docs/navigation.ts";
 
 function ArrowIcon(props: React.ComponentPropsWithoutRef<"svg">) {
 	return (

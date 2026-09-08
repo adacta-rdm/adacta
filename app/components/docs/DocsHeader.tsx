@@ -1,6 +1,6 @@
 import { useLocation } from "react-router";
 
-import { navigation } from "~/app/docs/navigation.ts";
+import { navigation } from "~/app/lib/docs/navigation.ts";
 
 /**
  * The heading block at the top of a doc: the containing section's name (looked
