@@ -400,3 +400,42 @@ describe("$repo.samples.$batchSlug action", () => {
 		});
 	});
 });
+
+describe("$repo.samples.$batchSlug archived batch", () => {
+	test("the page opens and reports that the batch is archived", async () => {
+		const scope = await environment();
+		const batch = insertBatchRecord(scope);
+		archive(scope, batch.slug);
+
+		const loaded = await loadBatch(scope, batch.slug);
+
+		expect(loaded.batch.name).toBe("Pt batch");
+		expect(loaded.archived).toBe(true);
+	});
+
+	test("an active batch is not reported as archived", async () => {
+		const scope = await environment();
+		const batch = insertBatchRecord(scope);
+
+		expect((await loadBatch(scope, batch.slug)).archived).toBe(false);
+	});
+
+	test("a sample cannot be added to an archived batch", async () => {
+		const scope = await environment();
+		const batch = insertBatchRecord(scope);
+		archive(scope, batch.slug);
+
+		expect(submitBatch(scope, batch.slug, { add: "", name: "#01" })).rejects.toMatchObject({
+			status: 404,
+		});
+	});
+});
+
+function archive(scope: ServiceContainer, slug: string) {
+	scope
+		.get(RepoDB)
+		.update(SampleBatch)
+		.set({ metadataArchivedAt: new Date() })
+		.where(eq(SampleBatch.slug, slug))
+		.run();
+}

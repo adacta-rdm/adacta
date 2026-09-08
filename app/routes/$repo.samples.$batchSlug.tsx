@@ -1,6 +1,6 @@
-import { BeakerIcon } from "@heroicons/react/20/solid";
+import { ArchiveBoxIcon, BeakerIcon } from "@heroicons/react/20/solid";
 import { and, eq, isNull } from "drizzle-orm";
-import { data, redirect } from "react-router";
+import { data, Link, redirect } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import { addSample } from "~/app/lib/addSample.ts";
@@ -29,7 +29,7 @@ type ActionErrors = Partial<Record<"form" | "name" | "preparedById", string>>;
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const [db, access] = container.get(RepoDB, RepoAccess);
-	const batch = getBatch(db, params.batchSlug);
+	const batch = findBatch(db, params.batchSlug);
 
 	if (!batch) {
 		throw new Response(`Sample "${params.batchSlug}" not found.`, { status: 404 });
@@ -49,6 +49,11 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	const users = new Map((await access.users()).map((user) => [user.id, user]));
 
 	return {
+		// An archived batch keeps its page, so a link from the archived tab
+		// leads somewhere. The page then says that the batch is archived and
+		// offers no way to change it.
+		archived: batch.metadataArchivedAt !== null,
+
 		// The map holds the users who may open the repository. A preparer whose
 		// grant was revoked is therefore absent from it. These lookups then return
 		// undefined.
@@ -157,12 +162,26 @@ async function addSubmittedSample(
 	return undefined;
 }
 
-export default function RepoSamplesBatchSlug({ loaderData }: Route.ComponentProps) {
-	const { batch } = loaderData;
+export default function RepoSamplesBatchSlug({ loaderData, params }: Route.ComponentProps) {
+	const { batch, archived } = loaderData;
 	const composition = formatBatchComposition(batch);
 
 	return (
 		<div className="space-y-8">
+			{archived && (
+				<p className="rounded-lg border border-warning-border bg-warning-surface px-4 py-3 text-sm text-warning-surface-foreground">
+					<ArchiveBoxIcon className="mr-1.5 inline size-4 align-text-bottom" />
+					This batch is archived. It can be read, and it cannot be changed. Restore it from the{" "}
+					<Link
+						to={`/${params.repo}/samples?show=archived`}
+						className="font-medium text-link underline hover:text-link-hover"
+					>
+						archived batches
+					</Link>
+					.
+				</p>
+			)}
+
 			<div>
 				<Heading>{batch.name}</Heading>
 				<p className="mt-2 text-sm text-foreground-muted">
@@ -187,6 +206,19 @@ export default function RepoSamplesBatchSlug({ loaderData }: Route.ComponentProp
 	);
 }
 
+/**
+ * The batch with this slug, archived or not. The page uses this, because an
+ * archived batch is still worth reading.
+ */
+function findBatch(db: RepoDB, batchSlug: string) {
+	return db.select().from(SampleBatch).where(eq(SampleBatch.slug, batchSlug)).get();
+}
+
+/**
+ * The batch with this slug, only while it is active. Every form on the page
+ * uses this. An archived batch is therefore treated as absent, and a submit
+ * from an old page answers 404.
+ */
 function getBatch(db: RepoDB, batchSlug: string) {
 	return db
 		.select()

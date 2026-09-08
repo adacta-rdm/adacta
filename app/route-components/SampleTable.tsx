@@ -11,7 +11,7 @@ import { Subheading } from "~/catalyst-ui/heading.tsx";
  */
 export function SampleTable() {
 	const loaderData = useRouteLoaderData<typeof loader>("routes/$repo.samples.$batchSlug")!;
-	const { batch, samples, users } = loaderData;
+	const { batch, samples, users, archived } = loaderData;
 
 	const suggestedName = nextSampleName(samples.map((sample) => sample.name));
 
@@ -75,90 +75,96 @@ export function SampleTable() {
 										</time>
 									</td>
 									<td className="py-3 pr-5 text-left">
-										<Form method="post">
-											<button
-												type="submit"
-												name="delete"
-												value={sample.id}
-												disabled={isSubmitting}
-												aria-label={`Delete ${batch.name} ${sample.name}`}
-												className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-danger-surface hover:text-danger-surface-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
-											>
-												<TrashIcon className="size-4" />
-												{deletingSampleId === String(sample.id) ? "Deleting…" : "Delete"}
-											</button>
-										</Form>
+										{archived ? null : (
+											<Form method="post">
+												<button
+													type="submit"
+													name="delete"
+													value={sample.id}
+													disabled={isSubmitting}
+													aria-label={`Delete ${batch.name} ${sample.name}`}
+													className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-danger-surface hover:text-danger-surface-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
+												>
+													<TrashIcon className="size-4" />
+													{deletingSampleId === String(sample.id) ? "Deleting…" : "Delete"}
+												</button>
+											</Form>
+										)}
 									</td>
 								</tr>
 							))}
 					</tbody>
-					<tbody>
-						<tr className="border-t-2 border-border-strong bg-surface-muted">
-							<th scope="row" className="py-3 pl-5 pr-4 font-normal text-foreground">
-								<Form id="add-sample-form" method="post">
-									<label className="flex items-center gap-1.5">
-										<span className="text-foreground-muted">{batch.name}</span>
-										<span className="sr-only">Sample label</span>
-										<input
-											key={suggestedName}
-											name="name"
-											required
-											defaultValue={suggestedName}
-											aria-invalid={sampleError ? true : undefined}
-											aria-describedby={sampleError ? "add-sample-error" : undefined}
-											className="w-24 rounded-md border border-border bg-surface px-2 py-1 font-semibold text-foreground focus:border-focus focus:outline-none"
-										/>
+					{archived ? null : (
+						<tbody>
+							<tr className="border-t-2 border-border-strong bg-surface-muted">
+								<th scope="row" className="py-3 pl-5 pr-4 font-normal text-foreground">
+									<Form id="add-sample-form" method="post">
+										<label className="flex items-center gap-1.5">
+											<span className="text-foreground-muted">{batch.name}</span>
+											<span className="sr-only">Sample label</span>
+											<input
+												key={suggestedName}
+												name="name"
+												required
+												defaultValue={suggestedName}
+												aria-invalid={sampleError ? true : undefined}
+												aria-describedby={sampleError ? "add-sample-error" : undefined}
+												className="w-24 rounded-md border border-border bg-surface px-2 py-1 font-semibold text-foreground focus:border-focus focus:outline-none"
+											/>
+										</label>
+										{sampleError ? (
+											<p id="add-sample-error" role="alert" className="mt-2 text-sm text-danger">
+												{sampleError}
+											</p>
+										) : null}
+									</Form>
+								</th>
+								<td className="py-3 pr-4 text-foreground-muted">
+									<label>
+										<span className="sr-only">Prepared by</span>
+										<select
+											form="add-sample-form"
+											name="preparedById"
+											defaultValue=""
+											aria-invalid={preparerError ? true : undefined}
+											aria-describedby={preparerError ? "sample-preparer-error" : undefined}
+											className="rounded-md border border-border bg-surface px-2 py-1 text-foreground focus:border-focus focus:outline-none"
+										>
+											<option value="">
+												Same as batch ({batch.preparedBy?.name ?? "Unknown"})
+											</option>
+											{[...users.values()]
+												.filter((preparer) => preparer.id !== batch.preparedById)
+												.map((preparer) => (
+													<option key={preparer.id} value={preparer.id}>
+														{preparer.name}
+													</option>
+												))}
+										</select>
 									</label>
-									{sampleError ? (
-										<p id="add-sample-error" role="alert" className="mt-2 text-sm text-danger">
-											{sampleError}
+									{preparerError ? (
+										<p id="sample-preparer-error" role="alert" className="mt-2 text-sm text-danger">
+											{preparerError}
 										</p>
 									) : null}
-								</Form>
-							</th>
-							<td className="py-3 pr-4 text-foreground-muted">
-								<label>
-									<span className="sr-only">Prepared by</span>
-									<select
+								</td>
+								<td className="py-3 pr-4 text-foreground-muted">Not added yet</td>
+								<td className="py-3 pr-5 text-left">
+									<button
 										form="add-sample-form"
-										name="preparedById"
-										defaultValue=""
-										aria-invalid={preparerError ? true : undefined}
-										aria-describedby={preparerError ? "sample-preparer-error" : undefined}
-										className="rounded-md border border-border bg-surface px-2 py-1 text-foreground focus:border-focus focus:outline-none"
+										type="submit"
+										name="add"
+										value=""
+										disabled={isSubmitting}
+										className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-surface hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
 									>
-										<option value="">Same as batch ({batch.preparedBy?.name ?? "Unknown"})</option>
-										{[...users.values()]
-											.filter((preparer) => preparer.id !== batch.preparedById)
-											.map((preparer) => (
-												<option key={preparer.id} value={preparer.id}>
-													{preparer.name}
-												</option>
-											))}
-									</select>
-								</label>
-								{preparerError ? (
-									<p id="sample-preparer-error" role="alert" className="mt-2 text-sm text-danger">
-										{preparerError}
-									</p>
-								) : null}
-							</td>
-							<td className="py-3 pr-4 text-foreground-muted">Not added yet</td>
-							<td className="py-3 pr-5 text-left">
-								<button
-									form="add-sample-form"
-									type="submit"
-									name="add"
-									value=""
-									disabled={isSubmitting}
-									className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-surface hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
-								>
-									<PlusIcon className="size-4" />
-									{isAdding ? "Adding…" : "Add"}
-								</button>
-							</td>
-						</tr>
-					</tbody>
+										<PlusIcon className="size-4" />
+										{isAdding ? "Adding…" : "Add"}
+									</button>
+								</td>
+							</tr>
+						</tbody>
+					)}
 				</table>
 			</div>
 		</section>
