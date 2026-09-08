@@ -12,105 +12,13 @@ const ports = [
 export function GasBottleSymbol(props: PidSymbolProps) {
 	return (
 		<SymbolSvg {...props} viewBox={[0, 0, 17.717, 46.776]}>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M27.106 26.575v31.89H43.76v-31.89"
-				color="#000"
-				display="inline"
-				opacity="1"
-				overflow="visible"
-				transform="translate(-26.575 -12.22)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="square"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.38684"
-				d="M47.835 12.402a14.173 5.315 0 0 1-7.087 4.602 14.173 5.315 0 0 1-14.173 0 14.173 5.315 0 0 1-7.087-4.602"
-				opacity="1"
-				transform="matrix(.5875 0 0 -1 -10.918 26.225)"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M30.65 21.382v-4.906"
-				color="#000"
-				display="inline"
-				opacity="1"
-				overflow="visible"
-				transform="translate(-26.575 -12.22)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M40.217 21.382v-4.906"
-				color="#000"
-				display="inline"
-				opacity="1"
-				overflow="visible"
-				transform="translate(-26.575 -12.22)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="square"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth=".590551"
-				d="M35.433 10.63a3.543 1.772 0 0 1-1.772 1.534 3.543 1.772 0 0 1-3.543 0 3.543 1.772 0 0 1-1.772-1.534"
-				opacity="1"
-				transform="matrix(1.35 0 0 -2.4 -34.193 30.477)"
-			/>
+			<g className="pid-symbol-drawing">
+				<path d="M.531 14.355v31.89H17.185v-31.89" />
+				<path d="M17.185 13.823a8.327 5.315 0 0 0-4.164-4.602 8.327 5.315 0 0 0-8.326 0A8.327 5.315 0 0 0 .53 13.823" />
+				<path d="M4.075 9.162v-4.906" />
+				<path d="M13.642 9.162v-4.906" />
+				<path d="M13.642 4.965a4.783 4.253 0 0 0-2.393-3.682 4.783 4.253 0 0 0-4.783 0 4.783 4.253 0 0 0-2.392 3.682" />
+			</g>
 		</SymbolSvg>
 	);
 }

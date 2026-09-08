@@ -83,7 +83,11 @@ function PidEditorContents() {
 		return {
 			...edge,
 			markerEnd: { type: MarkerType.ArrowClosed, color },
-			style: { ...edge.style, stroke: color, strokeWidth: edge.selected ? 2 : 1.5 },
+			style: {
+				...edge.style,
+				stroke: color,
+				strokeWidth: edge.selected ? 2 : "var(--pid-line-width)",
+			},
 		};
 	});
 
@@ -122,7 +126,7 @@ function PidEditorContents() {
 					},
 					style: {
 						stroke: "var(--adacta-color-foreground)",
-						strokeWidth: 1.5,
+						strokeWidth: "var(--pid-line-width)",
 					},
 				},
 				current,
@@ -230,7 +234,7 @@ function PidEditorContents() {
 
 	return (
 		<div
-			className="mt-6 overflow-hidden rounded-xl border border-border bg-surface"
+			className="pid-editor mt-6 overflow-hidden rounded-xl border border-border bg-surface"
 			onPointerMove={movePaletteDrag}
 			onPointerUp={finishPaletteDrag}
 			onPointerCancel={cancelPaletteDrag}

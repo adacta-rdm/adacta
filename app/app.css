@@ -72,6 +72,23 @@ body {
 	@apply bg-canvas text-foreground;
 }
 
+.pid-editor {
+	--pid-line-width: 1.5px;
+}
+
+.pid-symbol-drawing {
+	fill: var(--adacta-color-diagram-surface);
+	stroke: currentColor;
+	stroke-width: var(--pid-line-width, 1.5px);
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+/* Keep symbols and process lines at the same visible weight across view boxes. */
+.pid-symbol-drawing > * {
+	vector-effect: non-scaling-stroke;
+}
+
 /*
  * Prism token colors, ported from the Tailwind "Syntax" template. Fence.tsx
  * runs prism-react-renderer with an empty theme, so it emits `.token.<type>`
