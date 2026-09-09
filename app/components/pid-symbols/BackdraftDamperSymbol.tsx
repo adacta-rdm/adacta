@@ -1,60 +1,26 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function BackdraftDamperSymbol(props: PidSymbolProps) {
+export function BackdraftDamperSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 39.598, 21.886]}>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="evenodd"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="round"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.24016"
-				d="M3.545 3.549h35.433v17.717H3.545z"
-			/>
-			<path
-				fill="none"
-				fillOpacity=".75"
-				fillRule="evenodd"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeLinecap="round"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.24016"
-				d="m3.545 3.549 35.433 17.717"
-			/>
-			<path
-				fill="#000"
-				fillOpacity="1"
-				fillRule="evenodd"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="round"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth=".885826"
-				d="M6.681 3.563a3.12 3.12 0 1 1-6.238 0 3.12 3.12 0 1 1 6.238 0z"
-				display="inline"
-			/>
+		<SymbolSvg {...props} viewBox={[0, 0, 32, 17.687]}>
+			<g className="pid-symbol-drawing">
+				<path d="M2.865 2.868h28.634v14.318H2.865z" />
+				<path fill="none" d="m2.865 2.868 28.634 14.318" />
+				<path
+					fill="currentColor"
+					d="M5.4 2.88a2.521 2.521 0 1 1-5.042 0 2.521 2.521 0 1 1 5.041 0"
+				/>
+			</g>
 		</SymbolSvg>
 	);
 }
@@ -65,9 +31,9 @@ export function ConnectableBackdraftDamperSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
@@ -78,6 +44,6 @@ export function ConnectableBackdraftDamperSymbol({
 				maximumSize={maximumSize}
 				className={className}
 			/>
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

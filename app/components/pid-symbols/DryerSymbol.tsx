@@ -1,64 +1,22 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function DryerSymbol(props: PidSymbolProps) {
+export function DryerSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 36.496, 43.583]}>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M17.717 21.26v35.433H53.15V21.26"
-				color="#000"
-				display="inline"
-				opacity="1"
-				overflow="visible"
-				transform="translate(-17.185 -13.642)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="m53.15 21.614-5.315-7.44H23.03l-5.314 7.44"
-				color="#000"
-				display="inline"
-				opacity="1"
-				overflow="visible"
-				transform="translate(-17.185 -13.642)"
-				visibility="visible"
-			/>
+		<SymbolSvg {...props} viewBox={[0, 0, 46.894, 56]}>
+			<g className="pid-symbol-drawing">
+				<path d="M.684 9.788v45.528h45.528V9.788" />
+				<path d="m46.212 10.243-6.83-9.56H7.51l-6.828 9.56" />
+			</g>
 		</SymbolSvg>
 	);
 }
@@ -69,15 +27,15 @@ export function ConnectableDryerSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
 			ports={ports}
 		>
 			<DryerSymbol orientation={orientation} maximumSize={maximumSize} className={className} />
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

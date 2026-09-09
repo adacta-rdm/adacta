@@ -1,188 +1,34 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function FluidContactingColumnSymbol(props: PidSymbolProps) {
+export function FluidContactingColumnSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 18.2, 54.587]}>
-			<path
-				fill="none"
-				fillOpacity="1"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth=".854321"
-				d="M37.203 13.365a9.744 4.43 0 0 1-9.827 4.351 9.744 4.43 0 0 1-9.66-4.429"
-				transform="matrix(.8796 0 0 1.76006 -15.057 22.653)"
-			/>
-			<path
-				fill="none"
-				fillOpacity="1"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth=".983966"
-				d="M37.203 13.365a9.744 4.43 0 0 1-9.827 4.351 9.744 4.43 0 0 1-9.66-4.429"
-				transform="matrix(.87954 0 0 -1.32692 -15.055 24.161)"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M26.848 13.722v40.783"
-				color="#000"
-				display="inline"
-				overflow="visible"
-				transform="translate(-26.316 -7.64)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M43.984 13.713v40.792"
-				color="#000"
-				display="inline"
-				overflow="visible"
-				transform="translate(-26.316 -7.64)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M26.817 17.717H44.27"
-				color="#000"
-				display="inline"
-				overflow="visible"
-				transform="translate(-26.316 -7.64)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M26.806 49.838H44.26"
-				color="#000"
-				display="inline"
-				overflow="visible"
-				transform="translate(-26.316 -7.64)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth=".708661"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="m26.805 17.504 17.256 31.872"
-				color="#000"
-				display="inline"
-				overflow="visible"
-				transform="translate(-26.316 -7.64)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth=".708661"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M44.061 17.504 26.805 49.376"
-				color="#000"
-				display="inline"
-				overflow="visible"
-				transform="translate(-26.316 -7.64)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				stroke="#fff"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="square"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth=".09491"
-				d="M27.416 15.26c.033-1.666.058-1.906.24-2.373.661-1.685 2.535-3.054 5.053-3.689 1.124-.283 3.042-.38 4.265-.213 2.825.383 5.156 1.782 6.064 3.637l.296.606.028 1.942.03 1.942H27.377Zm4.128 10.174-3.843-7.117 3.865-.023a767 767 0 0 1 7.734 0l3.867.023-3.845 7.117c-2.115 3.915-3.865 7.118-3.89 7.117-.024 0-1.774-3.202-3.888-7.117zM27.4 33.458c-.002-7.68.013-13.949.033-13.928s1.726 3.159 3.792 6.975l3.755 6.937-3.666 6.768-3.789 6.991c-.103.19-.122-1.909-.125-13.743zm12.21 6.86-3.724-6.88 3.724-6.877 3.724-6.877.023 6.883c.012 3.786.012 9.977 0 13.757l-.023 6.873zm-12.173 8.78c.108-.282 7.95-14.751 7.995-14.751.082 0 7.947 14.606 7.947 14.758 0 .139-.574.15-8.001.15-7.583 0-7.998-.009-7.941-.157zm6.22 11.626c-2.415-.524-4.415-1.976-5.444-3.954-.654-1.258-.744-1.733-.793-4.19l-.044-2.165H43.38v1.993c0 1.096-.044 2.23-.097 2.522-.454 2.484-2.609 4.75-5.305 5.577-.295.09-.774.207-1.066.26-.729.13-2.564.107-3.254-.043z"
-				opacity="1"
-				transform="translate(-26.316 -7.64)"
-			/>
+		<SymbolSvg {...props} viewBox={[0, 0, 18.671, 56]}>
+			<g className="pid-symbol-drawing" fill="none">
+				<path d="M18.124 47.371a8.793 7.999 0 0 1-8.868 7.857A8.793 7.999 0 0 1 .54 47.23" />
+				<path d="M18.124 6.593A8.792 6.03 0 0 0 9.257.67 8.792 6.03 0 0 0 .54 6.7" />
+				<path d="M.546 6.24v41.838M18.125 6.23v41.848M.514 10.338h17.905M.503 43.29h17.905" />
+
+				<g className="pid-symbol-detail">
+					<path d="m.502 10.12 17.702 32.696M18.204 10.12.502 42.815" />
+				</g>
+
+				{/* This shape keeps the packing lines inside the column outline. */}
+				<path
+					fill="var(--adacta-color-diagram-surface)"
+					stroke="none"
+					d="M1.128 7.817c.034-1.709.06-1.955.247-2.434.678-1.729 2.6-3.133 5.183-3.785 1.154-.29 3.121-.39 4.376-.218 2.898.393 5.29 1.828 6.22 3.731l.305.622.028 1.992.031 1.992H1.088Zm4.235 10.438-3.942-7.302 3.965-.023a787 787 0 0 1 7.934 0l3.967.023-3.944 7.302c-2.17 4.016-3.965 7.302-3.991 7.3-.025 0-1.82-3.284-3.989-7.3m-4.25 8.231c-.003-7.878.012-14.31.033-14.288s1.77 3.24 3.89 7.155l3.852 7.117-3.76 6.943-3.888 7.172c-.105.195-.125-1.958-.128-14.099m12.525 7.038-3.82-7.058 3.82-7.055 3.82-7.055.024 7.06c.012 3.885.012 10.236 0 14.114l-.023 7.05zM1.15 42.53c.11-.29 8.156-15.133 8.202-15.133.084 0 8.153 14.984 8.153 15.14 0 .143-.59.154-8.208.154-7.78 0-8.205-.009-8.147-.16m6.381 11.927c-2.477-.537-4.53-2.027-5.585-4.056-.67-1.29-.763-1.778-.813-4.299l-.046-2.22h16.419v2.044c0 1.124-.045 2.288-.1 2.587-.466 2.548-2.676 4.873-5.442 5.721a12 12 0 0 1-1.094.267c-.748.134-2.63.11-3.338-.044z"
+				/>
+			</g>
 		</SymbolSvg>
 	);
 }
@@ -193,9 +39,9 @@ export function ConnectableFluidContactingColumnSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
@@ -206,6 +52,6 @@ export function ConnectableFluidContactingColumnSymbol({
 				maximumSize={maximumSize}
 				className={className}
 			/>
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

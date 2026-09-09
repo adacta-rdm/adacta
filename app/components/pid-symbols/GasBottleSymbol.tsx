@@ -1,15 +1,15 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "outlet", type: "source", side: "top", x: 0.5, y: 0 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function GasBottleSymbol(props: PidSymbolProps) {
+export function GasBottleSymbol(props: PIDSymbolProps) {
 	return (
 		<SymbolSvg {...props} viewBox={[0, 0, 17.717, 46.776]}>
 			<g className="pid-symbol-drawing">
@@ -29,15 +29,15 @@ export function ConnectableGasBottleSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
 			ports={ports}
 		>
 			<GasBottleSymbol orientation={orientation} maximumSize={maximumSize} className={className} />
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

@@ -1,23 +1,27 @@
 import type { ReactNode } from "react";
 
-export type PidOrientation = 0 | 1 | 2 | 3;
+export type PIDOrientation = 0 | 1 | 2 | 3;
 
-export interface PidSymbolProps {
-	orientation?: PidOrientation;
+export interface PIDSymbolProps {
+	orientation?: PIDOrientation;
 	maximumSize?: number;
 	className?: string;
 }
 
-interface SymbolSvgProps extends PidSymbolProps {
+interface SymbolSvgProps extends PIDSymbolProps {
 	viewBox: readonly [x: number, y: number, width: number, height: number];
+	bodySize?: number;
 	children: ReactNode;
 }
 
 /**
  * Provides the common SVG surface, sizing, and rotation for one P&ID symbol.
+ * Strokes may extend beyond the geometry box because SVG centers them on their
+ * paths.
  */
 export function SymbolSvg({
 	viewBox: [x, y, width, height],
+	bodySize,
 	orientation = 0,
 	maximumSize,
 	className,
@@ -32,7 +36,8 @@ export function SymbolSvg({
 		`translate(${width} ${height}) rotate(180)`,
 		`translate(0 ${width}) rotate(-90)`,
 	] as const;
-	const scale = maximumSize === undefined ? undefined : maximumSize / Math.max(width, height);
+	const scale =
+		maximumSize === undefined ? undefined : maximumSize / (bodySize ?? Math.max(width, height));
 	const renderedSize =
 		scale === undefined
 			? undefined
@@ -45,6 +50,7 @@ export function SymbolSvg({
 	return (
 		<svg
 			viewBox={`0 0 ${orientedWidth} ${orientedHeight}`}
+			overflow="visible"
 			aria-hidden="true"
 			className={`block bg-diagram-surface ${className ?? ""}`}
 			style={renderedSize}

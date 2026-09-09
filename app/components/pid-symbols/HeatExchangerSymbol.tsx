@@ -1,100 +1,22 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function HeatExchangerSymbol(props: PidSymbolProps) {
+export function HeatExchangerSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 40.039, 31.815]}>
-			<g transform="translate(-15.413 -19.557)">
-				<ellipse
-					cx="36.027"
-					cy="29.571"
-					fill="#fff"
-					fillOpacity="1"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeDashoffset="0"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth=".481654"
-					rx="5.491"
-					ry="8.973"
-					transform="matrix(2.82124 0 0 1.72643 -66.238 -15.589)"
-				/>
-				<path
-					fill="#fff"
-					fillOpacity="1"
-					fillRule="nonzero"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeDashoffset="0"
-					strokeLinecap="butt"
-					strokeLinejoin="miter"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth="1.06299"
-					markerEnd="none"
-					markerMid="none"
-					markerStart="none"
-					d="M15.945 35.433h7.086l5.315-8.858L42.52 44.29l5.315-8.858h7.086"
-					color="#000"
-					display="inline"
-					opacity="1"
-					overflow="visible"
-					visibility="visible"
-				/>
-				<path
-					fill="#fff"
-					fillOpacity="1"
-					fillRule="nonzero"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeDashoffset="0"
-					strokeLinecap="butt"
-					strokeLinejoin="miter"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth="1.06299"
-					markerEnd="none"
-					markerMid="none"
-					markerStart="none"
-					d="M54.921 33.661v3.544"
-					color="#000"
-					display="inline"
-					opacity="1"
-					overflow="visible"
-					visibility="visible"
-				/>
-				<path
-					fill="#fff"
-					fillOpacity="1"
-					fillRule="nonzero"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeDashoffset="0"
-					strokeLinecap="butt"
-					strokeLinejoin="miter"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth="1.06299"
-					markerEnd="none"
-					markerMid="none"
-					markerStart="none"
-					d="M15.945 33.661v3.544"
-					color="#000"
-					display="inline"
-					opacity="1"
-					overflow="visible"
-					visibility="visible"
-				/>
+		<SymbolSvg {...props} viewBox={[-5.122, 0, 50.32, 40]} bodySize={40}>
+			<g className="pid-symbol-drawing">
+				<path d="M20 0a20 20 0 1 0 0 40 20 20 0 1 0 0-40" />
+				<path fill="none" d="M-5.121 19.961h9.15L10.89 8.524l18.3 22.872 6.862-11.437H45.2" />
+				<path fill="none" d="M45.2 17.673v4.574m-50.32-4.574v4.574" />
 			</g>
 		</SymbolSvg>
 	);
@@ -106,9 +28,9 @@ export function ConnectableHeatExchangerSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
@@ -119,6 +41,6 @@ export function ConnectableHeatExchangerSymbol({
 				maximumSize={maximumSize}
 				className={className}
 			/>
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

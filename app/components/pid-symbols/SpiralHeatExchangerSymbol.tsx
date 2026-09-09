@@ -1,94 +1,30 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function SpiralHeatExchangerSymbol(props: PidSymbolProps) {
+export function SpiralHeatExchangerSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 40.21, 40.413]}>
-			<g transform="translate(-14.687 -15.767)">
-				<ellipse
-					cx="-35.63"
-					cy="60.866"
-					fill="#fff"
-					fillOpacity="1"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth=".659048"
-					rx="14.37"
-					ry="10"
-					transform="matrix(1.33696 0 0 1.94583 82.636 -82.57)"
-				/>
-				<circle
-					cx="38.976"
-					cy="38.976"
-					r="14.173"
-					fill="#fff"
-					fillOpacity="1"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth=".941719"
-					transform="matrix(1.1095 0 0 1.14839 -8.244 -8.894)"
-				/>
-				<circle
-					cx="40.748"
-					cy="44.291"
-					r="8.858"
-					fill="#fff"
-					fillOpacity="1"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth=".723164"
-					transform="matrix(1.4506 0 0 1.4895 -24.11 -30.105)"
-				/>
+		<SymbolSvg {...props} viewBox={[0, 0, 40, 40]}>
+			<g className="pid-symbol-drawing">
+				<path d="M20.206.633a19.016 19.26 0 1 0 0 38.519 19.016 19.26 0 1 0 0-38.519" />
+
+				<g className="pid-symbol-detail">
+					<path d="M20.206 3.784a15.564 16.11 0 1 0 0 32.22 15.564 16.11 0 1 0 0-32.22" />
+					<path d="M20.205 6.834a12.719 13.06 0 1 0 0 26.119 12.719 13.06 0 1 0 0-26.119" />
+					<path fill="none" d="M2.553 2.24 37.86 37.547m0-35.305L2.553 37.546" />
+				</g>
+
 				<path
 					fill="none"
-					fillRule="evenodd"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeLinecap="butt"
-					strokeLinejoin="miter"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth=".885827"
-					d="m17.165 18.031 35.67 35.67m0-35.67-35.67 35.67"
-				/>
-				<path
-					fill="none"
-					fillRule="evenodd"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeLinecap="butt"
-					strokeLinejoin="miter"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth=".966145"
-					d="m50.483 16.35 4.034 4.033"
-				/>
-				<path
-					fill="none"
-					fillRule="evenodd"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeLinecap="butt"
-					strokeLinejoin="miter"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth=".885827"
-					d="m54.583 51.283-4.166 4.166m-35-34.999 4.166-4.167M20 55.866l-5-5"
+					d="m35.53.577 3.993 3.992m.066 30.584-4.124 4.123M.823 4.636 4.946.51m.413 39.178L.41 34.74"
 				/>
 			</g>
 		</SymbolSvg>
@@ -101,9 +37,9 @@ export function ConnectableSpiralHeatExchangerSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
@@ -114,6 +50,6 @@ export function ConnectableSpiralHeatExchangerSymbol({
 				maximumSize={maximumSize}
 				className={className}
 			/>
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

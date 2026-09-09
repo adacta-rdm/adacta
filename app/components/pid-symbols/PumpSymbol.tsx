@@ -1,21 +1,21 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function PumpSymbol(props: PidSymbolProps) {
+export function PumpSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[-2, -2, 2.06, 2.06]}>
-			<g stroke="#000" strokeWidth=".06" transform="translate(-.97 -.97)">
-				<circle r="1" fill="#fff" />
-				<path fill="none" strokeLinejoin="bevel" d="m0-1 1 1-1 1" />
+		<SymbolSvg {...props} viewBox={[0, 0, 40, 40]}>
+			<g className="pid-symbol-drawing">
+				<path d="M20 .583a19.417 19.417 0 1 0 0 38.834A19.417 19.417 0 1 0 20 .583" />
+				<path fill="none" d="M20 .583 39.417 20 20 39.417" />
 			</g>
 		</SymbolSvg>
 	);
@@ -27,15 +27,15 @@ export function ConnectablePumpSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
 			ports={ports}
 		>
 			<PumpSymbol orientation={orientation} maximumSize={maximumSize} className={className} />
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

@@ -1,111 +1,30 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function AxialFanSymbol(props: PidSymbolProps) {
+export function AxialFanSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 35.639, 35.612]}>
-			<g transform="translate(-17.606 -17.62)">
-				<ellipse
-					cx="36.073"
-					cy="34.414"
-					fill="#fff"
-					fillOpacity="1"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth=".922762"
-					rx="14.813"
-					ry="15.192"
-					transform="matrix(1.1666 0 0 1.13752 -6.658 -3.721)"
-				/>
+		<SymbolSvg {...props} viewBox={[0, 0, 40, 40]}>
+			<g className="pid-symbol-drawing">
+				<path d="M20 .603a19.395 19.396 0 1 0 0 38.793A19.395 19.396 0 1 0 20 .603" />
 				<path
 					fill="none"
-					fillRule="evenodd"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeLinecap="butt"
-					strokeLinejoin="miter"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth="1.06299"
-					d="M28.743 51.523 52.12 39.455M28.743 19.272 52.12 31.339"
+					d="m12.5 38.067 26.237-13.545M12.5 1.869l26.237 13.544M3.981 20.084h8.117"
 				/>
-				<ellipse
-					cx="-8.705"
-					cy="14.214"
-					fill="#fff"
-					fillOpacity="1"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeDashoffset="0"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth="1.02558"
-					rx=".938"
-					ry="4.598"
-					transform="matrix(1.18586 -.23287 .60464 .78719 33.194 18.669)"
-				/>
-				<ellipse
-					cx="-8.705"
-					cy="14.214"
-					fill="#fff"
-					fillOpacity="1"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeDashoffset="0"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth="1.05366"
-					rx=".938"
-					ry="4.598"
-					transform="rotate(-142 15.598 19.75)scale(1.00886)"
-				/>
-				<ellipse
-					cx="-8.705"
-					cy="14.214"
-					fill="#fff"
-					fillOpacity="1"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeDashoffset="0"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth="1.03457"
-					rx=".938"
-					ry="4.598"
-					transform="matrix(-.01842 .99994 -1.05545 -.01745 54.43 44.49)"
-				/>
-				<path
-					fill="#fff"
-					fillOpacity="1"
-					fillRule="nonzero"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeDashoffset="0"
-					strokeLinecap="butt"
-					strokeLinejoin="miter"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth="1.06299"
-					markerEnd="none"
-					markerMid="none"
-					markerStart="none"
-					d="M21.153 35.501h7.232"
-					color="#000"
-					display="inline"
-					overflow="visible"
-					visibility="visible"
-				/>
+
+				<g className="pid-symbol-detail">
+					<path d="M12.436 11.964a5.155 1.133 51.01 1 0 6.24 8.125 5.156 1.133 51.01 1 0-6.24-8.126" />
+					<path d="M12.365 28.14a5.207 1.062-52 1 0 6.411-8.205 5.207 1.062-52 1 0-6.41 8.204" />
+					<path d="M30.119 20.215a5.448 1.053.943 1 0-10.894-.18 5.448 1.053.943 1 0 10.894.18" />
+				</g>
 			</g>
 		</SymbolSvg>
 	);
@@ -117,15 +36,15 @@ export function ConnectableAxialFanSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
 			ports={ports}
 		>
 			<AxialFanSymbol orientation={orientation} maximumSize={maximumSize} className={className} />
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

@@ -1,45 +1,21 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function ViewingGlassSymbol(props: PidSymbolProps) {
+export function ViewingGlassSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 33.009, 19.119]}>
-			<g transform="translate(-20.555 -27.782)">
-				<path
-					fill="#fff"
-					fillOpacity="1"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeDashoffset="0"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth="1.06299"
-					d="M21.087 28.313h31.946v18.056H21.087z"
-				/>
-				<ellipse
-					cx="37.944"
-					cy="36.584"
-					fill="#fff"
-					fillOpacity="1"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeDashoffset="0"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth=".941013"
-					rx="8.018"
-					ry="7.26"
-					transform="matrix(1.04008 0 0 1.22687 -2.279 -7.606)"
-				/>
+		<SymbolSvg {...props} viewBox={[0, 0, 32, 18.535]}>
+			<g className="pid-symbol-drawing">
+				<path d="M.516.515h30.97v17.504H.515z" />
+				<path d="M16.122.57a8.084 8.635 0 1 0 0 17.27 8.084 8.635 0 1 0 0-17.27" />
 			</g>
 		</SymbolSvg>
 	);
@@ -51,9 +27,9 @@ export function ConnectableViewingGlassSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
@@ -64,6 +40,6 @@ export function ConnectableViewingGlassSymbol({
 				maximumSize={maximumSize}
 				className={className}
 			/>
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

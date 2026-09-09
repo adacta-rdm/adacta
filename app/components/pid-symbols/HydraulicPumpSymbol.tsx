@@ -1,41 +1,22 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function HydraulicPumpSymbol(props: PidSymbolProps) {
+export function HydraulicPumpSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 7.765, 7.764]}>
-			<path
-				fill="none"
-				fillOpacity="1"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeLinecap="butt"
-				strokeLinejoin="round"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth=".264375"
-				d="M3.83.133a3.75 3.75 0 0 1 3.803 3.694 3.75 3.75 0 0 1-3.69 3.805 3.75 3.75 0 0 1-3.81-3.686A3.75 3.75 0 0 1 3.816.133"
-			/>
-			<path
-				fill="#000"
-				fillOpacity="1"
-				fillRule="evenodd"
-				stroke="#000"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeOpacity="1"
-				strokeWidth=".264583px"
-				d="m7.633 3.883-1.875-.938V4.82l1.875-.937"
-			/>
+		<SymbolSvg {...props} viewBox={[0, 0, 40, 40]}>
+			<g className="pid-symbol-drawing">
+				<path d="M19.73.688a19.317 19.317 0 0 1 19.59 19.029 19.317 19.317 0 0 1-19.008 19.6A19.317 19.317 0 0 1 .685 20.33 19.317 19.317 0 0 1 19.657.688" />
+				<path fill="currentColor" d="m39.32 20.005-9.659-4.832v9.659z" />
+			</g>
 		</SymbolSvg>
 	);
 }
@@ -46,9 +27,9 @@ export function ConnectableHydraulicPumpSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
@@ -59,6 +40,6 @@ export function ConnectableHydraulicPumpSymbol({
 				maximumSize={maximumSize}
 				className={className}
 			/>
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

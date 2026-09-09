@@ -21,30 +21,30 @@ import {
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 import {
-	getPidSymbol,
-	maximumSizeForPidSymbol,
-	PidSymbol,
+	getPIDSymbol,
+	maximumSizeForPIDSymbol,
+	PIDSymbol,
 	pidSymbolGroups,
-	type PidOrientation,
-	type PidSymbolKind,
-} from "~/app/components/PidSymbol.tsx";
-import { getPidSymbolComponents } from "~/app/components/pid-symbols/PidSymbolRegistry.ts";
+	type PIDOrientation,
+	type PIDSymbolKind,
+} from "~/app/components/PIDSymbol.tsx";
+import { getPIDSymbolComponents } from "~/app/components/pid-symbols/PIDSymbolRegistry.ts";
 import { Switch } from "~/catalyst-ui/switch.tsx";
 
 import "@xyflow/react/dist/style.css";
 
-type PidNodeData = { kind: PidSymbolKind; label: string; orientation: PidOrientation };
-type PidNode = Node<PidNodeData, "pid-symbol">;
-type PidEdge = Edge<Record<string, never>, "step">;
+type PIDNodeData = { kind: PIDSymbolKind; label: string; orientation: PIDOrientation };
+type PIDNode = Node<PIDNodeData, "pid-symbol">;
+type PIDEdge = Edge<Record<string, never>, "step">;
 type PaletteDrag = {
 	pointerId: number;
-	kind: PidSymbolKind;
+	kind: PIDSymbolKind;
 	startX: number;
 	startY: number;
 	moved: boolean;
 };
 
-const nodeTypes = { "pid-symbol": PidSymbolNode };
+const nodeTypes = { "pid-symbol": PIDSymbolNode };
 
 /**
  * An editable P&ID canvas without revision history or server persistence.
@@ -52,28 +52,28 @@ const nodeTypes = { "pid-symbol": PidSymbolNode };
  * The drawing behavior is adapted from the v2 editor. This first version keeps
  * the graph in component state while the node and equipment model is settled.
  */
-export function PidEditor() {
+export function PIDEditor() {
 	return (
 		<ReactFlowProvider>
-			<PidEditorContents />
+			<PIDEditorContents />
 		</ReactFlowProvider>
 	);
 }
 
-function PidEditorContents() {
-	const [nodes, setNodes, onNodesChange] = useNodesState<PidNode>([]);
-	const [edges, setEdges, onEdgesChange] = useEdgesState<PidEdge>([]);
+function PIDEditorContents() {
+	const [nodes, setNodes, onNodesChange] = useNodesState<PIDNode>([]);
+	const [edges, setEdges, onEdgesChange] = useEdgesState<PIDEdge>([]);
 	const [selectedNodeId, setSelectedNodeId] = useState<string>();
 	const [showGrid, setShowGrid] = useState(false);
 	const [dragPreview, setDragPreview] = useState<{
-		kind: PidSymbolKind;
+		kind: PIDSymbolKind;
 		x: number;
 		y: number;
 	}>();
 	const nextNodeNumber = useRef(1);
 	const paletteDrag = useRef<PaletteDrag | undefined>(undefined);
 	const canvas = useRef<HTMLDivElement>(null);
-	const { screenToFlowPosition } = useReactFlow<PidNode, PidEdge>();
+	const { screenToFlowPosition } = useReactFlow<PIDNode, PIDEdge>();
 	const updateNodeInternals = useUpdateNodeInternals();
 
 	const selectedNode = nodes.find((node) => node.id === selectedNodeId);
@@ -92,8 +92,8 @@ function PidEditorContents() {
 		};
 	});
 
-	function addNode(kind: PidSymbolKind, position?: { x: number; y: number }) {
-		const symbol = getPidSymbol(kind);
+	function addNode(kind: PIDSymbolKind, position?: { x: number; y: number }) {
+		const symbol = getPIDSymbol(kind);
 		const number = nextNodeNumber.current++;
 		const id = `pid-node-${number}`;
 
@@ -116,7 +116,7 @@ function PidEditorContents() {
 
 	function connect(connection: Connection) {
 		setEdges((current) =>
-			addEdge<PidEdge>(
+			addEdge<PIDEdge>(
 				{
 					...connection,
 					id: `pid-edge-${crypto.randomUUID()}`,
@@ -135,7 +135,7 @@ function PidEditorContents() {
 		);
 	}
 
-	function startPaletteDrag(event: ReactPointerEvent<HTMLDivElement>, kind: PidSymbolKind) {
+	function startPaletteDrag(event: ReactPointerEvent<HTMLDivElement>, kind: PIDSymbolKind) {
 		if (event.button !== 0) return;
 
 		// Prevent the pointer gesture from selecting labels while the symbol is
@@ -204,7 +204,7 @@ function PidEditorContents() {
 		);
 	}
 
-	function orientSelectedNode(orientation: PidOrientation) {
+	function orientSelectedNode(orientation: PIDOrientation) {
 		if (!selectedNodeId) return;
 
 		setNodes((current) =>
@@ -250,7 +250,7 @@ function PidEditorContents() {
 						transform: "translate(-50%, -50%)",
 					}}
 				>
-					<PidSymbol kind={dragPreview.kind} className="h-8 w-12" />
+					<PIDSymbol kind={dragPreview.kind} className="h-8 w-12" />
 				</div>
 			) : null}
 
@@ -305,7 +305,7 @@ function PidEditorContents() {
 											}}
 											onPointerDown={(event) => startPaletteDrag(event, symbol.kind)}
 										>
-											<PidSymbol kind={symbol.kind} className="h-9 w-14" />
+											<PIDSymbol kind={symbol.kind} className="h-9 w-14" />
 											<span>{symbol.label}</span>
 										</div>
 									))}
@@ -316,7 +316,7 @@ function PidEditorContents() {
 				</aside>
 
 				<div ref={canvas} className="h-[36rem] min-w-0 bg-canvas">
-					<ReactFlow<PidNode, PidEdge>
+					<ReactFlow<PIDNode, PIDEdge>
 						nodes={nodes}
 						edges={displayedEdges}
 						nodeTypes={nodeTypes}
@@ -408,9 +408,9 @@ function PidEditorContents() {
 	);
 }
 
-function PidSymbolNode({ id, data, selected }: NodeProps<PidNode>) {
-	const ConnectableSymbol = getPidSymbolComponents(data.kind).ConnectableSymbol;
-	const maximumSize = maximumSizeForPidSymbol(data.kind, 56);
+function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {
+	const ConnectableSymbol = getPIDSymbolComponents(data.kind).ConnectableSymbol;
+	const maximumSize = maximumSizeForPIDSymbol(data.kind, 56);
 
 	return (
 		<div className="group/pid-node flex flex-col items-center text-foreground">

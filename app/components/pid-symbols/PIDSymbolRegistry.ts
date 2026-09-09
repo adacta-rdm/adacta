@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 
-import type { PidSymbolKind } from "../PidSymbol.tsx";
+import type { PIDSymbolKind } from "../PIDSymbol.tsx";
 import { AutoclaveSymbol, ConnectableAutoclaveSymbol } from "./AutoclaveSymbol.tsx";
 import { AxialFanSymbol, ConnectableAxialFanSymbol } from "./AxialFanSymbol.tsx";
 import {
@@ -11,7 +11,7 @@ import { BagSymbol, ConnectableBagSymbol } from "./BagSymbol.tsx";
 import { BallValveSymbol, ConnectableBallValveSymbol } from "./BallValveSymbol.tsx";
 import { ButterflyValveSymbol, ConnectableButterflyValveSymbol } from "./ButterflyValveSymbol.tsx";
 import { CheckValveSymbol, ConnectableCheckValveSymbol } from "./CheckValveSymbol.tsx";
-import type { ConnectablePidSymbolProps } from "./ConnectablePidSymbol.tsx";
+import type { ConnectablePIDSymbolProps } from "./ConnectablePIDSymbol.tsx";
 import { ConnectableControlValveSymbol, ControlValveSymbol } from "./ControlValveSymbol.tsx";
 import { ConnectableCoolerSymbol, CoolerSymbol } from "./CoolerSymbol.tsx";
 import { ConnectableCoolingTowerSymbol, CoolingTowerSymbol } from "./CoolingTowerSymbol.tsx";
@@ -72,7 +72,7 @@ import {
 	ConnectableStraightTubeHeatExchangerSymbol,
 	StraightTubeHeatExchangerSymbol,
 } from "./StraightTubeHeatExchangerSymbol.tsx";
-import type { PidSymbolProps } from "./SymbolSvg.tsx";
+import type { PIDSymbolProps } from "./SymbolSvg.tsx";
 import { ConnectableThreeWayValveSymbol, ThreeWayValveSymbol } from "./ThreeWayValveSymbol.tsx";
 import { ConnectableTrayColumnSymbol, TrayColumnSymbol } from "./TrayColumnSymbol.tsx";
 import {
@@ -86,9 +86,9 @@ import {
 import { ConnectableValveSymbol, ValveSymbol } from "./ValveSymbol.tsx";
 import { ConnectableViewingGlassSymbol, ViewingGlassSymbol } from "./ViewingGlassSymbol.tsx";
 
-interface PidSymbolComponents {
-	Symbol: ComponentType<PidSymbolProps>;
-	ConnectableSymbol: ComponentType<ConnectablePidSymbolProps>;
+interface PIDSymbolComponents {
+	Symbol: ComponentType<PIDSymbolProps>;
+	ConnectableSymbol: ComponentType<ConnectablePIDSymbolProps>;
 }
 
 const pidSymbolComponents = {
@@ -156,18 +156,18 @@ const pidSymbolComponents = {
 	"viewing-glass": pair(ViewingGlassSymbol, ConnectableViewingGlassSymbol),
 	"covered-gas-vent": pair(CoveredGasVentSymbol, ConnectableCoveredGasVentSymbol),
 	"curved-gas-vent": pair(CurvedGasVentSymbol, ConnectableCurvedGasVentSymbol),
-} satisfies Record<PidSymbolKind, PidSymbolComponents>;
+} satisfies Record<PIDSymbolKind, PIDSymbolComponents>;
 
 function pair(
-	Symbol: ComponentType<PidSymbolProps>,
-	ConnectableSymbol: ComponentType<ConnectablePidSymbolProps>,
-): PidSymbolComponents {
+	Symbol: ComponentType<PIDSymbolProps>,
+	ConnectableSymbol: ComponentType<ConnectablePIDSymbolProps>,
+): PIDSymbolComponents {
 	return { Symbol, ConnectableSymbol };
 }
 
 /**
  * Returns the drawing and editor component for a P&ID symbol.
  */
-export function getPidSymbolComponents(kind: PidSymbolKind): PidSymbolComponents {
+export function getPIDSymbolComponents(kind: PIDSymbolKind): PIDSymbolComponents {
 	return pidSymbolComponents[kind];
 }

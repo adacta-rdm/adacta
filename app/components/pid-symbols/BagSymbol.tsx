@@ -1,102 +1,24 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function BagSymbol(props: PidSymbolProps) {
+export function BagSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 24.803, 46.594]}>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M23.563 26.575v31.89h23.74v-31.89"
-				color="#000"
-				display="inline"
-				opacity="1"
-				overflow="visible"
-				transform="translate(-23.031 -12.402)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="square"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.16155"
-				d="M47.835 12.402a14.173 5.315 0 0 1-7.087 4.602 14.173 5.315 0 0 1-14.173 0 14.173 5.315 0 0 1-7.087-4.602"
-				opacity="1"
-				transform="matrix(.8375 0 0 -1 -15.79 26.043)"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="m35.433 20.02-6.555-7.087h13.11l-6.555 7.087"
-				color="#000"
-				display="inline"
-				opacity="1"
-				overflow="visible"
-				transform="translate(-23.031 -12.402)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M35.433 19.488v-7.086"
-				color="#000"
-				display="inline"
-				opacity="1"
-				overflow="visible"
-				transform="translate(-23.031 -12.402)"
-				visibility="visible"
-			/>
+		<SymbolSvg {...props} viewBox={[0, 0, 21.293, 40]}>
+			<g className="pid-symbol-drawing">
+				<path d="M.457 12.167v27.377h20.38V12.167" />
+				<path d="M20.837 11.71a10.19 4.563 0 0 0-5.096-3.95 10.19 4.563 0 0 0-10.19 0 10.19 4.563 0 0 0-5.095 3.95" />
+				<path d="M10.647 6.54 5.02.456h11.254z" />
+				<path d="M10.647 6.083V0" />
+			</g>
 		</SymbolSvg>
 	);
 }
@@ -107,15 +29,15 @@ export function ConnectableBagSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
 			ports={ports}
 		>
 			<BagSymbol orientation={orientation} maximumSize={maximumSize} className={className} />
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

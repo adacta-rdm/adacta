@@ -1,52 +1,22 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function CoolingTowerSymbol(props: PidSymbolProps) {
+export function CoolingTowerSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 35.433, 46.063]}>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.13996"
-				d="M18.287 47.625H52.58v10.269H18.287z"
-				transform="translate(-17.717 -12.402)"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.04447"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="m18.239 47.312 8.597-34.388H44.03l8.597 34.388"
-				color="#000"
-				display="inline"
-				overflow="visible"
-				transform="translate(-17.717 -12.402)"
-				visibility="visible"
-			/>
+		<SymbolSvg {...props} viewBox={[0, 0, 43.077, 56]}>
+			<g className="pid-symbol-drawing">
+				<path d="M.693 42.822h41.69v12.484H.694z" />
+				<path d="M.635 42.441 11.086.635H31.99L42.441 42.44" />
+			</g>
 		</SymbolSvg>
 	);
 }
@@ -57,9 +27,9 @@ export function ConnectableCoolingTowerSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
@@ -70,6 +40,6 @@ export function ConnectableCoolingTowerSymbol({
 				maximumSize={maximumSize}
 				className={className}
 			/>
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

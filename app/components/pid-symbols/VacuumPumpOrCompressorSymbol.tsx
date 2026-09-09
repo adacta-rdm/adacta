@@ -1,45 +1,21 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function VacuumPumpOrCompressorSymbol(props: PidSymbolProps) {
+export function VacuumPumpOrCompressorSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 35.639, 35.612]}>
-			<g transform="translate(-17.614 -17.627)">
-				<ellipse
-					cx="36.073"
-					cy="34.414"
-					fill="#fff"
-					fillOpacity="1"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth=".922762"
-					rx="14.813"
-					ry="15.192"
-					transform="matrix(1.1666 0 0 1.13752 -6.65 -3.714)"
-				/>
-				<path
-					fill="none"
-					fillRule="evenodd"
-					stroke="#000"
-					strokeDasharray="none"
-					strokeLinecap="butt"
-					strokeLinejoin="miter"
-					strokeMiterlimit="4"
-					strokeOpacity="1"
-					strokeWidth="1.06299"
-					d="m28.75 51.53 23.378-12.067M28.75 19.28l23.378 12.067"
-				/>
+		<SymbolSvg {...props} viewBox={[0, 0, 40, 40]}>
+			<g className="pid-symbol-drawing">
+				<path d="M20 .603a19.395 19.396 0 1 0 0 38.793A19.395 19.396 0 1 0 20 .603" />
+				<path fill="none" d="m12.499 38.067 26.238-13.544M12.5 1.87l26.238 13.544" />
 			</g>
 		</SymbolSvg>
 	);
@@ -51,9 +27,9 @@ export function ConnectableVacuumPumpOrCompressorSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
@@ -64,6 +40,6 @@ export function ConnectableVacuumPumpOrCompressorSymbol({
 				maximumSize={maximumSize}
 				className={className}
 			/>
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }

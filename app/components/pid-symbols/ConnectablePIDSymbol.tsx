@@ -1,41 +1,41 @@
 import { Handle, Position, useConnection } from "@xyflow/react";
 import type { ReactNode } from "react";
 
-import type { PidOrientation, PidSymbolProps } from "./SymbolSvg.tsx";
+import type { PIDOrientation, PIDSymbolProps } from "./SymbolSvg.tsx";
 
-export type PidPortSide = "top" | "right" | "bottom" | "left";
+export type PIDPortSide = "top" | "right" | "bottom" | "left";
 
-export interface PidPort {
+export interface PIDPort {
 	id: string;
 	type: "source" | "target";
-	side: PidPortSide;
+	side: PIDPortSide;
 	x: number;
 	y: number;
 }
 
-export interface ConnectablePidSymbolProps extends PidSymbolProps {
+export interface ConnectablePIDSymbolProps extends PIDSymbolProps {
 	nodeId: string;
 	selected: boolean;
 }
 
-interface PidSymbolWithPortsProps {
+interface PIDSymbolWithPortsProps {
 	nodeId: string;
 	selected: boolean;
-	orientation?: PidOrientation;
-	ports: readonly PidPort[];
+	orientation?: PIDOrientation;
+	ports: readonly PIDPort[];
 	children: ReactNode;
 }
 
 /**
  * Adds the diagram editor's connection handles around a plain P&ID symbol.
  */
-export function ConnectablePidSymbol({
+export function ConnectablePIDSymbol({
 	nodeId,
 	selected,
 	orientation = 0,
 	ports,
 	children,
-}: PidSymbolWithPortsProps) {
+}: PIDSymbolWithPortsProps) {
 	const connection = useConnection();
 	const rotatedPorts = ports.map((port) => rotatePort(port, orientation));
 	const showSelection = selected && !connection.inProgress;
@@ -67,7 +67,7 @@ export function ConnectablePidSymbol({
 	);
 }
 
-function rotatePort(port: PidPort, orientation: PidOrientation): PidPort {
+function rotatePort(port: PIDPort, orientation: PIDOrientation): PIDPort {
 	let rotated = port;
 
 	for (let turn = 0; turn < orientation; turn++) {
@@ -82,8 +82,8 @@ function rotatePort(port: PidPort, orientation: PidOrientation): PidPort {
 	return rotated;
 }
 
-function clockwiseSide(side: PidPortSide): PidPortSide {
-	const sides: readonly PidPortSide[] = ["top", "right", "bottom", "left"];
+function clockwiseSide(side: PIDPortSide): PIDPortSide {
+	const sides: readonly PIDPortSide[] = ["top", "right", "bottom", "left"];
 
 	return sides[(sides.indexOf(side) + 1) % sides.length];
 }
@@ -110,14 +110,14 @@ function handleClassName({
 		: `${appearance} !pointer-events-none !opacity-0 group-hover/pid-node:!pointer-events-auto group-hover/pid-node:!opacity-100`;
 }
 
-const handlePositions: Record<PidPortSide, Position> = {
+const handlePositions: Record<PIDPortSide, Position> = {
 	top: Position.Top,
 	right: Position.Right,
 	bottom: Position.Bottom,
 	left: Position.Left,
 };
 
-function handleOffset(port: PidPort) {
+function handleOffset(port: PIDPort) {
 	return port.side === "top" || port.side === "bottom"
 		? { left: `${port.x * 100}%` }
 		: { top: `${port.y * 100}%` };

@@ -1,100 +1,30 @@
 import {
-	ConnectablePidSymbol,
-	type ConnectablePidSymbolProps,
-	type PidPort,
-} from "./ConnectablePidSymbol.tsx";
-import { SymbolSvg, type PidSymbolProps } from "./SymbolSvg.tsx";
+	ConnectablePIDSymbol,
+	type ConnectablePIDSymbolProps,
+	type PIDPort,
+} from "./ConnectablePIDSymbol.tsx";
+import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
 const ports = [
 	{ id: "inlet", type: "target", side: "left", x: 0, y: 0.5 },
 	{ id: "outlet", type: "source", side: "right", x: 1, y: 0.5 },
-] satisfies readonly PidPort[];
+] satisfies readonly PIDPort[];
 
-export function PressurizedVesselHorizontalSymbol(props: PidSymbolProps) {
+export function PressurizedVesselHorizontalSymbol(props: PIDSymbolProps) {
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 53.206, 28.558]}>
-			<path
-				fill="none"
-				fillOpacity="1"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth=".777427"
-				d="M37.203 13.365a9.744 4.43 0 0 1-9.827 4.351 9.744 4.43 0 0 1-9.66-4.429"
-				transform="matrix(0 1.40931 1.30905 0 29.505 -24.42)"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M56.26 19.922H15.475"
-				color="#000"
-				display="inline"
-				overflow="visible"
-				transform="translate(-8.783 -19.382)"
-				visibility="visible"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				fillRule="nonzero"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="butt"
-				strokeLinejoin="miter"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth="1.06299"
-				markerEnd="none"
-				markerMid="none"
-				markerStart="none"
-				d="M56.26 47.4H15.466"
-				color="#000"
-				display="inline"
-				overflow="visible"
-				transform="translate(-8.783 -19.382)"
-				visibility="visible"
-			/>
-			<path
-				fill="none"
-				fillOpacity="1"
-				stroke="#000"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth=".758798"
-				d="M37.205 13.287a9.744 4.43 0 0 1-4.872 3.836 9.744 4.43 0 0 1-9.744 0 9.744 4.43 0 0 1-4.872-3.836"
-				transform="matrix(0 1.40783 -1.39398 0 25.228 -24.38)"
-			/>
-			<path
-				fill="#fff"
-				fillOpacity="1"
-				stroke="#fff"
-				strokeDasharray="none"
-				strokeDashoffset="0"
-				strokeLinecap="square"
-				strokeMiterlimit="4"
-				strokeOpacity="1"
-				strokeWidth=".0671115"
-				d="M14.933 46.743c-2.366-.658-4.289-4.607-4.905-10.074-.155-1.374-.154-4.694.001-6.03.572-4.91 2.101-8.475 4.178-9.74.702-.427-1.149-.395 21.53-.377l20.517.016.41.221c1.35.727 2.587 2.816 3.37 5.69.3 1.098.545 2.457.745 4.127.113.945.114 5.095.001 6.124-.527 4.814-1.98 8.462-3.87 9.716-.686.455 1.199.418-21.326.412-16.105-.005-20.426-.022-20.651-.085z"
-				opacity="1"
-				transform="translate(-8.783 -19.382)"
-			/>
+		<SymbolSvg {...props} viewBox={[0, 0, 56, 30.058]}>
+			<g className="pid-symbol-drawing" fill="none">
+				{/* An opaque body keeps process lines outside the vessel interior. */}
+				<path
+					fill="var(--adacta-color-diagram-surface)"
+					stroke="none"
+					d="M6.473 28.798c-2.49-.693-4.514-4.85-5.163-10.603-.163-1.446-.162-4.94.001-6.347.602-5.168 2.212-8.92 4.398-10.251.739-.45-1.21-.416 22.66-.397l21.595.017.431.232c1.421.765 2.723 2.964 3.547 5.99.316 1.155.574 2.585.784 4.343.12.994.12 5.362.002 6.445-.555 5.067-2.084 8.907-4.074 10.227-.722.479 1.262.44-22.446.433-16.95-.005-21.498-.023-21.735-.09"
+				/>
+
+				<path d="M49.442 29.469a6.5 14.438 0 0 0 5.628-7.22 6.5 14.438 0 0 0 0-14.438A6.5 14.438 0 0 0 49.442.592" />
+				<path d="M49.442.592H7.058M49.442 29.469H7.058" />
+				<path d="M7.058 29.469a6.5 14.438 0 0 1-5.628-7.22 6.5 14.438 0 0 1 0-14.438A6.5 14.438 0 0 1 7.058.592" />
+			</g>
 		</SymbolSvg>
 	);
 }
@@ -105,9 +35,9 @@ export function ConnectablePressurizedVesselHorizontalSymbol({
 	orientation = 0,
 	maximumSize,
 	className,
-}: ConnectablePidSymbolProps) {
+}: ConnectablePIDSymbolProps) {
 	return (
-		<ConnectablePidSymbol
+		<ConnectablePIDSymbol
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
@@ -118,6 +48,6 @@ export function ConnectablePressurizedVesselHorizontalSymbol({
 				maximumSize={maximumSize}
 				className={className}
 			/>
-		</ConnectablePidSymbol>
+		</ConnectablePIDSymbol>
 	);
 }
