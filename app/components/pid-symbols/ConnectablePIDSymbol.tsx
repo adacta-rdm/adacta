@@ -42,7 +42,9 @@ export function ConnectablePIDSymbol({
 
 	return (
 		<div
-			className={showSelection ? "relative inline-flex ring-2 ring-focus" : "relative inline-flex"}
+			className={
+				showSelection ? "pid-symbol-selected relative inline-flex" : "relative inline-flex"
+			}
 		>
 			{children}
 
@@ -54,7 +56,6 @@ export function ConnectablePIDSymbol({
 					position={handlePositions[port.side]}
 					style={handleOffset(port)}
 					className={handleClassName({
-						selected,
 						connectionInProgress: connection.inProgress,
 						compatible:
 							connection.inProgress &&
@@ -89,25 +90,21 @@ function clockwiseSide(side: PIDPortSide): PIDPortSide {
 }
 
 function handleClassName({
-	selected,
 	connectionInProgress,
 	compatible,
 }: {
-	selected: boolean;
 	connectionInProgress: boolean;
 	compatible: boolean;
 }) {
-	const appearance = "!size-2.5 !border-2 !border-surface !bg-accent transition-opacity";
+	const appearance = "!size-2 !border !border-accent !bg-surface transition-opacity";
 
 	if (connectionInProgress) {
 		return compatible
-			? `${appearance} !pointer-events-auto !bg-success !opacity-100`
-			: `${appearance} !pointer-events-none !bg-border-strong !opacity-100`;
+			? `${appearance} !pointer-events-auto !border-success !opacity-100`
+			: `${appearance} !pointer-events-none !border-border-strong !opacity-100`;
 	}
 
-	return selected
-		? `${appearance} !pointer-events-auto !opacity-100`
-		: `${appearance} !pointer-events-none !opacity-0 group-hover/pid-node:!pointer-events-auto group-hover/pid-node:!opacity-100`;
+	return `${appearance} !pointer-events-none !opacity-0 group-hover/pid-node:!pointer-events-auto group-hover/pid-node:!opacity-100`;
 }
 
 const handlePositions: Record<PIDPortSide, Position> = {

@@ -75,6 +75,24 @@ body {
 .pid-editor {
 	--pid-detail-line-width: 1px;
 	--pid-line-width: 1.5px;
+	--xy-selection-background-color: color-mix(in srgb, var(--adacta-color-accent) 10%, transparent);
+	--xy-selection-border: 1px solid var(--adacta-color-accent);
+}
+
+/* The hand tool owns drags that begin over a symbol or connection point. */
+.pid-editor-canvas--pan .react-flow__node * {
+	pointer-events: none;
+}
+
+/* Each selected node owns its outline, independent of how it was selected. */
+.pid-editor .react-flow__nodesselection {
+	display: none;
+}
+
+.pid-symbol-selected {
+	border-radius: 2px;
+	outline: 1px solid var(--adacta-color-accent);
+	outline-offset: 3px;
 }
 
 .pid-symbol-drawing {
