@@ -10,13 +10,10 @@ import {
 	useSearchParams,
 } from "react-router";
 
+import { isPIDGraph } from "@/tsrc/app/lib/PID";
 import { services } from "~/app/.server/context.ts";
-import { PIDEditor, type PIDGraph } from "~/app/components/PIDEditor.tsx";
-import {
-	pidSymbolGroups,
-	type PIDOrientation,
-	type PIDSymbolKind,
-} from "~/app/components/PIDSymbol.tsx";
+import { PIDEditor } from "~/app/components/PIDEditor.tsx";
+import type { PIDGraph } from "~/app/lib/PID.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { Button } from "~/catalyst-ui/button.tsx";
@@ -28,10 +25,6 @@ import { PIDNode } from "~/drizzle/schema/repo.PIDNode.ts";
 
 import type { loader as entryLoader } from "./$repo.inventory.$entrySlug.tsx";
 import type { Route } from "./+types/$repo.inventory.$entrySlug.pid.ts";
-
-const pidSymbolKinds = new Set<string>(
-	pidSymbolGroups.flatMap((group) => group.symbols.map((symbol) => symbol.kind)),
-);
 
 export function loader({ context, params }: Route.LoaderArgs) {
 	const db = context.get(services).get(RepoDB);
@@ -236,74 +229,24 @@ function parseGraph(value: FormDataEntryValue | null): PIDGraph | undefined {
 		return;
 	}
 
-	if (!isRecord(parsed) || !Array.isArray(parsed.nodes) || !Array.isArray(parsed.edges)) return;
+	if (!isPIDGraph(parsed)) return;
 
-	const nodes = parsed.nodes.map(parseNode);
-	if (nodes.some((node) => node === undefined)) return;
+	// The generated validator checks each value in isolation. These checks cover
+	// identities and references that depend on the graph as a whole.
+	const nodeIds = new Set(parsed.nodes.map((node) => node.id));
+	if (parsed.nodes.some((node) => node.id.length === 0) || nodeIds.size !== parsed.nodes.length) {
+		return;
+	}
 
-	const nodeIds = new Set(nodes.map((node) => node!.id));
-	if (nodeIds.size !== nodes.length) return;
+	const edgeIds = new Set(parsed.edges.map((edge) => edge.id));
+	if (
+		parsed.edges.some(
+			(edge) => edge.id.length === 0 || !nodeIds.has(edge.source) || !nodeIds.has(edge.target),
+		) ||
+		edgeIds.size !== parsed.edges.length
+	) {
+		return;
+	}
 
-	const edges = parsed.edges.map((edge) => parseEdge(edge, nodeIds));
-	if (edges.some((edge) => edge === undefined)) return;
-
-	const edgeIds = new Set(edges.map((edge) => edge!.id));
-	if (edgeIds.size !== edges.length) return;
-
-	return {
-		nodes: nodes as PIDGraph["nodes"],
-		edges: edges as PIDGraph["edges"],
-	};
-}
-
-function parseNode(value: unknown): PIDGraph["nodes"][number] | undefined {
-	if (!isRecord(value) || !isRecord(value.position)) return;
-	if (typeof value.id !== "string" || value.id.length === 0) return;
-	if (typeof value.kind !== "string" || !pidSymbolKinds.has(value.kind)) return;
-	if (typeof value.label !== "string") return;
-	if (!isOrientation(value.orientation)) return;
-	if (!isFiniteNumber(value.position.x) || !isFiniteNumber(value.position.y)) return;
-
-	return {
-		id: value.id,
-		kind: value.kind as PIDSymbolKind,
-		label: value.label,
-		orientation: value.orientation,
-		position: { x: value.position.x, y: value.position.y },
-	};
-}
-
-function parseEdge(
-	value: unknown,
-	nodeIds: ReadonlySet<string>,
-): PIDGraph["edges"][number] | undefined {
-	if (!isRecord(value)) return;
-	if (typeof value.id !== "string" || value.id.length === 0) return;
-	if (typeof value.source !== "string" || !nodeIds.has(value.source)) return;
-	if (typeof value.target !== "string" || !nodeIds.has(value.target)) return;
-	if (!isNullableString(value.sourceHandle) || !isNullableString(value.targetHandle)) return;
-
-	return {
-		id: value.id,
-		source: value.source,
-		target: value.target,
-		sourceHandle: value.sourceHandle,
-		targetHandle: value.targetHandle,
-	};
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === "object" && value !== null;
-}
-
-function isOrientation(value: unknown): value is PIDOrientation {
-	return value === 0 || value === 1 || value === 2 || value === 3;
-}
-
-function isFiniteNumber(value: unknown): value is number {
-	return typeof value === "number" && Number.isFinite(value);
-}
-
-function isNullableString(value: unknown): value is string | null {
-	return value === null || typeof value === "string";
+	return parsed;
 }

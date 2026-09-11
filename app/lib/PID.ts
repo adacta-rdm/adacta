@@ -1,5 +1,26 @@
 export type PIDOrientation = 0 | 1 | 2 | 3;
 
+export interface PIDGraph {
+	nodes: PIDGraphNode[];
+	edges: PIDGraphEdge[];
+}
+
+export interface PIDGraphNode {
+	id: string;
+	kind: PIDSymbolKind;
+	label: string;
+	orientation: PIDOrientation;
+	position: { x: number; y: number };
+}
+
+export interface PIDGraphEdge {
+	id: string;
+	source: string;
+	target: string;
+	sourceHandle: string | null;
+	targetHandle: string | null;
+}
+
 export type PIDSymbolKind =
 	| "gas-bottle"
 	| "autoclave"

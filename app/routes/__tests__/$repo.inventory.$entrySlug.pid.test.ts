@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import type { PIDGraph } from "~/app/components/PIDEditor.tsx";
+import type { PIDGraph } from "~/app/lib/PID.ts";
 import { action, loader } from "~/app/routes/$repo.inventory.$entrySlug.pid.tsx";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
@@ -69,6 +69,20 @@ describe("P&ID route", () => {
 		const invalidGraph = {
 			nodes: [graph.nodes[0]],
 			edges: [{ ...graph.edges[0], target: "missing-node" }],
+		};
+
+		const response = await save(scope, invalidGraph);
+
+		if (response instanceof Response) throw new Error("Expected action data.");
+		expect(response.init?.status).toBe(400);
+		expect(response.data).toEqual({ error: "The diagram contains invalid data." });
+	});
+
+	test("rejects properties outside the graph format", async () => {
+		const scope = await setupRig();
+		const invalidGraph = {
+			nodes: [{ ...graph.nodes[0], selected: true }],
+			edges: [],
 		};
 
 		const response = await save(scope, invalidGraph);

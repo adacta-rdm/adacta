@@ -38,6 +38,7 @@ import {
 	type PIDSymbolKind,
 } from "~/app/components/PIDSymbol.tsx";
 import { getPIDSymbolComponents } from "~/app/components/pid-symbols/PIDSymbolRegistry.ts";
+import type { PIDGraph } from "~/app/lib/PID.ts";
 import { Switch } from "~/catalyst-ui/switch.tsx";
 
 import "@xyflow/react/dist/style.css";
@@ -45,27 +46,6 @@ import "@xyflow/react/dist/style.css";
 type PIDNodeData = { kind: PIDSymbolKind; label: string; orientation: PIDOrientation };
 type PIDNode = Node<PIDNodeData, "pid-symbol">;
 type PIDEdge = Edge<Record<string, never>, "step">;
-
-export interface PIDGraph {
-	nodes: PIDGraphNode[];
-	edges: PIDGraphEdge[];
-}
-
-export interface PIDGraphNode {
-	id: string;
-	kind: PIDSymbolKind;
-	label: string;
-	orientation: PIDOrientation;
-	position: { x: number; y: number };
-}
-
-export interface PIDGraphEdge {
-	id: string;
-	source: string;
-	target: string;
-	sourceHandle: string | null;
-	targetHandle: string | null;
-}
 
 type PaletteDrag = {
 	pointerId: number;
