@@ -1,0 +1,443 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`renderValidatorModules renders each type kind renders TextType 1`] = `
+"export function validateTextType(arg) {
+	return typeof arg === "string";
+}
+export function isTextType(arg) {
+	return validateTextType(arg);
+}
+export function assertTextType(arg) {
+	if (validateTextType(arg)) return;
+	throw new Error("Cannot convert to type TextType");
+}
+export function castTextType(arg) {
+	assertTextType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders NumberType 1`] = `
+"export function validateNumberType(arg) {
+	return typeof arg === "number";
+}
+export function isNumberType(arg) {
+	return validateNumberType(arg);
+}
+export function assertNumberType(arg) {
+	if (validateNumberType(arg)) return;
+	throw new Error("Cannot convert to type NumberType");
+}
+export function castNumberType(arg) {
+	assertNumberType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders BooleanType 1`] = `
+"export function validateBooleanType(arg) {
+	return typeof arg === "boolean";
+}
+export function isBooleanType(arg) {
+	return validateBooleanType(arg);
+}
+export function assertBooleanType(arg) {
+	if (validateBooleanType(arg)) return;
+	throw new Error("Cannot convert to type BooleanType");
+}
+export function castBooleanType(arg) {
+	assertBooleanType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders NullType 1`] = `
+"export function validateNullType(arg) {
+	return arg === null;
+}
+export function isNullType(arg) {
+	return validateNullType(arg);
+}
+export function assertNullType(arg) {
+	if (validateNullType(arg)) return;
+	throw new Error("Cannot convert to type NullType");
+}
+export function castNullType(arg) {
+	assertNullType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders UndefinedType 1`] = `
+"export function validateUndefinedType(arg) {
+	return arg === undefined;
+}
+export function isUndefinedType(arg) {
+	return validateUndefinedType(arg);
+}
+export function assertUndefinedType(arg) {
+	if (validateUndefinedType(arg)) return;
+	throw new Error("Cannot convert to type UndefinedType");
+}
+export function castUndefinedType(arg) {
+	assertUndefinedType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders NeverType 1`] = `
+"export function validateNeverType(arg) {
+	return false;
+}
+export function isNeverType(arg) {
+	return validateNeverType(arg);
+}
+export function assertNeverType(arg) {
+	if (validateNeverType(arg)) return;
+	throw new Error("Cannot convert to type NeverType");
+}
+export function castNeverType(arg) {
+	assertNeverType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders StringLiteralType 1`] = `
+"export function validateStringLiteralType(arg) {
+	return arg === "text";
+}
+export function isStringLiteralType(arg) {
+	return validateStringLiteralType(arg);
+}
+export function assertStringLiteralType(arg) {
+	if (validateStringLiteralType(arg)) return;
+	throw new Error("Cannot convert to type StringLiteralType");
+}
+export function castStringLiteralType(arg) {
+	assertStringLiteralType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders NumberLiteralType 1`] = `
+"export function validateNumberLiteralType(arg) {
+	return arg === 42;
+}
+export function isNumberLiteralType(arg) {
+	return validateNumberLiteralType(arg);
+}
+export function assertNumberLiteralType(arg) {
+	if (validateNumberLiteralType(arg)) return;
+	throw new Error("Cannot convert to type NumberLiteralType");
+}
+export function castNumberLiteralType(arg) {
+	assertNumberLiteralType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders TrueLiteralType 1`] = `
+"export function validateTrueLiteralType(arg) {
+	return arg === true;
+}
+export function isTrueLiteralType(arg) {
+	return validateTrueLiteralType(arg);
+}
+export function assertTrueLiteralType(arg) {
+	if (validateTrueLiteralType(arg)) return;
+	throw new Error("Cannot convert to type TrueLiteralType");
+}
+export function castTrueLiteralType(arg) {
+	assertTrueLiteralType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders FalseLiteralType 1`] = `
+"export function validateFalseLiteralType(arg) {
+	return arg === false;
+}
+export function isFalseLiteralType(arg) {
+	return validateFalseLiteralType(arg);
+}
+export function assertFalseLiteralType(arg) {
+	if (validateFalseLiteralType(arg)) return;
+	throw new Error("Cannot convert to type FalseLiteralType");
+}
+export function castFalseLiteralType(arg) {
+	assertFalseLiteralType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders UnionType 1`] = `
+"export function validateUnionType(arg) {
+	return typeof arg === "string" || typeof arg === "number";
+}
+export function isUnionType(arg) {
+	return validateUnionType(arg);
+}
+export function assertUnionType(arg) {
+	if (validateUnionType(arg)) return;
+	throw new Error("Cannot convert to type UnionType");
+}
+export function castUnionType(arg) {
+	assertUnionType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders ArrayType 1`] = `
+"export function validateArrayType(arg) {
+	return Array.isArray(arg) && arg.every((item) => (typeof item === "string"));
+}
+export function isArrayType(arg) {
+	return validateArrayType(arg);
+}
+export function assertArrayType(arg) {
+	if (validateArrayType(arg)) return;
+	throw new Error("Cannot convert to type ArrayType");
+}
+export function castArrayType(arg) {
+	assertArrayType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders UnionArrayType 1`] = `
+"export function validateUnionArrayType(arg) {
+	return Array.isArray(arg) && arg.every((item) => (typeof item === "string" || typeof item === "number"));
+}
+export function isUnionArrayType(arg) {
+	return validateUnionArrayType(arg);
+}
+export function assertUnionArrayType(arg) {
+	if (validateUnionArrayType(arg)) return;
+	throw new Error("Cannot convert to type UnionArrayType");
+}
+export function castUnionArrayType(arg) {
+	assertUnionArrayType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders ObjectType 1`] = `
+"export function validateObjectType(arg) {
+	return typeof arg === "object" && arg !== null && (typeof arg["value"] === "string") && Object.keys(arg).every((key) => (["value"].includes(key)));
+}
+export function isObjectType(arg) {
+	return validateObjectType(arg);
+}
+export function assertObjectType(arg) {
+	if (validateObjectType(arg)) return;
+	throw new Error("Cannot convert to type ObjectType");
+}
+export function castObjectType(arg) {
+	assertObjectType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders ComposedObjectType 1`] = `
+"export function validateComposedObjectType(arg) {
+	return typeof arg === "object" && arg !== null && (typeof arg["nested"] === "object" && arg["nested"] !== null && (typeof arg["nested"]["value"] === "string") && Object.keys(arg["nested"]).every((key) => (["value"].includes(key)))) && Object.keys(arg).every((key) => (["nested"].includes(key)));
+}
+export function isComposedObjectType(arg) {
+	return validateComposedObjectType(arg);
+}
+export function assertComposedObjectType(arg) {
+	if (validateComposedObjectType(arg)) return;
+	throw new Error("Cannot convert to type ComposedObjectType");
+}
+export function castComposedObjectType(arg) {
+	assertComposedObjectType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders ComposedObjectTypeWithGeneric 1`] = `
+"export function validateComposedObjectTypeWithGeneric(arg) {
+	return typeof arg === "object" && arg !== null && (typeof arg["nestedString"] === "object" && arg["nestedString"] !== null && (typeof arg["nestedString"]["prop"] === "string") && Object.keys(arg["nestedString"]).every((key) => (["prop"].includes(key)))) && (typeof arg["nestedNumber"] === "object" && arg["nestedNumber"] !== null && (typeof arg["nestedNumber"]["prop"] === "number") && Object.keys(arg["nestedNumber"]).every((key) => (["prop"].includes(key)))) && Object.keys(arg).every((key) => (["nestedString","nestedNumber"].includes(key)));
+}
+export function isComposedObjectTypeWithGeneric(arg) {
+	return validateComposedObjectTypeWithGeneric(arg);
+}
+export function assertComposedObjectTypeWithGeneric(arg) {
+	if (validateComposedObjectTypeWithGeneric(arg)) return;
+	throw new Error("Cannot convert to type ComposedObjectTypeWithGeneric");
+}
+export function castComposedObjectTypeWithGeneric(arg) {
+	assertComposedObjectTypeWithGeneric(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders OptionalObjectType 1`] = `
+"export function validateOptionalObjectType(arg) {
+	return typeof arg === "object" && arg !== null && (arg["value"] === undefined || (typeof arg["value"] === "string")) && Object.keys(arg).every((key) => (["value"].includes(key)));
+}
+export function isOptionalObjectType(arg) {
+	return validateOptionalObjectType(arg);
+}
+export function assertOptionalObjectType(arg) {
+	if (validateOptionalObjectType(arg)) return;
+	throw new Error("Cannot convert to type OptionalObjectType");
+}
+export function castOptionalObjectType(arg) {
+	assertOptionalObjectType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders EmptyObjectType 1`] = `
+"export function validateEmptyObjectType(arg) {
+	return typeof arg === "object" && arg !== null && Object.keys(arg).every((key) => ([].includes(key)));
+}
+export function isEmptyObjectType(arg) {
+	return validateEmptyObjectType(arg);
+}
+export function assertEmptyObjectType(arg) {
+	if (validateEmptyObjectType(arg)) return;
+	throw new Error("Cannot convert to type EmptyObjectType");
+}
+export function castEmptyObjectType(arg) {
+	assertEmptyObjectType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders StringIndexObjectType 1`] = `
+"export function validateStringIndexObjectType(arg) {
+	return typeof arg === "object" && arg !== null && Object.keys(arg).every((key) => (typeof arg[key] === "string"));
+}
+export function isStringIndexObjectType(arg) {
+	return validateStringIndexObjectType(arg);
+}
+export function assertStringIndexObjectType(arg) {
+	if (validateStringIndexObjectType(arg)) return;
+	throw new Error("Cannot convert to type StringIndexObjectType");
+}
+export function castStringIndexObjectType(arg) {
+	assertStringIndexObjectType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders ObjectWithIndexType 1`] = `
+"export function validateObjectWithIndexType(arg) {
+	return typeof arg === "object" && arg !== null && (typeof arg["a"] === "number") && Object.keys(arg).every((key) => (typeof arg[key] === "string" || typeof arg[key] === "number"));
+}
+export function isObjectWithIndexType(arg) {
+	return validateObjectWithIndexType(arg);
+}
+export function assertObjectWithIndexType(arg) {
+	if (validateObjectWithIndexType(arg)) return;
+	throw new Error("Cannot convert to type ObjectWithIndexType");
+}
+export function castObjectWithIndexType(arg) {
+	assertObjectWithIndexType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders IntersectionObjectType 1`] = `
+"export function validateIntersectionObjectType(arg) {
+	return typeof arg === "object" && arg !== null && (typeof arg["a"] === "string") && (typeof arg["b"] === "number") && Object.keys(arg).every((key) => (["a","b"].includes(key)));
+}
+export function isIntersectionObjectType(arg) {
+	return validateIntersectionObjectType(arg);
+}
+export function assertIntersectionObjectType(arg) {
+	if (validateIntersectionObjectType(arg)) return;
+	throw new Error("Cannot convert to type IntersectionObjectType");
+}
+export function castIntersectionObjectType(arg) {
+	assertIntersectionObjectType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders IndexIntersectionType 1`] = `
+"export function validateIndexIntersectionType(arg) {
+	return typeof arg === "object" && arg !== null && Object.keys(arg).every((key) => (typeof arg[key] === "string")) && typeof arg === "object" && arg !== null && Object.keys(arg).every((key) => (typeof arg[key] === "number"));
+}
+export function isIndexIntersectionType(arg) {
+	return validateIndexIntersectionType(arg);
+}
+export function assertIndexIntersectionType(arg) {
+	if (validateIndexIntersectionType(arg)) return;
+	throw new Error("Cannot convert to type IndexIntersectionType");
+}
+export function castIndexIntersectionType(arg) {
+	assertIndexIntersectionType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders TupleType 1`] = `
+"export function validateTupleType(arg) {
+	return Array.isArray(arg) && arg.length >= 2 && arg.length <= 2 && typeof arg.at(0) === "string" && typeof arg.at(1) === "number";
+}
+export function isTupleType(arg) {
+	return validateTupleType(arg);
+}
+export function assertTupleType(arg) {
+	if (validateTupleType(arg)) return;
+	throw new Error("Cannot convert to type TupleType");
+}
+export function castTupleType(arg) {
+	assertTupleType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders OptionalTupleType 1`] = `
+"export function validateOptionalTupleType(arg) {
+	return Array.isArray(arg) && arg.length >= 1 && arg.length <= 2 && typeof arg.at(0) === "string" && (arg.at(1) === undefined || typeof arg.at(1) === "number");
+}
+export function isOptionalTupleType(arg) {
+	return validateOptionalTupleType(arg);
+}
+export function assertOptionalTupleType(arg) {
+	if (validateOptionalTupleType(arg)) return;
+	throw new Error("Cannot convert to type OptionalTupleType");
+}
+export function castOptionalTupleType(arg) {
+	assertOptionalTupleType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders RestTupleType 1`] = `
+"export function validateRestTupleType(arg) {
+	return Array.isArray(arg) && arg.length >= 1 && typeof arg.at(0) === "string" && arg.slice(1, arg.length - 0).every((item) => (typeof item === "number"));
+}
+export function isRestTupleType(arg) {
+	return validateRestTupleType(arg);
+}
+export function assertRestTupleType(arg) {
+	if (validateRestTupleType(arg)) return;
+	throw new Error("Cannot convert to type RestTupleType");
+}
+export function castRestTupleType(arg) {
+	assertRestTupleType(arg);
+	return arg;
+}"
+`;
+
+exports[`renderValidatorModules renders each type kind renders SuffixRestTupleType 1`] = `
+"export function validateSuffixRestTupleType(arg) {
+	return Array.isArray(arg) && arg.length >= 2 && typeof arg.at(0) === "string" && arg.slice(1, arg.length - 1).every((item) => (typeof item === "number")) && typeof arg.at(-1) === "boolean";
+}
+export function isSuffixRestTupleType(arg) {
+	return validateSuffixRestTupleType(arg);
+}
+export function assertSuffixRestTupleType(arg) {
+	if (validateSuffixRestTupleType(arg)) return;
+	throw new Error("Cannot convert to type SuffixRestTupleType");
+}
+export function castSuffixRestTupleType(arg) {
+	assertSuffixRestTupleType(arg);
+	return arg;
+}"
+`;

@@ -5,9 +5,15 @@
 	"private": true,
 	"license": "MIT",
 	"repository": "git@github.com:omegadot-software/adacta.git",
+	"tsrc": {
+		"ignore": [
+			"lib/tsrc/__tests__"
+		]
+	},
 	"scripts": {
-		"dev": "bun --bun react-router dev",
-		"build": "bun --bun react-router build",
+		"dev": "bun run generate && bun --bun react-router dev",
+		"build": "bun run generate && bun --bun react-router build",
+		"build:tsrc": "bun lib/tsrc/cli.ts",
 		"start": "bun server.ts",
 		"db:migrations:refresh": "bun scripts/db.ts refresh",
 		"db:migrations:migrate": "bun scripts/db.ts migrate",
@@ -16,7 +22,8 @@
 		"db:seed": "bun scripts/db.ts seed",
 		"precommit": "bun install --dry-run --frozen-lockfile --silent && bun run typecheck && oxlint --fix && oxfmt && bun test",
 		"typegen": "bun --bun react-router typegen",
-		"typecheck": "bun run typegen && tsc",
+		"generate": "bun run typegen && bun run build:tsrc",
+		"typecheck": "bun run generate && tsc",
 		"test": "bun test",
 		"lint": "oxlint",
 		"format": "oxfmt",

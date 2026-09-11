@@ -63,6 +63,7 @@ Set `ADACTA_STORAGE_DIR` to store the files in another directory.
 | ------------------------------- | -------------------------------------------------------------------- |
 | `bun run dev`                   | Start the development server on <http://localhost:5173>              |
 | `bun run build`                 | Build the client and server bundles into `build/`                    |
+| `bun run build:tsrc`            | Generate runtime validators from the TypeScript declarations         |
 | `bun run start`                 | Serve a build, on `PORT` or on port 3000                             |
 | `bun run db:migrations:refresh` | Rebuild the system and repository migration baselines                |
 | `bun run db:migrations:migrate` | Apply pending migrations to the system database and every repository |
@@ -71,7 +72,7 @@ Set `ADACTA_STORAGE_DIR` to store the files in another directory.
 | `bun run db:seed`               | Load the development seed                                            |
 | `bun run precommit`             | Type check, lint, format, then run the tests. Repairs what it can    |
 | `bun test`                      | Run the test suite                                                   |
-| `bun run typecheck`             | Generate route types, then run `tsc`                                 |
+| `bun run typecheck`             | Generate route types and runtime validators, then run `tsc`          |
 | `bun run lint`                  | Run oxlint                                                           |
 | `bun run format`                | Format with oxfmt                                                    |
 | `bun run format:check`          | Report formatting problems without changing files                    |

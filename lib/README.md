@@ -20,6 +20,7 @@ their public APIs.
 | `logger/`            | Writes structured log messages to a stream.                       |
 | `service-container/` | Resolves services and provides independently configurable scopes. |
 | `storage-engine/`    | Stores files as streams behind a common interface.                |
+| `tsrc/`              | Generates runtime validators from TypeScript declarations.        |
 
 Tests live beside the source. Each module's public API and tests are meaningful
 without knowledge of the Adacta application.

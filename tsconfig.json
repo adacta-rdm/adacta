@@ -27,6 +27,7 @@
 		// "~/app/...", "~/lib/...", which keeps every top-level directory
 		// addressable the same way.
 		"paths": {
+			"@/*": ["./@/*"],
 			"~/*": ["./*"],
 			"~/catalyst-ui/*": ["./vendor/catalyst-ui-kit/typescript/*"]
 		},
