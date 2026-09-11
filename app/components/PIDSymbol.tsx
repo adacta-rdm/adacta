@@ -1,5 +1,7 @@
 import { getPIDSymbolComponents } from "~/app/components/pid-symbols/PIDSymbolRegistry.ts";
-import type { PIDOrientation } from "~/app/components/pid-symbols/SymbolSvg.tsx";
+import type { PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
+
+export type { PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
 
 export const pidSymbolGroups = [
 	{
@@ -97,8 +99,6 @@ export const pidSymbolGroups = [
 ] as const;
 
 export type PIDSymbolDefinition = (typeof pidSymbolGroups)[number]["symbols"][number];
-export type PIDSymbolKind = PIDSymbolDefinition["kind"];
-export type { PIDOrientation };
 
 const pidSymbols: readonly PIDSymbolDefinition[] = pidSymbolGroups.flatMap((group) => [
 	...group.symbols,

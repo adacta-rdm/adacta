@@ -54,6 +54,38 @@ CREATE TABLE `Manufacturer` (
 	`metadata_archived_at` integer
 );
 --> statement-breakpoint
+CREATE TABLE `PIDEdge` (
+	`pid_edge_id` text PRIMARY KEY,
+	`inventory_entry_id` integer NOT NULL,
+	`source_node_id` text NOT NULL,
+	`target_node_id` text NOT NULL,
+	`source_handle` text,
+	`target_handle` text,
+	`drawing_order` integer NOT NULL,
+	`metadata_creator_id` text NOT NULL,
+	`metadata_creation_timestamp` integer NOT NULL,
+	`metadata_archived_at` integer,
+	CONSTRAINT `fk_PIDEdge_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE CASCADE,
+	CONSTRAINT `fk_PIDEdge_source_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`source_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
+	CONSTRAINT `fk_PIDEdge_target_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`target_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE
+);
+--> statement-breakpoint
+CREATE TABLE `PIDNode` (
+	`pid_node_id` text PRIMARY KEY,
+	`inventory_entry_id` integer NOT NULL,
+	`kind` text NOT NULL,
+	`label` text NOT NULL,
+	`drawing_order` integer NOT NULL,
+	`orientation` integer NOT NULL,
+	`position_x` real NOT NULL,
+	`position_y` real NOT NULL,
+	`metadata_creator_id` text NOT NULL,
+	`metadata_creation_timestamp` integer NOT NULL,
+	`metadata_archived_at` integer,
+	CONSTRAINT `fk_PIDNode_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE CASCADE,
+	CONSTRAINT "PIDNode_orientation_check" CHECK("orientation" between 0 and 3)
+);
+--> statement-breakpoint
 CREATE TABLE `Product` (
 	`product_id` integer PRIMARY KEY AUTOINCREMENT,
 	`manufacturer_id` integer NOT NULL,
@@ -141,6 +173,8 @@ CREATE TABLE `SourceArtifact` (
 CREATE UNIQUE INDEX `Channel_key_role_unique` ON `Channel` (`product_id`,`key`,`role`);--> statement-breakpoint
 CREATE UNIQUE INDEX `InventoryEntry_slug_unique` ON `InventoryEntry` (`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Manufacturer_slug_unique` ON `Manufacturer` (`slug`);--> statement-breakpoint
+CREATE INDEX `PIDEdge_inventory_entry_idx` ON `PIDEdge` (`inventory_entry_id`);--> statement-breakpoint
+CREATE INDEX `PIDNode_inventory_entry_idx` ON `PIDNode` (`inventory_entry_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Product_slug_unique` ON `Product` (`manufacturer_id`,`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `ProductSeries_slug_unique` ON `ProductSeries` (`manufacturer_id`,`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Sample_batch_name_unique` ON `Sample` (`sample_batch_id`,`name`);--> statement-breakpoint

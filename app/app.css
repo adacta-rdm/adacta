@@ -84,6 +84,12 @@ body {
 	pointer-events: none;
 }
 
+/* React Flow measures hidden ports to position saved connections. */
+.pid-editor-canvas--read-only .react-flow__handle {
+	opacity: 0 !important;
+	pointer-events: none !important;
+}
+
 /* Each selected node owns its outline, independent of how it was selected. */
 .pid-editor .react-flow__nodesselection {
 	display: none;

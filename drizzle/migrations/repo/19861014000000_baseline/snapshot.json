@@ -21,6 +21,14 @@
 			"entityType": "tables"
 		},
 		{
+			"name": "PIDEdge",
+			"entityType": "tables"
+		},
+		{
+			"name": "PIDNode",
+			"entityType": "tables"
+		},
+		{
 			"name": "Product",
 			"entityType": "tables"
 		},
@@ -437,6 +445,216 @@
 			"name": "metadata_archived_at",
 			"entityType": "columns",
 			"table": "Manufacturer"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "pid_edge_id",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inventory_entry_id",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "source_node_id",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "target_node_id",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "source_handle",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "target_handle",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "drawing_order",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "pid_node_id",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inventory_entry_id",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "kind",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "label",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "drawing_order",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "orientation",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "real",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "position_x",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "real",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "position_y",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "PIDNode"
 		},
 		{
 			"type": "integer",
@@ -1074,6 +1292,50 @@
 			"table": "Channel"
 		},
 		{
+			"columns": ["inventory_entry_id"],
+			"tableTo": "InventoryEntry",
+			"columnsTo": ["inventory_entry_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_PIDEdge_inventory_entry_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "PIDEdge"
+		},
+		{
+			"columns": ["source_node_id"],
+			"tableTo": "PIDNode",
+			"columnsTo": ["pid_node_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_PIDEdge_source_node_id_PIDNode_pid_node_id_fk",
+			"entityType": "fks",
+			"table": "PIDEdge"
+		},
+		{
+			"columns": ["target_node_id"],
+			"tableTo": "PIDNode",
+			"columnsTo": ["pid_node_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_PIDEdge_target_node_id_PIDNode_pid_node_id_fk",
+			"entityType": "fks",
+			"table": "PIDEdge"
+		},
+		{
+			"columns": ["inventory_entry_id"],
+			"tableTo": "InventoryEntry",
+			"columnsTo": ["inventory_entry_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_PIDNode_inventory_entry_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "PIDNode"
+		},
+		{
 			"columns": ["manufacturer_id"],
 			"tableTo": "Manufacturer",
 			"columnsTo": ["manufacturer_id"],
@@ -1154,6 +1416,20 @@
 			"nameExplicit": false,
 			"name": "Manufacturer_pk",
 			"table": "Manufacturer",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["pid_edge_id"],
+			"nameExplicit": false,
+			"name": "PIDEdge_pk",
+			"table": "PIDEdge",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["pid_node_id"],
+			"nameExplicit": false,
+			"name": "PIDNode_pk",
+			"table": "PIDNode",
 			"entityType": "pks"
 		},
 		{
@@ -1258,6 +1534,34 @@
 		{
 			"columns": [
 				{
+					"value": "inventory_entry_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "PIDEdge_inventory_entry_idx",
+			"entityType": "indexes",
+			"table": "PIDEdge"
+		},
+		{
+			"columns": [
+				{
+					"value": "inventory_entry_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "PIDNode_inventory_entry_idx",
+			"entityType": "indexes",
+			"table": "PIDNode"
+		},
+		{
+			"columns": [
+				{
 					"value": "manufacturer_id",
 					"isExpression": false
 				},
@@ -1340,6 +1644,12 @@
 			"name": "SampleBatch_slug_unique",
 			"entityType": "indexes",
 			"table": "SampleBatch"
+		},
+		{
+			"value": "\"orientation\" between 0 and 3",
+			"name": "PIDNode_orientation_check",
+			"entityType": "checks",
+			"table": "PIDNode"
 		}
 	],
 	"renames": []

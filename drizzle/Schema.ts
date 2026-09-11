@@ -2,6 +2,8 @@ import { CatalogSource } from "~/drizzle/schema/repo.CatalogSource.ts";
 import { Channel } from "~/drizzle/schema/repo.Channel.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
 import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
+import { PIDEdge } from "~/drizzle/schema/repo.PIDEdge.ts";
+import { PIDNode } from "~/drizzle/schema/repo.PIDNode.ts";
 import { Product } from "~/drizzle/schema/repo.Product.ts";
 import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries.ts";
 import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification.ts";
@@ -19,6 +21,8 @@ const Schema = {
 	Channel,
 	InventoryEntry,
 	Manufacturer,
+	PIDEdge,
+	PIDNode,
 	Product,
 	ProductSeries,
 	ProductSpecification,

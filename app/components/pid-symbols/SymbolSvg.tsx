@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 
-export type PIDOrientation = 0 | 1 | 2 | 3;
+import type { PIDOrientation } from "~/app/lib/PID.ts";
+
+export type { PIDOrientation } from "~/app/lib/PID.ts";
 
 export interface PIDSymbolProps {
 	orientation?: PIDOrientation;

@@ -27,7 +27,7 @@ import {
 	type NodeOrigin,
 	type NodeProps,
 } from "@xyflow/react";
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 import {
 	getPIDSymbol,
@@ -45,6 +45,28 @@ import "@xyflow/react/dist/style.css";
 type PIDNodeData = { kind: PIDSymbolKind; label: string; orientation: PIDOrientation };
 type PIDNode = Node<PIDNodeData, "pid-symbol">;
 type PIDEdge = Edge<Record<string, never>, "step">;
+
+export interface PIDGraph {
+	nodes: PIDGraphNode[];
+	edges: PIDGraphEdge[];
+}
+
+export interface PIDGraphNode {
+	id: string;
+	kind: PIDSymbolKind;
+	label: string;
+	orientation: PIDOrientation;
+	position: { x: number; y: number };
+}
+
+export interface PIDGraphEdge {
+	id: string;
+	source: string;
+	target: string;
+	sourceHandle: string | null;
+	targetHandle: string | null;
+}
+
 type PaletteDrag = {
 	pointerId: number;
 	kind: PIDSymbolKind;
@@ -58,22 +80,28 @@ const nodeTypes = { "pid-symbol": PIDSymbolNode };
 const nodeOrigin: NodeOrigin = [0.5, 0.5];
 
 /**
- * An editable P&ID canvas without revision history or server persistence.
+ * A P&ID canvas that shows an existing graph and reports edits to it.
  *
- * The drawing behavior is adapted from the v2 editor. This first version keeps
- * the graph in component state while the node and equipment model is settled.
+ * The reported graph omits selection and other temporary canvas state. For
+ * example, selecting a symbol does not become part of a saved diagram.
  */
-export function PIDEditor() {
+export function PIDEditor({ value, readOnly = false, onChange }: PIDEditorProps) {
 	return (
 		<ReactFlowProvider>
-			<PIDEditorContents />
+			<PIDEditorContents value={value} readOnly={readOnly} onChange={onChange} />
 		</ReactFlowProvider>
 	);
 }
 
-function PIDEditorContents() {
-	const [nodes, setNodes, onNodesChange] = useNodesState<PIDNode>([]);
-	const [edges, setEdges, onEdgesChange] = useEdgesState<PIDEdge>([]);
+export interface PIDEditorProps {
+	value: PIDGraph;
+	readOnly?: boolean;
+	onChange?: (value: PIDGraph) => void;
+}
+
+function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { readOnly: boolean }) {
+	const [nodes, setNodes, onNodesChange] = useNodesState<PIDNode>(editorNodes(value));
+	const [edges, setEdges, onEdgesChange] = useEdgesState<PIDEdge>(editorEdges(value));
 	const [showGrid, setShowGrid] = useState(false);
 	const [activeTool, setActiveTool] = useState<EditorTool>("select");
 	const [paletteFilter, setPaletteFilter] = useState("");
@@ -85,11 +113,21 @@ function PIDEditorContents() {
 		x: number;
 		y: number;
 	}>();
-	const nextNodeNumber = useRef(1);
+	const nextNodeNumber = useRef(value.nodes.length + 1);
 	const paletteDrag = useRef<PaletteDrag | undefined>(undefined);
 	const canvas = useRef<HTMLDivElement>(null);
 	const { screenToFlowPosition, zoomTo } = useReactFlow<PIDNode, PIDEdge>();
 	const updateNodeInternals = useUpdateNodeInternals();
+
+	useEffect(() => {
+		setNodes(editorNodes(value));
+		setEdges(editorEdges(value));
+		nextNodeNumber.current = value.nodes.length + 1;
+	}, [setEdges, setNodes, value]);
+
+	useEffect(() => {
+		onChange?.(pidGraph(nodes, edges));
+	}, [edges, nodes, onChange]);
 
 	const selectedNodes = nodes.filter((node) => node.selected);
 	const selectedEdges = edges.filter((edge) => edge.selected);
@@ -128,7 +166,7 @@ function PIDEditorContents() {
 	function addNode(kind: PIDSymbolKind, position?: { x: number; y: number }) {
 		const symbol = getPIDSymbol(kind);
 		const number = nextNodeNumber.current++;
-		const id = `pid-node-${number}`;
+		const id = `pid-node-${crypto.randomUUID()}`;
 
 		setNodes((current) => [
 			...current.map((node) => ({ ...node, selected: false })),
@@ -304,7 +342,9 @@ function PIDEditorContents() {
 
 			<div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface-muted px-4 py-3">
 				<p className="text-sm text-foreground-muted">
-					Drag a symbol onto the canvas, then connect its handles. Changes are not saved yet.
+					{readOnly
+						? "Drag or scroll to explore the diagram."
+						: "Drag a symbol onto the canvas, then connect its ports."}
 				</p>
 
 				<div className="flex items-center gap-4">
@@ -319,13 +359,19 @@ function PIDEditorContents() {
 
 			<div ref={canvas} className="relative h-[calc(100vh-18rem)] min-h-[42rem] bg-canvas">
 				<ReactFlow<PIDNode, PIDEdge>
-					className={activeTool === "pan" ? "pid-editor-canvas--pan" : undefined}
+					className={
+						readOnly
+							? "pid-editor-canvas--read-only"
+							: activeTool === "pan"
+								? "pid-editor-canvas--pan"
+								: undefined
+					}
 					nodes={nodes}
 					edges={displayedEdges}
 					nodeTypes={nodeTypes}
-					onNodesChange={onNodesChange}
-					onEdgesChange={onEdgesChange}
-					onConnect={connect}
+					onNodesChange={readOnly ? undefined : onNodesChange}
+					onEdgesChange={readOnly ? undefined : onEdgesChange}
+					onConnect={readOnly ? undefined : connect}
 					colorMode="system"
 					connectionLineType={ConnectionLineType.Step}
 					defaultViewport={{ x: 0, y: 0, zoom: 1 }}
@@ -342,45 +388,47 @@ function PIDEditorContents() {
 					zoomOnScroll={false}
 					zoomOnDoubleClick={false}
 					panOnScroll
-					panOnDrag={activeTool === "pan" ? [0, 1] : [1]}
-					nodesDraggable={activeTool === "select"}
-					nodesConnectable={activeTool === "select"}
-					elementsSelectable={activeTool === "select"}
+					panOnDrag={readOnly || activeTool === "pan" ? [0, 1] : [1]}
+					nodesDraggable={!readOnly && activeTool === "select"}
+					nodesConnectable={!readOnly && activeTool === "select"}
+					elementsSelectable={!readOnly && activeTool === "select"}
 					selectionKeyCode={null}
-					selectionOnDrag={activeTool === "select"}
+					selectionOnDrag={!readOnly && activeTool === "select"}
 					snapToGrid
 					snapGrid={[10, 10]}
 				>
-					<ReactFlowPanel position="top-left" className="m-3">
-						<div
-							role="toolbar"
-							aria-label="Diagram tools"
-							className="flex gap-1 rounded-lg border border-border bg-surface/95 p-1 shadow-lg backdrop-blur-sm"
-						>
-							<button
-								type="button"
-								aria-label="Select"
-								aria-pressed={activeTool === "select"}
-								title="Select"
-								className={toolButtonClass(activeTool === "select")}
-								onClick={() => setActiveTool("select")}
+					{!readOnly ? (
+						<ReactFlowPanel position="top-left" className="m-3">
+							<div
+								role="toolbar"
+								aria-label="Diagram tools"
+								className="flex gap-1 rounded-lg border border-border bg-surface/95 p-1 shadow-lg backdrop-blur-sm"
 							>
-								<CursorArrowRaysIcon className="size-4" />
-								Select
-							</button>
-							<button
-								type="button"
-								aria-label="Hand"
-								aria-pressed={activeTool === "pan"}
-								title="Pan canvas"
-								className={toolButtonClass(activeTool === "pan")}
-								onClick={() => setActiveTool("pan")}
-							>
-								<HandRaisedIcon className="size-4" />
-								Hand
-							</button>
-						</div>
-					</ReactFlowPanel>
+								<button
+									type="button"
+									aria-label="Select"
+									aria-pressed={activeTool === "select"}
+									title="Select"
+									className={toolButtonClass(activeTool === "select")}
+									onClick={() => setActiveTool("select")}
+								>
+									<CursorArrowRaysIcon className="size-4" />
+									Select
+								</button>
+								<button
+									type="button"
+									aria-label="Hand"
+									aria-pressed={activeTool === "pan"}
+									title="Pan canvas"
+									className={toolButtonClass(activeTool === "pan")}
+									onClick={() => setActiveTool("pan")}
+								>
+									<HandRaisedIcon className="size-4" />
+									Hand
+								</button>
+							</div>
+						</ReactFlowPanel>
+					) : null}
 
 					<Controls showInteractive={false}>
 						<ControlButton
@@ -400,7 +448,7 @@ function PIDEditorContents() {
 					) : null}
 				</ReactFlow>
 
-				{selectedItemCount > 0 ? (
+				{!readOnly && selectedItemCount > 0 ? (
 					<aside className="absolute bottom-3 left-14 z-10 w-52 rounded-lg border border-border bg-surface/95 p-4 shadow-lg backdrop-blur-sm">
 						<h3 className="text-sm font-semibold text-foreground">
 							{selectedNode
@@ -460,94 +508,139 @@ function PIDEditorContents() {
 					</aside>
 				) : null}
 
-				<aside className="absolute inset-y-3 right-3 z-10 flex w-60 max-w-[calc(100%-1.5rem)] flex-col overflow-hidden rounded-lg border border-border bg-surface/95 shadow-lg backdrop-blur-sm">
-					<div className="border-b border-border p-3">
-						<h3 className="text-sm font-semibold text-foreground">Equipment</h3>
-						<p className="mt-0.5 text-xs text-foreground-muted">
-							Click or drag a symbol to add it.
-						</p>
-
-						<div className="relative mt-3">
-							<MagnifyingGlassIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-foreground-muted" />
-							<input
-								type="text"
-								value={paletteFilter}
-								onChange={(event) => setPaletteFilter(event.target.value)}
-								placeholder="Filter symbols"
-								aria-label="Filter P&ID symbols"
-								className="w-full rounded-md border border-border bg-surface py-1.5 pr-8 pl-8 text-sm text-foreground placeholder:text-foreground-muted focus:border-focus focus:outline-none"
-							/>
-							{paletteFilter ? (
-								<button
-									type="button"
-									aria-label="Clear symbol filter"
-									onClick={() => setPaletteFilter("")}
-									className="absolute top-1/2 right-1.5 -translate-y-1/2 rounded p-1 text-foreground-muted hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
-								>
-									<XMarkIcon className="size-4" />
-								</button>
-							) : null}
-						</div>
-					</div>
-
-					<div className="min-h-0 flex-1 overflow-y-auto p-2">
-						{visibleSymbolGroups.length > 0 ? (
-							<div className="space-y-1">
-								{visibleSymbolGroups.map((group) => {
-									const isOpen = normalizedPaletteFilter
-										? true
-										: openPaletteGroups.has(group.label);
-
-									return (
-										<section key={group.label}>
-											<button
-												type="button"
-												aria-expanded={isOpen}
-												onClick={() => togglePaletteGroup(group.label)}
-												className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-xs font-semibold text-foreground-muted hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
-											>
-												<span>{group.label}</span>
-												<ChevronDownIcon
-													className={`size-4 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
-												/>
-											</button>
-
-											{isOpen ? (
-												<div className="mt-1 grid grid-cols-2 gap-1.5 pb-2">
-													{group.symbols.map((symbol) => (
-														<div
-															key={symbol.kind}
-															role="button"
-															tabIndex={0}
-															className="flex min-h-14 touch-none cursor-grab select-none flex-col items-center justify-center gap-1 rounded-md border border-border bg-surface p-1.5 text-center text-[0.6875rem] leading-tight text-foreground hover:border-border-strong hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-focus active:cursor-grabbing"
-															onKeyDown={(event) => {
-																if (event.key !== "Enter" && event.key !== " ") return;
-
-																event.preventDefault();
-																addNode(symbol.kind);
-															}}
-															onPointerDown={(event) => startPaletteDrag(event, symbol.kind)}
-														>
-															<PIDSymbol kind={symbol.kind} className="h-6 w-10" />
-															<span>{symbol.label}</span>
-														</div>
-													))}
-												</div>
-											) : null}
-										</section>
-									);
-								})}
-							</div>
-						) : (
-							<p className="px-2 py-6 text-center text-sm text-foreground-muted">
-								No matching symbols
+				{!readOnly ? (
+					<aside className="absolute inset-y-3 right-3 z-10 flex w-60 max-w-[calc(100%-1.5rem)] flex-col overflow-hidden rounded-lg border border-border bg-surface/95 shadow-lg backdrop-blur-sm">
+						<div className="border-b border-border p-3">
+							<h3 className="text-sm font-semibold text-foreground">Equipment</h3>
+							<p className="mt-0.5 text-xs text-foreground-muted">
+								Click or drag a symbol to add it.
 							</p>
-						)}
-					</div>
-				</aside>
+
+							<div className="relative mt-3">
+								<MagnifyingGlassIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-foreground-muted" />
+								<input
+									type="text"
+									value={paletteFilter}
+									onChange={(event) => setPaletteFilter(event.target.value)}
+									placeholder="Filter symbols"
+									aria-label="Filter P&ID symbols"
+									className="w-full rounded-md border border-border bg-surface py-1.5 pr-8 pl-8 text-sm text-foreground placeholder:text-foreground-muted focus:border-focus focus:outline-none"
+								/>
+								{paletteFilter ? (
+									<button
+										type="button"
+										aria-label="Clear symbol filter"
+										onClick={() => setPaletteFilter("")}
+										className="absolute top-1/2 right-1.5 -translate-y-1/2 rounded p-1 text-foreground-muted hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
+									>
+										<XMarkIcon className="size-4" />
+									</button>
+								) : null}
+							</div>
+						</div>
+
+						<div className="min-h-0 flex-1 overflow-y-auto p-2">
+							{visibleSymbolGroups.length > 0 ? (
+								<div className="space-y-1">
+									{visibleSymbolGroups.map((group) => {
+										const isOpen = normalizedPaletteFilter
+											? true
+											: openPaletteGroups.has(group.label);
+
+										return (
+											<section key={group.label}>
+												<button
+													type="button"
+													aria-expanded={isOpen}
+													onClick={() => togglePaletteGroup(group.label)}
+													className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-xs font-semibold text-foreground-muted hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
+												>
+													<span>{group.label}</span>
+													<ChevronDownIcon
+														className={`size-4 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+													/>
+												</button>
+
+												{isOpen ? (
+													<div className="mt-1 grid grid-cols-2 gap-1.5 pb-2">
+														{group.symbols.map((symbol) => (
+															<div
+																key={symbol.kind}
+																role="button"
+																tabIndex={0}
+																className="flex min-h-14 touch-none cursor-grab select-none flex-col items-center justify-center gap-1 rounded-md border border-border bg-surface p-1.5 text-center text-[0.6875rem] leading-tight text-foreground hover:border-border-strong hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-focus active:cursor-grabbing"
+																onKeyDown={(event) => {
+																	if (event.key !== "Enter" && event.key !== " ") return;
+
+																	event.preventDefault();
+																	addNode(symbol.kind);
+																}}
+																onPointerDown={(event) => startPaletteDrag(event, symbol.kind)}
+															>
+																<PIDSymbol kind={symbol.kind} className="h-6 w-10" />
+																<span>{symbol.label}</span>
+															</div>
+														))}
+													</div>
+												) : null}
+											</section>
+										);
+									})}
+								</div>
+							) : (
+								<p className="px-2 py-6 text-center text-sm text-foreground-muted">
+									No matching symbols
+								</p>
+							)}
+						</div>
+					</aside>
+				) : null}
 			</div>
 		</div>
 	);
+}
+
+function editorNodes(value: PIDGraph): PIDNode[] {
+	return value.nodes.map((node) => ({
+		id: node.id,
+		type: "pid-symbol",
+		position: { ...node.position },
+		data: {
+			kind: node.kind,
+			label: node.label,
+			orientation: node.orientation,
+		},
+	}));
+}
+
+function editorEdges(value: PIDGraph): PIDEdge[] {
+	return value.edges.map((edge) => ({
+		id: edge.id,
+		type: "step",
+		source: edge.source,
+		target: edge.target,
+		sourceHandle: edge.sourceHandle,
+		targetHandle: edge.targetHandle,
+	}));
+}
+
+function pidGraph(nodes: PIDNode[], edges: PIDEdge[]): PIDGraph {
+	return {
+		nodes: nodes.map((node) => ({
+			id: node.id,
+			kind: node.data.kind,
+			label: node.data.label,
+			orientation: node.data.orientation,
+			position: { ...node.position },
+		})),
+		edges: edges.map((edge) => ({
+			id: edge.id,
+			source: edge.source,
+			target: edge.target,
+			sourceHandle: edge.sourceHandle ?? null,
+			targetHandle: edge.targetHandle ?? null,
+		})),
+	};
 }
 
 function selectionPart(count: number, singular: string) {
