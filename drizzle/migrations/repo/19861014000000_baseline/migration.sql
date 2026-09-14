@@ -20,12 +20,13 @@ CREATE TABLE `Channel` (
 	`position` integer NOT NULL,
 	`key` text NOT NULL,
 	`role` text NOT NULL,
-	`quantity_kind` text,
+	`quantity_kind_id` text,
 	`description` text,
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
-	CONSTRAINT `fk_Channel_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`)
+	CONSTRAINT `fk_Channel_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`),
+	CONSTRAINT `fk_Channel_quantity_kind_id_QuantityKind_quantity_kind_id_fk` FOREIGN KEY (`quantity_kind_id`) REFERENCES `QuantityKind`(`quantity_kind_id`) ON UPDATE CASCADE
 );
 --> statement-breakpoint
 CREATE TABLE `InventoryEntry` (
@@ -95,6 +96,10 @@ CREATE TABLE `ProductSpecification` (
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_ProductSpecification_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`)
+);
+--> statement-breakpoint
+CREATE TABLE `QuantityKind` (
+	`quantity_kind_id` text PRIMARY KEY
 );
 --> statement-breakpoint
 CREATE TABLE `Sample` (

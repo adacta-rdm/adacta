@@ -1,0 +1,19 @@
+{
+	"name": "Demo Flow Controller",
+	"productNumber": "DFC-100",
+	"subtitle": "Mass flow controller used in development",
+	"channels": [
+		{
+			"key": "flow",
+			"role": "measurement",
+			"quantityKind": "VolumeFlowRate",
+			"description": "The flow measured by the controller."
+		},
+		{
+			"key": "flow",
+			"role": "setpoint",
+			"quantityKind": "VolumeFlowRate",
+			"description": "The flow requested from the controller."
+		}
+	]
+}

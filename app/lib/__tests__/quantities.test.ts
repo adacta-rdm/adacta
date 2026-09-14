@@ -2,12 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { Glob } from "bun";
 
-import {
-	QUANTITY_KINDS,
-	isQuantityKind,
-	quantityKindName,
-	type QuantityKindId,
-} from "~/app/lib/quantities.ts";
+import { QUANTITY_KINDS, isQuantityKind, type QuantityKindId } from "~/app/lib/quantities.ts";
 
 const entries = Object.entries(QUANTITY_KINDS);
 
@@ -39,24 +34,11 @@ describe("isQuantityKind", () => {
 	});
 });
 
-describe("quantityKindName", () => {
-	test("gives the name a reader sees", () => {
-		expect(quantityKindName("VolumeFlowRate")).toBe("Volume flow rate");
-	});
-
-	test("gives back what it was given when the kind is not known", () => {
-		// The database column is plain text until the vocabulary becomes a
-		// table, so a row may hold a name this build has never heard of. It is
-		// shown as it stands rather than hidden.
-		expect(quantityKindName("space_velocity")).toBe("space_velocity");
-	});
-});
-
 describe("the seeded catalog", () => {
 	test("uses only kinds this system knows", async () => {
 		const used = new Set<string>();
 
-		for await (const file of new Glob("seed/catalog/**/*.json").scan(".")) {
+		for await (const file of new Glob("seed/repo/*/catalog/**/*.json").scan(".")) {
 			const text = await Bun.file(file).text();
 
 			for (const match of text.matchAll(/"quantityKind"\s*:\s*"([^"]+)"/g)) {

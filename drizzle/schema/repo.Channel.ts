@@ -1,6 +1,7 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 import { Product } from "~/drizzle/schema/repo.Product.ts";
+import { QuantityKind } from "~/drizzle/schema/repo.QuantityKind.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
@@ -53,26 +54,22 @@ export const Channel = sqliteTable(
 		role: text("role", { enum: ["measurement", "setpoint", "state", "status"] }).notNull(),
 
 		/**
-		 * What the values represent, for example "volumetric_flow" or
-		 * "temperature". A channel that carries no physical quantity leaves it
-		 * empty. How far a valve is opened is such a channel.
+		 * The physical quantity represented by the values. Examples include
+		 * "VolumeFlowRate" and "Temperature".
 		 *
-		 * This says what the channel is. It does not say how one file expressed it.
-		 * The unit belongs to the recording, because the same device can log in
-		 * ml/min for one file and l/h for the next.
+		 * Leave this field empty when the channel has no physical quantity. A valve
+		 * opening is one example.
 		 *
-		 * The names are a narrowed set, listed in app/lib/quantities.ts, where
-		 * each one carries its QUDT term. A quantity kind the units library
-		 * cannot convert between is not usable, so a name outside that list is
-		 * refused where values enter.
+		 * The quantity kind does not define the unit. The unit belongs to the
+		 * recording. One device may use mL/min in one file and L/h in another.
 		 *
-		 * The column is text and carries no foreign key. The list is a constant
-		 * in the application today, because the baseline migration is
-		 * regenerated and rows written by a migration would not survive that.
-		 * The list becomes a table, and this column a reference to it, when the
-		 * baseline is frozen for a deployment.
+		 * The QuantityKind table contains the allowed quantity kinds. Each entry is
+		 * a QUDT term. The units library must support conversion for the kind.
+		 * Therefore, a channel may refer only to an entry in this table.
 		 */
-		quantityKind: text("quantity_kind"),
+		quantityKindId: text("quantity_kind_id").references(() => QuantityKind.id, {
+			onUpdate: "cascade",
+		}),
 
 		/**
 		 * What this channel means, in enough detail that someone who did not set it

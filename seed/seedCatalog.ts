@@ -278,9 +278,8 @@ export function seedCatalog(scope: ServiceContainer, repository: string): Catalo
 
 			(own.channels ?? shared.channels ?? []).forEach((channel, position) => {
 				/*
-					The database column is plain text, so nothing there refuses a
-					name this system cannot act on. The seed is one of the two
-					places a value enters, so it refuses one here.
+					The catalog file is written by hand. Checking the name here says
+					which channel is wrong, which the foreign key alone would not.
 				*/
 				if (channel.quantityKind !== undefined && !isQuantityKind(channel.quantityKind)) {
 					throw new Error(
@@ -295,7 +294,7 @@ export function seedCatalog(scope: ServiceContainer, repository: string): Catalo
 						position,
 						key: channel.key,
 						role: channel.role,
-						quantityKind: channel.quantityKind ?? null,
+						quantityKindId: channel.quantityKind ?? null,
 						description: channel.description ?? null,
 						...metadata,
 					})

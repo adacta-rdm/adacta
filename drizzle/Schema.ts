@@ -5,6 +5,7 @@ import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
 import { Product } from "~/drizzle/schema/repo.Product.ts";
 import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries.ts";
 import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification.ts";
+import { QuantityKind } from "~/drizzle/schema/repo.QuantityKind.ts";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
 import { SourceArtifact } from "~/drizzle/schema/repo.SourceArtifact.ts";
@@ -22,6 +23,7 @@ const Schema = {
 	Product,
 	ProductSeries,
 	ProductSpecification,
+	QuantityKind,
 	Repository,
 	Sample,
 	SampleBatch,

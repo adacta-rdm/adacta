@@ -1,22 +1,13 @@
 /**
- * The quantity kinds this system understands.
+ * This list defines the quantity kinds supported by the system.
  *
- * A quantity kind says what a number means. A channel reporting 250 says
- * nothing until its quantity kind says that the number is a temperature.
+ * A quantity kind identifies the physical meaning of a value. For example, the
+ * value 250 could represent a temperature or a pressure. The quantity kind
+ * tells the application which interpretation applies.
  *
- * Each key is a term taken from QUDT, spelled exactly as QUDT spells it. QUDT
- * publishes these terms at http://qudt.org/vocab/quantitykind/, so the page for
- * the key "VolumeFlowRate" is at that address followed by the key.
+ * Each key is an identifier from http://qudt.org/vocab/quantitykind/.
  *
- * Take the next name from there rather than inventing one. QUDT names over a
- * thousand quantity kinds and a laboratory uses a handful, so the name is
- * almost certainly already chosen, and taking it ends the argument about what
- * to call it.
- *
- * This list is the source of truth. It becomes a table in the database when
- * the baseline migration stops being regenerated, and the keys below become
- * its primary keys. Until then the database column is plain text, so every
- * place a value enters is checked against this list instead.
+ * The QuantityKind table stores these keys for use as foreign keys.
  */
 
 /**
@@ -32,14 +23,6 @@
  * difference have the same dimension. However, their conversion rules differ.
  */
 export type Dimension = Partial<Record<"m" | "kg" | "s" | "A" | "K" | "mol" | "cd", number>>;
-
-export interface QuantityKindEntry {
-	/** What a reader sees, for example "Volume flow rate". */
-	name: string;
-
-	/** How the quantity is built from the SI base units. */
-	dimension: Dimension;
-}
 
 export const QUANTITY_KINDS = {
 	Mass: {
@@ -58,12 +41,6 @@ export const QUANTITY_KINDS = {
 	},
 
 	/*
-		QUDT holds both "Temperature" and "ThermodynamicTemperature". The
-		thermodynamic one accepts only absolute scales, so kelvin and rankine but
-		not degrees Celsius. A thermocouple in a reactor is logged in degrees
-		Celsius, so the plain one is taken here.
-	*/
-	/*
 		QUDT also defines "ThermodynamicTemperature". That term accepts only
 		absolute scales, so kelvin and rankine but not degrees Celsius. Laboratory
 		instruments record in degrees Celsius. Therefore this list uses
@@ -75,14 +52,12 @@ export const QUANTITY_KINDS = {
 	},
 
 	/*
-		A difference of two temperatures, not a temperature. The two convert
-		differently, because a temperature scale has an offset and a difference
-		does not. A difference of 5 degrees Celsius is a difference of 9 degrees
-		Fahrenheit. A temperature of 5 degrees Celsius is 41 degrees Fahrenheit.
+		Temperature and temperature difference are separate kinds. A temperature
+		scale has an offset. A temperature difference does not. Therefore, a
+		difference of 5 degrees Celsius equals a difference of 9 degrees Fahrenheit.
+		A temperature of 5 degrees Celsius equals 41 degrees Fahrenheit.
 
-		A channel reporting how much hotter the outlet is than the inlet is
-		therefore a different quantity kind from one reporting how hot the
-		outlet is, and saying so is what keeps its values convertible.
+		Both kinds have the same dimension. The dimension cannot distinguish them.
 	*/
 	TemperatureDifference: {
 		name: "Temperature difference",
@@ -93,27 +68,29 @@ export const QUANTITY_KINDS = {
 		name: "Volume flow rate",
 		dimension: { m: 3, s: -1 },
 	},
-} as const satisfies Record<string, QuantityKindEntry>;
+} as const satisfies Record<string, { name: string; dimension: Dimension }>;
 
-/** The name of a quantity kind this system understands. */
+/**
+ * The name of a quantity kind supported by the system.
+ */
 export type QuantityKindId = keyof typeof QUANTITY_KINDS;
 
 /**
- * Whether this system understands the given name.
+ * Checks whether the system supports a quantity kind.
  *
- * Used where a value enters, so that a name nothing can act on is refused at
- * the boundary rather than stored.
+ * Callers use this check before storing a quantity kind. Unknown names fail
+ * the check.
  */
 export function isQuantityKind(value: string): value is QuantityKindId {
 	return Object.hasOwn(QUANTITY_KINDS, value);
 }
 
 /**
- * What a reader sees for the given name.
+ * Returns the display name for a quantity kind.
  *
- * A name this build does not know is given back as it stands. That name is the
- * published term, so showing it is better than showing nothing.
+ * The function returns an unknown name unchanged. This keeps a stored term
+ * visible until the system supports it.
  */
-export function quantityKindName(value: string): string {
-	return isQuantityKind(value) ? QUANTITY_KINDS[value].name : value;
+export function quantityKindName(id: string): string {
+	return isQuantityKind(id) ? QUANTITY_KINDS[id].name : id;
 }

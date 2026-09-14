@@ -33,6 +33,10 @@
 			"entityType": "tables"
 		},
 		{
+			"name": "QuantityKind",
+			"entityType": "tables"
+		},
+		{
 			"name": "Sample",
 			"entityType": "tables"
 		},
@@ -204,7 +208,7 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
-			"name": "quantity_kind",
+			"name": "quantity_kind_id",
 			"entityType": "columns",
 			"table": "Channel"
 		},
@@ -749,6 +753,16 @@
 			"table": "ProductSpecification"
 		},
 		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "quantity_kind_id",
+			"entityType": "columns",
+			"table": "QuantityKind"
+		},
+		{
 			"type": "integer",
 			"notNull": false,
 			"autoincrement": true,
@@ -1093,6 +1107,17 @@
 			"table": "Channel"
 		},
 		{
+			"columns": ["quantity_kind_id"],
+			"tableTo": "QuantityKind",
+			"columnsTo": ["quantity_kind_id"],
+			"onUpdate": "CASCADE",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Channel_quantity_kind_id_QuantityKind_quantity_kind_id_fk",
+			"entityType": "fks",
+			"table": "Channel"
+		},
+		{
 			"columns": ["manufacturer_id"],
 			"tableTo": "Manufacturer",
 			"columnsTo": ["manufacturer_id"],
@@ -1205,6 +1230,13 @@
 			"nameExplicit": false,
 			"name": "ProductSpecification_pk",
 			"table": "ProductSpecification",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["quantity_kind_id"],
+			"nameExplicit": false,
+			"name": "QuantityKind_pk",
+			"table": "QuantityKind",
 			"entityType": "pks"
 		},
 		{

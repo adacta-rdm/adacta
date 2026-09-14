@@ -81,7 +81,12 @@ export function loader({ context, params }: Route.LoaderArgs) {
 	}
 
 	const channels = db
-		.select()
+		.select({
+			key: Channel.key,
+			role: Channel.role,
+			description: Channel.description,
+			quantityKindId: Channel.quantityKindId,
+		})
 		.from(Channel)
 		.where(eq(Channel.productId, row.product.id))
 		.orderBy(asc(Channel.position))
@@ -111,12 +116,7 @@ export function loader({ context, params }: Route.LoaderArgs) {
 			...specification,
 			shared: sharedNames.has(specification.name),
 		})),
-		channels: channels.map((channel) => ({
-			key: channel.key,
-			role: channel.role,
-			quantityKind: channel.quantityKind,
-			description: channel.description,
-		})),
+		channels,
 		source: source && {
 			url: source.url,
 			title: source.title,
@@ -227,9 +227,9 @@ export default function RepoCatalogManufacturerSlugProductSlug({
 								<div className="flex flex-wrap items-center gap-2">
 									<span className="font-medium text-foreground">{channel.key}</span>
 									<Badge color="zinc">{channel.role}</Badge>
-									{channel.quantityKind && (
+									{channel.quantityKindId && (
 										<span className="text-sm text-foreground-muted">
-											{quantityKindName(channel.quantityKind)}
+											{quantityKindName(channel.quantityKindId)}
 										</span>
 									)}
 								</div>
