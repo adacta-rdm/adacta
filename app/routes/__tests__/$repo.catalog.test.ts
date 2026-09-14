@@ -100,7 +100,7 @@ describe("product loader", () => {
 			expect.objectContaining({
 				key: "flow",
 				role: "measurement",
-				quantityKind: "volumetric_flow",
+				quantityKind: "VolumeFlowRate",
 			}),
 		]);
 	});
@@ -189,7 +189,7 @@ async function setupCatalog(): Promise<ServiceContainer> {
 				position: 0,
 				key: "flow",
 				role: "measurement",
-				quantityKind: "volumetric_flow",
+				quantityKind: "VolumeFlowRate",
 				description: "The flow the controller measures through itself.",
 				...metadata,
 			})

@@ -61,11 +61,16 @@ export const Channel = sqliteTable(
 		 * The unit belongs to the recording, because the same device can log in
 		 * ml/min for one file and l/h for the next.
 		 *
-		 * TODO: decide whether this becomes a narrowed set of names. A quantity
-		 * kind the units library cannot convert between is not usable, so
-		 * accepting any text stores something the application cannot act on. It is
-		 * text today because the catalog names the kinds and an external catalog
-		 * will name more of them. Settle this with the rest of the Values work.
+		 * The names are a narrowed set, listed in app/lib/quantities.ts, where
+		 * each one carries its QUDT term. A quantity kind the units library
+		 * cannot convert between is not usable, so a name outside that list is
+		 * refused where values enter.
+		 *
+		 * The column is text and carries no foreign key. The list is a constant
+		 * in the application today, because the baseline migration is
+		 * regenerated and rows written by a migration would not survive that.
+		 * The list becomes a table, and this column a reference to it, when the
+		 * baseline is frozen for a deployment.
 		 */
 		quantityKind: text("quantity_kind"),
 

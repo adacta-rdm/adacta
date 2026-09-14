@@ -11,6 +11,7 @@ import { Link } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import { formatTimestamp } from "~/app/lib/dates.ts";
+import { quantityKindName } from "~/app/lib/quantities.ts";
 import { compareSpecifications } from "~/app/lib/specificationComparison.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Badge } from "~/catalyst-ui/badge.tsx";
@@ -228,7 +229,7 @@ export default function RepoCatalogManufacturerSlugProductSlug({
 									<Badge color="zinc">{channel.role}</Badge>
 									{channel.quantityKind && (
 										<span className="text-sm text-foreground-muted">
-											{channel.quantityKind.replace(/_/g, " ")}
+											{quantityKindName(channel.quantityKind)}
 										</span>
 									)}
 								</div>

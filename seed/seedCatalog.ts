@@ -27,6 +27,7 @@
 import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { basename, join } from "node:path";
 
+import { isQuantityKind } from "~/app/lib/quantities.ts";
 import { availableSlug } from "~/app/lib/slugs.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
@@ -50,6 +51,8 @@ type SeedSpecification = { name: string; value: string };
 type SeedChannel = {
 	key: string;
 	role: "measurement" | "setpoint" | "state" | "status";
+
+	/** One of the names in app/lib/quantities.ts. */
 	quantityKind?: string;
 	description?: string;
 };
@@ -274,6 +277,18 @@ export function seedCatalog(scope: ServiceContainer, repository: string): Catalo
 			});
 
 			(own.channels ?? shared.channels ?? []).forEach((channel, position) => {
+				/*
+					The database column is plain text, so nothing there refuses a
+					name this system cannot act on. The seed is one of the two
+					places a value enters, so it refuses one here.
+				*/
+				if (channel.quantityKind !== undefined && !isQuantityKind(channel.quantityKind)) {
+					throw new Error(
+						`Channel "${channel.key}" names the quantity kind "${channel.quantityKind}", ` +
+							"which is not one this system knows. Add it to app/lib/quantities.ts.",
+					);
+				}
+
 				db.insert(Channel)
 					.values({
 						productId,
