@@ -1,5 +1,6 @@
 import { ArchiveBoxIcon, BeakerIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
 import { and, eq, isNull } from "drizzle-orm";
+import type { ReactNode } from "react";
 import { data, Link, redirect } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
@@ -17,7 +18,6 @@ import { RepoAccess } from "~/app/services/RepoAccess.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
-import { Text } from "~/catalyst-ui/text.tsx";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
 import { FormValues } from "~/lib/form-values/FormValues.ts";
@@ -154,21 +154,26 @@ export default function RepoSamplesBatchSlug({
 					)}
 				</div>
 
-				<p className="mt-2 text-sm text-foreground-muted">
-					Preparation date:{" "}
-					<time dateTime={batch.preparationDate}>{formatCalendarDate(batch.preparationDate)}</time>
-				</p>
-				<p className="mt-2 text-sm text-foreground-muted">
-					Prepared by: {batch.preparedBy?.name ?? "Unknown"}
-				</p>
-				{composition ? (
-					<p className="mt-2 flex items-center gap-2 text-sm text-foreground-muted">
-						<BeakerIcon className="size-4" />
-						{composition}
-					</p>
-				) : (
-					<Text className="mt-2">No composition has been recorded.</Text>
-				)}
+				<dl className="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-sm">
+					<Fact label="Prepared on">
+						<time dateTime={batch.preparationDate}>
+							{formatCalendarDate(batch.preparationDate)}
+						</time>
+					</Fact>
+
+					<Fact label="Prepared by">{batch.preparedBy?.name ?? "Unknown"}</Fact>
+
+					<Fact label="Composition">
+						{composition ? (
+							<span className="flex items-center gap-1.5">
+								<BeakerIcon className="size-4 text-foreground-muted" />
+								{composition}
+							</span>
+						) : (
+							"Not recorded"
+						)}
+					</Fact>
+				</dl>
 			</div>
 
 			<section className="overflow-hidden rounded-xl border border-border bg-surface">
@@ -185,6 +190,16 @@ export default function RepoSamplesBatchSlug({
 					errors={actionData?.errors}
 				/>
 			</section>
+		</div>
+	);
+}
+
+/** One labelled fact in the header of the page. */
+function Fact({ label, children }: { label: string; children: ReactNode }) {
+	return (
+		<div>
+			<dt className="text-xs font-medium text-foreground-muted">{label}</dt>
+			<dd className="mt-0.5 text-foreground">{children}</dd>
 		</div>
 	);
 }
