@@ -5,8 +5,12 @@ export type { PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
 
 export const pidSymbolGroups = [
 	{
-		label: "Instruments",
-		symbols: [{ kind: "instrument", label: "Instrument", footprint: "compact" }],
+		label: "Instruments and marks",
+		symbols: [
+			{ kind: "instrument", label: "Instrument", footprint: "compact" },
+			{ kind: "junction", label: "Junction", footprint: "point" },
+			{ kind: "note", label: "Note", footprint: "inline" },
+		],
 	},
 	{
 		label: "Vessels and process equipment",
@@ -149,6 +153,12 @@ const pidSymbolMaximumSizes = {
 	major: 56,
 	compact: 40,
 	inline: 32,
+
+	/**
+	 * A mark rather than a piece of equipment, for example the dot where two
+	 * pipes meet.
+	 */
+	point: 10,
 } as const;
 
 export function getPIDSymbol(kind: PIDSymbolKind): PIDSymbolDefinition {

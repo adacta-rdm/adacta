@@ -56,7 +56,7 @@ type PIDNodeData = {
 	orientation: PIDOrientation;
 };
 type PIDNode = Node<PIDNodeData, "pid-symbol">;
-type PIDEdgeData = { kind: PIDEdgeKind };
+type PIDEdgeData = { kind: PIDEdgeKind; weight: number };
 type PIDEdge = Edge<PIDEdgeData, "pid-connection">;
 
 type PaletteDrag = {
@@ -248,7 +248,7 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 					...connection,
 					id: randomId("pid-edge"),
 					type: "pid-connection",
-					data: { kind: nextEdgeKind },
+					data: { kind: nextEdgeKind, weight: 1 },
 					selected: true,
 					markerEnd: {
 						type: MarkerType.ArrowClosed,
@@ -361,7 +361,21 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 		if (!selectedEdge) return;
 
 		setEdges((current) =>
-			current.map((edge) => (edge.id === selectedEdge.id ? { ...edge, data: { kind } } : edge)),
+			current.map((edge) =>
+				edge.id === selectedEdge.id
+					? { ...edge, data: { kind, weight: edge.data?.weight ?? 1 } }
+					: edge,
+			),
+		);
+	}
+
+	function setSelectedEdgeWeight(weight: number) {
+		if (!selectedEdge) return;
+
+		setEdges((current) =>
+			current.map((edge) =>
+				edge.id === selectedEdge.id ? { ...edge, data: { kind: edgeKind(edge), weight } } : edge,
+			),
 		);
 	}
 
@@ -613,6 +627,28 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 										</button>
 									))}
 								</div>
+
+								<legend className="mt-4 text-xs font-medium text-foreground-muted">Weight</legend>
+								<div className="mt-1 grid grid-cols-3 gap-1">
+									{[1, 2, 3].map((weight) => (
+										<button
+											key={weight}
+											type="button"
+											aria-pressed={(selectedEdge.data?.weight ?? 1) === weight}
+											title={
+												weight === 1
+													? "A branch or a sampling line"
+													: weight === 3
+														? "A main line"
+														: "Between a branch and a main line"
+											}
+											className="rounded-md border border-border px-2 py-1.5 text-xs text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
+											onClick={() => setSelectedEdgeWeight(weight)}
+										>
+											{weight}
+										</button>
+									))}
+								</div>
 							</fieldset>
 						) : (
 							<div className="mt-2 space-y-1 text-sm text-foreground-muted">
@@ -765,7 +801,7 @@ function editorEdges(value: PIDGraph): PIDEdge[] {
 	return value.edges.map((edge) => ({
 		id: edge.id,
 		type: "pid-connection",
-		data: { kind: edge.kind },
+		data: { kind: edge.kind, weight: edge.weight },
 		source: edge.source,
 		target: edge.target,
 		sourceHandle: edge.sourceHandle,
@@ -786,6 +822,7 @@ function pidGraph(nodes: PIDNode[], edges: PIDEdge[]): PIDGraph {
 		edges: edges.map((edge) => ({
 			id: edge.id,
 			kind: edgeKind(edge),
+			weight: edge.data?.weight ?? 1,
 			source: edge.source,
 			target: edge.target,
 			sourceHandle: edge.sourceHandle ?? null,
@@ -851,7 +888,11 @@ function PIDConnection({
 	// Selecting a connection changes its color. The width stays the same, so
 	// the drawing does not shift as the selection moves.
 	const color = selected ? SELECTED_COLOR : kind === "caption" ? NOTE_COLOR : LINE_COLOR;
-	const drawing = connectionDrawing(route, kind, LINE_WIDTH);
+
+	// A heavier line is drawn thicker, and its parallel lines move apart with
+	// it, so the whole connection grows rather than only its centre.
+	const lineWidth = LINE_WIDTH * (data?.weight ?? 1);
+	const drawing = connectionDrawing(route, kind, lineWidth);
 
 	return (
 		<>
@@ -862,7 +903,7 @@ function PIDConnection({
 					key={index}
 					path={line.path}
 					markerEnd={line.arrow ? markerEnd : undefined}
-					style={{ stroke: color, strokeWidth: LINE_WIDTH, strokeDasharray: line.dashes }}
+					style={{ stroke: color, strokeWidth: lineWidth, strokeDasharray: line.dashes }}
 				/>
 			))}
 		</>
@@ -1014,6 +1055,22 @@ function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {
 	const ConnectableSymbol = getPIDSymbolComponents(data.kind).ConnectableSymbol;
 	const maximumSize = maximumSizeForPIDSymbol(data.kind, 56);
 
+	// A note is its own text. Drawing the palette glyph as well would put a mark
+	// on the diagram that stands for nothing.
+	if (data.kind === "note") {
+		return (
+			<div
+				className={
+					selected
+						? "pid-symbol-selected max-w-48 rounded bg-surface/90 px-1 text-xs text-foreground"
+						: "max-w-48 rounded bg-surface/90 px-1 text-xs text-foreground"
+				}
+			>
+				{data.label || "Note"}
+			</div>
+		);
+	}
+
 	return (
 		<div className="group/pid-node relative inline-flex items-center justify-center text-foreground">
 			<ConnectableSymbol
@@ -1023,7 +1080,7 @@ function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {
 				maximumSize={maximumSize}
 			/>
 
-			{data.kind === "instrument" ? (
+			{data.kind === "junction" ? null : data.kind === "instrument" ? (
 				<span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center leading-none">
 					<span className="max-w-full truncate px-1 text-[0.5rem] font-medium">{data.label}</span>
 					<span className="max-w-full truncate px-1 text-[0.5rem]">

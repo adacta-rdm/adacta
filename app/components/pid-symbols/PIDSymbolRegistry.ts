@@ -40,8 +40,10 @@ import {
 import { ConnectableHeatExchangerSymbol, HeatExchangerSymbol } from "./HeatExchangerSymbol.tsx";
 import { ConnectableHydraulicPumpSymbol, HydraulicPumpSymbol } from "./HydraulicPumpSymbol.tsx";
 import { ConnectableInstrumentSymbol, InstrumentSymbol } from "./InstrumentSymbol.tsx";
+import { ConnectableJunctionSymbol, JunctionSymbol } from "./JunctionSymbol.tsx";
 import { ConnectableManualValveSymbol, ManualValveSymbol } from "./ManualValveSymbol.tsx";
 import { ConnectableNeedleValveSymbol, NeedleValveSymbol } from "./NeedleValveSymbol.tsx";
+import { ConnectableNoteSymbol, NoteSymbol } from "./NoteSymbol.tsx";
 import {
 	ConnectablePlainHeatExchangerSymbol,
 	PlainHeatExchangerSymbol,
@@ -94,6 +96,8 @@ interface PIDSymbolComponents {
 
 const pidSymbolComponents = {
 	instrument: pair(InstrumentSymbol, ConnectableInstrumentSymbol),
+	junction: pair(JunctionSymbol, ConnectableJunctionSymbol),
+	note: pair(NoteSymbol, ConnectableNoteSymbol),
 	"gas-bottle": pair(GasBottleSymbol, ConnectableGasBottleSymbol),
 	autoclave: pair(AutoclaveSymbol, ConnectableAutoclaveSymbol),
 	"half-pipe-reactor": pair(HalfPipeReactorSymbol, ConnectableHalfPipeReactorSymbol),

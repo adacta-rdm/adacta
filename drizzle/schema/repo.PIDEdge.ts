@@ -1,4 +1,5 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+import { check, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 import type { PIDEdgeKind as PIDEdgeKindName } from "~/app/lib/PID.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
@@ -43,11 +44,20 @@ export const PIDEdge = sqliteTable(
 			.$type<PIDEdgeKindName>()
 			.references(() => PIDEdgeKind.id, { onUpdate: "cascade" }),
 
+		/**
+		 * How heavy the line is drawn, from 1 to 3. A main line is drawn heavier
+		 * than a branch. The weight says nothing about the bore of the pipe.
+		 */
+		weight: integer("weight").notNull(),
+
 		sourceHandle: text("source_handle"),
 		targetHandle: text("target_handle"),
 		drawingOrder: integer("drawing_order").notNull(),
 
 		...metadata(),
 	},
-	(table) => [index("PIDEdge_inventory_entry_idx").on(table.inventoryEntryId)],
+	(table) => [
+		index("PIDEdge_inventory_entry_idx").on(table.inventoryEntryId),
+		check("PIDEdge_weight_check", sql`${table.weight} between 1 and 3`),
+	],
 );

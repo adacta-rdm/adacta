@@ -32,6 +32,7 @@ const graph: PIDGraph = {
 		{
 			id: "feed-line",
 			kind: "pipe",
+			weight: 1,
 			source: "feed-bottle",
 			target: "inlet-valve",
 			sourceHandle: "outlet",

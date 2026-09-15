@@ -55,6 +55,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		.select({
 			id: PIDEdge.id,
 			kind: PIDEdge.kind,
+			weight: PIDEdge.weight,
 			source: PIDEdge.sourceNodeId,
 			target: PIDEdge.targetNodeId,
 			sourceHandle: PIDEdge.sourceHandle,
@@ -126,6 +127,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 						id: edge.id,
 						inventoryEntryId: entry.id,
 						kind: edge.kind,
+						weight: edge.weight,
 						sourceNodeId: edge.source,
 						targetNodeId: edge.target,
 						sourceHandle: edge.sourceHandle,

@@ -112,6 +112,26 @@
 				"x": 530,
 				"y": 70
 			}
+		},
+		{
+			"key": "feed-junction",
+			"kind": "junction",
+			"label": "Feed junction",
+			"orientation": 0,
+			"position": {
+				"x": 330,
+				"y": 180
+			}
+		},
+		{
+			"key": "start-up-note",
+			"kind": "note",
+			"label": "Purge with N2 before start-up",
+			"orientation": 0,
+			"position": {
+				"x": 120,
+				"y": 120
+			}
 		}
 	],
 	"edges": [
@@ -143,9 +163,9 @@
 			"key": "mfc-h2-to-feed-valve",
 			"kind": "pipe",
 			"source": "mfc-h2",
-			"target": "feed-valve",
+			"target": "feed-junction",
 			"sourceHandle": "outlet",
-			"targetHandle": "inlet"
+			"targetHandle": "branch-inlet"
 		},
 		{
 			"key": "co2-valve-to-mfc",
@@ -159,7 +179,7 @@
 			"key": "mfc-co2-to-feed-valve",
 			"kind": "pipe",
 			"source": "mfc-co2",
-			"target": "feed-valve",
+			"target": "feed-junction",
 			"sourceHandle": "outlet",
 			"targetHandle": "inlet"
 		},
@@ -194,6 +214,15 @@
 			"target": "reactor-thermocouple",
 			"sourceHandle": "outlet",
 			"targetHandle": "leader"
+		},
+		{
+			"key": "feed-junction-to-valve",
+			"kind": "pipe",
+			"weight": 2,
+			"source": "feed-junction",
+			"target": "feed-valve",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
 		}
 	]
 }

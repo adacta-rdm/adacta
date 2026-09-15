@@ -501,6 +501,16 @@
 			"table": "PIDEdge"
 		},
 		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "weight",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
 			"type": "text",
 			"notNull": false,
 			"autoincrement": false,
@@ -1696,6 +1706,12 @@
 			"name": "SampleBatch_slug_unique",
 			"entityType": "indexes",
 			"table": "SampleBatch"
+		},
+		{
+			"value": "\"weight\" between 1 and 3",
+			"name": "PIDEdge_weight_check",
+			"entityType": "checks",
+			"table": "PIDEdge"
 		},
 		{
 			"value": "\"orientation\" between 0 and 3",

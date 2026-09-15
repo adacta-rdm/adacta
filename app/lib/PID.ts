@@ -27,6 +27,16 @@ export interface PIDGraphNode {
 export interface PIDGraphEdge {
 	id: string;
 	kind: PIDEdgeKind;
+
+	/**
+	 * How heavy the line is drawn, from 1 to 3.
+	 *
+	 * A main line is drawn heavier than a branch, which lets a reader follow the
+	 * principal path through a crowded diagram. For example, the feed header
+	 * carries weight 3 while the sampling line off it carries weight 1. The
+	 * weight says nothing about the bore of the pipe.
+	 */
+	weight: number;
 	source: string;
 	target: string;
 	sourceHandle: string | null;
@@ -76,6 +86,8 @@ export const PID_EDGE_KINDS = {
 
 export type PIDSymbolKind =
 	| "instrument"
+	| "junction"
+	| "note"
 	| "gas-bottle"
 	| "autoclave"
 	| "half-pipe-reactor"
