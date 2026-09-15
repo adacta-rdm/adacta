@@ -53,6 +53,14 @@ type PIDNodeData = {
 	kind: PIDSymbolKind;
 	label: string;
 	secondaryLabel: string | null;
+
+	/**
+	 * Whether this symbol sits inside another. A symbol that does draws no
+	 * caption, because the caption would land on the one belonging to the
+	 * symbol that holds it.
+	 */
+	contained: boolean;
+
 	orientation: PIDOrientation;
 };
 type PIDNode = Node<PIDNodeData, "pid-symbol">;
@@ -230,7 +238,7 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 					x: 160 + ((number - 1) % 3) * 150,
 					y: 120 + Math.floor((number - 1) / 3) * 130,
 				},
-				data: { kind, label: symbol.label, secondaryLabel: null, orientation: 0 },
+				data: { kind, label: symbol.label, secondaryLabel: null, contained: false, orientation: 0 },
 				selected: true,
 			},
 		]);
@@ -380,8 +388,14 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 	}
 
 	function deleteSelectedItems() {
-		const selectedNodeIds = new Set(selectedNodes.map((node) => node.id));
 		const selectedEdgeIds = new Set(selectedEdges.map((edge) => edge.id));
+
+		// Deleting a symbol deletes what sits inside it. A symbol left behind
+		// would name a holder that is no longer in the diagram.
+		const selectedNodeIds = withContents(
+			nodes,
+			selectedNodes.map((node) => node.id),
+		);
 
 		setNodes((current) => current.filter((node) => !selectedNodeIds.has(node.id)));
 		setEdges((current) =>
@@ -784,17 +798,82 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 }
 
 function editorNodes(value: PIDGraph): PIDNode[] {
-	return value.nodes.map((node) => ({
+	const nodes: PIDNode[] = value.nodes.map((node) => ({
 		id: node.id,
 		type: "pid-symbol",
 		position: { ...node.position },
+
+		// A symbol that sits inside another is kept within it while it is
+		// dragged, and its position is measured from that symbol.
+		...(node.parentId === null ? {} : { parentId: node.parentId, extent: "parent" as const }),
+
 		data: {
 			kind: node.kind,
 			label: node.label,
 			secondaryLabel: node.secondaryLabel,
+			contained: node.parentId !== null,
 			orientation: node.orientation,
 		},
 	}));
+
+	return holdersFirst(nodes);
+}
+
+/**
+ * Returns the given symbols together with everything inside them.
+ *
+ * A symbol may hold another that holds a third, so the search continues until
+ * it finds nothing further.
+ */
+function withContents(nodes: PIDNode[], ids: string[]): Set<string> {
+	const doomed = new Set(ids);
+	let added = true;
+
+	while (added) {
+		added = false;
+
+		for (const node of nodes) {
+			if (node.parentId === undefined) continue;
+			if (doomed.has(node.id)) continue;
+			if (!doomed.has(node.parentId)) continue;
+
+			doomed.add(node.id);
+			added = true;
+		}
+	}
+
+	return doomed;
+}
+
+/**
+ * Returns the symbols with every holder before what it holds.
+ *
+ * React Flow reads the list in order and needs a symbol to exist before it
+ * places anything inside it. One pass is not enough, because a holder may
+ * itself sit inside another. The list is therefore walked until nothing moves.
+ */
+function holdersFirst(nodes: PIDNode[]): PIDNode[] {
+	const placed = new Set<string>();
+	const ordered: PIDNode[] = [];
+	let remaining = nodes;
+
+	while (remaining.length > 0) {
+		const ready = remaining.filter(
+			(node) => node.parentId === undefined || placed.has(node.parentId),
+		);
+
+		// A symbol naming a holder that is not in the diagram would otherwise
+		// loop here. The route rejects such a diagram, so this only guards
+		// against a graph built in some other way.
+		if (ready.length === 0) return [...ordered, ...remaining];
+
+		for (const node of ready) placed.add(node.id);
+
+		ordered.push(...ready);
+		remaining = remaining.filter((node) => !placed.has(node.id));
+	}
+
+	return ordered;
 }
 
 function editorEdges(value: PIDGraph): PIDEdge[] {
@@ -816,6 +895,7 @@ function pidGraph(nodes: PIDNode[], edges: PIDEdge[]): PIDGraph {
 			kind: node.data.kind,
 			label: node.data.label,
 			secondaryLabel: node.data.secondaryLabel,
+			parentId: node.parentId ?? null,
 			orientation: node.data.orientation,
 			position: { ...node.position },
 		})),
@@ -1080,7 +1160,7 @@ function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {
 				maximumSize={maximumSize}
 			/>
 
-			{data.kind === "junction" ? null : data.kind === "instrument" ? (
+			{data.kind === "junction" || data.contained ? null : data.kind === "instrument" ? (
 				<span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center leading-none">
 					<span className="max-w-full truncate px-1 text-[0.5rem] font-medium">{data.label}</span>
 					<span className="max-w-full truncate px-1 text-[0.5rem]">

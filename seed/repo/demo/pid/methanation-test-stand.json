@@ -132,6 +132,28 @@
 				"x": 120,
 				"y": 120
 			}
+		},
+		{
+			"key": "reactor-tap",
+			"kind": "junction",
+			"label": "Bed thermocouple tap",
+			"parent": "reactor",
+			"orientation": 0,
+			"position": {
+				"x": 28,
+				"y": 16
+			}
+		},
+		{
+			"key": "reactor-charge",
+			"kind": "sample",
+			"label": "Catalyst charge",
+			"parent": "reactor",
+			"orientation": 0,
+			"position": {
+				"x": 28,
+				"y": 34
+			}
 		}
 	],
 	"edges": [
@@ -210,7 +232,7 @@
 		{
 			"key": "reactor-to-thermocouple",
 			"kind": "caption",
-			"source": "reactor",
+			"source": "reactor-tap",
 			"target": "reactor-thermocouple",
 			"sourceHandle": "outlet",
 			"targetHandle": "leader"

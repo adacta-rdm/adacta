@@ -66,6 +66,7 @@ import {
 } from "./PressurizedVesselVerticalSymbol.tsx";
 import { ConnectablePumpSymbol, PumpSymbol } from "./PumpSymbol.tsx";
 import { ConnectableRadialFanSymbol, RadialFanSymbol } from "./RadialFanSymbol.tsx";
+import { ConnectableSampleSymbol, SampleSymbol } from "./SampleSymbol.tsx";
 import {
 	ConnectableSpiralHeatExchangerSymbol,
 	SpiralHeatExchangerSymbol,
@@ -98,6 +99,7 @@ const pidSymbolComponents = {
 	instrument: pair(InstrumentSymbol, ConnectableInstrumentSymbol),
 	junction: pair(JunctionSymbol, ConnectableJunctionSymbol),
 	note: pair(NoteSymbol, ConnectableNoteSymbol),
+	sample: pair(SampleSymbol, ConnectableSampleSymbol),
 	"gas-bottle": pair(GasBottleSymbol, ConnectableGasBottleSymbol),
 	autoclave: pair(AutoclaveSymbol, ConnectableAutoclaveSymbol),
 	"half-pipe-reactor": pair(HalfPipeReactorSymbol, ConnectableHalfPipeReactorSymbol),

@@ -16,6 +16,7 @@ const graph: PIDGraph = {
 			kind: "gas-bottle",
 			label: "Feed gas",
 			secondaryLabel: null,
+			parentId: null,
 			orientation: 0,
 			position: { x: 120, y: 160 },
 		},
@@ -24,6 +25,7 @@ const graph: PIDGraph = {
 			kind: "valve",
 			label: "Inlet valve",
 			secondaryLabel: null,
+			parentId: null,
 			orientation: 1,
 			position: { x: 260, y: 160 },
 		},
@@ -89,6 +91,7 @@ describe("P&ID route", () => {
 			kind: "instrument",
 			label: "MFC",
 			secondaryLabel: "H2",
+			parentId: null,
 			orientation: 0,
 			position: { x: 200, y: 160 },
 		};
@@ -96,6 +99,43 @@ describe("P&ID route", () => {
 		await save(scope, { nodes: [...graph.nodes, instrument], edges: graph.edges });
 
 		expect(load(scope).graph.nodes.at(-1)).toEqual(instrument);
+	});
+
+	test("keeps a symbol that sits inside another", async () => {
+		const scope = await setupRig();
+		const tap: PIDGraphNode = {
+			id: "reactor-tap",
+			kind: "junction",
+			label: "Tap",
+			secondaryLabel: null,
+			parentId: graph.nodes[0].id,
+			orientation: 0,
+			position: { x: 10, y: 20 },
+		};
+
+		await save(scope, { nodes: [...graph.nodes, tap], edges: graph.edges });
+
+		expect(load(scope).graph.nodes.at(-1)).toEqual(tap);
+	});
+
+	test("rejects a symbol that sits inside one outside the diagram", async () => {
+		const scope = await setupRig();
+		const orphan = { ...graph.nodes[0], id: "orphan", parentId: "missing-node" };
+
+		const response = await save(scope, { nodes: [...graph.nodes, orphan], edges: [] });
+
+		if (response instanceof Response) throw new Error("Expected action data.");
+		expect(response.init?.status).toBe(400);
+	});
+
+	test("rejects a symbol that sits inside itself", async () => {
+		const scope = await setupRig();
+		const self = { ...graph.nodes[0], parentId: graph.nodes[0].id };
+
+		const response = await save(scope, { nodes: [self], edges: [] });
+
+		if (response instanceof Response) throw new Error("Expected action data.");
+		expect(response.init?.status).toBe(400);
 	});
 
 	test("keeps the kind of each connection", async () => {

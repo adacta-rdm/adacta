@@ -10,6 +10,7 @@ export const pidSymbolGroups = [
 			{ kind: "instrument", label: "Instrument", footprint: "compact" },
 			{ kind: "junction", label: "Junction", footprint: "point" },
 			{ kind: "note", label: "Note", footprint: "inline" },
+			{ kind: "sample", label: "Sample", footprint: "inline" },
 		],
 	},
 	{

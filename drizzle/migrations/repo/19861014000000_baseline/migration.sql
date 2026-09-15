@@ -84,6 +84,7 @@ CREATE TABLE `PIDNode` (
 	`kind` text NOT NULL,
 	`label` text NOT NULL,
 	`secondary_label` text,
+	`parent_node_id` text,
 	`drawing_order` integer NOT NULL,
 	`orientation` integer NOT NULL,
 	`position_x` real NOT NULL,
@@ -92,6 +93,7 @@ CREATE TABLE `PIDNode` (
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_PIDNode_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE CASCADE,
+	CONSTRAINT `fk_PIDNode_parent_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`parent_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
 	CONSTRAINT "PIDNode_orientation_check" CHECK("orientation" between 0 and 3)
 );
 --> statement-breakpoint

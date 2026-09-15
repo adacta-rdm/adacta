@@ -631,6 +631,16 @@
 			"table": "PIDNode"
 		},
 		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "parent_node_id",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
 			"type": "integer",
 			"notNull": true,
 			"autoincrement": false,
@@ -1387,6 +1397,17 @@
 			"onDelete": "CASCADE",
 			"nameExplicit": false,
 			"name": "fk_PIDNode_inventory_entry_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "PIDNode"
+		},
+		{
+			"columns": ["parent_node_id"],
+			"tableTo": "PIDNode",
+			"columnsTo": ["pid_node_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_PIDNode_parent_node_id_PIDNode_pid_node_id_fk",
 			"entityType": "fks",
 			"table": "PIDNode"
 		},

@@ -43,6 +43,12 @@ type SeedPIDNode = {
 	 */
 	secondaryLabel?: string;
 
+	/**
+	 * The key of the symbol this one sits inside. Its position is then measured
+	 * from the corner of that symbol.
+	 */
+	parent?: string;
+
 	orientation: PIDOrientation;
 	position: { x: number; y: number };
 };
@@ -118,9 +124,15 @@ async function writeDiagram(
 		diagram.nodes.map((node) => [node.key, `pid-node-${entryId}-${node.key}`]),
 	);
 
-	// An edge names its two ends by key. A mistyped key would otherwise reach
-	// the database. The resulting error would not name the file that contains
-	// it.
+	// A symbol that sits inside another names it by key, and an edge names its
+	// two ends by key. A mistyped key would otherwise reach the database. The
+	// resulting error would not name the file that contains it.
+	for (const node of diagram.nodes) {
+		if (node.parent !== undefined && !nodeIds.has(node.parent)) {
+			throw new Error(`Symbol "${node.key}" in ${file} sits inside no symbol "${node.parent}".`);
+		}
+	}
+
 	for (const edge of diagram.edges) {
 		for (const end of [edge.source, edge.target]) {
 			if (!nodeIds.has(end)) {
@@ -143,6 +155,7 @@ async function writeDiagram(
 						kind: node.kind,
 						label: node.label,
 						secondaryLabel: node.secondaryLabel ?? null,
+						parentNodeId: node.parent === undefined ? null : nodeIds.get(node.parent)!,
 						drawingOrder,
 						orientation: node.orientation,
 						positionX: node.position.x,

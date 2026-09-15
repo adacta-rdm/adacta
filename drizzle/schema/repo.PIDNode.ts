@@ -1,5 +1,13 @@
 import { sql } from "drizzle-orm";
-import { check, index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+	check,
+	index,
+	integer,
+	real,
+	sqliteTable,
+	text,
+	type AnySQLiteColumn,
+} from "drizzle-orm/sqlite-core";
 
 import type { PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
@@ -26,6 +34,17 @@ export const PIDNode = sqliteTable(
 		 * "H2". Every other symbol leaves this empty.
 		 */
 		secondaryLabel: text("secondary_label"),
+
+		/**
+		 * The symbol this one sits inside, where it sits inside one. Its position
+		 * is then measured from the corner of that symbol rather than from the
+		 * corner of the diagram, so it travels with it.
+		 *
+		 * Deleting a symbol deletes what sits inside it.
+		 */
+		parentNodeId: text("parent_node_id").references((): AnySQLiteColumn => PIDNode.id, {
+			onDelete: "cascade",
+		}),
 
 		drawingOrder: integer("drawing_order").notNull(),
 		orientation: integer("orientation").$type<PIDOrientation>().notNull(),

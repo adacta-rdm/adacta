@@ -40,6 +40,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			kind: PIDNode.kind,
 			label: PIDNode.label,
 			secondaryLabel: PIDNode.secondaryLabel,
+			parentId: PIDNode.parentNodeId,
 			orientation: PIDNode.orientation,
 			position: {
 				x: PIDNode.positionX,
@@ -108,6 +109,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 						kind: node.kind,
 						label: node.label,
 						secondaryLabel: node.secondaryLabel,
+						parentNodeId: node.parentId,
 						drawingOrder,
 						orientation: node.orientation,
 						positionX: node.position.x,
@@ -241,6 +243,17 @@ function parseGraph(value: FormDataEntryValue | null): PIDGraph | undefined {
 	// identities and references that depend on the graph as a whole.
 	const nodeIds = new Set(parsed.nodes.map((node) => node.id));
 	if (parsed.nodes.some((node) => node.id.length === 0) || nodeIds.size !== parsed.nodes.length) {
+		return;
+	}
+
+	// A symbol that sits inside another names it. The name must belong to the
+	// same diagram, and a symbol cannot sit inside itself.
+	if (
+		parsed.nodes.some(
+			(node) =>
+				node.parentId !== null && (!nodeIds.has(node.parentId) || node.parentId === node.id),
+		)
+	) {
 		return;
 	}
 

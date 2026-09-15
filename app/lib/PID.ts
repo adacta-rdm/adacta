@@ -20,6 +20,17 @@ export interface PIDGraphNode {
 	 */
 	secondaryLabel: string | null;
 
+	/**
+	 * The symbol this one sits inside, where it sits inside one.
+	 *
+	 * A thermocouple measures at a place within a reactor rather than at the
+	 * reactor as a whole. A junction placed inside the reactor marks that place,
+	 * and the caption line from the instrument ends there. The position of such
+	 * a symbol is measured from the corner of the symbol that holds it, so it
+	 * travels with it.
+	 */
+	parentId: string | null;
+
 	orientation: PIDOrientation;
 	position: { x: number; y: number };
 }
@@ -88,6 +99,7 @@ export type PIDSymbolKind =
 	| "instrument"
 	| "junction"
 	| "note"
+	| "sample"
 	| "gas-bottle"
 	| "autoclave"
 	| "half-pipe-reactor"
