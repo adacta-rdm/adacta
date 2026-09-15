@@ -72,6 +72,8 @@ Set `ADACTA_STORAGE_DIR` to store the files in another directory.
 | `bun run db:seed`               | Load the development seed                                            |
 | `bun run precommit`             | Type check, lint, format, then run the tests. Repairs what it can    |
 | `bun test`                      | Run the test suite                                                   |
+| `bun run test:e2e`              | Run the browser journeys in headless Chromium                        |
+| `bun run test:e2e:ui`           | Open the interactive Playwright test runner                          |
 | `bun run typecheck`             | Generate route types and runtime validators, then run `tsc`          |
 | `bun run lint`                  | Run oxlint                                                           |
 | `bun run format`                | Format with oxfmt                                                    |
@@ -86,6 +88,13 @@ not.
 
 Running `db:seed` again is safe. It replaces the inventory of each repository
 and leaves the users and the repositories unchanged.
+
+### Browser tests
+
+The end-to-end suite uses Playwright. Each test opens a browser and runs against
+an isolated copy of the application. The suite covers a small set of stable user
+tasks. See [`e2e/README.md`](e2e/README.md) for the commands and the rules for
+writing these tests.
 
 ## Changing the schema
 

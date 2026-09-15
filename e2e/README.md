@@ -1,0 +1,104 @@
+# End-to-end tests
+
+The end-to-end suite uses [Playwright](https://playwright.dev) to exercise the
+application in Chromium. The root [README](../README.md#browser-tests) describes
+how these tests fit into the other development commands.
+
+## Scope
+
+Keep this suite small. Cover important and stable user tasks that require a
+browser. Examples include signing in, navigating between sections, and creating
+a sample batch. A browser test proves that the task completes. Lower-level tests
+cover the detailed rules.
+
+The current journeys are:
+
+- `journeys/login.e2e.ts`: credential sign-in and rejected credentials.
+- `journeys/navigation.e2e.ts`: the repository entry point and main sections.
+- `journeys/samples.e2e.ts`: finding, opening, and creating sample batches.
+
+Do not cover unfinished screens, visual design, responsive layouts, incidental
+wording, list order or counts, or individual validation messages here.
+
+## Running the suite
+
+```bash
+bun run test:e2e
+bun run test:e2e:ui
+bun x playwright show-report
+```
+
+Install Chromium before the first run if it is not already present:
+
+```bash
+bun x playwright install chromium
+```
+
+The test server uses SQLite databases and file storage under `.adacta/e2e/`.
+It resets these directories and loads the committed seed before each server
+start. Port 5273 must be free.
+
+Playwright starts the server for a normal run. During test development, an
+already running server can keep Vite and its hot reload active:
+
+```bash
+bun run dev:e2e
+PLAYWRIGHT_REUSE_SERVER=1 bun x playwright test
+```
+
+Global setup signs in with real credentials and saves the resulting browser
+state. Each normal test starts with that state. The login journey starts without
+it, so that journey exercises the sign-in form itself.
+
+## Writing a journey
+
+1. Put the spec in `e2e/journeys/<area>.e2e.ts`. Import `test` and `expect` from
+   `../fixtures`.
+2. Use `../seed-data` to obtain a record by its seed filename. Do not copy seed
+   values into a test. Give a created record a unique name.
+3. Assert the destination URL and one stable result that the user can observe.
+   Prefer URLs, roles, and accessible names. Use an API response when the result
+   is not visible.
+4. Keep each test independent and limited to one task. Tests run in parallel
+   against the same seeded databases.
+5. Add each newly visited route to `e2e/global-setup.ts` when the development
+   server benefits from precompiling it.
+
+Use locators based on role, label, or accessible name. An `input[name]` locator
+is acceptable for a generated form field that has no usable label. Avoid CSS
+selectors that depend on markup structure, XPath, `waitForTimeout`, incidental
+text, and `data-testid`. A missing accessible locator usually shows an
+accessibility problem in the application. Fix that problem before adding a test
+identifier.
+
+Keep locators beside the test that uses them. A small helper in the same file is
+suitable when several tests share one element. Do not create a page-object
+library.
+
+## Keeping journeys stable
+
+Follow the stable user result. Do not follow the current component structure or
+temporary states. After navigation or form submission, check the expected URL
+and the saved or visible result.
+
+Avoid position-based locators such as `first` and `nth`. Do not assert list
+counts, order, loading states, or incidental wording. Obtain dynamic addresses
+from real links or from a completed navigation. Do not construct database
+identifiers.
+
+Update an affected test in the same branch as an intentional interface change.
+Add a new browser test after its task and accessible landmarks are stable. Use
+`test.fixme` only for a tracked defect. Its comment must explain the cause and
+link to the issue.
+
+## Maintaining the suite
+
+Resolve every failure before merging. Fix an application regression, update a
+test for an intentional change, or delete the test when its user task no longer
+exists. Retries are disabled. A passing second run does not remove the first
+failure. Inspect the saved trace when timing may be involved.
+
+Local runs use the Vite development server. Global setup visits the routes used
+by the tests once, so individual tests do not wait for their first compilation.
+CI builds the application and starts its production server. It uploads the HTML
+report, traces, screenshots, and retained videos for seven days.

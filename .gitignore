@@ -34,3 +34,9 @@ scratch
 # React Router
 /.react-router/
 /build/
+
+# Playwright end-to-end tests
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
