@@ -4,8 +4,8 @@ import { Link } from "react-router";
 /**
  * A row of links that selects one view.
  *
- * Each tab has its own address. Therefore, a link opens the page on the
- * selected tab, and the browser history records the change.
+ * Each tab has its own address. A link therefore opens the page on the
+ * selected tab. The browser history records the change.
  */
 export function Tabs({ label, children }: { label: string; children: ReactNode }) {
 	return (
@@ -18,8 +18,8 @@ export function Tabs({ label, children }: { label: string; children: ReactNode }
 /**
  * One link in a row of tabs.
  *
- * The current link uses aria-current, so the selected view does not depend on
- * the visible underline alone.
+ * The current link uses aria-current. A screen reader therefore announces the
+ * selected view without relying on the visible underline.
  */
 export function Tab({
 	to,

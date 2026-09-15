@@ -194,7 +194,9 @@ export default function RepoSamplesBatchSlug({
 	);
 }
 
-/** One labelled fact in the header of the page. */
+/**
+ * One labeled fact in the header of the page.
+ */
 function Fact({ label, children }: { label: string; children: ReactNode }) {
 	return (
 		<div>
