@@ -84,6 +84,16 @@ body {
 	pointer-events: none;
 }
 
+/*
+	A connection point is dragged to draw a line. React Flow marks it with the
+	crosshair, which is the cursor for drawing a rectangle, and this editor
+	already uses a rectangle to select. The pointer says the point is live
+	without naming a shape.
+*/
+.pid-editor .react-flow__handle.connectionindicator {
+	cursor: pointer;
+}
+
 /* React Flow measures hidden ports to position saved connections. */
 .pid-editor-canvas--read-only .react-flow__handle {
 	opacity: 0 !important;

@@ -150,6 +150,11 @@ export interface PIDEditorProps {
 function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { readOnly: boolean }) {
 	const [nodes, setNodes, onNodesChange] = useNodesState<PIDNode>(editorNodes(value));
 	const [edges, setEdges, onEdgesChange] = useEdgesState<PIDEdge>(editorEdges(value));
+
+	// The kind given to the next connection drawn. It stays as chosen until it
+	// is changed, so a run of jacketed pipes needs one choice rather than one
+	// per line.
+	const [nextEdgeKind, setNextEdgeKind] = useState<PIDEdgeKind>("pipe");
 	const [showGrid, setShowGrid] = useState(false);
 	const [activeTool, setActiveTool] = useState<EditorTool>("select");
 	const [paletteFilter, setPaletteFilter] = useState("");
@@ -237,7 +242,7 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 					...connection,
 					id: randomId("pid-edge"),
 					type: "pid-connection",
-					data: { kind: "pipe" },
+					data: { kind: nextEdgeKind },
 					selected: true,
 					markerEnd: {
 						type: MarkerType.ArrowClosed,
@@ -578,6 +583,29 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 				{!readOnly ? (
 					<aside className="absolute inset-y-3 right-3 z-10 flex w-60 max-w-[calc(100%-1.5rem)] flex-col overflow-hidden rounded-lg border border-border bg-surface/95 shadow-lg backdrop-blur-sm">
 						<div className="border-b border-border p-3">
+							<h3 className="text-sm font-semibold text-foreground">Connection</h3>
+							<p className="mt-0.5 text-xs text-foreground-muted">
+								The kind used for the next line you draw.
+							</p>
+
+							<div className="mt-3 grid grid-cols-2 gap-1">
+								{edgeKinds.map((kind) => (
+									<button
+										key={kind}
+										type="button"
+										aria-pressed={nextEdgeKind === kind}
+										title={PID_EDGE_KINDS[kind].description}
+										className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-md border border-border bg-surface p-1.5 text-center text-[0.6875rem] leading-tight text-foreground hover:border-border-strong hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-focus aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold"
+										onClick={() => setNextEdgeKind(kind)}
+									>
+										<PIDConnectionSample kind={kind} />
+										<span>{PID_EDGE_KINDS[kind].name}</span>
+									</button>
+								))}
+							</div>
+						</div>
+
+						<div className="border-b border-border p-3">
 							<h3 className="text-sm font-semibold text-foreground">Equipment</h3>
 							<p className="mt-0.5 text-xs text-foreground-muted">
 								Click or drag a symbol to add it.
@@ -765,71 +793,127 @@ function PIDConnection({
 	});
 
 	const kind = edgeKind({ data });
-	const color = selected ? SELECTED_COLOR : LINE_COLOR;
 
 	// Selecting a connection changes its color. The width stays the same, so
 	// the drawing does not shift as the selection moves.
-	const lineWidth = LINE_WIDTH;
-	const stroke = { stroke: color, strokeWidth: lineWidth };
+	const color = selected ? SELECTED_COLOR : kind === "caption" ? NOTE_COLOR : LINE_COLOR;
+	const drawing = connectionDrawing(route, kind, LINE_WIDTH);
 
+	return (
+		<>
+			{drawing.background ? <Crossing shape={drawing.background} /> : null}
+
+			{drawing.lines.map((line, index) => (
+				<BaseEdge
+					key={index}
+					path={line.path}
+					markerEnd={line.arrow ? markerEnd : undefined}
+					style={{ stroke: color, strokeWidth: LINE_WIDTH, strokeDasharray: line.dashes }}
+				/>
+			))}
+		</>
+	);
+}
+
+interface ConnectionDrawing {
+	/**
+	 * The shape filled behind the connection, where it has one.
+	 */
+	background?: string;
+
+	/**
+	 * The lines to stroke, in the order they are drawn.
+	 */
+	lines: { path: string; dashes?: string; arrow?: boolean }[];
+}
+
+/**
+ * Returns the lines that make up one connection.
+ *
+ * The diagram and the sample shown in the palette are both built from this, so
+ * the two cannot drift apart.
+ *
+ * A caption is a single line. A pipe is a centre line. A jacketed pipe adds a
+ * line on each side of the centre, stopping them short so that the pipe alone
+ * enters the symbol. A traced pipe drops the centre line and keeps the two side
+ * lines, one solid and one dash-dot, because the tracer is a separate line
+ * running along the pipe.
+ *
+ * Pass withArrow as false where no arrow is drawn. The jacket then needs only
+ * its usual gap, rather than one wide enough to clear an arrow.
+ */
+function connectionDrawing(
+	route: string,
+	kind: PIDEdgeKind,
+	lineWidth: number,
+	withArrow = true,
+): ConnectionDrawing {
 	if (kind === "caption") {
-		// A caption is a leader line to a note rather than a path for process
-		// fluid. It carries no arrow and needs no background, because nothing
-		// flows along it. It is set apart by color instead of by a dash pattern,
-		// because a dashed line in a P&ID reads as an instrument signal.
-		return (
-			<BaseEdge
-				path={route}
-				style={{ stroke: selected ? SELECTED_COLOR : NOTE_COLOR, strokeWidth: lineWidth }}
-			/>
-		);
+		return { lines: [{ path: route }] };
 	}
 
 	if (kind === "pipe") {
 		const lines = parallelLines(route, { spacing: 2 + lineWidth, lineWidth });
 
-		return (
-			<>
-				<Crossing shape={lines.centerBackground} />
-				<BaseEdge path={lines.center} markerEnd={markerEnd} style={stroke} />
-			</>
-		);
+		return {
+			background: lines.centerBackground,
+			lines: [{ path: lines.center, arrow: withArrow }],
+		};
 	}
 
 	if (kind === "jacketed") {
 		const spacing = 2 + lineWidth;
 
-		// The jacket stops short of the connection while the pipe runs into it,
-		// which is how a jacketed pipe is built. The gap also covers the arrow
-		// and one spacing beyond it. The arrow is a little taller than the
-		// jacket is wide, so a jacket ending closer than that appears to run
-		// into it.
-		const lines = parallelLines(route, {
-			spacing,
-			lineWidth,
-			outerEndGap: lineWidth + arrowLength(lineWidth) + spacing,
-		});
+		// The arrow is taller than the jacket is wide, so a jacket ending closer
+		// than one spacing behind it appears to run into it.
+		const outerEndGap = withArrow ? lineWidth + arrowLength(lineWidth) + spacing : spacing;
+		const lines = parallelLines(route, { spacing, lineWidth, outerEndGap });
 
-		return (
-			<>
-				<Crossing shape={lines.fullBackground} />
-				<BaseEdge path={lines.left + lines.right} style={stroke} />
-				<BaseEdge path={lines.center} markerEnd={markerEnd} style={stroke} />
-			</>
-		);
+		return {
+			background: lines.fullBackground,
+			lines: [{ path: lines.left + lines.right }, { path: lines.center, arrow: withArrow }],
+		};
 	}
 
-	// A tracer is a separate line strapped along the pipe, so it is drawn as its
-	// own line rather than as a pattern on the pipe. Both lines reach the
-	// connection, because one of them is the pipe.
+	// Both lines reach the symbol, because one of them is the pipe. Neither
+	// carries an arrow: they run beside the centre, so an arrow on one of them
+	// would point from the side.
 	const lines = parallelLines(route, { spacing: 1 + lineWidth, lineWidth, outerEndGap: 0 });
 
+	return {
+		background: lines.fullBackground,
+		lines: [{ path: lines.right }, { path: lines.left, dashes: tracerDashes(lineWidth) }],
+	};
+}
+
+/**
+ * Draws a short piece of one connection kind, for the selector in the palette.
+ */
+function PIDConnectionSample({ kind }: { kind: PIDEdgeKind }) {
+	const width = 40;
+	const height = 12;
+	const middle = height / 2;
+
+	const drawing = connectionDrawing(
+		`M 1 ${middle} L ${width - 1} ${middle}`,
+		kind,
+		LINE_WIDTH,
+		false,
+	);
+
 	return (
-		<>
-			<Crossing shape={lines.fullBackground} />
-			<BaseEdge path={lines.right} style={stroke} />
-			<BaseEdge path={lines.left} style={{ ...stroke, strokeDasharray: tracerDashes(lineWidth) }} />
-		</>
+		<svg viewBox={`0 0 ${width} ${height}`} className="h-3 w-10 shrink-0" aria-hidden="true">
+			{drawing.lines.map((line, index) => (
+				<path
+					key={index}
+					d={line.path}
+					fill="none"
+					stroke={kind === "caption" ? NOTE_COLOR : "currentColor"}
+					strokeWidth={LINE_WIDTH}
+					strokeDasharray={line.dashes}
+				/>
+			))}
+		</svg>
 	);
 }
 
