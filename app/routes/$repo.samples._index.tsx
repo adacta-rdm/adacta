@@ -25,6 +25,7 @@ import { Fragment } from "react";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import { Tab, Tabs } from "~/app/components/Tabs.tsx";
 import { formatBatchComposition } from "~/app/lib/batchComposition.ts";
 import { formatCalendarDate } from "~/app/lib/dates.ts";
 import { compareSampleNames } from "~/app/lib/sampleNames.ts";
@@ -273,41 +274,6 @@ function ArchivedOn({ at }: { at: Date | null }) {
 	return <time dateTime={day}>{formatCalendarDate(day)}</time>;
 }
 
-/**
- * One tab of the batch list. The tab in view is a plain label, so only the
- * other tab can be clicked.
- */
-function Tab({
-	to,
-	label,
-	count: total,
-	current,
-}: {
-	to: string;
-	label: string;
-	count: number;
-	current: boolean;
-}) {
-	const shared = "-mb-px flex items-center gap-2 border-b-2 px-1 pb-2 text-sm font-medium";
-
-	const style = current
-		? "border-accent text-foreground"
-		: "border-transparent text-foreground-muted hover:border-border-strong hover:text-foreground";
-
-	return (
-		<Link
-			to={to}
-			aria-current={current ? "page" : undefined}
-			className={`${shared} ${style} focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus`}
-		>
-			{label}
-			<span className="rounded-full bg-canvas-sunken px-2 py-0.5 text-xs text-foreground-muted">
-				{total}
-			</span>
-		</Link>
-	);
-}
-
 export default function RepoSamplesIndex({ actionData, loaderData, params }: Route.ComponentProps) {
 	const { batches, counts, showArchived, open, openSamples, preparers } = loaderData;
 
@@ -349,14 +315,16 @@ export default function RepoSamplesIndex({ actionData, loaderData, params }: Rou
 			</div>
 
 			<section className="overflow-hidden rounded-xl border border-border bg-surface">
-				<div className="flex gap-6 border-b border-border px-5 pt-4">
-					<Tab to={samplesPath} label="Active" count={counts.active} current={!showArchived} />
-					<Tab
-						to={`${samplesPath}?${TAB_PARAM}=${ARCHIVED_TAB}`}
-						label="Archived"
-						count={counts.archived}
-						current={showArchived}
-					/>
+				<div className="px-5 pt-4">
+					<Tabs label="Batch list">
+						<Tab to={samplesPath} label="Active" count={counts.active} current={!showArchived} />
+						<Tab
+							to={`${samplesPath}?${TAB_PARAM}=${ARCHIVED_TAB}`}
+							label="Archived"
+							count={counts.archived}
+							current={showArchived}
+						/>
+					</Tabs>
 				</div>
 
 				{batches.length === 0 ? (
