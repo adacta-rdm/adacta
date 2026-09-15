@@ -9,7 +9,6 @@ import { QuantityKind } from "~/drizzle/schema/repo.QuantityKind.ts";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
 import { SourceArtifact } from "~/drizzle/schema/repo.SourceArtifact.ts";
-import { SourceBundle } from "~/drizzle/schema/repo.SourceBundle.ts";
 import { Account, Session, User, Verification } from "~/drizzle/schema/system.BetterAuth.ts";
 import { Repository } from "~/drizzle/schema/system.Repository.ts";
 import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
@@ -29,7 +28,6 @@ const Schema = {
 	SampleBatch,
 	Session,
 	SourceArtifact,
-	SourceBundle,
 	User,
 	UserRepository,
 	Verification,

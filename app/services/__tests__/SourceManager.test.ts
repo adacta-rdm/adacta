@@ -1,83 +1,113 @@
 import { describe, expect, test } from "bun:test";
 
+import { eq } from "drizzle-orm";
+
+import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { SourceFileNotFoundError, SourceManager } from "~/app/services/SourceManager.ts";
 import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
+import { SourceArtifact } from "~/drizzle/schema/repo.SourceArtifact.ts";
 
 describe("SourceManager", () => {
-	test("finalizes uploaded artifacts as one source bundle", async () => {
+	test("publishes the files of one upload under a shared upload id", async () => {
 		const scope = await setupTestRepositoryEnvironment();
 		const sources = scope.get(SourceManager);
-		const pendingBundle = sources.beginBundle();
+		const upload = sources.beginUpload();
 
-		await pendingBundle.add({
+		await upload.add({
 			originalName: "measurement.csv",
 			mediaType: "text/csv",
 			source: new Blob(["source contents"]).stream(),
 		});
-		await pendingBundle.add({
+		await upload.add({
 			originalName: "measurement.json",
 			mediaType: "application/json",
 			source: new Blob(["{}"]).stream(),
 		});
-		const bundleId = await pendingBundle.commit(scope.get(Security).userId);
-		const bundle = sources.getBundle(bundleId);
 
-		expect(bundle.id).toBe(bundleId);
-		expect(bundle.metadataCreatorId).toBe(scope.get(Security).userId);
+		const uploadId = await upload.commit(scope.get(Security).userId);
+		const artifacts = sources.artifactsOfUpload(uploadId);
+
 		expect(
-			bundle.artifacts.map(({ sourceBundleId, originalName, mediaType, byteSize }) => ({
-				sourceBundleId,
+			artifacts.map(({ uploadId: id, originalName, mediaType, byteSize }) => ({
+				uploadId: id,
 				originalName,
 				mediaType,
 				byteSize,
 			})),
 		).toEqual([
 			{
-				sourceBundleId: bundleId,
+				uploadId,
 				originalName: "measurement.csv",
 				mediaType: "text/csv",
 				byteSize: 15,
 			},
 			{
-				sourceBundleId: bundleId,
+				uploadId,
 				originalName: "measurement.json",
 				mediaType: "application/json",
 				byteSize: 2,
 			},
 		]);
 
+		expect(artifacts[0]?.metadataCreatorId).toBe(scope.get(Security).userId);
+
 		const contents = await Promise.all(
-			bundle.artifacts.map(async ({ id }) => {
+			artifacts.map(async ({ id }) => {
 				const artifact = sources.getArtifact(id);
 				return new Response(await artifact.read()).text();
 			}),
 		);
+
 		expect(contents).toEqual(["source contents", "{}"]);
 	});
 
-	test("does not publish a bundle when an artifact upload fails", async () => {
+	test("publishes nothing when one of the files fails to arrive", async () => {
 		const scope = await setupTestRepositoryEnvironment();
 		const sources = scope.get(SourceManager);
-		const bundleUpload = sources.beginBundle();
+		const upload = sources.beginUpload();
 
 		try {
-			await bundleUpload.add({
+			await upload.add({
 				originalName: "measurement.csv",
 				mediaType: "text/csv",
 				source: failingStream(),
 			});
 			expect.unreachable("Expected the upload to fail");
 		} catch (error) {
-			expect(error).toBeInstanceOf(Error);
 			expect((error as Error).message).toBe("Source failed");
 		}
-		expect(() => sources.getBundle(bundleUpload.id)).toThrow(SourceFileNotFoundError);
+
+		expect(() => sources.artifactsOfUpload(upload.id)).toThrow(SourceFileNotFoundError);
+	});
+
+	test("archiving one file leaves the others of its upload in place", async () => {
+		const scope = await setupTestRepositoryEnvironment();
+		const sources = scope.get(SourceManager);
+		const upload = sources.beginUpload();
+
+		await upload.add({ originalName: "a.csv", source: new Blob(["a"]).stream() });
+		await upload.add({ originalName: "b.csv", source: new Blob(["b"]).stream() });
+
+		const uploadId = await upload.commit(scope.get(Security).userId);
+		const [first, second] = sources.artifactsOfUpload(uploadId);
+
+		scope
+			.get(RepoDB)
+			.update(SourceArtifact)
+			.set({ metadataArchivedAt: new Date() })
+			.where(eq(SourceArtifact.id, first!.id))
+			.run();
+
+		expect(() => sources.getArtifact(first!.id)).toThrow(SourceFileNotFoundError);
+		expect(sources.getArtifact(second!.id).originalName).toBe("b.csv");
+		expect(sources.artifactsOfUpload(uploadId).map((row) => row.originalName)).toEqual(["b.csv"]);
 	});
 });
 
 function failingStream(): ReadableStream<Uint8Array> {
 	let first = true;
+
 	return new ReadableStream({
 		pull(controller) {
 			if (first) {
@@ -85,6 +115,7 @@ function failingStream(): ReadableStream<Uint8Array> {
 				controller.enqueue(new TextEncoder().encode("partial"));
 				return;
 			}
+
 			controller.error(new Error("Source failed"));
 		},
 	});

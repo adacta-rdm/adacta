@@ -32,13 +32,10 @@ describe("import action", () => {
 		expect(response.status).toBe(303);
 		const location = response.headers.get("Location");
 		expect(location).toMatch(/^\/demo\/files\/[0-9a-f-]{36}$/);
-		const bundle = scope.get(SourceManager).getBundle(location!.split("/").at(-1)!);
-		expect(bundle.artifacts.map((artifact) => artifact.originalName)).toEqual([
-			"first.txt",
-			"second.txt",
-		]);
+		const artifacts = scope.get(SourceManager).artifactsOfUpload(location!.split("/").at(-1)!);
+		expect(artifacts.map((artifact) => artifact.originalName)).toEqual(["first.txt", "second.txt"]);
 		const contents = await Promise.all(
-			bundle.artifacts.map(async (artifact) => {
+			artifacts.map(async (artifact) => {
 				const storedArtifact = scope.get(SourceManager).getArtifact(artifact.id);
 				return new Response(await storedArtifact.read()).text();
 			}),
@@ -58,9 +55,9 @@ describe("import action", () => {
 
 		if (!(response instanceof Response)) throw new Error("Expected a redirect.");
 		expect(response.status).toBe(303);
-		const bundleId = response.headers.get("Location")!.split("/").at(-1)!;
-		const bundle = scope.get(SourceManager).getBundle(bundleId);
-		expect(bundle.artifacts[0]!.byteSize).toBe(bytes.byteLength);
+		const uploadId = response.headers.get("Location")!.split("/").at(-1)!;
+		const artifacts = scope.get(SourceManager).artifactsOfUpload(uploadId);
+		expect(artifacts[0]!.byteSize).toBe(bytes.byteLength);
 	});
 });
 

@@ -3,11 +3,11 @@ import { describe, expect, test } from "bun:test";
 import { loader } from "~/app/routes/$repo.files.artifacts.$artifactId.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
 
-import { setupBundle } from "./$repo.files.$bundleId.test.ts";
+import { setupUpload } from "./$repo.files.$uploadId.test.ts";
 
 describe("source artifact download", () => {
 	test("downloads the original bytes with their file metadata", async () => {
-		const { scope, artifactId } = await setupBundle();
+		const { scope, artifactId } = await setupUpload();
 		const request = new Request(`http://localhost/demo/files/artifacts/${artifactId}`);
 		const [args] = createMiddlewareArgs(scope, {
 			request,

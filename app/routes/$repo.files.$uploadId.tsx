@@ -7,40 +7,41 @@ import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
 
-import type { Route } from "./+types/$repo.files.$bundleId.ts";
+import type { Route } from "./+types/$repo.files.$uploadId.ts";
 
 export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
 export function meta() {
-	return [{ title: "Source bundle — Adacta" }];
+	return [{ title: "Uploaded files — Adacta" }];
 }
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	try {
-		const bundle = context.get(services).get(SourceManager).getBundle(params.bundleId);
-		return { bundle };
+		const artifacts = context.get(services).get(SourceManager).artifactsOfUpload(params.uploadId);
+
+		return { artifacts };
 	} catch (error) {
 		if (error instanceof SourceFileNotFoundError || error instanceof FileNotFoundError) {
-			throw new Response("Source bundle not found.", { status: 404 });
+			throw new Response("Upload not found.", { status: 404 });
 		}
 		throw error;
 	}
 }
 
-export default function FileBundle({ loaderData, params }: Route.ComponentProps) {
+export default function RepoFilesUploadId({ loaderData, params }: Route.ComponentProps) {
 	return (
 		<div className="space-y-8">
 			<div>
-				<Heading>Source bundle</Heading>
+				<Heading>Uploaded files</Heading>
 				<Text className="mt-2">
-					The original files are stored together with their import result.
+					These files were supplied in one upload. Each file is kept exactly as it arrived.
 				</Text>
 			</div>
 
 			<section className="rounded-xl border border-border bg-surface p-5">
 				<Subheading>Original files</Subheading>
 				<ul className="mt-4 divide-y divide-border">
-					{loaderData.bundle.artifacts.map((artifact) => (
+					{loaderData.artifacts.map((artifact) => (
 						<li key={artifact.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
 							<DocumentTextIcon className="size-5 shrink-0 text-foreground-muted" />
 							<span className="min-w-0 flex-1">
@@ -61,11 +62,6 @@ export default function FileBundle({ loaderData, params }: Route.ComponentProps)
 						</li>
 					))}
 				</ul>
-			</section>
-
-			<section className="rounded-xl border border-border bg-surface p-5">
-				<Subheading>Import result</Subheading>
-				<Text className="mt-2">No import result is available.</Text>
 			</section>
 
 			<Link

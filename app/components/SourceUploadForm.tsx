@@ -13,7 +13,7 @@ type PreviewState =
 
 type ActivePreviewState = PreviewState | { status: "loading" };
 
-export function SourceBundleForm({
+export function SourceUploadForm({
 	files,
 	isUploading,
 	uploadError,
@@ -73,12 +73,12 @@ export function SourceBundleForm({
 			onSubmit={onSubmit}
 		>
 			{files.length === 0 ? (
-				<EmptyBundle inputRef={inputRef} onSelect={selectFiles} />
+				<EmptyUpload inputRef={inputRef} onSelect={selectFiles} />
 			) : (
 				<>
 					<div className="flex flex-wrap items-center justify-between gap-4">
 						<div>
-							<Subheading>Source bundle</Subheading>
+							<Subheading>Files to upload</Subheading>
 							<p className="mt-1 text-sm text-foreground-muted">
 								{files.length} {files.length === 1 ? "file" : "files"}
 							</p>
@@ -114,7 +114,7 @@ export function SourceBundleForm({
 					</div>
 
 					<div className="grid gap-6 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)]">
-						<ul className="space-y-2" aria-label="Files in the source bundle">
+						<ul className="space-y-2" aria-label="Files to upload">
 							{files.map((file) => {
 								const selected = file === activeFile;
 
@@ -173,7 +173,7 @@ export function SourceBundleForm({
 	);
 }
 
-function EmptyBundle({
+function EmptyUpload({
 	inputRef,
 	onSelect,
 }: {

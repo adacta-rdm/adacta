@@ -3,21 +3,21 @@ import { and, eq, isNull } from "drizzle-orm";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import type { NewEntity } from "~/drizzle/Schema.ts";
 import { SourceArtifact } from "~/drizzle/schema/repo.SourceArtifact.ts";
-import { SourceBundle } from "~/drizzle/schema/repo.SourceBundle.ts";
 import { Service } from "~/lib/service-container/ServiceContainer.ts";
 import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
 
 /**
- * Stores uploaded files and makes their metadata and original bytes available
- * for retrieval. It preserves each file as a source artifact and records each
- * upload session as a source bundle.
+ * Stores uploaded files and makes them available for later retrieval.
  *
- * A source bundle may contain one file, or related files such as a measurement and
- * its sidecar.
+ * Each file is kept exactly as it arrived and recorded as a source artifact.
+ * Files remain in a staging area until every file in the upload has been
+ * stored. They are then moved to permanent storage and recorded together. A
+ * file can therefore be retrieved only after the complete upload succeeds.
  *
- * New files are staged before the bundle is recorded. A bundle becomes
- * available through this manager only after every file has been stored and the
- * upload has been committed.
+ * Files submitted in the same upload share an upload id. For example, a table
+ * of measurements and its sidecar file may share an upload id. The shared id
+ * records only how the files arrived. Any relationship between the files is
+ * recorded separately during import.
  */
 @Service(StorageEngine, RepoDB)
 export class SourceManager {
@@ -27,77 +27,64 @@ export class SourceManager {
 	) {}
 
 	/**
-	 * Starts one upload session that can be finalized as a source bundle.
+	 * Starts one upload and returns the object used to add its files.
 	 *
-	 * Files may be added until the session is committed or an operation fails.
-	 * The returned session cannot be reused after either event.
+	 * Files may be added until the upload is committed. A successful commit or
+	 * any failure closes the upload. Further calls then fail.
 	 */
-	beginBundle(): PendingSourceBundle {
-		return new PendingSourceBundle(this.storage, this.database);
+	beginUpload(): PendingUpload {
+		return new PendingUpload(this.storage, this.database);
 	}
 
 	/**
-	 * Returns one published source bundle and the metadata of all its artifacts.
+	 * Returns the files of one upload, in the order they arrived.
 	 *
-	 * An archived bundle is treated as absent. Archived artifacts are omitted. The
-	 * method throws `SourceFileNotFoundError` when the bundle is absent.
+	 * Archived files are omitted. The method throws `SourceFileNotFoundError`
+	 * when every file in the upload is archived or the upload id is unknown.
 	 */
-	getBundle(id: string) {
-		const bundle = this.database
-			.select()
-			.from(SourceBundle)
-			.where(and(eq(SourceBundle.id, id), isNull(SourceBundle.metadataArchivedAt)))
-			.get();
-		if (!bundle) throw new SourceFileNotFoundError(id);
-
+	artifactsOfUpload(uploadId: string) {
 		const artifacts = this.database
 			.select()
 			.from(SourceArtifact)
-			.where(and(eq(SourceArtifact.sourceBundleId, id), isNull(SourceArtifact.metadataArchivedAt)))
+			.where(and(eq(SourceArtifact.uploadId, uploadId), isNull(SourceArtifact.metadataArchivedAt)))
 			.all();
 
-		return { ...bundle, artifacts };
+		if (artifacts.length === 0) throw new SourceFileNotFoundError(uploadId);
+
+		return artifacts;
 	}
 
 	/**
-	 * Returns metadata and read access for one published source artifact.
+	 * Returns the record of one file and a way to read its bytes.
 	 *
-	 * The returned `read()` method opens a new stream of the original bytes. The
-	 * stored file is not opened by `getArtifact()`. An archived artifact or an
-	 * artifact in an archived bundle is treated as absent.
+	 * The returned `read()` method opens a new stream each time it is called.
+	 * `getArtifact()` itself does not open the stored file. An archived file
+	 * is treated as absent.
 	 */
 	getArtifact(id: string) {
-		const result = this.database
-			.select({ artifact: SourceArtifact })
+		const artifact = this.database
+			.select()
 			.from(SourceArtifact)
-			.innerJoin(SourceBundle, eq(SourceArtifact.sourceBundleId, SourceBundle.id))
-			.where(
-				and(
-					eq(SourceArtifact.id, id),
-					isNull(SourceBundle.metadataArchivedAt),
-					isNull(SourceArtifact.metadataArchivedAt),
-				),
-			)
+			.where(and(eq(SourceArtifact.id, id), isNull(SourceArtifact.metadataArchivedAt)))
 			.get();
 
-		if (!result) throw new SourceFileNotFoundError(id);
+		if (!artifact) throw new SourceFileNotFoundError(id);
 
 		return {
-			...result.artifact,
-			read: () => this.storage.read(artifactPath(result.artifact.id)),
+			...artifact,
+			read: () => this.storage.read(artifactPath(artifact.id)),
 		};
 	}
 }
 
 /**
- * Collects the files from one upload session and publishes them as one bundle.
- *
- * Files can be added until the session is committed. A failed or committed
- * session rejects every later operation.
+ * Collects the files of one upload and records them together.
  */
-class PendingSourceBundle {
+class PendingUpload {
 	/**
-	 * The identifier used for the source bundle if the upload is committed.
+	 * Every file record created by this upload uses this identifier. The staging
+	 * directory is also named after it. For example, a file is staged at
+	 * `uploads/<upload id>/<file id>`.
 	 */
 	readonly id = crypto.randomUUID();
 	private readonly artifacts: StagedArtifact[] = [];
@@ -109,10 +96,10 @@ class PendingSourceBundle {
 	) {}
 
 	/**
-	 * Stages one original file and returns its artifact identifier.
+	 * Stores one file in the staging area and returns its identifier.
 	 *
-	 * The method consumes the source stream before it resolves. A storage failure
-	 * marks the upload session as failed.
+	 * The method returns after storage has read the complete source stream. A
+	 * storage failure ends the upload.
 	 */
 	async add(upload: ArtifactUpload): Promise<string> {
 		this.assertOpen();
@@ -129,23 +116,24 @@ class PendingSourceBundle {
 			});
 			return id;
 		} catch (error) {
-			// Failed uploads remain below uploads/ for the garbage collector. They
-			// are never referenced by a source artifact record.
+			// The garbage collector removes files that remain in the staging
+			// area. No source artifact record refers to them.
 			this.state = "failed";
 			throw error;
 		}
 	}
 
 	/**
-	 * Publishes all staged files and returns the source bundle identifier.
+	 * Records every staged file and returns the upload identifier.
 	 *
-	 * At least one file must have been added. The method moves every file to its
-	 * permanent location before it records the bundle and its artifacts in one
-	 * database transaction.
+	 * At least one file must have been added. The method first moves every
+	 * file to its permanent location. It then writes all the records in one
+	 * database transaction. A recorded file is therefore always present in
+	 * storage.
 	 */
 	async commit(creatorId: string): Promise<string> {
 		this.assertOpen();
-		if (this.artifacts.length === 0) throw new Error("A source bundle requires an artifact.");
+		if (this.artifacts.length === 0) throw new Error("An upload requires a file.");
 
 		const movedArtifacts: StagedArtifact[] = [];
 		try {
@@ -155,20 +143,14 @@ class PendingSourceBundle {
 			}
 
 			const createdAt = new Date();
-			const bundle = {
-				id: this.id,
-				metadataCreatorId: creatorId,
-				metadataCreationTimestamp: createdAt,
-			} satisfies NewEntity<"SourceBundle">;
 			const artifacts = this.artifacts.map((artifact) => ({
 				...artifact,
-				sourceBundleId: this.id,
+				uploadId: this.id,
 				metadataCreatorId: creatorId,
 				metadataCreationTimestamp: createdAt,
 			})) satisfies NewEntity<"SourceArtifact">[];
 
 			this.database.transaction((transaction) => {
-				transaction.insert(SourceBundle).values(bundle).run();
 				transaction.insert(SourceArtifact).values(artifacts).run();
 			});
 
@@ -184,8 +166,8 @@ class PendingSourceBundle {
 	}
 
 	private assertOpen(): void {
-		if (this.state === "failed") throw new Error("The source bundle upload has failed.");
-		if (this.state === "committed") throw new Error("The source bundle upload is complete.");
+		if (this.state === "failed") throw new Error("The upload has failed.");
+		if (this.state === "committed") throw new Error("The upload is complete.");
 	}
 }
 
@@ -213,8 +195,8 @@ type ArtifactUpload = {
 	source: ReadableStream<Uint8Array>;
 };
 
-function uploadPath(bundleId: string, artifactId: string): string {
-	return `uploads/${bundleId}/${artifactId}`;
+function uploadPath(uploadId: string, artifactId: string): string {
+	return `uploads/${uploadId}/${artifactId}`;
 }
 
 function artifactPath(artifactId: string): string {
@@ -222,7 +204,7 @@ function artifactPath(artifactId: string): string {
 }
 
 /**
- * Reports that a published source bundle or artifact does not exist.
+ * Reports that no available source file matched an identifier.
  */
 export class SourceFileNotFoundError extends Error {
 	constructor(id: string) {

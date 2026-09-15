@@ -10,7 +10,7 @@ import {
 } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
-import { SourceBundleForm } from "~/app/components/SourceBundleForm.tsx";
+import { SourceUploadForm } from "~/app/components/SourceUploadForm.tsx";
 import type { RepositoryContext } from "~/app/routes/$repo.tsx";
 import { Security } from "~/app/services/Security.ts";
 import { SourceManager } from "~/app/services/SourceManager.ts";
@@ -26,25 +26,30 @@ export function meta() {
 }
 
 /**
- * Stores all source files submitted as one multipart form.
+ * Stores every file submitted by the upload form.
+ *
+ * The request body is a multipart stream. Each file is written to storage as
+ * that stream is read. The upload is recorded after every file has been stored.
  */
 export async function action({ request, context, params }: Route.ActionArgs) {
-	let bundleUpload: ReturnType<SourceManager["beginBundle"]> | undefined;
+	let pending: ReturnType<SourceManager["beginUpload"]> | undefined;
 	let formData: FormData;
 
 	try {
 		formData = await parseFormData(
 			request,
 			{
-				// The parser defaults to 2 MiB. Source files are streamed to storage
-				// and may be larger. No byte limit is therefore applied here.
+				// By default, the parser rejects a file larger than 2 MiB. Source
+				// files are written directly to storage and may be much larger. No
+				// byte limit is therefore set here.
 				maxFileSize: Number.POSITIVE_INFINITY,
 			},
 			async (upload) => {
 				if (upload.fieldName !== "files") return;
 
-				bundleUpload ??= context.get(services).get(SourceManager).beginBundle();
-				return bundleUpload.add({
+				pending ??= context.get(services).get(SourceManager).beginUpload();
+
+				return pending.add({
 					originalName: upload.name,
 					mediaType: upload.type,
 					source: upload.stream(),
@@ -65,9 +70,9 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 		return data({ error: "Select at least one file." }, { status: 400 });
 	}
 
-	const bundleId = await bundleUpload!.commit(context.get(services).get(Security).userId);
+	const uploadId = await pending!.commit(context.get(services).get(Security).userId);
 
-	return redirect(`/${params.repo}/files/${bundleId}`, 303);
+	return redirect(`/${params.repo}/files/${uploadId}`, 303);
 }
 
 export default function RepoFilesImport({ actionData }: Route.ComponentProps) {
@@ -112,7 +117,7 @@ export default function RepoFilesImport({ actionData }: Route.ComponentProps) {
 				the browser.
 			</Text>
 
-			<SourceBundleForm
+			<SourceUploadForm
 				files={sourceBundle}
 				isUploading={isUploading}
 				uploadError={uploadError}

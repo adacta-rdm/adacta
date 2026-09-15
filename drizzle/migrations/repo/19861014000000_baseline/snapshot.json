@@ -49,10 +49,6 @@
 			"entityType": "tables"
 		},
 		{
-			"name": "SourceBundle",
-			"entityType": "tables"
-		},
-		{
 			"type": "integer",
 			"notNull": false,
 			"autoincrement": true,
@@ -958,7 +954,7 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
-			"name": "source_bundle_id",
+			"name": "upload_id",
 			"entityType": "columns",
 			"table": "SourceArtifact"
 		},
@@ -1021,46 +1017,6 @@
 			"name": "metadata_archived_at",
 			"entityType": "columns",
 			"table": "SourceArtifact"
-		},
-		{
-			"type": "text",
-			"notNull": false,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "source_bundle_id",
-			"entityType": "columns",
-			"table": "SourceBundle"
-		},
-		{
-			"type": "text",
-			"notNull": true,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "metadata_creator_id",
-			"entityType": "columns",
-			"table": "SourceBundle"
-		},
-		{
-			"type": "integer",
-			"notNull": true,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "metadata_creation_timestamp",
-			"entityType": "columns",
-			"table": "SourceBundle"
-		},
-		{
-			"type": "integer",
-			"notNull": false,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "metadata_archived_at",
-			"entityType": "columns",
-			"table": "SourceBundle"
 		},
 		{
 			"columns": ["manufacturer_id"],
@@ -1173,17 +1129,6 @@
 			"table": "Sample"
 		},
 		{
-			"columns": ["source_bundle_id"],
-			"tableTo": "SourceBundle",
-			"columnsTo": ["source_bundle_id"],
-			"onUpdate": "NO ACTION",
-			"onDelete": "NO ACTION",
-			"nameExplicit": false,
-			"name": "fk_SourceArtifact_source_bundle_id_SourceBundle_source_bundle_id_fk",
-			"entityType": "fks",
-			"table": "SourceArtifact"
-		},
-		{
 			"columns": ["catalog_source_id"],
 			"nameExplicit": false,
 			"name": "CatalogSource_pk",
@@ -1258,13 +1203,6 @@
 			"nameExplicit": false,
 			"name": "SourceArtifact_pk",
 			"table": "SourceArtifact",
-			"entityType": "pks"
-		},
-		{
-			"columns": ["source_bundle_id"],
-			"nameExplicit": false,
-			"name": "SourceBundle_pk",
-			"table": "SourceBundle",
 			"entityType": "pks"
 		},
 		{
