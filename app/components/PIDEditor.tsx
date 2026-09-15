@@ -48,7 +48,12 @@ import { parallelLines } from "~/lib/parallel-lines/ParallelLines.ts";
 
 import "@xyflow/react/dist/style.css";
 
-type PIDNodeData = { kind: PIDSymbolKind; label: string; orientation: PIDOrientation };
+type PIDNodeData = {
+	kind: PIDSymbolKind;
+	label: string;
+	secondaryLabel: string | null;
+	orientation: PIDOrientation;
+};
 type PIDNode = Node<PIDNodeData, "pid-symbol">;
 type PIDEdgeData = { kind: PIDEdgeKind };
 type PIDEdge = Edge<PIDEdgeData, "pid-connection">;
@@ -224,7 +229,7 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 					x: 160 + ((number - 1) % 3) * 150,
 					y: 120 + Math.floor((number - 1) / 3) * 130,
 				},
-				data: { kind, label: symbol.label, orientation: 0 },
+				data: { kind, label: symbol.label, secondaryLabel: null, orientation: 0 },
 				selected: true,
 			},
 		]);
@@ -321,6 +326,18 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 		setNodes((current) =>
 			current.map((node) =>
 				node.id === selectedNode.id ? { ...node, data: { ...node.data, label } } : node,
+			),
+		);
+	}
+
+	function setSelectedNodeTag(secondaryLabel: string) {
+		if (!selectedNode) return;
+
+		setNodes((current) =>
+			current.map((node) =>
+				node.id === selectedNode.id
+					? { ...node, data: { ...node.data, secondaryLabel: secondaryLabel || null } }
+					: node,
 			),
 		);
 	}
@@ -519,13 +536,26 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 						{selectedNode ? (
 							<div className="mt-4 space-y-5">
 								<label className="block">
-									<span className="text-xs font-medium text-foreground-muted">Label</span>
+									<span className="text-xs font-medium text-foreground-muted">
+										{selectedNode.data.kind === "instrument" ? "Function" : "Label"}
+									</span>
 									<input
 										value={selectedNode.data.label}
 										onChange={(event) => renameSelectedNode(event.target.value)}
 										className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground focus:border-focus focus:outline-none"
 									/>
 								</label>
+
+								{selectedNode.data.kind === "instrument" ? (
+									<label className="block">
+										<span className="text-xs font-medium text-foreground-muted">Tag</span>
+										<input
+											value={selectedNode.data.secondaryLabel ?? ""}
+											onChange={(event) => setSelectedNodeTag(event.target.value)}
+											className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground focus:border-focus focus:outline-none"
+										/>
+									</label>
+								) : null}
 
 								<fieldset>
 									<legend className="text-xs font-medium text-foreground-muted">Orientation</legend>
@@ -703,6 +733,7 @@ function editorNodes(value: PIDGraph): PIDNode[] {
 		data: {
 			kind: node.kind,
 			label: node.label,
+			secondaryLabel: node.secondaryLabel,
 			orientation: node.orientation,
 		},
 	}));
@@ -726,6 +757,7 @@ function pidGraph(nodes: PIDNode[], edges: PIDEdge[]): PIDGraph {
 			id: node.id,
 			kind: node.data.kind,
 			label: node.data.label,
+			secondaryLabel: node.data.secondaryLabel,
 			orientation: node.data.orientation,
 			position: { ...node.position },
 		})),
@@ -968,9 +1000,19 @@ function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {
 				orientation={data.orientation}
 				maximumSize={maximumSize}
 			/>
-			<span className="pointer-events-none absolute top-full left-1/2 mt-1 w-max max-w-32 -translate-x-1/2 rounded bg-surface/90 px-1 text-center text-xs font-medium">
-				{data.label || "Unnamed"}
-			</span>
+
+			{data.kind === "instrument" ? (
+				<span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center leading-none">
+					<span className="max-w-full truncate px-1 text-[0.5rem] font-medium">{data.label}</span>
+					<span className="max-w-full truncate px-1 text-[0.5rem]">
+						{data.secondaryLabel ?? ""}
+					</span>
+				</span>
+			) : (
+				<span className="pointer-events-none absolute top-full left-1/2 mt-1 w-max max-w-32 -translate-x-1/2 rounded bg-surface/90 px-1 text-center text-xs font-medium">
+					{data.label || "Unnamed"}
+				</span>
+			)}
 		</div>
 	);
 }

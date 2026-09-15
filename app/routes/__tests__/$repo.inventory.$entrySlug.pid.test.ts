@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import type { PIDGraph } from "~/app/lib/PID.ts";
+import type { PIDGraph, PIDGraphNode } from "~/app/lib/PID.ts";
 import { action, loader } from "~/app/routes/$repo.inventory.$entrySlug.pid.tsx";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
@@ -15,6 +15,7 @@ const graph: PIDGraph = {
 			id: "feed-bottle",
 			kind: "gas-bottle",
 			label: "Feed gas",
+			secondaryLabel: null,
 			orientation: 0,
 			position: { x: 120, y: 160 },
 		},
@@ -22,6 +23,7 @@ const graph: PIDGraph = {
 			id: "inlet-valve",
 			kind: "valve",
 			label: "Inlet valve",
+			secondaryLabel: null,
 			orientation: 1,
 			position: { x: 260, y: 160 },
 		},
@@ -77,6 +79,22 @@ describe("P&ID route", () => {
 		if (response instanceof Response) throw new Error("Expected action data.");
 		expect(response.init?.status).toBe(400);
 		expect(response.data).toEqual({ error: "The diagram contains invalid data." });
+	});
+
+	test("keeps both labels of an instrument", async () => {
+		const scope = await setupRig();
+		const instrument: PIDGraphNode = {
+			id: "feed-flow-controller",
+			kind: "instrument",
+			label: "MFC",
+			secondaryLabel: "H2",
+			orientation: 0,
+			position: { x: 200, y: 160 },
+		};
+
+		await save(scope, { nodes: [...graph.nodes, instrument], edges: graph.edges });
+
+		expect(load(scope).graph.nodes.at(-1)).toEqual(instrument);
 	});
 
 	test("keeps the kind of each connection", async () => {

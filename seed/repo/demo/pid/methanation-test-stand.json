@@ -6,8 +6,8 @@
 			"label": "H2 supply",
 			"orientation": 0,
 			"position": {
-				"x": 140,
-				"y": 400
+				"x": 80,
+				"y": 330
 			}
 		},
 		{
@@ -16,8 +16,8 @@
 			"label": "CO2 supply",
 			"orientation": 0,
 			"position": {
-				"x": 240,
-				"y": 400
+				"x": 80,
+				"y": 460
 			}
 		},
 		{
@@ -26,8 +26,8 @@
 			"label": "H2 supply valve",
 			"orientation": 0,
 			"position": {
-				"x": 140,
-				"y": 300
+				"x": 170,
+				"y": 250
 			}
 		},
 		{
@@ -36,8 +36,30 @@
 			"label": "CO2 supply valve",
 			"orientation": 0,
 			"position": {
-				"x": 240,
-				"y": 300
+				"x": 170,
+				"y": 380
+			}
+		},
+		{
+			"key": "mfc-h2",
+			"kind": "instrument",
+			"label": "MFC",
+			"secondaryLabel": "H2",
+			"orientation": 0,
+			"position": {
+				"x": 260,
+				"y": 250
+			}
+		},
+		{
+			"key": "mfc-co2",
+			"kind": "instrument",
+			"label": "MFC",
+			"secondaryLabel": "CO2",
+			"orientation": 0,
+			"position": {
+				"x": 260,
+				"y": 380
 			}
 		},
 		{
@@ -46,8 +68,8 @@
 			"label": "Feed control valve",
 			"orientation": 0,
 			"position": {
-				"x": 380,
-				"y": 220
+				"x": 400,
+				"y": 180
 			}
 		},
 		{
@@ -56,8 +78,8 @@
 			"label": "Methanation reactor",
 			"orientation": 0,
 			"position": {
-				"x": 520,
-				"y": 220
+				"x": 530,
+				"y": 180
 			}
 		},
 		{
@@ -66,8 +88,8 @@
 			"label": "Product cooler",
 			"orientation": 0,
 			"position": {
-				"x": 660,
-				"y": 220
+				"x": 670,
+				"y": 180
 			}
 		},
 		{
@@ -76,8 +98,19 @@
 			"label": "Vent",
 			"orientation": 0,
 			"position": {
-				"x": 790,
-				"y": 120
+				"x": 800,
+				"y": 90
+			}
+		},
+		{
+			"key": "reactor-thermocouple",
+			"kind": "instrument",
+			"label": "TI",
+			"secondaryLabel": "TC-01",
+			"orientation": 0,
+			"position": {
+				"x": 530,
+				"y": 70
 			}
 		}
 	],
@@ -99,17 +132,33 @@
 			"targetHandle": "inlet"
 		},
 		{
-			"key": "h2-valve-to-feed-valve",
+			"key": "h2-valve-to-mfc",
 			"kind": "pipe",
 			"source": "h2-valve",
+			"target": "mfc-h2",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "mfc-h2-to-feed-valve",
+			"kind": "pipe",
+			"source": "mfc-h2",
 			"target": "feed-valve",
 			"sourceHandle": "outlet",
 			"targetHandle": "inlet"
 		},
 		{
-			"key": "co2-valve-to-feed-valve",
+			"key": "co2-valve-to-mfc",
 			"kind": "pipe",
 			"source": "co2-valve",
+			"target": "mfc-co2",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "mfc-co2-to-feed-valve",
+			"kind": "pipe",
+			"source": "mfc-co2",
 			"target": "feed-valve",
 			"sourceHandle": "outlet",
 			"targetHandle": "inlet"
@@ -137,6 +186,14 @@
 			"target": "vent",
 			"sourceHandle": "outlet",
 			"targetHandle": "inlet"
+		},
+		{
+			"key": "reactor-to-thermocouple",
+			"kind": "caption",
+			"source": "reactor",
+			"target": "reactor-thermocouple",
+			"sourceHandle": "outlet",
+			"targetHandle": "leader"
 		}
 	]
 }

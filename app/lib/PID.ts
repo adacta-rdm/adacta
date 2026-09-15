@@ -9,6 +9,17 @@ export interface PIDGraphNode {
 	id: string;
 	kind: PIDSymbolKind;
 	label: string;
+
+	/**
+	 * A second line of text, used by the symbols that carry two.
+	 *
+	 * An instrument is drawn as a circle holding what it does above what it is
+	 * called. For example, a mass flow controller on the hydrogen line reads
+	 * "MFC" above "H2". Every other symbol leaves this empty and shows its label
+	 * below the drawing.
+	 */
+	secondaryLabel: string | null;
+
 	orientation: PIDOrientation;
 	position: { x: number; y: number };
 }
@@ -64,6 +75,7 @@ export const PID_EDGE_KINDS = {
 } satisfies Record<PIDEdgeKind, { name: string; description: string }>;
 
 export type PIDSymbolKind =
+	| "instrument"
 	| "gas-bottle"
 	| "autoclave"
 	| "half-pipe-reactor"

@@ -81,6 +81,7 @@ CREATE TABLE `PIDNode` (
 	`inventory_entry_id` integer NOT NULL,
 	`kind` text NOT NULL,
 	`label` text NOT NULL,
+	`secondary_label` text,
 	`drawing_order` integer NOT NULL,
 	`orientation` integer NOT NULL,
 	`position_x` real NOT NULL,

@@ -39,6 +39,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			id: PIDNode.id,
 			kind: PIDNode.kind,
 			label: PIDNode.label,
+			secondaryLabel: PIDNode.secondaryLabel,
 			orientation: PIDNode.orientation,
 			position: {
 				x: PIDNode.positionX,
@@ -105,6 +106,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 						inventoryEntryId: entry.id,
 						kind: node.kind,
 						label: node.label,
+						secondaryLabel: node.secondaryLabel,
 						drawingOrder,
 						orientation: node.orientation,
 						positionX: node.position.x,

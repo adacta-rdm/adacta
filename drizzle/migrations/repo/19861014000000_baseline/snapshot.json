@@ -611,6 +611,16 @@
 			"table": "PIDNode"
 		},
 		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "secondary_label",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
 			"type": "integer",
 			"notNull": true,
 			"autoincrement": false,

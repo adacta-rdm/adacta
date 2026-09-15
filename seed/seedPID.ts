@@ -36,6 +36,13 @@ type SeedPIDNode = {
 	key: string;
 	kind: PIDSymbolKind;
 	label: string;
+
+	/**
+	 * The second line of text an instrument carries. Every other symbol omits
+	 * this field.
+	 */
+	secondaryLabel?: string;
+
 	orientation: PIDOrientation;
 	position: { x: number; y: number };
 };
@@ -128,6 +135,7 @@ async function writeDiagram(
 						inventoryEntryId: entryId,
 						kind: node.kind,
 						label: node.label,
+						secondaryLabel: node.secondaryLabel ?? null,
 						drawingOrder,
 						orientation: node.orientation,
 						positionX: node.position.x,

@@ -5,6 +5,10 @@ export type { PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
 
 export const pidSymbolGroups = [
 	{
+		label: "Instruments",
+		symbols: [{ kind: "instrument", label: "Instrument", footprint: "compact" }],
+	},
+	{
 		label: "Vessels and process equipment",
 		symbols: [
 			{ kind: "gas-bottle", label: "Gas bottle", footprint: "major" },

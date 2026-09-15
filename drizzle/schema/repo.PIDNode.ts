@@ -19,6 +19,14 @@ export const PIDNode = sqliteTable(
 
 		kind: text("kind").$type<PIDSymbolKind>().notNull(),
 		label: text("label").notNull(),
+
+		/**
+		 * A second line of text, for a symbol that carries two. An instrument
+		 * holds what it does above what it is called, for example "MFC" above
+		 * "H2". Every other symbol leaves this empty.
+		 */
+		secondaryLabel: text("secondary_label"),
+
 		drawingOrder: integer("drawing_order").notNull(),
 		orientation: integer("orientation").$type<PIDOrientation>().notNull(),
 		positionX: real("position_x").notNull(),
