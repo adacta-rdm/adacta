@@ -13,4 +13,9 @@ export default defineConfig({
 	resolve: {
 		tsconfigPaths: true,
 	},
+
+	server: {
+		// Makes a dev container reachable by its host name under OrbStack.
+		allowedHosts: [".orb.local"],
+	},
 });
