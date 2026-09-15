@@ -92,12 +92,12 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 
 	// A save describes the complete current diagram. Replacing both collections
 	// also removes symbols and connections that disappeared from the canvas.
-	db.transaction((transaction) => {
-		transaction.delete(PIDEdge).where(eq(PIDEdge.inventoryEntryId, entry.id)).run();
-		transaction.delete(PIDNode).where(eq(PIDNode.inventoryEntryId, entry.id)).run();
+	await db.transaction(async (transaction) => {
+		await transaction.delete(PIDEdge).where(eq(PIDEdge.inventoryEntryId, entry.id)).run();
+		await transaction.delete(PIDNode).where(eq(PIDNode.inventoryEntryId, entry.id)).run();
 
 		if (graph.nodes.length > 0) {
-			transaction
+			await transaction
 				.insert(PIDNode)
 				.values(
 					graph.nodes.map((node, drawingOrder) => ({
@@ -117,7 +117,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 		}
 
 		if (graph.edges.length > 0) {
-			transaction
+			await transaction
 				.insert(PIDEdge)
 				.values(
 					graph.edges.map((edge, drawingOrder) => ({
@@ -206,7 +206,7 @@ export default function RepoInventoryEntrySlugPID({
 	);
 }
 
-function getRig(db: RepoDB, slug: string) {
+async function getRig(db: RepoDB, slug: string) {
 	return db
 		.select({ id: InventoryEntry.id })
 		.from(InventoryEntry)

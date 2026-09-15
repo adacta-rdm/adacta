@@ -116,7 +116,7 @@
 		},
 		{
 			"key": "feed-valve-to-reactor",
-			"kind": "pipe",
+			"kind": "traced",
 			"source": "feed-valve",
 			"target": "reactor",
 			"sourceHandle": "outlet",

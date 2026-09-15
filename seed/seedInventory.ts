@@ -45,12 +45,15 @@ type SeedInventoryEntry = {
  * "methanation-test-stand.json" describes the entry with the key
  * "methanation-test-stand".
  */
-export function seedInventory(scope: ServiceContainer, repository: string): Map<string, number> {
+export async function seedInventory(
+	scope: ServiceContainer,
+	repository: string,
+): Promise<Map<string, number>> {
 	const db = scope.get(RepoDB);
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
 
-	db.delete(InventoryEntry).run();
+	await db.delete(InventoryEntry).run();
 
 	const files = jsonFiles("repo", repository, "inventory");
 	if (files.length === 0) return new Map();
@@ -78,7 +81,7 @@ export function seedInventory(scope: ServiceContainer, repository: string): Map<
 		};
 	});
 
-	const inserted = db
+	const inserted = await db
 		.insert(InventoryEntry)
 		.values(rows)
 		.returning({ id: InventoryEntry.id })

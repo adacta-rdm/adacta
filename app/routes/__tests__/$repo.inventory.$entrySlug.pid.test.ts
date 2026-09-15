@@ -81,14 +81,18 @@ describe("P&ID route", () => {
 
 	test("keeps the kind of each connection", async () => {
 		const scope = await setupRig();
-		const jacketed = { ...graph.edges[0], id: "jacketed-line", kind: "jacketed" as const };
-		const caption = { ...graph.edges[0], id: "caption-line", kind: "caption" as const };
+		const others = (["jacketed", "traced", "caption"] as const).map((kind) => ({
+			...graph.edges[0],
+			id: `${kind}-line`,
+			kind,
+		}));
 
-		await save(scope, { nodes: graph.nodes, edges: [graph.edges[0], jacketed, caption] });
+		await save(scope, { nodes: graph.nodes, edges: [graph.edges[0], ...others] });
 
-		expect(load(scope).graph.edges.map((edge) => edge.kind)).toEqual([
+		expect((await load(scope)).graph.edges.map((edge) => edge.kind)).toEqual([
 			"pipe",
 			"jacketed",
+			"traced",
 			"caption",
 		]);
 	});
@@ -126,7 +130,7 @@ async function setupRig(): Promise<ServiceContainer> {
 	const scope = await setupTestRepositoryEnvironment("demo");
 	const userId = scope.get(Security).userId;
 
-	scope
+	await scope
 		.get(RepoDB)
 		.insert(InventoryEntry)
 		.values({

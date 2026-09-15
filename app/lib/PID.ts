@@ -25,15 +25,43 @@ export interface PIDGraphEdge {
 /**
  * The kind of a connection determines how its line is drawn.
  *
- *   pipe      process fluid travels from one symbol to the other
- *   jacketed  a pipe enclosed by a second pipe that heats or cools it
- *   caption   a note attached to a symbol, carrying no process fluid
- *
  * For example, a jacketed pipe is drawn as two parallel lines. A reader can
  * therefore distinguish it from a plain pipe. The kind does not restrict which
  * symbols may be connected.
  */
-export type PIDEdgeKind = "pipe" | "jacketed" | "caption";
+export type PIDEdgeKind = "pipe" | "jacketed" | "traced" | "caption";
+
+/**
+ * The connection kinds the application supports, with the name the editor
+ * shows for each one.
+ *
+ * The PIDEdgeKind table stores these keys so that a connection can carry a
+ * foreign key. RepoManager copies the keys into every repository database. A
+ * new kind therefore needs no migration file.
+ */
+export const PID_EDGE_KINDS = {
+	pipe: {
+		name: "Pipe",
+		description: "Process fluid travels from one symbol to the other.",
+	},
+
+	jacketed: {
+		name: "Jacketed",
+		description: "A pipe enclosed by a second pipe that heats or cools it.",
+	},
+
+	traced: {
+		name: "Traced",
+		description:
+			"A pipe with a tracer line beside it that heats or cools it. Steam tracing " +
+			"and electric tracing are both drawn this way.",
+	},
+
+	caption: {
+		name: "Caption",
+		description: "A note attached to a symbol. No process fluid travels along it.",
+	},
+} satisfies Record<PIDEdgeKind, { name: string; description: string }>;
 
 export type PIDSymbolKind =
 	| "gas-bottle"

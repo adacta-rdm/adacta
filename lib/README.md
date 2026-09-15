@@ -18,6 +18,7 @@ their public APIs.
 | `env/`               | Reads environment values as typed values.                         |
 | `form-values/`       | Reads submitted form fields as typed values.                      |
 | `logger/`            | Writes structured log messages to a stream.                       |
+| `parallel-lines/`    | Turns a route of right-angled segments into parallel lines.       |
 | `service-container/` | Resolves services and provides independently configurable scopes. |
 | `sqlite-errors/`     | Recognizes SQLite constraint failures by the columns they name.   |
 | `storage-engine/`    | Stores files as streams behind a common interface.                |

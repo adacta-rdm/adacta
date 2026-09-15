@@ -25,6 +25,10 @@
 			"entityType": "tables"
 		},
 		{
+			"name": "PIDEdgeKind",
+			"entityType": "tables"
+		},
+		{
 			"name": "PIDNode",
 			"entityType": "tables"
 		},
@@ -555,6 +559,16 @@
 			"name": "metadata_archived_at",
 			"entityType": "columns",
 			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "pid_edge_kind_id",
+			"entityType": "columns",
+			"table": "PIDEdgeKind"
 		},
 		{
 			"type": "text",
@@ -1335,6 +1349,17 @@
 			"table": "PIDEdge"
 		},
 		{
+			"columns": ["kind"],
+			"tableTo": "PIDEdgeKind",
+			"columnsTo": ["pid_edge_kind_id"],
+			"onUpdate": "CASCADE",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_PIDEdge_kind_PIDEdgeKind_pid_edge_kind_id_fk",
+			"entityType": "fks",
+			"table": "PIDEdge"
+		},
+		{
 			"columns": ["inventory_entry_id"],
 			"tableTo": "InventoryEntry",
 			"columnsTo": ["inventory_entry_id"],
@@ -1433,6 +1458,13 @@
 			"nameExplicit": false,
 			"name": "PIDEdge_pk",
 			"table": "PIDEdge",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["pid_edge_kind_id"],
+			"nameExplicit": false,
+			"name": "PIDEdgeKind_pk",
+			"table": "PIDEdgeKind",
 			"entityType": "pks"
 		},
 		{

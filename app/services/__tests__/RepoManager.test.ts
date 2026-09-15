@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 import { eq } from "drizzle-orm";
 
+import { PID_EDGE_KINDS } from "~/app/lib/PID.ts";
 import { QUANTITY_KINDS } from "~/app/lib/quantities.ts";
 import { DatabaseManager, InvalidDatabaseNameError } from "~/app/services/DatabaseManager.ts";
 import {
@@ -16,6 +17,7 @@ import { setupEmptyTestDatabaseEnvironment, signUpTestUser } from "~/app/testUti
 import { Channel } from "~/drizzle/schema/repo.Channel.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
 import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
+import { PIDEdgeKind } from "~/drizzle/schema/repo.PIDEdgeKind.ts";
 import { Product } from "~/drizzle/schema/repo.Product.ts";
 import { QuantityKind } from "~/drizzle/schema/repo.QuantityKind.ts";
 import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
@@ -268,5 +270,42 @@ describe("the quantity kinds of a repository", () => {
 		expect(
 			(await db.select().from(Channel).where(eq(Channel.id, channel.id)).get())?.quantityKindId,
 		).toBe("VolumetricFlowRate");
+	});
+});
+
+describe("the P&ID edge kinds of a repository", () => {
+	async function repository() {
+		const container = environment();
+		const manager = container.get(RepoManager);
+		await manager.createRepository("demo");
+
+		return { manager, db: container.get(DatabaseManager).repoDb("demo") };
+	}
+
+	const kinds = async (db: Awaited<ReturnType<typeof repository>>["db"]) =>
+		(await db.select().from(PIDEdgeKind).all()).map((kind) => kind.id).sort();
+
+	test("a new repository holds every kind the application lists", async () => {
+		const { db } = await repository();
+
+		expect(await kinds(db)).toEqual(Object.keys(PID_EDGE_KINDS).sort());
+	});
+
+	test("migrating again changes nothing", async () => {
+		const { manager, db } = await repository();
+		const before = await kinds(db);
+
+		await manager.migrateAll();
+
+		expect(await kinds(db)).toEqual(before);
+	});
+
+	test("a kind the application no longer lists is removed", async () => {
+		const { manager, db } = await repository();
+		await db.insert(PIDEdgeKind).values({ id: "dotted" }).run();
+
+		await manager.migrateAll();
+
+		expect(await kinds(db)).not.toContain("dotted");
 	});
 });

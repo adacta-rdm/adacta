@@ -1,6 +1,8 @@
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
+import type { PIDEdgeKind as PIDEdgeKindName } from "~/app/lib/PID.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
+import { PIDEdgeKind } from "~/drizzle/schema/repo.PIDEdgeKind.ts";
 import { PIDNode } from "~/drizzle/schema/repo.PIDNode.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
@@ -28,16 +30,18 @@ export const PIDEdge = sqliteTable(
 			.references(() => PIDNode.id, { onDelete: "cascade" }),
 
 		/**
-		 * The kind records what the connection represents.
+		 * The kind records what the connection represents. The application draws
+		 * each kind differently. For example, a jacketed pipe appears as two
+		 * parallel lines.
 		 *
-		 *   pipe      process fluid travels from one symbol to the other
-		 *   jacketed  a pipe enclosed by a second pipe that heats or cools it
-		 *   caption   a note attached to a symbol, carrying no process fluid
-		 *
-		 * The application draws each kind differently. For example, a jacketed
-		 * pipe appears as two parallel lines.
+		 * The PIDEdgeKind table lists the kinds the application supports. A
+		 * renamed kind carries its connections with it, because the reference
+		 * updates on cascade.
 		 */
-		kind: text("kind", { enum: ["pipe", "jacketed", "caption"] }).notNull(),
+		kind: text("kind")
+			.notNull()
+			.$type<PIDEdgeKindName>()
+			.references(() => PIDEdgeKind.id, { onUpdate: "cascade" }),
 
 		sourceHandle: text("source_handle"),
 		targetHandle: text("target_handle"),

@@ -42,8 +42,9 @@ import {
 	type PIDSymbolKind,
 } from "~/app/components/PIDSymbol.tsx";
 import { getPIDSymbolComponents } from "~/app/components/pid-symbols/PIDSymbolRegistry.ts";
-import type { PIDEdgeKind, PIDGraph } from "~/app/lib/PID.ts";
+import { PID_EDGE_KINDS, type PIDEdgeKind, type PIDGraph } from "~/app/lib/PID.ts";
 import { Switch } from "~/catalyst-ui/switch.tsx";
+import { parallelLines } from "~/lib/parallel-lines/ParallelLines.ts";
 
 import "@xyflow/react/dist/style.css";
 
@@ -62,6 +63,18 @@ type PaletteDrag = {
 type EditorTool = "select" | "pan";
 
 const nodeTypes = { "pid-symbol": PIDSymbolNode };
+
+const LINE_COLOR = "var(--adacta-color-foreground)";
+const SELECTED_COLOR = "var(--adacta-color-accent)";
+const NOTE_COLOR = "var(--adacta-color-foreground-muted)";
+
+/**
+ * The width a connection is drawn with. It is a little thinner than the
+ * "--pid-line-width" the symbols use, so a symbol stays the stronger mark on
+ * the page. The geometry needs the number, so the value cannot be read from
+ * the stylesheet here.
+ */
+const LINE_WIDTH = 1;
 const edgeTypes = { "pid-connection": PIDConnection };
 
 /**
@@ -94,38 +107,24 @@ function edgeKind(edge: { data?: PIDEdgeData }): PIDEdgeKind {
 }
 
 /**
- * Returns the arrow drawn at the end of a connection.
+ * Returns the arrow drawn at the end of a connection, or undefined when the
+ * connection carries none.
  *
- * A pipe and a jacketed pipe both indicate the direction of flow. A caption
- * line attaches a note to a symbol. It therefore carries no arrow.
+ * A pipe and a jacketed pipe both indicate the direction of flow.
  */
 function arrowFor(kind: PIDEdgeKind, color: string): EdgeMarker | undefined {
-	if (kind === "caption") return undefined;
-
-	// An SVG marker scales with the width of its stroke by default. The jacket
-	// uses a wide stroke. A fixed size therefore keeps this arrow the same size
-	// as the arrow on a pipe.
-	if (kind === "jacketed") {
-		return {
-			type: MarkerType.ArrowClosed,
-			color,
-			width: 19,
-			height: 19,
-			markerUnits: "userSpaceOnUse",
-		};
-	}
+	// A caption attaches a note, so nothing flows along it. A tracer runs beside
+	// the pipe rather than along its centre, so an arrow on it would point from
+	// off to one side. Neither carries one.
+	if (kind === "caption" || kind === "traced") return undefined;
 
 	return { type: MarkerType.ArrowClosed, color };
 }
 
 /**
- * Each kind of connection is shown under this name in the editor.
+ * The kinds offered in the connection inspector, in the order they appear.
  */
-const edgeKindLabels: Record<PIDEdgeKind, string> = {
-	pipe: "Pipe",
-	jacketed: "Jacketed",
-	caption: "Caption",
-};
+const edgeKinds = Object.keys(PID_EDGE_KINDS) as PIDEdgeKind[];
 const nodeOrigin: NodeOrigin = [0.5, 0.5];
 
 /**
@@ -201,7 +200,7 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 	// PIDConnection draws the line and reads the kind from the edge. Only the
 	// arrow is prepared here. Its color follows the selection.
 	const displayedEdges = edges.map((edge) => {
-		const color = edge.selected ? "var(--adacta-color-accent)" : "var(--adacta-color-foreground)";
+		const color = edge.selected ? SELECTED_COLOR : LINE_COLOR;
 
 		return { ...edge, markerEnd: arrowFor(edgeKind(edge), color) };
 	});
@@ -228,6 +227,10 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 	}
 
 	function connect(connection: Connection) {
+		// The new connection is selected, so the inspector opens on it and its
+		// kind can be set without hunting for it again.
+		setNodes((current) => current.map((node) => ({ ...node, selected: false })));
+
 		setEdges((current) =>
 			addEdge<PIDEdge>(
 				{
@@ -235,12 +238,13 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 					id: randomId("pid-edge"),
 					type: "pid-connection",
 					data: { kind: "pipe" },
+					selected: true,
 					markerEnd: {
 						type: MarkerType.ArrowClosed,
-						color: "var(--adacta-color-foreground)",
+						color: LINE_COLOR,
 					},
 				},
-				current,
+				current.map((edge) => ({ ...edge, selected: false })),
 			),
 		);
 	}
@@ -428,7 +432,7 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 						type: "pid-connection",
 						markerEnd: {
 							type: MarkerType.ArrowClosed,
-							color: "var(--adacta-color-foreground)",
+							color: LINE_COLOR,
 						},
 					}}
 					nodeOrigin={nodeOrigin}
@@ -539,15 +543,16 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 							<fieldset className="mt-4">
 								<legend className="text-xs font-medium text-foreground-muted">Kind</legend>
 								<div className="mt-1 grid gap-1">
-									{(["pipe", "jacketed", "caption"] as const).map((kind) => (
+									{edgeKinds.map((kind) => (
 										<button
 											key={kind}
 											type="button"
 											aria-pressed={edgeKind(selectedEdge) === kind}
+											title={PID_EDGE_KINDS[kind].description}
 											className="rounded-md border border-border px-2 py-1.5 text-xs text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
 											onClick={() => setSelectedEdgeKind(kind)}
 										>
-											{edgeKindLabels[kind]}
+											{PID_EDGE_KINDS[kind].name}
 										</button>
 									))}
 								</div>
@@ -726,8 +731,14 @@ function toolButtonClass(active: boolean) {
  *
  * A pipe is drawn as a single line. A jacketed pipe is drawn as a wide line
  * covered by a narrower line in the canvas color. Two parallel lines therefore
- * remain visible. A caption line is dashed, because it carries no process
- * fluid.
+ * remain visible. A traced line uses a dash-dot pattern, which stands for the
+ * tracer that heats or cools the pipe. A caption line is dashed, because it
+ * carries no process fluid.
+ *
+ * The v2 editor drew a traced line as the process line with a separate dash-dot
+ * tracer beside it. That needs a path offset by a fixed distance, which this
+ * component does not compute. The pattern therefore sits on the process line
+ * itself for now.
  */
 function PIDConnection({
 	sourceX,
@@ -740,41 +751,125 @@ function PIDConnection({
 	selected,
 	markerEnd,
 }: EdgeProps<PIDEdge>) {
-	// A P&ID uses right angles. The corner radius is therefore zero.
-	const [path] = getSmoothStepPath({
-		sourceX,
-		sourceY,
-		targetX,
-		targetY,
+	// A P&ID uses right angles, so the corner radius is zero. The ends are
+	// rounded to whole pixels. Two ports that sit a fraction of a pixel apart
+	// would otherwise produce a short step in a line that should be straight.
+	const [route] = getSmoothStepPath({
+		sourceX: Math.round(sourceX),
+		sourceY: Math.round(sourceY),
+		targetX: Math.round(targetX),
+		targetY: Math.round(targetY),
 		sourcePosition,
 		targetPosition,
 		borderRadius: 0,
 	});
 
 	const kind = edgeKind({ data });
-	const color = selected ? "var(--adacta-color-accent)" : "var(--adacta-color-foreground)";
-	const width = selected ? 2 : "var(--pid-line-width)";
+	const color = selected ? SELECTED_COLOR : LINE_COLOR;
 
-	if (kind === "jacketed") {
+	// Selecting a connection changes its color. The width stays the same, so
+	// the drawing does not shift as the selection moves.
+	const lineWidth = LINE_WIDTH;
+	const stroke = { stroke: color, strokeWidth: lineWidth };
+
+	if (kind === "caption") {
+		// A caption is a leader line to a note rather than a path for process
+		// fluid. It carries no arrow and needs no background, because nothing
+		// flows along it. It is set apart by color instead of by a dash pattern,
+		// because a dashed line in a P&ID reads as an instrument signal.
+		return (
+			<BaseEdge
+				path={route}
+				style={{ stroke: selected ? SELECTED_COLOR : NOTE_COLOR, strokeWidth: lineWidth }}
+			/>
+		);
+	}
+
+	if (kind === "pipe") {
+		const lines = parallelLines(route, { spacing: 2 + lineWidth, lineWidth });
+
 		return (
 			<>
-				<BaseEdge path={path} markerEnd={markerEnd} style={{ stroke: color, strokeWidth: 5 }} />
-				<BaseEdge path={path} style={{ stroke: "var(--adacta-color-canvas)", strokeWidth: 2 }} />
+				<Crossing shape={lines.centerBackground} />
+				<BaseEdge path={lines.center} markerEnd={markerEnd} style={stroke} />
 			</>
 		);
 	}
 
+	if (kind === "jacketed") {
+		const spacing = 2 + lineWidth;
+
+		// The jacket stops short of the connection while the pipe runs into it,
+		// which is how a jacketed pipe is built. The gap also covers the arrow
+		// and one spacing beyond it. The arrow is a little taller than the
+		// jacket is wide, so a jacket ending closer than that appears to run
+		// into it.
+		const lines = parallelLines(route, {
+			spacing,
+			lineWidth,
+			outerEndGap: lineWidth + arrowLength(lineWidth) + spacing,
+		});
+
+		return (
+			<>
+				<Crossing shape={lines.fullBackground} />
+				<BaseEdge path={lines.left + lines.right} style={stroke} />
+				<BaseEdge path={lines.center} markerEnd={markerEnd} style={stroke} />
+			</>
+		);
+	}
+
+	// A tracer is a separate line strapped along the pipe, so it is drawn as its
+	// own line rather than as a pattern on the pipe. Both lines reach the
+	// connection, because one of them is the pipe.
+	const lines = parallelLines(route, { spacing: 1 + lineWidth, lineWidth, outerEndGap: 0 });
+
 	return (
-		<BaseEdge
-			path={path}
-			markerEnd={markerEnd}
-			style={{
-				stroke: color,
-				strokeWidth: width,
-				strokeDasharray: kind === "caption" ? "4 3" : undefined,
-			}}
+		<>
+			<Crossing shape={lines.fullBackground} />
+			<BaseEdge path={lines.right} style={stroke} />
+			<BaseEdge path={lines.left} style={{ ...stroke, strokeDasharray: tracerDashes(lineWidth) }} />
+		</>
+	);
+}
+
+/**
+ * Fills a shape in the canvas color behind a connection.
+ *
+ * A line drawn underneath is hidden where the shape covers it. A reader can
+ * therefore tell which of two crossing lines passes over the other.
+ */
+function Crossing({ shape }: { shape: string }) {
+	// React Flow styles the paths inside an edge. Without an explicit "none" the
+	// shape is outlined as well as filled.
+	return (
+		<path
+			d={shape}
+			fill="var(--adacta-color-canvas)"
+			stroke="none"
+			style={{ pointerEvents: "none" }}
 		/>
 	);
+}
+
+/**
+ * Returns how far the arrow at the end of a connection reaches back from its
+ * tip.
+ *
+ * React Flow draws the arrow in a marker 12.5 units wide whose view box is 20
+ * units wide, and scales the marker by the width of the line it sits on. The
+ * arrow covers 5 of those 20 units behind its tip.
+ */
+function arrowLength(lineWidth: number): number {
+	return 5 * (12.5 / 20) * lineWidth;
+}
+
+/**
+ * Returns the dash pattern for a tracer line, scaled to the width it is drawn
+ * with. The pattern repeats a long dash and a short one.
+ */
+function tracerDashes(lineWidth: number): string {
+	return [5, 2, 1, 1].map((part) => part * lineWidth).join(" ");
 }
 
 function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {

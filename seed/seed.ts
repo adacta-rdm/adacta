@@ -78,8 +78,8 @@ export async function seedDatabase(container: ServiceContainer): Promise<void> {
 
 		const scope = await scopeFor(container, creatorId, slug);
 
-		const entryIds = seedInventory(scope, slug);
-		const diagrams = seedPID(scope, slug, entryIds);
+		const entryIds = await seedInventory(scope, slug);
+		const diagrams = await seedPID(scope, slug, entryIds);
 		const { batches, samples } = await seedSamples(scope, slug, userIds);
 
 		const catalog = await seedCatalog(scope, slug);

@@ -1,8 +1,10 @@
 import { eq, notInArray } from "drizzle-orm";
 
+import { PID_EDGE_KINDS } from "~/app/lib/PID.ts";
 import { QUANTITY_KINDS } from "~/app/lib/quantities.ts";
 import { DatabaseManager } from "~/app/services/DatabaseManager.ts";
 import { SystemDB } from "~/app/services/SystemDB.ts";
+import { PIDEdgeKind } from "~/drizzle/schema/repo.PIDEdgeKind.ts";
 import { QuantityKind } from "~/drizzle/schema/repo.QuantityKind.ts";
 import { Repository } from "~/drizzle/schema/system.Repository.ts";
 import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
@@ -74,7 +76,7 @@ export class RepoManager {
 
 	/**
 	 * Applies pending migrations to the system database and all repository
-	 * databases. It then synchronizes the quantity-kind list in each repository.
+	 * databases. It then synchronizes the fixed lists in each repository.
 	 */
 	async migrateAll(): Promise<void> {
 		await this.databases.migrateSystem();
@@ -108,30 +110,43 @@ export class RepoManager {
 	}
 
 	/**
-	 * Synchronizes the application's quantity-kind list with one repository
-	 * database.
+	 * Synchronizes the application's fixed lists with one repository database.
 	 *
 	 * This runs after the repository is migrated. The application list is
-	 * authoritative. A repository receives new kinds during its next migration,
-	 * therefore a new kind does not require a migration file. Running this method
-	 * again with the same list leaves the database unchanged.
+	 * authoritative. A repository receives new entries during its next migration,
+	 * therefore a new entry does not require a migration file. Running this method
+	 * again with the same lists leaves the database unchanged.
 	 *
-	 * Each row stores only the kind's name. Existing rows therefore need no
+	 * Each row stores only the entry's name. Existing rows therefore need no
 	 * update. The method changes only the set of names.
 	 *
-	 * The method removes kinds absent from the application list. A foreign key
-	 * prevents removal while a channel refers to the kind. Such a kind can be
-	 * retired only after its channels refer to a different kind.
+	 * The method removes entries absent from the application list. A foreign key
+	 * prevents removal while a record refers to the entry. Such an entry can be
+	 * retired only after those records refer to a different one.
 	 */
 	private async loadVocabularies(slug: string): Promise<void> {
 		const db = this.databases.repoDb(slug);
-		const quantityKinds = Object.keys(QUANTITY_KINDS);
 
-		await db.delete(QuantityKind).where(notInArray(QuantityKind.id, quantityKinds)).run();
+		await this.loadVocabulary(db, QuantityKind, Object.keys(QUANTITY_KINDS));
+		await this.loadVocabulary(db, PIDEdgeKind, Object.keys(PID_EDGE_KINDS));
+	}
+
+	/**
+	 * Brings one vocabulary table in line with the names the application lists.
+	 *
+	 * The table holds a single "id" column. Adding and removing rows is therefore
+	 * all the synchronization a vocabulary needs.
+	 */
+	private async loadVocabulary(
+		db: ReturnType<DatabaseManager["repoDb"]>,
+		table: typeof QuantityKind | typeof PIDEdgeKind,
+		names: string[],
+	): Promise<void> {
+		await db.delete(table).where(notInArray(table.id, names)).run();
 
 		await db
-			.insert(QuantityKind)
-			.values(quantityKinds.map((id) => ({ id })))
+			.insert(table)
+			.values(names.map((id) => ({ id })))
 			.onConflictDoNothing()
 			.run();
 	}

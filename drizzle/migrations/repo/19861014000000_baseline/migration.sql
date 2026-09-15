@@ -68,7 +68,12 @@ CREATE TABLE `PIDEdge` (
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_PIDEdge_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_PIDEdge_source_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`source_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
-	CONSTRAINT `fk_PIDEdge_target_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`target_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE
+	CONSTRAINT `fk_PIDEdge_target_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`target_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
+	CONSTRAINT `fk_PIDEdge_kind_PIDEdgeKind_pid_edge_kind_id_fk` FOREIGN KEY (`kind`) REFERENCES `PIDEdgeKind`(`pid_edge_kind_id`) ON UPDATE CASCADE
+);
+--> statement-breakpoint
+CREATE TABLE `PIDEdgeKind` (
+	`pid_edge_kind_id` text PRIMARY KEY
 );
 --> statement-breakpoint
 CREATE TABLE `PIDNode` (

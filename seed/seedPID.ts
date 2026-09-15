@@ -56,11 +56,11 @@ type SeedPIDEdge = {
  * The rows of each seeded entry are deleted first. A diagram whose file was
  * removed therefore disappears on the next run.
  */
-export function seedPID(
+export async function seedPID(
 	scope: ServiceContainer,
 	repository: string,
 	entryIds: Map<string, number>,
-): number {
+): Promise<number> {
 	const db = scope.get(RepoDB);
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
@@ -76,7 +76,7 @@ export function seedPID(
 			throw new Error(`No inventory entry named "${entryKey}.json" for the diagram in ${file}.`);
 		}
 
-		writeDiagram(db, readJson<SeedPID>(file), {
+		await writeDiagram(db, readJson<SeedPID>(file), {
 			entryId,
 			creatorId,
 			createdAt,
@@ -93,11 +93,11 @@ export function seedPID(
  * A node id is composed of the entry id and the node key. Two repositories can
  * therefore both seed a node named "reactor" without a collision.
  */
-function writeDiagram(
+async function writeDiagram(
 	db: RepoDB,
 	diagram: SeedPID,
 	context: { entryId: number; creatorId: string; createdAt: Date; file: string },
-): void {
+): Promise<void> {
 	const { entryId, creatorId, createdAt, file } = context;
 
 	const nodeIds = new Map(
@@ -115,12 +115,12 @@ function writeDiagram(
 		}
 	}
 
-	db.transaction((transaction) => {
-		transaction.delete(PIDEdge).where(eq(PIDEdge.inventoryEntryId, entryId)).run();
-		transaction.delete(PIDNode).where(eq(PIDNode.inventoryEntryId, entryId)).run();
+	await db.transaction(async (transaction) => {
+		await transaction.delete(PIDEdge).where(eq(PIDEdge.inventoryEntryId, entryId)).run();
+		await transaction.delete(PIDNode).where(eq(PIDNode.inventoryEntryId, entryId)).run();
 
 		if (diagram.nodes.length > 0) {
-			transaction
+			await transaction
 				.insert(PIDNode)
 				.values(
 					diagram.nodes.map((node, drawingOrder) => ({
@@ -140,7 +140,7 @@ function writeDiagram(
 		}
 
 		if (diagram.edges.length > 0) {
-			transaction
+			await transaction
 				.insert(PIDEdge)
 				.values(
 					diagram.edges.map((edge, drawingOrder) => ({
