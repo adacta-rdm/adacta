@@ -65,6 +65,24 @@ const nodeTypes = { "pid-symbol": PIDSymbolNode };
 const edgeTypes = { "pid-connection": PIDConnection };
 
 /**
+ * Returns an identifier for a new symbol or connection.
+ *
+ * crypto.randomUUID is defined only in a secure context. A development server
+ * reached by host name over plain HTTP is not a secure context. For example,
+ * the page at http://my-box.orb.local:5173 has no randomUUID, and calling it
+ * throws. crypto.getRandomValues is defined in every context, so the random
+ * part is built from it instead.
+ */
+function randomId(prefix: string): string {
+	const bytes = new Uint8Array(16);
+	crypto.getRandomValues(bytes);
+
+	const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+
+	return `${prefix}-${hex}`;
+}
+
+/**
  * Returns the kind of a connection, or "pipe" when the edge carries no data.
  *
  * React Flow permits an edge without data. Every edge created by this editor
@@ -191,7 +209,7 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 	function addNode(kind: PIDSymbolKind, position?: { x: number; y: number }) {
 		const symbol = getPIDSymbol(kind);
 		const number = nextNodeNumber.current++;
-		const id = `pid-node-${crypto.randomUUID()}`;
+		const id = randomId("pid-node");
 
 		setNodes((current) => [
 			...current.map((node) => ({ ...node, selected: false })),
@@ -214,7 +232,7 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 			addEdge<PIDEdge>(
 				{
 					...connection,
-					id: `pid-edge-${crypto.randomUUID()}`,
+					id: randomId("pid-edge"),
 					type: "pid-connection",
 					data: { kind: "pipe" },
 					markerEnd: {
