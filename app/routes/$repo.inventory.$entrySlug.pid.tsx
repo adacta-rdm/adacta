@@ -53,6 +53,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	const edges = await db
 		.select({
 			id: PIDEdge.id,
+			kind: PIDEdge.kind,
 			source: PIDEdge.sourceNodeId,
 			target: PIDEdge.targetNodeId,
 			sourceHandle: PIDEdge.sourceHandle,
@@ -122,6 +123,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 					graph.edges.map((edge, drawingOrder) => ({
 						id: edge.id,
 						inventoryEntryId: entry.id,
+						kind: edge.kind,
 						sourceNodeId: edge.source,
 						targetNodeId: edge.target,
 						sourceHandle: edge.sourceHandle,

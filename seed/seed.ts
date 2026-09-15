@@ -8,8 +8,9 @@
  * therefore exercises the real access path.
  *
  * Migrations run first. This works on an empty database directory. Running it
- * again on a populated one replaces the inventory, the sample batches, and the
- * samples of each repository. Users and repository records remain.
+ * again on a populated one replaces the inventory, the diagrams, the sample
+ * batches, and the samples of each repository. Users and repository records
+ * remain.
  *
  * Run with "bun run db:seed", or "bun run db:setup" to start from a wipe.
  */
@@ -21,6 +22,7 @@ import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.
 import { jsonFiles, keyOf, readJson, seedPath, subdirs } from "~/seed/files.ts";
 import { seedCatalog } from "~/seed/seedCatalog.ts";
 import { seedInventory } from "~/seed/seedInventory.ts";
+import { seedPID } from "~/seed/seedPID.ts";
 import { seedSamples } from "~/seed/seedSamples.ts";
 
 /**
@@ -76,13 +78,14 @@ export async function seedDatabase(container: ServiceContainer): Promise<void> {
 
 		const scope = await scopeFor(container, creatorId, slug);
 
-		const entries = seedInventory(scope, slug);
+		const entryIds = seedInventory(scope, slug);
+		const diagrams = seedPID(scope, slug, entryIds);
 		const { batches, samples } = await seedSamples(scope, slug, userIds);
 
 		const catalog = await seedCatalog(scope, slug);
 
 		console.log(
-			`seeded ${slug}: ${entries} inventory entries, ` +
+			`seeded ${slug}: ${entryIds.size} inventory entries, ${diagrams} diagrams, ` +
 				`${batches} sample batches, ${samples} samples, ` +
 				`${catalog.manufacturers} manufacturers, ${catalog.products} products ` +
 				`(${catalog.specifications} specifications, ${catalog.channels} channels)`,

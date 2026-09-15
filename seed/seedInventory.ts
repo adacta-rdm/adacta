@@ -16,7 +16,7 @@ import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
-import { jsonFiles, readJson } from "~/seed/files.ts";
+import { jsonFiles, keyOf, readJson } from "~/seed/files.ts";
 
 /**
  * One file in a repository's "inventory/" directory.
@@ -36,12 +36,16 @@ type SeedInventoryEntry = {
 
 /**
  * Replace the inventory of the bound repository with the entries in the seed
- * tree. Returns how many entries were written.
+ * tree. Returns the id of each entry, indexed by the key of its file.
  *
  * The rows are deleted first. The database then holds what the seed tree holds.
  * An entry whose file was removed therefore disappears on the next run.
+ *
+ * A later fixture names an entry by that key. For example, the P&ID file
+ * "methanation-test-stand.json" describes the entry with the key
+ * "methanation-test-stand".
  */
-export function seedInventory(scope: ServiceContainer, repository: string): number {
+export function seedInventory(scope: ServiceContainer, repository: string): Map<string, number> {
 	const db = scope.get(RepoDB);
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
@@ -49,7 +53,7 @@ export function seedInventory(scope: ServiceContainer, repository: string): numb
 	db.delete(InventoryEntry).run();
 
 	const files = jsonFiles("repo", repository, "inventory");
-	if (files.length === 0) return 0;
+	if (files.length === 0) return new Map();
 
 	const entries = files.map((file) => readJson<SeedInventoryEntry>(file));
 
@@ -74,7 +78,11 @@ export function seedInventory(scope: ServiceContainer, repository: string): numb
 		};
 	});
 
-	db.insert(InventoryEntry).values(rows).run();
+	const inserted = db
+		.insert(InventoryEntry)
+		.values(rows)
+		.returning({ id: InventoryEntry.id })
+		.all();
 
-	return entries.length;
+	return new Map(inserted.map((row, index) => [keyOf(files[index]), row.id]));
 }

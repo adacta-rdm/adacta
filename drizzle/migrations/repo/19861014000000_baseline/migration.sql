@@ -59,6 +59,7 @@ CREATE TABLE `PIDEdge` (
 	`inventory_entry_id` integer NOT NULL,
 	`source_node_id` text NOT NULL,
 	`target_node_id` text NOT NULL,
+	`kind` text NOT NULL,
 	`source_handle` text,
 	`target_handle` text,
 	`drawing_order` integer NOT NULL,

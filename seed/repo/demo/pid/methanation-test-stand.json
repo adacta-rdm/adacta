@@ -1,0 +1,142 @@
+{
+	"nodes": [
+		{
+			"key": "h2-supply",
+			"kind": "gas-bottle",
+			"label": "H2 supply",
+			"orientation": 0,
+			"position": {
+				"x": 140,
+				"y": 400
+			}
+		},
+		{
+			"key": "co2-supply",
+			"kind": "gas-bottle",
+			"label": "CO2 supply",
+			"orientation": 0,
+			"position": {
+				"x": 240,
+				"y": 400
+			}
+		},
+		{
+			"key": "h2-valve",
+			"kind": "manual-valve",
+			"label": "H2 supply valve",
+			"orientation": 0,
+			"position": {
+				"x": 140,
+				"y": 300
+			}
+		},
+		{
+			"key": "co2-valve",
+			"kind": "manual-valve",
+			"label": "CO2 supply valve",
+			"orientation": 0,
+			"position": {
+				"x": 240,
+				"y": 300
+			}
+		},
+		{
+			"key": "feed-valve",
+			"kind": "control-valve",
+			"label": "Feed control valve",
+			"orientation": 0,
+			"position": {
+				"x": 380,
+				"y": 220
+			}
+		},
+		{
+			"key": "reactor",
+			"kind": "furnace",
+			"label": "Methanation reactor",
+			"orientation": 0,
+			"position": {
+				"x": 520,
+				"y": 220
+			}
+		},
+		{
+			"key": "cooler",
+			"kind": "cooler",
+			"label": "Product cooler",
+			"orientation": 0,
+			"position": {
+				"x": 660,
+				"y": 220
+			}
+		},
+		{
+			"key": "vent",
+			"kind": "covered-gas-vent",
+			"label": "Vent",
+			"orientation": 0,
+			"position": {
+				"x": 790,
+				"y": 120
+			}
+		}
+	],
+	"edges": [
+		{
+			"key": "h2-supply-to-valve",
+			"kind": "pipe",
+			"source": "h2-supply",
+			"target": "h2-valve",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "co2-supply-to-valve",
+			"kind": "pipe",
+			"source": "co2-supply",
+			"target": "co2-valve",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "h2-valve-to-feed-valve",
+			"kind": "pipe",
+			"source": "h2-valve",
+			"target": "feed-valve",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "co2-valve-to-feed-valve",
+			"kind": "pipe",
+			"source": "co2-valve",
+			"target": "feed-valve",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "feed-valve-to-reactor",
+			"kind": "pipe",
+			"source": "feed-valve",
+			"target": "reactor",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "reactor-to-cooler",
+			"kind": "jacketed",
+			"source": "reactor",
+			"target": "cooler",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "cooler-to-vent",
+			"kind": "pipe",
+			"source": "cooler",
+			"target": "vent",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		}
+	]
+}

@@ -488,6 +488,16 @@
 		},
 		{
 			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "kind",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
 			"notNull": false,
 			"autoincrement": false,
 			"default": null,

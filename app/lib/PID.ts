@@ -15,11 +15,25 @@ export interface PIDGraphNode {
 
 export interface PIDGraphEdge {
 	id: string;
+	kind: PIDEdgeKind;
 	source: string;
 	target: string;
 	sourceHandle: string | null;
 	targetHandle: string | null;
 }
+
+/**
+ * The kind of a connection determines how its line is drawn.
+ *
+ *   pipe      process fluid travels from one symbol to the other
+ *   jacketed  a pipe enclosed by a second pipe that heats or cools it
+ *   caption   a note attached to a symbol, carrying no process fluid
+ *
+ * For example, a jacketed pipe is drawn as two parallel lines. A reader can
+ * therefore distinguish it from a plain pipe. The kind does not restrict which
+ * symbols may be connected.
+ */
+export type PIDEdgeKind = "pipe" | "jacketed" | "caption";
 
 export type PIDSymbolKind =
 	| "gas-bottle"

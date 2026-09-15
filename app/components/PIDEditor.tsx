@@ -10,10 +10,12 @@ import {
 	addEdge,
 	Background,
 	BackgroundVariant,
+	BaseEdge,
 	ConnectionLineType,
 	ControlButton,
 	Controls,
 	MarkerType,
+	getSmoothStepPath,
 	Panel as ReactFlowPanel,
 	ReactFlow,
 	ReactFlowProvider,
@@ -23,6 +25,8 @@ import {
 	useUpdateNodeInternals,
 	type Connection,
 	type Edge,
+	type EdgeMarker,
+	type EdgeProps,
 	type Node,
 	type NodeOrigin,
 	type NodeProps,
@@ -38,14 +42,15 @@ import {
 	type PIDSymbolKind,
 } from "~/app/components/PIDSymbol.tsx";
 import { getPIDSymbolComponents } from "~/app/components/pid-symbols/PIDSymbolRegistry.ts";
-import type { PIDGraph } from "~/app/lib/PID.ts";
+import type { PIDEdgeKind, PIDGraph } from "~/app/lib/PID.ts";
 import { Switch } from "~/catalyst-ui/switch.tsx";
 
 import "@xyflow/react/dist/style.css";
 
 type PIDNodeData = { kind: PIDSymbolKind; label: string; orientation: PIDOrientation };
 type PIDNode = Node<PIDNodeData, "pid-symbol">;
-type PIDEdge = Edge<Record<string, never>, "step">;
+type PIDEdgeData = { kind: PIDEdgeKind };
+type PIDEdge = Edge<PIDEdgeData, "pid-connection">;
 
 type PaletteDrag = {
 	pointerId: number;
@@ -57,6 +62,52 @@ type PaletteDrag = {
 type EditorTool = "select" | "pan";
 
 const nodeTypes = { "pid-symbol": PIDSymbolNode };
+const edgeTypes = { "pid-connection": PIDConnection };
+
+/**
+ * Returns the kind of a connection, or "pipe" when the edge carries no data.
+ *
+ * React Flow permits an edge without data. Every edge created by this editor
+ * carries a kind. The default therefore applies only to an edge created
+ * elsewhere in React Flow.
+ */
+function edgeKind(edge: { data?: PIDEdgeData }): PIDEdgeKind {
+	return edge.data?.kind ?? "pipe";
+}
+
+/**
+ * Returns the arrow drawn at the end of a connection.
+ *
+ * A pipe and a jacketed pipe both indicate the direction of flow. A caption
+ * line attaches a note to a symbol. It therefore carries no arrow.
+ */
+function arrowFor(kind: PIDEdgeKind, color: string): EdgeMarker | undefined {
+	if (kind === "caption") return undefined;
+
+	// An SVG marker scales with the width of its stroke by default. The jacket
+	// uses a wide stroke. A fixed size therefore keeps this arrow the same size
+	// as the arrow on a pipe.
+	if (kind === "jacketed") {
+		return {
+			type: MarkerType.ArrowClosed,
+			color,
+			width: 19,
+			height: 19,
+			markerUnits: "userSpaceOnUse",
+		};
+	}
+
+	return { type: MarkerType.ArrowClosed, color };
+}
+
+/**
+ * Each kind of connection is shown under this name in the editor.
+ */
+const edgeKindLabels: Record<PIDEdgeKind, string> = {
+	pipe: "Pipe",
+	jacketed: "Jacketed",
+	caption: "Caption",
+};
 const nodeOrigin: NodeOrigin = [0.5, 0.5];
 
 /**
@@ -129,18 +180,12 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 			),
 		}))
 		.filter((group) => group.symbols.length > 0);
+	// PIDConnection draws the line and reads the kind from the edge. Only the
+	// arrow is prepared here. Its color follows the selection.
 	const displayedEdges = edges.map((edge) => {
 		const color = edge.selected ? "var(--adacta-color-accent)" : "var(--adacta-color-foreground)";
 
-		return {
-			...edge,
-			markerEnd: { type: MarkerType.ArrowClosed, color },
-			style: {
-				...edge.style,
-				stroke: color,
-				strokeWidth: edge.selected ? 2 : "var(--pid-line-width)",
-			},
-		};
+		return { ...edge, markerEnd: arrowFor(edgeKind(edge), color) };
 	});
 
 	function addNode(kind: PIDSymbolKind, position?: { x: number; y: number }) {
@@ -170,14 +215,11 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 				{
 					...connection,
 					id: `pid-edge-${crypto.randomUUID()}`,
-					type: "step",
+					type: "pid-connection",
+					data: { kind: "pipe" },
 					markerEnd: {
 						type: MarkerType.ArrowClosed,
 						color: "var(--adacta-color-foreground)",
-					},
-					style: {
-						stroke: "var(--adacta-color-foreground)",
-						strokeWidth: "var(--pid-line-width)",
 					},
 				},
 				current,
@@ -270,6 +312,14 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 		requestAnimationFrame(() => updateNodeInternals(selectedNode.id));
 	}
 
+	function setSelectedEdgeKind(kind: PIDEdgeKind) {
+		if (!selectedEdge) return;
+
+		setEdges((current) =>
+			current.map((edge) => (edge.id === selectedEdge.id ? { ...edge, data: { kind } } : edge)),
+		);
+	}
+
 	function deleteSelectedItems() {
 		const selectedNodeIds = new Set(selectedNodes.map((node) => node.id));
 		const selectedEdgeIds = new Set(selectedEdges.map((edge) => edge.id));
@@ -349,6 +399,7 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 					nodes={nodes}
 					edges={displayedEdges}
 					nodeTypes={nodeTypes}
+					edgeTypes={edgeTypes}
 					onNodesChange={readOnly ? undefined : onNodesChange}
 					onEdgesChange={readOnly ? undefined : onEdgesChange}
 					onConnect={readOnly ? undefined : connect}
@@ -356,7 +407,7 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 					connectionLineType={ConnectionLineType.Step}
 					defaultViewport={{ x: 0, y: 0, zoom: 1 }}
 					defaultEdgeOptions={{
-						type: "step",
+						type: "pid-connection",
 						markerEnd: {
 							type: MarkerType.ArrowClosed,
 							color: "var(--adacta-color-foreground)",
@@ -467,9 +518,22 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 								</fieldset>
 							</div>
 						) : selectedEdge ? (
-							<p className="mt-2 text-sm text-foreground-muted">
-								Press Delete, or use the button below.
-							</p>
+							<fieldset className="mt-4">
+								<legend className="text-xs font-medium text-foreground-muted">Kind</legend>
+								<div className="mt-1 grid gap-1">
+									{(["pipe", "jacketed", "caption"] as const).map((kind) => (
+										<button
+											key={kind}
+											type="button"
+											aria-pressed={edgeKind(selectedEdge) === kind}
+											className="rounded-md border border-border px-2 py-1.5 text-xs text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
+											onClick={() => setSelectedEdgeKind(kind)}
+										>
+											{edgeKindLabels[kind]}
+										</button>
+									))}
+								</div>
+							</fieldset>
 						) : (
 							<div className="mt-2 space-y-1 text-sm text-foreground-muted">
 								<p>{selectionSummary}</p>
@@ -596,7 +660,8 @@ function editorNodes(value: PIDGraph): PIDNode[] {
 function editorEdges(value: PIDGraph): PIDEdge[] {
 	return value.edges.map((edge) => ({
 		id: edge.id,
-		type: "step",
+		type: "pid-connection",
+		data: { kind: edge.kind },
 		source: edge.source,
 		target: edge.target,
 		sourceHandle: edge.sourceHandle,
@@ -615,6 +680,7 @@ function pidGraph(nodes: PIDNode[], edges: PIDEdge[]): PIDGraph {
 		})),
 		edges: edges.map((edge) => ({
 			id: edge.id,
+			kind: edgeKind(edge),
 			source: edge.source,
 			target: edge.target,
 			sourceHandle: edge.sourceHandle ?? null,
@@ -635,6 +701,62 @@ function toolButtonClass(active: boolean) {
 			? "bg-accent text-accent-foreground"
 			: "text-foreground-muted hover:bg-surface-muted hover:text-foreground"
 	}`;
+}
+
+/**
+ * Draws one connection between two symbols according to its kind.
+ *
+ * A pipe is drawn as a single line. A jacketed pipe is drawn as a wide line
+ * covered by a narrower line in the canvas color. Two parallel lines therefore
+ * remain visible. A caption line is dashed, because it carries no process
+ * fluid.
+ */
+function PIDConnection({
+	sourceX,
+	sourceY,
+	targetX,
+	targetY,
+	sourcePosition,
+	targetPosition,
+	data,
+	selected,
+	markerEnd,
+}: EdgeProps<PIDEdge>) {
+	// A P&ID uses right angles. The corner radius is therefore zero.
+	const [path] = getSmoothStepPath({
+		sourceX,
+		sourceY,
+		targetX,
+		targetY,
+		sourcePosition,
+		targetPosition,
+		borderRadius: 0,
+	});
+
+	const kind = edgeKind({ data });
+	const color = selected ? "var(--adacta-color-accent)" : "var(--adacta-color-foreground)";
+	const width = selected ? 2 : "var(--pid-line-width)";
+
+	if (kind === "jacketed") {
+		return (
+			<>
+				<BaseEdge path={path} markerEnd={markerEnd} style={{ stroke: color, strokeWidth: 5 }} />
+				<BaseEdge path={path} style={{ stroke: "var(--adacta-color-canvas)", strokeWidth: 2 }} />
+			</>
+		);
+	}
+
+	return (
+		<BaseEdge
+			path={path}
+			markerEnd={markerEnd}
+			style={{
+				stroke: color,
+				strokeWidth: width,
+				strokeDasharray: kind === "caption" ? "4 3" : undefined,
+			}}
+		/>
+	);
 }
 
 function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {

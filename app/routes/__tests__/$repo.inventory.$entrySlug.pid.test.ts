@@ -29,6 +29,7 @@ const graph: PIDGraph = {
 	edges: [
 		{
 			id: "feed-line",
+			kind: "pipe",
 			source: "feed-bottle",
 			target: "inlet-valve",
 			sourceHandle: "outlet",
@@ -69,6 +70,34 @@ describe("P&ID route", () => {
 		const invalidGraph = {
 			nodes: [graph.nodes[0]],
 			edges: [{ ...graph.edges[0], target: "missing-node" }],
+		};
+
+		const response = await save(scope, invalidGraph);
+
+		if (response instanceof Response) throw new Error("Expected action data.");
+		expect(response.init?.status).toBe(400);
+		expect(response.data).toEqual({ error: "The diagram contains invalid data." });
+	});
+
+	test("keeps the kind of each connection", async () => {
+		const scope = await setupRig();
+		const jacketed = { ...graph.edges[0], id: "jacketed-line", kind: "jacketed" as const };
+		const caption = { ...graph.edges[0], id: "caption-line", kind: "caption" as const };
+
+		await save(scope, { nodes: graph.nodes, edges: [graph.edges[0], jacketed, caption] });
+
+		expect(load(scope).graph.edges.map((edge) => edge.kind)).toEqual([
+			"pipe",
+			"jacketed",
+			"caption",
+		]);
+	});
+
+	test("rejects a connection of an unknown kind", async () => {
+		const scope = await setupRig();
+		const invalidGraph = {
+			nodes: graph.nodes,
+			edges: [{ ...graph.edges[0], kind: "dotted" }],
 		};
 
 		const response = await save(scope, invalidGraph);

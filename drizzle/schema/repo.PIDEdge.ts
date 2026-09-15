@@ -5,7 +5,11 @@ import { PIDNode } from "~/drizzle/schema/repo.PIDNode.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
- * One directed process connection in the current P&ID of an inventory entry.
+ * A row describes one directed connection in the current P&ID of an inventory
+ * entry.
+ *
+ * Most connections carry process fluid. A caption line does not. It is stored
+ * in this table because it also joins two symbols.
  */
 export const PIDEdge = sqliteTable(
 	"PIDEdge",
@@ -22,6 +26,19 @@ export const PIDEdge = sqliteTable(
 		targetNodeId: text("target_node_id")
 			.notNull()
 			.references(() => PIDNode.id, { onDelete: "cascade" }),
+
+		/**
+		 * The kind records what the connection represents.
+		 *
+		 *   pipe      process fluid travels from one symbol to the other
+		 *   jacketed  a pipe enclosed by a second pipe that heats or cools it
+		 *   caption   a note attached to a symbol, carrying no process fluid
+		 *
+		 * The application draws each kind differently. For example, a jacketed
+		 * pipe appears as two parallel lines.
+		 */
+		kind: text("kind", { enum: ["pipe", "jacketed", "caption"] }).notNull(),
+
 		sourceHandle: text("source_handle"),
 		targetHandle: text("target_handle"),
 		drawingOrder: integer("drawing_order").notNull(),
