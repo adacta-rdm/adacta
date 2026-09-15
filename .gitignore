@@ -26,6 +26,11 @@ scratch
 # Catalog images, copied out of seed/catalog by the seed
 /public/catalog/
 
+# Repository seed sets are opt-in.
+/seed/repo/*
+!/seed/repo/demo/
+!/seed/repo/pilot/
+
 # React Router
 /.react-router/
 /build/
