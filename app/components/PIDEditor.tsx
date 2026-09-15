@@ -37,6 +37,7 @@ import {
 	getPIDSymbol,
 	maximumSizeForPIDSymbol,
 	PIDSymbol,
+	pidInstrumentPresets,
 	pidSymbolGroups,
 	type PIDOrientation,
 	type PIDSymbolKind,
@@ -547,14 +548,35 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 								</label>
 
 								{selectedNode.data.kind === "instrument" ? (
-									<label className="block">
-										<span className="text-xs font-medium text-foreground-muted">Tag</span>
-										<input
-											value={selectedNode.data.secondaryLabel ?? ""}
-											onChange={(event) => setSelectedNodeTag(event.target.value)}
-											className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground focus:border-focus focus:outline-none"
-										/>
-									</label>
+									<>
+										<div>
+											<span className="text-xs font-medium text-foreground-muted">Common</span>
+											<div className="mt-1 flex flex-wrap gap-1">
+												{pidInstrumentPresets.map((preset) => (
+													<button
+														key={preset.code}
+														type="button"
+														title={preset.label}
+														aria-label={preset.label}
+														aria-pressed={selectedNode.data.label === preset.code}
+														className="rounded border border-border px-1.5 py-0.5 text-[0.6875rem] text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
+														onClick={() => renameSelectedNode(preset.code)}
+													>
+														{preset.code}
+													</button>
+												))}
+											</div>
+										</div>
+
+										<label className="block">
+											<span className="text-xs font-medium text-foreground-muted">Tag</span>
+											<input
+												value={selectedNode.data.secondaryLabel ?? ""}
+												onChange={(event) => setSelectedNodeTag(event.target.value)}
+												className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground focus:border-focus focus:outline-none"
+											/>
+										</label>
+									</>
 								) : null}
 
 								<fieldset>

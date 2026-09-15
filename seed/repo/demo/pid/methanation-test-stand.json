@@ -43,7 +43,7 @@
 		{
 			"key": "mfc-h2",
 			"kind": "instrument",
-			"label": "MFC",
+			"label": "FIRC",
 			"secondaryLabel": "H2",
 			"orientation": 0,
 			"position": {
@@ -54,7 +54,7 @@
 		{
 			"key": "mfc-co2",
 			"kind": "instrument",
-			"label": "MFC",
+			"label": "FIRC",
 			"secondaryLabel": "CO2",
 			"orientation": 0,
 			"position": {

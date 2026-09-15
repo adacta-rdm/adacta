@@ -104,6 +104,44 @@ export const pidSymbolGroups = [
 
 export type PIDSymbolDefinition = (typeof pidSymbolGroups)[number]["symbols"][number];
 
+/**
+ * Ready-made instruments, in the order they are offered.
+ *
+ * Each one fills the upper line of an instrument symbol. The lower line names
+ * the individual device and is typed afterwards. For example, choosing TE and
+ * typing "999D" gives the thermocouple that Johannes labelled "TC N" over
+ * "999D".
+ *
+ * The codes follow ISA-5.1. The first letter is the measured quantity, and the
+ * letters after it are what the device does: E a sensing element, I an
+ * indicator, T a transmitter, R a recorder, C a controller. A mass flow
+ * controller is therefore FIRC, because it indicates a flow, records it, and
+ * controls it.
+ *
+ * The name beside each code says what the device is called in the laboratory,
+ * so a mass flow controller can be found under that name rather than under its
+ * code.
+ *
+ * The list is a starting point rather than a restriction. Both lines stay
+ * editable, so a device with no standard code keeps its own name.
+ */
+export const pidInstrumentPresets = [
+	{ code: "PI", label: "Pressure indicator, a gauge" },
+	{ code: "PT", label: "Pressure transmitter" },
+	{ code: "PIC", label: "Pressure controller" },
+
+	{ code: "TE", label: "Thermocouple or RTD" },
+	{ code: "TI", label: "Temperature indicator" },
+	{ code: "TT", label: "Temperature transmitter" },
+	{ code: "TIC", label: "Temperature controller" },
+
+	{ code: "FE", label: "Flow element, an orifice plate" },
+	{ code: "FI", label: "Flow indicator, a rotameter" },
+	{ code: "FT", label: "Flow transmitter" },
+	{ code: "FIC", label: "Flow controller" },
+	{ code: "FIRC", label: "Mass flow controller" },
+] as const;
+
 const pidSymbols: readonly PIDSymbolDefinition[] = pidSymbolGroups.flatMap((group) => [
 	...group.symbols,
 ]);
