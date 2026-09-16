@@ -52,7 +52,7 @@ export class RepoAccess {
 	 *
 	 * @throws RepositoryAccessDeniedError if the user holds no grant.
 	 */
-	selectRepository(slug: string): void {
+	async selectRepository(slug: string): Promise<void> {
 		if (this.#slug !== undefined) {
 			throw new Error(
 				`The repository can only be set once per scope (already "${this.#slug}", attempted "${slug}").`,
@@ -61,10 +61,9 @@ export class RepoAccess {
 
 		const { userId } = this.security;
 
-		if (!this.hasAccess(userId, slug)) {
+		if (!(await this.hasAccess(userId, slug))) {
 			throw new RepositoryAccessDeniedError(userId, slug);
 		}
-
 		this.#slug = slug;
 	}
 
@@ -105,8 +104,8 @@ export class RepoAccess {
 	 * Whether a grant exists. Grants are held against the repository id. Callers
 	 * work with slugs. The query therefore joins through Repository.
 	 */
-	private hasAccess(userId: string, slug: string): boolean {
-		const rows = this.db
+	private async hasAccess(userId: string, slug: string): Promise<boolean> {
+		const rows = await this.db
 			.select({ repositoryId: UserRepository.repositoryId })
 			.from(UserRepository)
 			.innerJoin(Repository, eq(Repository.id, UserRepository.repositoryId))

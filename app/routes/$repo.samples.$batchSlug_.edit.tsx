@@ -30,7 +30,7 @@ export function meta() {
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const [db, access] = container.get(RepoDB, RepoAccess);
-	const batch = getActiveBatch(db, params.batchSlug);
+	const batch = await getActiveBatch(db, params.batchSlug);
 
 	if (!batch) {
 		throw new Response(`Sample "${params.batchSlug}" not found.`, { status: 404 });
@@ -43,7 +43,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	const values = new FormValues(await request.formData());
 	const container = context.get(services);
 	const [db, access] = container.get(RepoDB, RepoAccess);
-	const batch = getActiveBatch(db, params.batchSlug);
+	const batch = await getActiveBatch(db, params.batchSlug);
 
 	if (!batch) {
 		throw new Response(`Sample "${params.batchSlug}" not found.`, { status: 404 });
@@ -61,7 +61,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 		return data({ error: "The selected preparer cannot access this repository." }, { status: 400 });
 	}
 
-	db.update(SampleBatch).set(fields).where(eq(SampleBatch.id, batch.id)).run();
+	await db.update(SampleBatch).set(fields).where(eq(SampleBatch.id, batch.id)).run();
 
 	return redirect(`/${params.repo}/samples/${batch.slug}`, 303);
 }
@@ -125,8 +125,8 @@ export default function RepoSamplesBatchSlugEdit({
  * The batch with this slug, only while it is active. An archived batch is
  * therefore treated as absent, and the page answers 404 for it.
  */
-function getActiveBatch(db: RepoDB, batchSlug: string) {
-	return db
+async function getActiveBatch(db: RepoDB, batchSlug: string) {
+	return await db
 		.select()
 		.from(SampleBatch)
 		.where(and(eq(SampleBatch.slug, batchSlug), isNull(SampleBatch.metadataArchivedAt)))

@@ -104,8 +104,8 @@ export async function addSubmittedSample(
  *
  * @throws Response 404 when the sample is not there, or is archived.
  */
-export function deleteSubmittedSample(db: RepoDB, sampleId: number): void {
-	const deleted = db
+export async function deleteSubmittedSample(db: RepoDB, sampleId: number): Promise<void> {
+	const deleted = await db
 		.delete(Sample)
 		.where(and(eq(Sample.id, sampleId), isNull(Sample.metadataArchivedAt)))
 		.run();

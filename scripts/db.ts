@@ -13,8 +13,8 @@
  * Environment values come from the process. Bun loads a .env file into it
  * on its own.
  */
-import { createAppContainer } from "~/app/.server/createAppContainer.ts";
-import { DatabaseManager } from "~/app/services/DatabaseManager.ts";
+import { createAppContainer } from "~/app/.server/appContainer.ts";
+import { SqliteDatabaseManager } from "~/app/services/SqliteDatabaseManager.ts";
 import { RepoManager } from "~/app/services/RepoManager.ts";
 import { refreshMigrations } from "~/scripts/db/refreshMigrations.ts";
 import { seedDatabase } from "~/seed/seed.ts";
@@ -34,7 +34,7 @@ if (command !== "migrate" && command !== "refresh" && import.meta.env.NODE_ENV =
 
 switch (command) {
 	case "migrate":
-		migrate();
+		await migrate();
 		break;
 
 	case "refresh":
@@ -42,13 +42,13 @@ switch (command) {
 		break;
 
 	case "reset":
-		reset();
+		await reset();
 		break;
 
 	case "setup":
 		// Deleting first makes a seeded database the same every time, whatever
 		// state it was in before.
-		reset();
+		await reset();
 		await seedDatabase(app());
 		break;
 
@@ -64,8 +64,8 @@ switch (command) {
 		fail(`unknown command "${command}" (expected: ${COMMANDS})`);
 }
 
-function migrate(): void {
-	app().get(RepoManager).migrateAll();
+async function migrate(): Promise<void> {
+	await app().get(RepoManager).migrateAll();
 
 	console.log("Migrations applied.");
 }
@@ -75,12 +75,12 @@ function migrate(): void {
  * directory makes the result the same whether the databases were already there
  * or not.
  */
-function reset(): void {
-	app().get(DatabaseManager).dropAll();
+async function reset(): Promise<void> {
+	app().get(SqliteDatabaseManager).dropAll();
 
 	console.log("Databases dropped.");
 
-	migrate();
+	await migrate();
 }
 
 function app(): ReturnType<typeof createAppContainer> {

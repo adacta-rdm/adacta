@@ -28,7 +28,7 @@ export async function addSample(db: RepoDB, values: SampleValues): Promise<Entit
 	let slug = base;
 	for (let i = 0; i < SLUG_ATTEMPTS; i++) {
 		try {
-			return db
+			return await db
 				.insert(Sample)
 				.values({ ...values, slug })
 				.returning()

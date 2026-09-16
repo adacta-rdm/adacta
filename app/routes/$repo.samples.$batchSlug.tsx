@@ -29,7 +29,7 @@ import type { Route } from "./+types/$repo.samples.$batchSlug.ts";
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const [db, access] = container.get(RepoDB, RepoAccess);
-	const batch = findBatch(db, params.batchSlug);
+	const batch = await findBatch(db, params.batchSlug);
 
 	if (!batch) {
 		throw new Response(`Sample "${params.batchSlug}" not found.`, { status: 404 });
@@ -70,7 +70,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	const values = new FormValues(await request.formData());
 	const container = context.get(services);
 	const db = container.get(RepoDB);
-	const batch = getBatch(db, params.batchSlug);
+	const batch = await getBatch(db, params.batchSlug);
 
 	if (!batch) {
 		throw new Response(`Sample "${params.batchSlug}" not found.`, { status: 404 });
@@ -84,7 +84,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	let errors: SampleErrors | undefined;
 
 	if (deletedSampleId !== null) {
-		deleteSubmittedSample(db, deletedSampleId);
+		await deleteSubmittedSample(db, deletedSampleId);
 	} else if (values.has("add")) {
 		errors = await addSubmittedSample(await sampleContext(container, params.repo), batch, values);
 	} else {
@@ -193,8 +193,8 @@ export default function RepoSamplesBatchSlug({
  * The batch with this slug, archived or not. The page uses this, because an
  * archived batch is still worth reading.
  */
-function findBatch(db: RepoDB, batchSlug: string) {
-	return db.select().from(SampleBatch).where(eq(SampleBatch.slug, batchSlug)).get();
+async function findBatch(db: RepoDB, batchSlug: string) {
+	return await db.select().from(SampleBatch).where(eq(SampleBatch.slug, batchSlug)).get();
 }
 
 /**
@@ -202,8 +202,8 @@ function findBatch(db: RepoDB, batchSlug: string) {
  * uses this. An archived batch is therefore treated as absent, and a submit
  * from an old page answers 404.
  */
-function getBatch(db: RepoDB, batchSlug: string) {
-	return db
+async function getBatch(db: RepoDB, batchSlug: string) {
+	return await db
 		.select()
 		.from(SampleBatch)
 		.where(and(eq(SampleBatch.slug, batchSlug), isNull(SampleBatch.metadataArchivedAt)))

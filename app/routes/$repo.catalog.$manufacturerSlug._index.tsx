@@ -35,10 +35,10 @@ type CatalogProduct = {
 	specifications: Specification[];
 };
 
-export function loader({ context, params }: Route.LoaderArgs) {
+export async function loader({ context, params }: Route.LoaderArgs) {
 	const db = context.get(services).get(RepoDB);
 
-	const manufacturer = db
+	const manufacturer = await db
 		.select({ id: Manufacturer.id })
 		.from(Manufacturer)
 		.where(
@@ -50,7 +50,7 @@ export function loader({ context, params }: Route.LoaderArgs) {
 		throw new Response(`Manufacturer "${params.manufacturerSlug}" not found.`, { status: 404 });
 	}
 
-	const rows = db
+	const rows = await db
 		.select()
 		.from(Product)
 		.where(and(eq(Product.manufacturerId, manufacturer.id), isNull(Product.metadataArchivedAt)))
@@ -60,7 +60,7 @@ export function loader({ context, params }: Route.LoaderArgs) {
 	// One query for every specification of this manufacturer, ordered as it is
 	// written on the product. Reading them per product would be one query a row.
 	const specifications = new Map<number, Specification[]>();
-	const specificationRows = db
+	const specificationRows = await db
 		.select({
 			productId: ProductSpecification.productId,
 			name: ProductSpecification.name,
@@ -78,7 +78,7 @@ export function loader({ context, params }: Route.LoaderArgs) {
 		specifications.set(row.productId, list);
 	}
 
-	const seriesRows = db
+	const seriesRows = await db
 		.select()
 		.from(ProductSeries)
 		.where(eq(ProductSeries.manufacturerId, manufacturer.id))

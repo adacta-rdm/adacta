@@ -11,22 +11,22 @@ describe("_index loader", () => {
 		const container = await setupTestUserEnvironment();
 		const manager = container.get(RepoManager);
 
-		manager.createRepository("demo", "Demo Laboratory");
-		manager.createRepository("pilot", "Pilot Plant");
-		manager.grantAccess(container.get(Security).userId, "demo");
+		await manager.createRepository("demo", "Demo Laboratory");
+		await manager.createRepository("pilot", "Pilot Plant");
+		await manager.grantAccess(container.get(Security).userId, "demo");
 
 		const [args] = createMiddlewareArgs(container);
 
-		expect(loader(args).repositories).toEqual([{ slug: "demo", name: "Demo Laboratory" }]);
+		expect((await loader(args)).repositories).toEqual([{ slug: "demo", name: "Demo Laboratory" }]);
 	});
 
 	test("shows nothing to a user without a grant", async () => {
 		const container = await setupTestUserEnvironment();
-		container.get(RepoManager).createRepository("demo");
+		await container.get(RepoManager).createRepository("demo");
 
 		const [args] = createMiddlewareArgs(container);
 
-		expect(loader(args).repositories).toEqual([]);
+		expect((await loader(args)).repositories).toEqual([]);
 	});
 
 	test("a grant held by another user does not appear", async () => {
@@ -34,12 +34,12 @@ describe("_index loader", () => {
 		const manager = container.get(RepoManager);
 		const other = await signUpTestUser(container, { email: "other@example.com" });
 
-		manager.createRepository("demo");
-		manager.grantAccess(other, "demo");
+		await manager.createRepository("demo");
+		await manager.grantAccess(other, "demo");
 
 		const [args] = createMiddlewareArgs(container);
 
-		expect(loader(args).repositories).toEqual([]);
+		expect((await loader(args)).repositories).toEqual([]);
 	});
 
 	test("orders the repositories by name", async () => {
@@ -51,13 +51,13 @@ describe("_index loader", () => {
 			["pilot", "Pilot Plant"],
 			["demo", "Demo Laboratory"],
 		]) {
-			manager.createRepository(slug, name);
-			manager.grantAccess(userId, slug);
+			await manager.createRepository(slug, name);
+			await manager.grantAccess(userId, slug);
 		}
 
 		const [args] = createMiddlewareArgs(container);
 
-		expect(loader(args).repositories.map((r) => r.name)).toEqual([
+		expect((await loader(args)).repositories.map((r) => r.name)).toEqual([
 			"Demo Laboratory",
 			"Pilot Plant",
 		]);

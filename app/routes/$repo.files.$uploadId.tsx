@@ -17,7 +17,7 @@ export function meta() {
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	try {
-		const artifacts = context.get(services).get(SourceManager).artifactsOfUpload(params.uploadId);
+		const artifacts = await context.get(services).get(SourceManager).artifactsOfUpload(params.uploadId);
 
 		return { artifacts };
 	} catch (error) {

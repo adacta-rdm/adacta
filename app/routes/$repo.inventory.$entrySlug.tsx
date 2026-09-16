@@ -33,7 +33,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const [db, access] = container.get(RepoDB, RepoAccess);
 
-	const row = db
+	const row = await db
 		.select()
 		.from(InventoryEntry)
 		.where(

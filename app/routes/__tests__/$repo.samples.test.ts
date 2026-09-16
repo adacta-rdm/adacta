@@ -36,10 +36,10 @@ function post(fields: Record<string, string>): Request {
 	return new Request("http://localhost/demo/samples", { method: "POST", body: form });
 }
 
-function insertBatchRecord(scope: ServiceContainer) {
+async function insertBatchRecord(scope: ServiceContainer) {
 	const userId = scope.get(Security).userId;
 
-	return scope
+	return await scope
 		.get(RepoDB)
 		.insert(SampleBatch)
 		.values({
@@ -134,7 +134,7 @@ describe("$repo.samples.new action", () => {
 			name: "Zoe Researcher",
 			email: "zoe.researcher@example.com",
 		});
-		scope.get(RepoManager).grantAccess(preparedById, "demo");
+		await scope.get(RepoManager).grantAccess(preparedById, "demo");
 
 		const slug = await createBatch(scope, { preparedById });
 		const { batch } = await loadBatch(scope, slug);
@@ -194,7 +194,7 @@ describe("$repo.samples.new action", () => {
 describe("$repo.samples.$batchSlug action", () => {
 	test("returns all add-form validation errors together", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 		const outsider = await signUpTestUser(scope, { email: "outsider@example.com" });
 
 		const response = await submitBatch(scope, batch.slug, {
@@ -216,7 +216,7 @@ describe("$repo.samples.$batchSlug action", () => {
 
 	test("returns a form error for an unrecognized operation", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 
 		const response = await submitBatch(scope, batch.slug, {});
 		if (response instanceof Response) throw new Error("Expected action data.");
@@ -260,7 +260,7 @@ describe("$repo.samples.$batchSlug action", () => {
 			name: "Zoe Researcher",
 			email: "zoe.researcher@example.com",
 		});
-		scope.get(RepoManager).grantAccess(preparedById, "demo");
+		await scope.get(RepoManager).grantAccess(preparedById, "demo");
 
 		await submitBatch(scope, slug, { add: "", name: "#01", preparedById });
 
@@ -268,7 +268,7 @@ describe("$repo.samples.$batchSlug action", () => {
 			id: preparedById,
 			name: "Zoe Researcher",
 		});
-		expect(scope.get(RepoDB).select().from(Sample).get()?.metadataCreatorId).toBe(
+		expect((await scope.get(RepoDB).select().from(Sample).get())?.metadataCreatorId).toBe(
 			scope.get(Security).userId,
 		);
 	});
@@ -280,7 +280,7 @@ describe("$repo.samples.$batchSlug action", () => {
 		await submitBatch(scope, slug, { add: "", name: "#01" });
 		await submitBatch(scope, slug, { add: "", name: "01" });
 
-		const samples = scope.get(RepoDB).select().from(Sample).all();
+		const samples = await scope.get(RepoDB).select().from(Sample).all();
 		expect(samples.map((sample) => [sample.name, sample.slug])).toEqual([
 			["#01", "01"],
 			["01", "01-2"],
@@ -289,7 +289,7 @@ describe("$repo.samples.$batchSlug action", () => {
 
 	test("rejects a duplicate label within the batch", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 		await submitBatch(scope, batch.slug, { add: "", name: "#01" });
 
 		const response = await submitBatch(scope, batch.slug, { add: "", name: "#01" });
@@ -310,7 +310,7 @@ describe("$repo.samples.$batchSlug action", () => {
 		const db = scope.get(RepoDB);
 		const userId = scope.get(Security).userId;
 		const createdAt = new Date("2026-01-15T12:00:00.000Z");
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 
 		for (let attempt = 1; attempt <= 5; attempt++) {
 			db.insert(Sample)
@@ -381,7 +381,7 @@ describe("$repo.samples.$batchSlug action", () => {
 		const scope = await environment();
 		const slug = await createBatch(scope);
 		await submitBatch(scope, slug, { add: "", name: "#01" });
-		const [sample] = scope.get(RepoDB).select().from(Sample).all();
+		const [sample] = await scope.get(RepoDB).select().from(Sample).all();
 
 		const response = await submitBatch(scope, slug, { delete: String(sample.id) });
 
@@ -408,7 +408,7 @@ describe("$repo.samples.$batchSlug action", () => {
 describe("$repo.samples.$batchSlug archived batch", () => {
 	test("the page opens and reports that the batch is archived", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 		archive(scope, batch.slug);
 
 		const loaded = await loadBatch(scope, batch.slug);
@@ -419,14 +419,14 @@ describe("$repo.samples.$batchSlug archived batch", () => {
 
 	test("an active batch is not reported as archived", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 
 		expect((await loadBatch(scope, batch.slug)).archived).toBe(false);
 	});
 
 	test("a sample cannot be added to an archived batch", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 		archive(scope, batch.slug);
 
 		expect(submitBatch(scope, batch.slug, { add: "", name: "#01" })).rejects.toMatchObject({
@@ -477,7 +477,7 @@ async function loadEditBatch(scope: ServiceContainer, batchSlug: string) {
 describe("$repo.samples.$batchSlug edit loader", () => {
 	test("returns the batch and the people who may prepare it", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 
 		const loaded = await loadEditBatch(scope, batch.slug);
 
@@ -493,7 +493,7 @@ describe("$repo.samples.$batchSlug edit loader", () => {
 
 	test("answers 404 for an archived batch", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 		archive(scope, batch.slug);
 
 		expect(loadEditBatch(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
@@ -503,7 +503,7 @@ describe("$repo.samples.$batchSlug edit loader", () => {
 describe("$repo.samples.$batchSlug edit action", () => {
 	test("stores the new values and returns to the batch page", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 
 		const response = await editBatch(scope, batch.slug, {
 			name: "Pd batch",
@@ -514,7 +514,7 @@ describe("$repo.samples.$batchSlug edit action", () => {
 
 		expect(response).toBeInstanceOf(Response);
 
-		const stored = scope.get(RepoDB).select().from(SampleBatch).get();
+		const stored = await scope.get(RepoDB).select().from(SampleBatch).get();
 		expect(stored).toMatchObject({
 			name: "Pd batch",
 			preparationDate: "2026-03-02",
@@ -525,36 +525,36 @@ describe("$repo.samples.$batchSlug edit action", () => {
 
 	test("keeps the slug when the name changes, so old links still work", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 
 		await editBatch(scope, batch.slug, { name: "A completely different name" });
 
-		expect(scope.get(RepoDB).select().from(SampleBatch).get()?.slug).toBe(batch.slug);
+		expect((await scope.get(RepoDB).select().from(SampleBatch).get())?.slug).toBe(batch.slug);
 	});
 
 	test("an empty active material is stored as no value", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 		await editBatch(scope, batch.slug, { activeMaterial: "Pt" });
 
 		await editBatch(scope, batch.slug, { activeMaterial: "" });
 
-		expect(scope.get(RepoDB).select().from(SampleBatch).get()?.activeMaterial).toBeNull();
+		expect((await scope.get(RepoDB).select().from(SampleBatch).get())?.activeMaterial).toBeNull();
 	});
 
 	test("refuses an empty name", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 
 		const response = await editBatch(scope, batch.slug, { name: "" });
 
 		expect(response).toMatchObject({ init: { status: 400 } });
-		expect(scope.get(RepoDB).select().from(SampleBatch).get()?.name).toBe("Pt batch");
+		expect((await scope.get(RepoDB).select().from(SampleBatch).get())?.name).toBe("Pt batch");
 	});
 
 	test("refuses a date that is not a calendar date", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 
 		const response = await editBatch(scope, batch.slug, { preparationDate: "2026-02-31" });
 
@@ -563,7 +563,7 @@ describe("$repo.samples.$batchSlug edit action", () => {
 
 	test("refuses a preparer who cannot open the repository", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 
 		const response = await editBatch(scope, batch.slug, { preparedById: "someone-else" });
 
@@ -572,7 +572,7 @@ describe("$repo.samples.$batchSlug edit action", () => {
 
 	test("answers 404 for an archived batch", async () => {
 		const scope = await environment();
-		const batch = insertBatchRecord(scope);
+		const batch = await insertBatchRecord(scope);
 		archive(scope, batch.slug);
 
 		expect(editBatch(scope, batch.slug)).rejects.toMatchObject({ status: 404 });

@@ -27,67 +27,69 @@ import { Env } from "~/lib/env/Env.ts";
 const environment = setupEmptyTestDatabaseEnvironment;
 
 describe("RepoManager", () => {
-	test("migrateAll is safe to repeat", () => {
+	test("migrateAll is safe to repeat", async () => {
 		const container = environment();
-		container.get(RepoManager).createRepository("demo");
+		await container.get(RepoManager).createRepository("demo");
 
-		expect(() => container.get(RepoManager).migrateAll()).not.toThrow();
+		await expect(container.get(RepoManager).migrateAll()).resolves.toBeUndefined();
 	});
 
-	test("creates a repository and lists it", () => {
+	test("creates a repository and lists it", async () => {
 		const manager = environment().get(RepoManager);
-		manager.createRepository("demo", "Demo Laboratory");
+		await manager.createRepository("demo", "Demo Laboratory");
 
-		expect(manager.repositories()).toEqual(["demo"]);
+		expect(await manager.repositories()).toEqual(["demo"]);
 	});
 
-	test("creates the repository database", () => {
+	test("creates the repository database", async () => {
 		const container = environment();
-		container.get(RepoManager).createRepository("demo");
+		await container.get(RepoManager).createRepository("demo");
 
 		const dbDir = container.get(Env).string("ADACTA_DB_DIR");
 		expect(existsSync(join(dbDir, "demo.sqlite"))).toBe(true);
 	});
 
-	test("migrates the new repository database", () => {
+	test("migrates the new repository database", async () => {
 		const container = environment();
-		container.get(RepoManager).createRepository("demo");
+		await container.get(RepoManager).createRepository("demo");
 
 		// The table only exists if the repo migrations ran.
 		const repoDb = container.get(DatabaseManager).repoDb("demo");
 		expect(() => repoDb.select().from(InventoryEntry).all()).not.toThrow();
 	});
 
-	test("rejects a duplicate repository", () => {
+	test("rejects a duplicate repository", async () => {
 		const manager = environment().get(RepoManager);
-		manager.createRepository("demo");
+		await manager.createRepository("demo");
 
-		expect(() => manager.createRepository("demo")).toThrow(RepositoryAlreadyExistsError);
+		await expect(manager.createRepository("demo")).rejects.toBeInstanceOf(
+			RepositoryAlreadyExistsError,
+		);
 	});
 
 	test.each([["../escape"], ["with space"], ["semi;colon"], [""], ["a/b"]])(
 		"rejects unsafe repository name %p",
-		(slug) => {
+		async (slug) => {
 			const manager = environment().get(RepoManager);
 
-			expect(() => manager.createRepository(slug)).toThrow(InvalidDatabaseNameError);
+			await expect(manager.createRepository(slug)).rejects.toBeInstanceOf(InvalidDatabaseNameError);
 		},
 	);
 
-	test("records nothing when the name is rejected", () => {
+	test("records nothing when the name is rejected", async () => {
 		const container = environment();
 
-		expect(() => container.get(RepoManager).createRepository("../escape")).toThrow();
-		expect(container.get(RepoManager).repositories()).toEqual([]);
+		await expect(container.get(RepoManager).createRepository("../escape")).rejects.toThrow();
+		expect(await container.get(RepoManager).repositories()).toEqual([]);
 	});
 
 	test("grants access", async () => {
 		const container = environment();
 		const manager = container.get(RepoManager);
 		const userId = await signUpTestUser(container);
-		manager.createRepository("demo");
+		await manager.createRepository("demo");
 
-		manager.grantAccess(userId, "demo");
+		await manager.grantAccess(userId, "demo");
 
 		expect(container.get(SystemDB).select().from(UserRepository).all()).toHaveLength(1);
 	});
@@ -96,10 +98,10 @@ describe("RepoManager", () => {
 		const container = environment();
 		const manager = container.get(RepoManager);
 		const userId = await signUpTestUser(container);
-		manager.createRepository("demo");
+		await manager.createRepository("demo");
 
-		manager.grantAccess(userId, "demo");
-		manager.grantAccess(userId, "demo");
+		await manager.grantAccess(userId, "demo");
+		await manager.grantAccess(userId, "demo");
 
 		expect(container.get(SystemDB).select().from(UserRepository).all()).toHaveLength(1);
 	});
@@ -108,7 +110,7 @@ describe("RepoManager", () => {
 		const container = environment();
 		const userId = await signUpTestUser(container);
 
-		expect(() => container.get(RepoManager).grantAccess(userId, "nope")).toThrow(
+		await expect(container.get(RepoManager).grantAccess(userId, "nope")).rejects.toBeInstanceOf(
 			RepositoryNotFoundError,
 		);
 	});
@@ -116,20 +118,20 @@ describe("RepoManager", () => {
 	test("deletes a repository", async () => {
 		const container = environment();
 		const manager = container.get(RepoManager);
-		manager.createRepository("demo");
-		manager.createRepository("pilot");
+		await manager.createRepository("demo");
+		await manager.createRepository("pilot");
 
-		manager.deleteRepository("demo");
+		await manager.deleteRepository("demo");
 
-		expect(manager.repositories()).toEqual(["pilot"]);
+		expect(await manager.repositories()).toEqual(["pilot"]);
 	});
 
-	test("deletes the repository database", () => {
+	test("deletes the repository database", async () => {
 		const container = environment();
 		const manager = container.get(RepoManager);
-		manager.createRepository("demo");
+		await manager.createRepository("demo");
 
-		manager.deleteRepository("demo");
+		await manager.deleteRepository("demo");
 
 		const dbDir = container.get(Env).string("ADACTA_DB_DIR");
 		expect(existsSync(join(dbDir, "demo.sqlite"))).toBe(false);
@@ -139,22 +141,22 @@ describe("RepoManager", () => {
 		const container = environment();
 		const manager = container.get(RepoManager);
 		const userId = await signUpTestUser(container);
-		manager.createRepository("demo");
-		manager.grantAccess(userId, "demo");
+		await manager.createRepository("demo");
+		await manager.grantAccess(userId, "demo");
 
-		manager.deleteRepository("demo");
+		await manager.deleteRepository("demo");
 
 		expect(container.get(SystemDB).select().from(UserRepository).all()).toEqual([]);
 	});
 
-	test("rejects deleting a repository that does not exist", () => {
+	test("rejects deleting a repository that does not exist", async () => {
 		const manager = environment().get(RepoManager);
 
-		expect(() => manager.deleteRepository("nope")).toThrow(RepositoryNotFoundError);
+		await expect(manager.deleteRepository("nope")).rejects.toBeInstanceOf(RepositoryNotFoundError);
 	});
 
-	test("lists nothing before anything is created", () => {
-		expect(environment().get(RepoManager).repositories()).toEqual([]);
+	test("lists nothing before anything is created", async () => {
+		expect(await environment().get(RepoManager).repositories()).toEqual([]);
 	});
 });
 
@@ -163,21 +165,21 @@ describe("the quantity kinds of a repository", () => {
 	 * A repository whose database is migrated and whose vocabularies are loaded,
 	 * with a product to hang channels on.
 	 */
-	function repository() {
+	async function repository() {
 		const container = environment();
 		const manager = container.get(RepoManager);
-		manager.createRepository("demo");
+		await manager.createRepository("demo");
 
 		const db = container.get(DatabaseManager).repoDb("demo");
 		const metadata = { metadataCreatorId: "tester", metadataCreationTimestamp: new Date() };
 
-		const manufacturer = db
+		const manufacturer = await db
 			.insert(Manufacturer)
 			.values({ slug: "bronkhorst", name: "Bronkhorst", ...metadata })
 			.returning()
 			.get();
 
-		const product = db
+		const product = await db
 			.insert(Product)
 			.values({
 				manufacturerId: manufacturer.id,
@@ -190,8 +192,8 @@ describe("the quantity kinds of a repository", () => {
 			.returning()
 			.get();
 
-		const addChannel = (quantityKindId: string | null) =>
-			db
+		const addChannel = async (quantityKindId: string | null) =>
+			await db
 				.insert(Channel)
 				.values({
 					productId: product.id,
@@ -207,47 +209,42 @@ describe("the quantity kinds of a repository", () => {
 		return { manager, db, addChannel };
 	}
 
-	const kinds = (db: ReturnType<typeof repository>["db"]) =>
-		db
-			.select()
-			.from(QuantityKind)
-			.all()
-			.map((kind) => kind.id)
-			.sort();
+	const kinds = async (db: Awaited<ReturnType<typeof repository>>["db"]) =>
+		(await db.select().from(QuantityKind).all()).map((kind) => kind.id).sort();
 
-	test("a new repository holds every kind the application lists", () => {
-		const { db } = repository();
+	test("a new repository holds every kind the application lists", async () => {
+		const { db } = await repository();
 
-		expect(kinds(db)).toEqual(Object.keys(QUANTITY_KINDS).sort());
+		expect(await kinds(db)).toEqual(Object.keys(QUANTITY_KINDS).sort());
 	});
 
-	test("migrating again changes nothing", () => {
-		const { manager, db } = repository();
-		const before = kinds(db);
+	test("migrating again changes nothing", async () => {
+		const { manager, db } = await repository();
+		const before = await kinds(db);
 
-		manager.migrateAll();
+		await manager.migrateAll();
 
-		expect(kinds(db)).toEqual(before);
+		expect(await kinds(db)).toEqual(before);
 	});
 
-	test("a kind the application no longer lists is removed", () => {
-		const { manager, db } = repository();
+	test("a kind the application no longer lists is removed", async () => {
+		const { manager, db } = await repository();
 		db.insert(QuantityKind).values({ id: "LuminousFlux" }).run();
 
-		manager.migrateAll();
+		await manager.migrateAll();
 
-		expect(kinds(db)).not.toContain("LuminousFlux");
+		expect(await kinds(db)).not.toContain("LuminousFlux");
 	});
 
-	test("a channel cannot name a kind that is not there", () => {
-		const { addChannel } = repository();
+	test("a channel cannot name a kind that is not there", async () => {
+		const { addChannel } = await repository();
 
 		expect(() => addChannel("SpaceVelocity")).toThrow();
 	});
 
-	test("a kind cannot be removed while a channel names it", () => {
-		const { db, addChannel } = repository();
-		addChannel("VolumeFlowRate");
+	test("a kind cannot be removed while a channel names it", async () => {
+		const { db, addChannel } = await repository();
+		await addChannel("VolumeFlowRate");
 
 		/*
 			Dropping a kind from the list makes the sync issue this statement. The
@@ -259,17 +256,17 @@ describe("the quantity kinds of a repository", () => {
 		).toThrow();
 	});
 
-	test("a renamed kind carries its channels with it", () => {
-		const { db, addChannel } = repository();
-		const channel = addChannel("VolumeFlowRate");
+	test("a renamed kind carries its channels with it", async () => {
+		const { db, addChannel } = await repository();
+		const channel = await addChannel("VolumeFlowRate");
 
 		db.update(QuantityKind)
 			.set({ id: "VolumetricFlowRate" })
 			.where(eq(QuantityKind.id, "VolumeFlowRate"))
 			.run();
 
-		expect(db.select().from(Channel).where(eq(Channel.id, channel.id)).get()?.quantityKindId).toBe(
-			"VolumetricFlowRate",
-		);
+		expect(
+			(await db.select().from(Channel).where(eq(Channel.id, channel.id)).get())?.quantityKindId,
+		).toBe("VolumetricFlowRate");
 	});
 });

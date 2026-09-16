@@ -26,11 +26,11 @@ export class RepoManager {
 	/**
 	 * Returns every repository slug recorded in the system database.
 	 */
-	repositories(): string[] {
-		return this.system
+	async repositories(): Promise<string[]> {
+		return (await this.system
 			.select({ slug: Repository.slug })
 			.from(Repository)
-			.all()
+			.all())
 			.map((row) => row.slug);
 	}
 
@@ -40,18 +40,18 @@ export class RepoManager {
 	 * @throws InvalidDatabaseNameError if the slug is not a safe file name.
 	 * @throws RepositoryAlreadyExistsError if the slug is taken.
 	 */
-	createRepository(slug: string, name = slug): void {
-		if (this.find(slug)) {
+	async createRepository(slug: string, name = slug): Promise<void> {
+		if (await this.find(slug)) {
 			throw new RepositoryAlreadyExistsError(slug);
 		}
 
 		// Validate and migrate the repository database before writing its system
 		// record. An invalid slug is therefore rejected before the repository is
 		// recorded.
-		this.databases.migrateRepository(slug);
-		this.loadVocabularies(slug);
+		await this.databases.migrateRepository(slug);
+		await this.loadVocabularies(slug);
 
-		this.system.insert(Repository).values({ slug, name, createdAt: new Date() }).run();
+		await this.system.insert(Repository).values({ slug, name, createdAt: new Date() }).run();
 	}
 
 	/**
@@ -64,26 +64,26 @@ export class RepoManager {
 	 *
 	 * @throws RepositoryNotFoundError if no such repository exists.
 	 */
-	deleteRepository(slug: string): void {
-		if (!this.find(slug)) {
+	async deleteRepository(slug: string): Promise<void> {
+		if (!(await this.find(slug))) {
 			throw new RepositoryNotFoundError(slug);
 		}
 
-		this.system.delete(Repository).where(eq(Repository.slug, slug)).run();
+		await this.system.delete(Repository).where(eq(Repository.slug, slug)).run();
 
-		this.databases.dropRepository(slug);
+		await this.databases.dropRepository(slug);
 	}
 
 	/**
 	 * Applies pending migrations to the system database and all repository
 	 * databases. It then synchronizes the quantity-kind list in each repository.
 	 */
-	migrateAll(): void {
-		this.databases.migrateSystem();
+	async migrateAll(): Promise<void> {
+		await this.databases.migrateSystem();
 
-		for (const slug of this.repositories()) {
-			this.databases.migrateRepository(slug);
-			this.loadVocabularies(slug);
+		for (const slug of await this.repositories()) {
+			await this.databases.migrateRepository(slug);
+			await this.loadVocabularies(slug);
 		}
 	}
 
@@ -95,14 +95,14 @@ export class RepoManager {
 	 *
 	 * @throws RepositoryNotFoundError if no such repository exists.
 	 */
-	grantAccess(userId: string, slug: string): void {
-		const repository = this.find(slug);
+	async grantAccess(userId: string, slug: string): Promise<void> {
+		const repository = await this.find(slug);
 
 		if (!repository) {
 			throw new RepositoryNotFoundError(slug);
 		}
 
-		this.system
+		await this.system
 			.insert(UserRepository)
 			.values({ userId, repositoryId: repository.id })
 			.onConflictDoNothing()
@@ -125,20 +125,20 @@ export class RepoManager {
 	 * prevents removal while a channel refers to the kind. Such a kind can be
 	 * retired only after its channels refer to a different kind.
 	 */
-	private loadVocabularies(slug: string): void {
+	private async loadVocabularies(slug: string): Promise<void> {
 		const db = this.databases.repoDb(slug);
 		const quantityKinds = Object.keys(QUANTITY_KINDS);
 
-		db.delete(QuantityKind).where(notInArray(QuantityKind.id, quantityKinds)).run();
+		await db.delete(QuantityKind).where(notInArray(QuantityKind.id, quantityKinds)).run();
 
-		db.insert(QuantityKind)
+		await db.insert(QuantityKind)
 			.values(quantityKinds.map((id) => ({ id })))
 			.onConflictDoNothing()
 			.run();
 	}
 
-	private find(slug: string) {
-		return this.system.select().from(Repository).where(eq(Repository.slug, slug)).get();
+	private async find(slug: string) {
+		return await this.system.select().from(Repository).where(eq(Repository.slug, slug)).get();
 	}
 }
 

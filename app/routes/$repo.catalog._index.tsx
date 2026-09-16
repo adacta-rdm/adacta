@@ -21,10 +21,10 @@ export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/Se
  */
 const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
 
-export function loader({ context, request }: Route.LoaderArgs) {
+export async function loader({ context, request }: Route.LoaderArgs) {
 	const db = context.get(services).get(RepoDB);
 
-	let rows = db
+	let rows = await db
 		.select({
 			slug: Product.slug,
 			name: Product.name,
