@@ -23,6 +23,19 @@ interface PIDSymbolWithPortsProps {
 	selected: boolean;
 	orientation?: PIDOrientation;
 	ports: readonly PIDPort[];
+
+	/**
+	 * The smallest area, in pixels, that may be grabbed to move the symbol.
+	 *
+	 * A connection point covers about eight pixels and sits on the outline of
+	 * the symbol. A symbol drawn smaller than about thirty pixels is therefore
+	 * almost completely covered by its own connection points, and a drag that
+	 * starts on one of them draws a line instead of moving the symbol. Giving
+	 * such a symbol an invisible square around it leaves room to take hold of
+	 * it. A symbol already larger than the square keeps its own size.
+	 */
+	minimumGrabSize?: number;
+
 	children: ReactNode;
 }
 
@@ -34,6 +47,7 @@ export function ConnectablePIDSymbol({
 	selected,
 	orientation = 0,
 	ports,
+	minimumGrabSize,
 	children,
 }: PIDSymbolWithPortsProps) {
 	const connection = useConnection();
@@ -46,6 +60,17 @@ export function ConnectablePIDSymbol({
 				showSelection ? "pid-symbol-selected relative inline-flex" : "relative inline-flex"
 			}
 		>
+			{minimumGrabSize === undefined ? null : (
+				<span
+					aria-hidden="true"
+					className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+					style={{
+						width: `max(100%, ${minimumGrabSize}px)`,
+						height: `max(100%, ${minimumGrabSize}px)`,
+					}}
+				/>
+			)}
+
 			{children}
 
 			{rotatedPorts.map((port) => (

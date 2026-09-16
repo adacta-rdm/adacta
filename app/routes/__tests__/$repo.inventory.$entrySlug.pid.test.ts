@@ -35,6 +35,10 @@ const graph: PIDGraph = {
 			id: "feed-line",
 			kind: "pipe",
 			weight: 1,
+			material: "stainless steel 1.4571",
+			innerDiameter: { value: 4, unit: "mm" },
+			outerDiameter: { value: 6, unit: "mm" },
+			length: { value: 1.5, unit: "m" },
 			source: "feed-bottle",
 			target: "inlet-valve",
 			sourceHandle: "outlet",
@@ -98,7 +102,7 @@ describe("P&ID route", () => {
 
 		await save(scope, { nodes: [...graph.nodes, instrument], edges: graph.edges });
 
-		expect(load(scope).graph.nodes.at(-1)).toEqual(instrument);
+		expect((await load(scope)).graph.nodes.at(-1)).toEqual(instrument);
 	});
 
 	test("keeps a symbol that sits inside another", async () => {
@@ -115,7 +119,7 @@ describe("P&ID route", () => {
 
 		await save(scope, { nodes: [...graph.nodes, tap], edges: graph.edges });
 
-		expect(load(scope).graph.nodes.at(-1)).toEqual(tap);
+		expect((await load(scope)).graph.nodes.at(-1)).toEqual(tap);
 	});
 
 	test("rejects a symbol that sits inside one outside the diagram", async () => {
@@ -154,6 +158,53 @@ describe("P&ID route", () => {
 			"traced",
 			"caption",
 		]);
+	});
+
+	test("keeps what a pipe is made of and how large it is", async () => {
+		const scope = await setupRig();
+
+		await save(scope, graph);
+
+		expect((await load(scope)).graph.edges[0]).toMatchObject({
+			material: "stainless steel 1.4571",
+			innerDiameter: { value: 4, unit: "mm" },
+			outerDiameter: { value: 6, unit: "mm" },
+			length: { value: 1.5, unit: "m" },
+		});
+	});
+
+	test("keeps a pipe whose size nobody has measured", async () => {
+		const scope = await setupRig();
+		const plain = {
+			...graph.edges[0],
+			material: null,
+			innerDiameter: null,
+			outerDiameter: null,
+			length: null,
+		};
+
+		await save(scope, { nodes: graph.nodes, edges: [plain] });
+
+		expect((await load(scope)).graph.edges[0]).toMatchObject({
+			material: null,
+			innerDiameter: null,
+			outerDiameter: null,
+			length: null,
+		});
+	});
+
+	test("rejects a length given in an unknown unit", async () => {
+		const scope = await setupRig();
+		const invalidGraph = {
+			nodes: graph.nodes,
+			edges: [{ ...graph.edges[0], length: { value: 3, unit: "furlong" } }],
+		};
+
+		const response = await save(scope, invalidGraph);
+
+		if (response instanceof Response) throw new Error("Expected action data.");
+		expect(response.init?.status).toBe(400);
+		expect(response.data).toEqual({ error: "The diagram contains invalid data." });
 	});
 
 	test("rejects a connection of an unknown kind", async () => {

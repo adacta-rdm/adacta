@@ -46,6 +46,7 @@ export function ConnectableJunctionSymbol({
 			selected={selected}
 			orientation={orientation}
 			ports={ports}
+			minimumGrabSize={36}
 		>
 			<JunctionSymbol orientation={orientation} maximumSize={maximumSize} className={className} />
 		</ConnectablePIDSymbol>

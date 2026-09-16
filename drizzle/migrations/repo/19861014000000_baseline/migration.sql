@@ -61,6 +61,13 @@ CREATE TABLE `PIDEdge` (
 	`target_node_id` text NOT NULL,
 	`kind` text NOT NULL,
 	`weight` integer NOT NULL,
+	`material` text,
+	`inner_diameter_value` real,
+	`inner_diameter_unit` text,
+	`outer_diameter_value` real,
+	`outer_diameter_unit` text,
+	`length_value` real,
+	`length_unit` text,
 	`source_handle` text,
 	`target_handle` text,
 	`drawing_order` integer NOT NULL,
@@ -71,7 +78,10 @@ CREATE TABLE `PIDEdge` (
 	CONSTRAINT `fk_PIDEdge_source_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`source_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_PIDEdge_target_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`target_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_PIDEdge_kind_PIDEdgeKind_pid_edge_kind_id_fk` FOREIGN KEY (`kind`) REFERENCES `PIDEdgeKind`(`pid_edge_kind_id`) ON UPDATE CASCADE,
-	CONSTRAINT "PIDEdge_weight_check" CHECK("weight" between 1 and 3)
+	CONSTRAINT "PIDEdge_weight_check" CHECK("weight" between 1 and 3),
+	CONSTRAINT "PIDEdge_inner_diameter_check" CHECK(("inner_diameter_value" is null) = ("inner_diameter_unit" is null)),
+	CONSTRAINT "PIDEdge_outer_diameter_check" CHECK(("outer_diameter_value" is null) = ("outer_diameter_unit" is null)),
+	CONSTRAINT "PIDEdge_length_check" CHECK(("length_value" is null) = ("length_unit" is null))
 );
 --> statement-breakpoint
 CREATE TABLE `PIDEdgeKind` (

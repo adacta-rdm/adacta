@@ -43,7 +43,14 @@ import {
 	type PIDSymbolKind,
 } from "~/app/components/PIDSymbol.tsx";
 import { getPIDSymbolComponents } from "~/app/components/pid-symbols/PIDSymbolRegistry.ts";
-import { PID_EDGE_KINDS, type PIDEdgeKind, type PIDGraph } from "~/app/lib/PID.ts";
+import {
+	PID_EDGE_KINDS,
+	PID_LENGTH_UNITS,
+	type PIDEdgeKind,
+	type PIDGraph,
+	type PIDLength,
+	type PIDLengthUnit,
+} from "~/app/lib/PID.ts";
 import { Switch } from "~/catalyst-ui/switch.tsx";
 import { parallelLines } from "~/lib/parallel-lines/ParallelLines.ts";
 
@@ -64,7 +71,14 @@ type PIDNodeData = {
 	orientation: PIDOrientation;
 };
 type PIDNode = Node<PIDNodeData, "pid-symbol">;
-type PIDEdgeData = { kind: PIDEdgeKind; weight: number };
+type PIDEdgeData = {
+	kind: PIDEdgeKind;
+	weight: number;
+	material: string | null;
+	innerDiameter: PIDLength | null;
+	outerDiameter: PIDLength | null;
+	length: PIDLength | null;
+};
 type PIDEdge = Edge<PIDEdgeData, "pid-connection">;
 
 type PaletteDrag = {
@@ -121,6 +135,21 @@ function edgeKind(edge: { data?: PIDEdgeData }): PIDEdgeKind {
 }
 
 /**
+ * Returns everything recorded about a connection, filling in what an edge
+ * created outside this editor would leave empty.
+ */
+function edgeData(edge: { data?: PIDEdgeData }): PIDEdgeData {
+	return {
+		kind: edgeKind(edge),
+		weight: edge.data?.weight ?? 1,
+		material: edge.data?.material ?? null,
+		innerDiameter: edge.data?.innerDiameter ?? null,
+		outerDiameter: edge.data?.outerDiameter ?? null,
+		length: edge.data?.length ?? null,
+	};
+}
+
+/**
  * Returns the arrow drawn at the end of a connection, or undefined when the
  * connection carries none.
  *
@@ -170,6 +199,15 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 	// per line.
 	const [nextEdgeKind, setNextEdgeKind] = useState<PIDEdgeKind>("pipe");
 	const [showGrid, setShowGrid] = useState(false);
+
+	// Whether a symbol is being dragged. The cursor is held at the closed hand
+	// while this is true. See the "pid-editor--dragging" rule in app.css.
+	const [dragging, setDragging] = useState(false);
+
+	// The symbol that would hold the one being dragged, if it were released
+	// now. It is outlined while the drag lasts, so the reader sees what is
+	// about to happen before it happens.
+	const [holderCandidate, setHolderCandidate] = useState<string>();
 	const [activeTool, setActiveTool] = useState<EditorTool>("select");
 	const [paletteFilter, setPaletteFilter] = useState("");
 	const [openPaletteGroups, setOpenPaletteGroups] = useState<Set<string>>(
@@ -183,7 +221,7 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 	const nextNodeNumber = useRef(value.nodes.length + 1);
 	const paletteDrag = useRef<PaletteDrag | undefined>(undefined);
 	const canvas = useRef<HTMLDivElement>(null);
-	const { screenToFlowPosition, zoomTo } = useReactFlow<PIDNode, PIDEdge>();
+	const { screenToFlowPosition, zoomTo, getInternalNode } = useReactFlow<PIDNode, PIDEdge>();
 	const updateNodeInternals = useUpdateNodeInternals();
 
 	useEffect(() => {
@@ -216,6 +254,11 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 			),
 		}))
 		.filter((group) => group.symbols.length > 0);
+	// The symbol a dragged symbol would be put inside is outlined. React Flow
+	// puts the class on the element it draws for the symbol.
+	const displayedNodes = nodes.map((node) =>
+		node.id === holderCandidate ? { ...node, className: "pid-symbol-holder" } : node,
+	);
 	// PIDConnection draws the line and reads the kind from the edge. Only the
 	// arrow is prepared here. Its color follows the selection.
 	const displayedEdges = edges.map((edge) => {
@@ -256,7 +299,14 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 					...connection,
 					id: randomId("pid-edge"),
 					type: "pid-connection",
-					data: { kind: nextEdgeKind, weight: 1 },
+					data: {
+						kind: nextEdgeKind,
+						weight: 1,
+						material: null,
+						innerDiameter: null,
+						outerDiameter: null,
+						length: null,
+					},
 					selected: true,
 					markerEnd: {
 						type: MarkerType.ArrowClosed,
@@ -365,24 +415,160 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 		requestAnimationFrame(() => updateNodeInternals(selectedNode.id));
 	}
 
-	function setSelectedEdgeKind(kind: PIDEdgeKind) {
-		if (!selectedEdge) return;
+	/**
+	 * Returns where a symbol sits on the canvas, measured from its top left
+	 * corner. Returns undefined before React Flow has measured the symbol.
+	 */
+	function symbolBox(id: string) {
+		const internal = getInternalNode(id);
+		if (!internal) return undefined;
 
-		setEdges((current) =>
-			current.map((edge) =>
-				edge.id === selectedEdge.id
-					? { ...edge, data: { kind, weight: edge.data?.weight ?? 1 } }
-					: edge,
+		const { x, y } = internal.internals.positionAbsolute;
+
+		return {
+			x,
+			y,
+			width: internal.measured.width ?? 0,
+			height: internal.measured.height ?? 0,
+		};
+	}
+
+	/**
+	 * Returns the symbol that would hold the given one, or undefined when none
+	 * would.
+	 *
+	 * A symbol is held by the one its centre lies within. Only a larger symbol
+	 * qualifies, because two symbols of the same size overlap rather than
+	 * contain one another. The smallest qualifying symbol wins, so releasing a
+	 * thermocouple over a vessel that already holds a catalyst bed attaches it
+	 * to the bed.
+	 */
+	function holderUnder(dragged: PIDNode): string | undefined {
+		const box = symbolBox(dragged.id);
+		if (!box) return undefined;
+
+		const centerX = box.x + box.width / 2;
+		const centerY = box.y + box.height / 2;
+		const area = box.width * box.height;
+
+		// A symbol cannot be held by itself or by anything it holds.
+		const excluded = withContents(nodes, [dragged.id]);
+
+		let best: { id: string; area: number } | undefined;
+
+		for (const node of nodes) {
+			if (excluded.has(node.id)) continue;
+
+			// A note is a piece of text rather than a body, so nothing sits
+			// inside it.
+			if (node.data.kind === "note") continue;
+
+			const other = symbolBox(node.id);
+			if (!other) continue;
+
+			if (centerX < other.x || centerX > other.x + other.width) continue;
+			if (centerY < other.y || centerY > other.y + other.height) continue;
+
+			const otherArea = other.width * other.height;
+			if (otherArea <= area) continue;
+
+			if (best === undefined || otherArea < best.area) best = { id: node.id, area: otherArea };
+		}
+
+		return best?.id;
+	}
+
+	/**
+	 * Puts a symbol inside another, so that it travels with it.
+	 *
+	 * The position of a held symbol is measured from the corner of the symbol
+	 * that holds it. The symbol therefore keeps the place on the canvas where
+	 * it was released.
+	 */
+	function holdNode(id: string, holderId: string) {
+		const box = symbolBox(id);
+		const holder = symbolBox(holderId);
+		if (!box || !holder) return;
+
+		const position = {
+			x: box.x + box.width / 2 - holder.x,
+			y: box.y + box.height / 2 - holder.y,
+		};
+
+		setNodes((current) =>
+			holdersFirst(
+				current.map((node) =>
+					node.id === id
+						? {
+								...node,
+								parentId: holderId,
+								extent: "parent" as const,
+								position,
+								data: { ...node.data, contained: true },
+							}
+						: node,
+				),
 			),
 		);
 	}
 
-	function setSelectedEdgeWeight(weight: number) {
+	/**
+	 * Takes the selected symbol out of the one holding it. The symbol stays
+	 * where it is on the canvas and stops travelling with its former holder.
+	 */
+	function releaseSelectedNode() {
+		if (!selectedNode) return;
+
+		const box = symbolBox(selectedNode.id);
+		if (!box) return;
+
+		const position = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+
+		setNodes((current) =>
+			holdersFirst(
+				current.map((node) =>
+					node.id === selectedNode.id
+						? {
+								...node,
+								parentId: undefined,
+								extent: undefined,
+								position,
+								data: { ...node.data, contained: false },
+							}
+						: node,
+				),
+			),
+		);
+	}
+
+	function dragNode(node: PIDNode, dragged: PIDNode[]) {
+		// A group of symbols moves as it is. Only a single symbol is put inside
+		// another, because a group has no one position to judge.
+		setHolderCandidate(dragged.length === 1 ? holderUnder(node) : undefined);
+	}
+
+	function dropNode(node: PIDNode, dragged: PIDNode[]) {
+		setDragging(false);
+		setHolderCandidate(undefined);
+
+		if (dragged.length !== 1) return;
+
+		const holderId = holderUnder(node);
+		if (holderId === undefined || holderId === node.parentId) return;
+
+		holdNode(node.id, holderId);
+	}
+
+	/**
+	 * Changes some of what is recorded about the selected connection and leaves
+	 * the rest as it is.
+	 */
+	function editSelectedEdge(change: Partial<PIDEdgeData>) {
 		if (!selectedEdge) return;
 
 		setEdges((current) =>
 			current.map((edge) =>
-				edge.id === selectedEdge.id ? { ...edge, data: { kind: edgeKind(edge), weight } } : edge,
+				edge.id === selectedEdge.id ? { ...edge, data: { ...edgeData(edge), ...change } } : edge,
 			),
 		);
 	}
@@ -424,7 +610,9 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 
 	return (
 		<div
-			className="pid-editor mt-6 overflow-hidden rounded-xl border border-border bg-surface"
+			className={`pid-editor mt-6 overflow-hidden rounded-xl border border-border bg-surface${
+				dragging ? " pid-editor--dragging" : ""
+			}`}
 			onPointerMove={movePaletteDrag}
 			onPointerUp={finishPaletteDrag}
 			onPointerCancel={cancelPaletteDrag}
@@ -469,13 +657,18 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 								? "pid-editor-canvas--pan"
 								: undefined
 					}
-					nodes={nodes}
+					nodes={displayedNodes}
 					edges={displayedEdges}
 					nodeTypes={nodeTypes}
 					edgeTypes={edgeTypes}
 					onNodesChange={readOnly ? undefined : onNodesChange}
 					onEdgesChange={readOnly ? undefined : onEdgesChange}
 					onConnect={readOnly ? undefined : connect}
+					onNodeDragStart={() => setDragging(true)}
+					onNodeDrag={(_event, node, dragged) => dragNode(node, dragged)}
+					onNodeDragStop={(_event, node, dragged) => dropNode(node, dragged)}
+					onSelectionDragStart={() => setDragging(true)}
+					onSelectionDragStop={() => setDragging(false)}
 					colorMode="system"
 					connectionLineType={ConnectionLineType.Step}
 					defaultViewport={{ x: 0, y: 0, zoom: 1 }}
@@ -553,8 +746,8 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 				</ReactFlow>
 
 				{!readOnly && selectedItemCount > 0 ? (
-					<aside className="absolute bottom-3 left-14 z-10 w-52 rounded-lg border border-border bg-surface/95 p-4 shadow-lg backdrop-blur-sm">
-						<h3 className="text-sm font-semibold text-foreground">
+					<aside className="absolute bottom-3 left-14 z-10 flex max-h-[calc(100%-1.5rem)] w-56 flex-col rounded-lg border border-border bg-surface/95 shadow-lg backdrop-blur-sm">
+						<h3 className="px-4 pt-4 text-sm font-semibold text-foreground">
 							{selectedNode
 								? "Selected symbol"
 								: selectedEdge
@@ -562,118 +755,195 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 									: `${selectedItemCount} items selected`}
 						</h3>
 
-						{selectedNode ? (
-							<div className="mt-4 space-y-5">
-								<label className="block">
-									<span className="text-xs font-medium text-foreground-muted">
-										{selectedNode.data.kind === "instrument" ? "Function" : "Label"}
-									</span>
-									<input
-										value={selectedNode.data.label}
-										onChange={(event) => renameSelectedNode(event.target.value)}
-										className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground focus:border-focus focus:outline-none"
-									/>
-								</label>
+						{/*
+							Only the fields scroll. The delete button therefore stays in
+							view however many fields the selection has.
+						*/}
+						<div className="min-h-0 flex-1 overflow-y-auto px-4">
+							{selectedNode ? (
+								<div className="mt-4 space-y-5">
+									<label className="block">
+										<span className="text-xs font-medium text-foreground-muted">
+											{selectedNode.data.kind === "instrument" ? "Function" : "Label"}
+										</span>
+										<input
+											value={selectedNode.data.label}
+											onChange={(event) => renameSelectedNode(event.target.value)}
+											className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground focus:border-focus focus:outline-none"
+										/>
+									</label>
 
-								{selectedNode.data.kind === "instrument" ? (
-									<>
-										<div>
-											<span className="text-xs font-medium text-foreground-muted">Common</span>
-											<div className="mt-1 flex flex-wrap gap-1">
-												{pidInstrumentPresets.map((preset) => (
-													<button
-														key={preset.code}
-														type="button"
-														title={preset.label}
-														aria-label={preset.label}
-														aria-pressed={selectedNode.data.label === preset.code}
-														className="rounded border border-border px-1.5 py-0.5 text-[0.6875rem] text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
-														onClick={() => renameSelectedNode(preset.code)}
-													>
-														{preset.code}
-													</button>
-												))}
+									{selectedNode.data.kind === "instrument" ? (
+										<>
+											<div>
+												<span className="text-xs font-medium text-foreground-muted">Common</span>
+												<div className="mt-1 flex flex-wrap gap-1">
+													{pidInstrumentPresets.map((preset) => (
+														<button
+															key={preset.code}
+															type="button"
+															title={preset.label}
+															aria-label={preset.label}
+															aria-pressed={selectedNode.data.label === preset.code}
+															className="rounded border border-border px-1.5 py-0.5 text-[0.6875rem] text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
+															onClick={() => renameSelectedNode(preset.code)}
+														>
+															{preset.code}
+														</button>
+													))}
+												</div>
 											</div>
+
+											<label className="block">
+												<span className="text-xs font-medium text-foreground-muted">Tag</span>
+												<input
+													value={selectedNode.data.secondaryLabel ?? ""}
+													onChange={(event) => setSelectedNodeTag(event.target.value)}
+													className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground focus:border-focus focus:outline-none"
+												/>
+											</label>
+										</>
+									) : null}
+
+									{selectedNode.parentId === undefined ? null : (
+										<div>
+											<span className="text-xs font-medium text-foreground-muted">Inside</span>
+											<p className="mt-1 truncate text-sm text-foreground">
+												{nodeLabel(nodes, selectedNode.parentId)}
+											</p>
+											<button
+												type="button"
+												className="mt-1 rounded-md border border-border px-2 py-1 text-xs text-foreground hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-focus"
+												onClick={releaseSelectedNode}
+											>
+												Take out
+											</button>
+										</div>
+									)}
+
+									<fieldset>
+										<legend className="text-xs font-medium text-foreground-muted">
+											Orientation
+										</legend>
+										<div className="mt-1 grid grid-cols-2 gap-1">
+											{([0, 1, 2, 3] as const).map((orientation) => (
+												<button
+													key={orientation}
+													type="button"
+													aria-pressed={selectedNode.data.orientation === orientation}
+													className="rounded-md border border-border px-2 py-1.5 text-xs text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
+													onClick={() => orientSelectedNode(orientation)}
+												>
+													{orientation * 90}°
+												</button>
+											))}
+										</div>
+									</fieldset>
+								</div>
+							) : selectedEdge ? (
+								<div className="mt-4 space-y-5">
+									{/* A fieldset does not shrink below its content unless it is told to. */}
+									<fieldset className="min-w-0">
+										<legend className="text-xs font-semibold text-foreground">
+											The connection
+										</legend>
+										<p className="mt-0.5 text-[0.6875rem] text-foreground-muted">
+											What is actually installed between the two symbols.
+										</p>
+
+										<div className="mt-2 grid grid-cols-2 gap-1">
+											{edgeKinds.map((kind) => (
+												<button
+													key={kind}
+													type="button"
+													aria-pressed={edgeKind(selectedEdge) === kind}
+													title={PID_EDGE_KINDS[kind].description}
+													className="rounded-md border border-border px-2 py-1.5 text-xs text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
+													onClick={() => editSelectedEdge({ kind })}
+												>
+													{PID_EDGE_KINDS[kind].name}
+												</button>
+											))}
 										</div>
 
-										<label className="block">
-											<span className="text-xs font-medium text-foreground-muted">Tag</span>
-											<input
-												value={selectedNode.data.secondaryLabel ?? ""}
-												onChange={(event) => setSelectedNodeTag(event.target.value)}
-												className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground focus:border-focus focus:outline-none"
-											/>
-										</label>
-									</>
-								) : null}
+										{/* A caption carries no fluid, so it is not a pipe and has no bore. */}
+										{edgeKind(selectedEdge) === "caption" ? null : (
+											<div className="mt-3 space-y-2">
+												<label className="block">
+													<span className="text-xs font-medium text-foreground-muted">
+														Material
+													</span>
+													<input
+														value={selectedEdge.data?.material ?? ""}
+														placeholder="Stainless steel 1.4571"
+														onChange={(event) =>
+															editSelectedEdge({ material: event.target.value || null })
+														}
+														className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs text-foreground placeholder:text-foreground-muted focus:border-focus focus:outline-none"
+													/>
+												</label>
 
-								<fieldset>
-									<legend className="text-xs font-medium text-foreground-muted">Orientation</legend>
-									<div className="mt-1 grid grid-cols-2 gap-1">
-										{([0, 1, 2, 3] as const).map((orientation) => (
-											<button
-												key={orientation}
-												type="button"
-												aria-pressed={selectedNode.data.orientation === orientation}
-												className="rounded-md border border-border px-2 py-1.5 text-xs text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
-												onClick={() => orientSelectedNode(orientation)}
-											>
-												{orientation * 90}°
-											</button>
-										))}
-									</div>
-								</fieldset>
-							</div>
-						) : selectedEdge ? (
-							<fieldset className="mt-4">
-								<legend className="text-xs font-medium text-foreground-muted">Kind</legend>
-								<div className="mt-1 grid gap-1">
-									{edgeKinds.map((kind) => (
-										<button
-											key={kind}
-											type="button"
-											aria-pressed={edgeKind(selectedEdge) === kind}
-											title={PID_EDGE_KINDS[kind].description}
-											className="rounded-md border border-border px-2 py-1.5 text-xs text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
-											onClick={() => setSelectedEdgeKind(kind)}
-										>
-											{PID_EDGE_KINDS[kind].name}
-										</button>
-									))}
-								</div>
+												<LengthField
+													label="Inner diameter"
+													value={selectedEdge.data?.innerDiameter ?? null}
+													onChange={(innerDiameter) => editSelectedEdge({ innerDiameter })}
+												/>
+												<LengthField
+													label="Outer diameter"
+													value={selectedEdge.data?.outerDiameter ?? null}
+													onChange={(outerDiameter) => editSelectedEdge({ outerDiameter })}
+												/>
+												<LengthField
+													label="Length"
+													value={selectedEdge.data?.length ?? null}
+													onChange={(length) => editSelectedEdge({ length })}
+												/>
+											</div>
+										)}
+									</fieldset>
 
-								<legend className="mt-4 text-xs font-medium text-foreground-muted">Weight</legend>
-								<div className="mt-1 grid grid-cols-3 gap-1">
-									{[1, 2, 3].map((weight) => (
-										<button
-											key={weight}
-											type="button"
-											aria-pressed={(selectedEdge.data?.weight ?? 1) === weight}
-											title={
-												weight === 1
-													? "A branch or a sampling line"
-													: weight === 3
-														? "A main line"
-														: "Between a branch and a main line"
-											}
-											className="rounded-md border border-border px-2 py-1.5 text-xs text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
-											onClick={() => setSelectedEdgeWeight(weight)}
-										>
-											{weight}
-										</button>
-									))}
+									<fieldset className="min-w-0">
+										<legend className="text-xs font-semibold text-foreground">Drawing</legend>
+										<p className="mt-0.5 text-[0.6875rem] text-foreground-muted">
+											How the line appears. A heavy line may still be a narrow pipe.
+										</p>
+
+										<span className="mt-2 block text-xs font-medium text-foreground-muted">
+											Weight
+										</span>
+										<div className="mt-1 grid grid-cols-3 gap-1">
+											{[1, 2, 3].map((weight) => (
+												<button
+													key={weight}
+													type="button"
+													aria-pressed={(selectedEdge.data?.weight ?? 1) === weight}
+													title={
+														weight === 1
+															? "A branch or a sampling line"
+															: weight === 3
+																? "A main line"
+																: "Between a branch and a main line"
+													}
+													className="rounded-md border border-border px-2 py-1.5 text-xs text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
+													onClick={() => editSelectedEdge({ weight })}
+												>
+													{weight}
+												</button>
+											))}
+										</div>
+									</fieldset>
 								</div>
-							</fieldset>
-						) : (
-							<div className="mt-2 space-y-1 text-sm text-foreground-muted">
-								<p>{selectionSummary}</p>
-								<p>Drag a selected symbol to move the group.</p>
-							</div>
-						)}
+							) : (
+								<div className="mt-2 space-y-1 text-sm text-foreground-muted">
+									<p>{selectionSummary}</p>
+									<p>Drag a selected symbol to move the group.</p>
+								</div>
+							)}
+						</div>
 
 						<button
 							type="button"
-							className="mt-4 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold text-foreground-muted hover:bg-danger-surface hover:text-danger-surface-foreground focus-visible:outline-2 focus-visible:outline-focus"
+							className="m-2 inline-flex items-center gap-1.5 self-start rounded-md px-2 py-1 text-sm font-semibold text-foreground-muted hover:bg-danger-surface hover:text-danger-surface-foreground focus-visible:outline-2 focus-visible:outline-focus"
 							onClick={deleteSelectedItems}
 						>
 							<TrashIcon className="size-4" />
@@ -880,7 +1150,14 @@ function editorEdges(value: PIDGraph): PIDEdge[] {
 	return value.edges.map((edge) => ({
 		id: edge.id,
 		type: "pid-connection",
-		data: { kind: edge.kind, weight: edge.weight },
+		data: {
+			kind: edge.kind,
+			weight: edge.weight,
+			material: edge.material,
+			innerDiameter: edge.innerDiameter,
+			outerDiameter: edge.outerDiameter,
+			length: edge.length,
+		},
 		source: edge.source,
 		target: edge.target,
 		sourceHandle: edge.sourceHandle,
@@ -903,12 +1180,87 @@ function pidGraph(nodes: PIDNode[], edges: PIDEdge[]): PIDGraph {
 			id: edge.id,
 			kind: edgeKind(edge),
 			weight: edge.data?.weight ?? 1,
+			material: edge.data?.material ?? null,
+			innerDiameter: edge.data?.innerDiameter ?? null,
+			outerDiameter: edge.data?.outerDiameter ?? null,
+			length: edge.data?.length ?? null,
 			source: edge.source,
 			target: edge.target,
 			sourceHandle: edge.sourceHandle ?? null,
 			targetHandle: edge.targetHandle ?? null,
 		})),
 	};
+}
+
+/**
+ * Edits one measured length, as a number beside the unit it is given in.
+ *
+ * A length is recorded only once both parts are present. Clearing the number
+ * therefore removes the measurement. Choosing a unit before typing a number
+ * records nothing yet, and the chosen unit is used as soon as a number is
+ * typed.
+ */
+function LengthField({
+	label,
+	value,
+	onChange,
+}: {
+	label: string;
+	value: PIDLength | null;
+	onChange: (value: PIDLength | null) => void;
+}) {
+	const [unit, setUnit] = useState<PIDLengthUnit>(value?.unit ?? "mm");
+	const chosenUnit = value?.unit ?? unit;
+
+	return (
+		<label className="block">
+			<span className="text-xs font-medium text-foreground-muted">{label}</span>
+
+			<span className="mt-1 flex gap-1">
+				<input
+					type="number"
+					min={0}
+					step="any"
+					value={value?.value ?? ""}
+					onChange={(event) => {
+						const typed = event.target.value;
+
+						onChange(typed === "" ? null : { value: Number(typed), unit: chosenUnit });
+					}}
+					className="min-w-0 flex-1 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs text-foreground focus:border-focus focus:outline-none"
+				/>
+
+				<select
+					aria-label={`Unit of ${label.toLocaleLowerCase()}`}
+					value={chosenUnit}
+					onChange={(event) => {
+						const nextUnit = event.target.value as PIDLengthUnit;
+
+						setUnit(nextUnit);
+						if (value) onChange({ ...value, unit: nextUnit });
+					}}
+					className="rounded-md border border-border bg-surface px-1.5 py-1.5 text-xs text-foreground focus:border-focus focus:outline-none"
+				>
+					{PID_LENGTH_UNITS.map((option) => (
+						<option key={option} value={option}>
+							{option}
+						</option>
+					))}
+				</select>
+			</span>
+		</label>
+	);
+}
+
+/**
+ * Returns the label of one symbol, or the name of its kind where it has no
+ * label. For example, an unnamed junction reads as "Junction".
+ */
+function nodeLabel(nodes: PIDNode[], id: string): string {
+	const node = nodes.find((candidate) => candidate.id === id);
+	if (!node) return "a symbol";
+
+	return node.data.label || getPIDSymbol(node.data.kind).label;
 }
 
 function selectionPart(count: number, singular: string) {
@@ -1142,8 +1494,8 @@ function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {
 			<div
 				className={
 					selected
-						? "pid-symbol-selected max-w-48 rounded bg-surface/90 px-1 text-xs text-foreground"
-						: "max-w-48 rounded bg-surface/90 px-1 text-xs text-foreground"
+						? "pid-symbol-selected max-w-48 rounded bg-surface/90 px-1 text-xs leading-normal text-foreground"
+						: "max-w-48 rounded bg-surface/90 px-1 text-xs leading-normal text-foreground"
 				}
 			>
 				{data.label || "Note"}

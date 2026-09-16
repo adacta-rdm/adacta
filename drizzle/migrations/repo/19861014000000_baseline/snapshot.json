@@ -516,6 +516,76 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
+			"name": "material",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "real",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inner_diameter_value",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inner_diameter_unit",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "real",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "outer_diameter_value",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "outer_diameter_unit",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "real",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "length_value",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "length_unit",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
 			"name": "source_handle",
 			"entityType": "columns",
 			"table": "PIDEdge"
@@ -1731,6 +1801,24 @@
 		{
 			"value": "\"weight\" between 1 and 3",
 			"name": "PIDEdge_weight_check",
+			"entityType": "checks",
+			"table": "PIDEdge"
+		},
+		{
+			"value": "(\"inner_diameter_value\" is null) = (\"inner_diameter_unit\" is null)",
+			"name": "PIDEdge_inner_diameter_check",
+			"entityType": "checks",
+			"table": "PIDEdge"
+		},
+		{
+			"value": "(\"outer_diameter_value\" is null) = (\"outer_diameter_unit\" is null)",
+			"name": "PIDEdge_outer_diameter_check",
+			"entityType": "checks",
+			"table": "PIDEdge"
+		},
+		{
+			"value": "(\"length_value\" is null) = (\"length_unit\" is null)",
+			"name": "PIDEdge_length_check",
 			"entityType": "checks",
 			"table": "PIDEdge"
 		},

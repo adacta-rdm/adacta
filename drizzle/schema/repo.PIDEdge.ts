@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
-import { check, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { check, index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-import type { PIDEdgeKind as PIDEdgeKindName } from "~/app/lib/PID.ts";
+import type { PIDEdgeKind as PIDEdgeKindName, PIDLengthUnit } from "~/app/lib/PID.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
 import { PIDEdgeKind } from "~/drizzle/schema/repo.PIDEdgeKind.ts";
 import { PIDNode } from "~/drizzle/schema/repo.PIDNode.ts";
@@ -50,6 +50,27 @@ export const PIDEdge = sqliteTable(
 		 */
 		weight: integer("weight").notNull(),
 
+		/**
+		 * What the pipe is made of, as the laboratory writes it. For example,
+		 * "stainless steel 1.4571".
+		 */
+		material: text("material"),
+
+		/**
+		 * The bore of the pipe, the outside of the pipe, and the length of the
+		 * run.
+		 *
+		 * Each measurement keeps the unit it was written in, because a tube
+		 * ordered as 1/4 inch is recorded as 1/4 inch. A value is stored only
+		 * together with its unit, which the check below enforces.
+		 */
+		innerDiameterValue: real("inner_diameter_value"),
+		innerDiameterUnit: text("inner_diameter_unit").$type<PIDLengthUnit>(),
+		outerDiameterValue: real("outer_diameter_value"),
+		outerDiameterUnit: text("outer_diameter_unit").$type<PIDLengthUnit>(),
+		lengthValue: real("length_value"),
+		lengthUnit: text("length_unit").$type<PIDLengthUnit>(),
+
 		sourceHandle: text("source_handle"),
 		targetHandle: text("target_handle"),
 		drawingOrder: integer("drawing_order").notNull(),
@@ -59,5 +80,21 @@ export const PIDEdge = sqliteTable(
 	(table) => [
 		index("PIDEdge_inventory_entry_idx").on(table.inventoryEntryId),
 		check("PIDEdge_weight_check", sql`${table.weight} between 1 and 3`),
+
+		// A measurement without its unit cannot be read, and a unit without a
+		// measurement says nothing. Each pair is therefore written together or
+		// left empty together.
+		check(
+			"PIDEdge_inner_diameter_check",
+			sql`(${table.innerDiameterValue} is null) = (${table.innerDiameterUnit} is null)`,
+		),
+		check(
+			"PIDEdge_outer_diameter_check",
+			sql`(${table.outerDiameterValue} is null) = (${table.outerDiameterUnit} is null)`,
+		),
+		check(
+			"PIDEdge_length_check",
+			sql`(${table.lengthValue} is null) = (${table.lengthUnit} is null)`,
+		),
 	],
 );

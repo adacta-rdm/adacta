@@ -48,11 +48,48 @@ export interface PIDGraphEdge {
 	 * weight says nothing about the bore of the pipe.
 	 */
 	weight: number;
+
+	/**
+	 * What the pipe is made of, as the laboratory writes it. For example,
+	 * "stainless steel 1.4571" or "PTFE". Empty where nobody has recorded it.
+	 */
+	material: string | null;
+
+	/**
+	 * The bore of the pipe, the outside of the pipe, and how long the run is.
+	 *
+	 * A pressure drop is calculated from the bore and the length, so these are
+	 * measurements of the equipment. The weight above is only how heavy the
+	 * line is drawn.
+	 */
+	innerDiameter: PIDLength | null;
+	outerDiameter: PIDLength | null;
+	length: PIDLength | null;
+
 	source: string;
 	target: string;
 	sourceHandle: string | null;
 	targetHandle: string | null;
 }
+
+/**
+ * A length as it was written down, together with its unit.
+ *
+ * The unit is kept rather than converted, because a tube ordered as 1/4 inch
+ * is recorded as 1/4 inch. A conversion belongs to whatever calculates with
+ * the value.
+ */
+export interface PIDLength {
+	value: number;
+	unit: PIDLengthUnit;
+}
+
+export type PIDLengthUnit = "mm" | "cm" | "m" | "in" | "ft";
+
+/**
+ * The units a length may be given in, in the order the editor offers them.
+ */
+export const PID_LENGTH_UNITS = ["mm", "cm", "m", "in", "ft"] as const satisfies PIDLengthUnit[];
 
 /**
  * The kind of a connection determines how its line is drawn.

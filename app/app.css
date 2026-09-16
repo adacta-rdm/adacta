@@ -94,15 +94,49 @@ body {
 	cursor: pointer;
 }
 
+/*
+	A symbol being dragged keeps the closed hand until the pointer is released.
+	The pointer passes over connections and other symbols on the way, and each
+	of those names its own cursor. Without this rule the cursor changes in the
+	middle of the drag, which reads as though the drag had ended.
+*/
+.pid-editor--dragging,
+.pid-editor--dragging * {
+	cursor: grabbing !important;
+}
+
 /* React Flow measures hidden ports to position saved connections. */
 .pid-editor-canvas--read-only .react-flow__handle {
 	opacity: 0 !important;
 	pointer-events: none !important;
 }
 
+/*
+	A symbol sits on a line of text, and a line of text is never shorter than
+	the font it is set in. A symbol drawn smaller than that, for example the
+	ten pixel dot of a junction, would sit in the upper part of a box about
+	twenty-four pixels tall. Its connection points are placed from the middle
+	of that box, so the pipes would meet several pixels below the dot. Removing
+	the line height makes the box the size of the symbol. A note sets its own
+	line height, because a note is text.
+*/
+.pid-editor .react-flow__node {
+	line-height: 0;
+}
+
 /* Each selected node owns its outline, independent of how it was selected. */
 .pid-editor .react-flow__nodesselection {
 	display: none;
+}
+
+/*
+	The symbol a dragged symbol would be put inside, while the drag lasts. The
+	outline is dashed, because nothing has happened yet.
+*/
+.pid-editor .react-flow__node.pid-symbol-holder {
+	border-radius: 2px;
+	outline: 1px dashed var(--adacta-color-accent);
+	outline-offset: 5px;
 }
 
 .pid-symbol-selected {

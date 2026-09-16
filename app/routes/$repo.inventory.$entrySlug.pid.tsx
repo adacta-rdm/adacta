@@ -13,7 +13,7 @@ import {
 import { isPIDGraph } from "@/tsrc/app/lib/PID";
 import { services } from "~/app/.server/context.ts";
 import { PIDEditor } from "~/app/components/PIDEditor.tsx";
-import type { PIDGraph } from "~/app/lib/PID.ts";
+import type { PIDGraph, PIDLength, PIDLengthUnit } from "~/app/lib/PID.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { Button } from "~/catalyst-ui/button.tsx";
@@ -52,20 +52,27 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		.orderBy(asc(PIDNode.drawingOrder))
 		.all();
 
-	const edges = await db
-		.select({
-			id: PIDEdge.id,
-			kind: PIDEdge.kind,
-			weight: PIDEdge.weight,
-			source: PIDEdge.sourceNodeId,
-			target: PIDEdge.targetNodeId,
-			sourceHandle: PIDEdge.sourceHandle,
-			targetHandle: PIDEdge.targetHandle,
-		})
+	// A length is stored as a value and a unit in two columns. The graph carries
+	// it as one object, so the rows are reshaped below.
+	const edgeRows = await db
+		.select()
 		.from(PIDEdge)
 		.where(eq(PIDEdge.inventoryEntryId, entry.id))
 		.orderBy(asc(PIDEdge.drawingOrder))
 		.all();
+	const edges = edgeRows.map((edge) => ({
+		id: edge.id,
+		kind: edge.kind,
+		weight: edge.weight,
+		material: edge.material,
+		innerDiameter: pidLength(edge.innerDiameterValue, edge.innerDiameterUnit),
+		outerDiameter: pidLength(edge.outerDiameterValue, edge.outerDiameterUnit),
+		length: pidLength(edge.lengthValue, edge.lengthUnit),
+		source: edge.sourceNodeId,
+		target: edge.targetNodeId,
+		sourceHandle: edge.sourceHandle,
+		targetHandle: edge.targetHandle,
+	}));
 
 	return {
 		graph: {
@@ -130,6 +137,13 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 						inventoryEntryId: entry.id,
 						kind: edge.kind,
 						weight: edge.weight,
+						material: edge.material,
+						innerDiameterValue: edge.innerDiameter?.value ?? null,
+						innerDiameterUnit: edge.innerDiameter?.unit ?? null,
+						outerDiameterValue: edge.outerDiameter?.value ?? null,
+						outerDiameterUnit: edge.outerDiameter?.unit ?? null,
+						lengthValue: edge.length?.value ?? null,
+						lengthUnit: edge.length?.unit ?? null,
 						sourceNodeId: edge.source,
 						targetNodeId: edge.target,
 						sourceHandle: edge.sourceHandle,
@@ -224,6 +238,18 @@ async function getRig(db: RepoDB, slug: string) {
 			),
 		)
 		.get();
+}
+
+/**
+ * Returns a length, or null where none was recorded.
+ *
+ * The value and the unit are kept in two columns. A table check makes sure
+ * that either both are written or neither is.
+ */
+function pidLength(value: number | null, unit: PIDLengthUnit | null): PIDLength | null {
+	if (value === null || unit === null) return null;
+
+	return { value, unit };
 }
 
 function parseGraph(value: FormDataEntryValue | null): PIDGraph | undefined {
