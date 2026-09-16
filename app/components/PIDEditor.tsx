@@ -1,4 +1,6 @@
 import {
+	ArrowsPointingInIcon,
+	ArrowsPointingOutIcon,
 	ChevronDownIcon,
 	CursorArrowRaysIcon,
 	HandRaisedIcon,
@@ -31,7 +33,13 @@ import {
 	type NodeOrigin,
 	type NodeProps,
 } from "@xyflow/react";
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+	useEffect,
+	useRef,
+	useState,
+	type PointerEvent as ReactPointerEvent,
+	type ReactNode,
+} from "react";
 
 import {
 	getPIDSymbol,
@@ -176,10 +184,10 @@ const nodeOrigin: NodeOrigin = [0.5, 0.5];
  * The reported graph omits selection and other temporary canvas state. For
  * example, selecting a symbol does not become part of a saved diagram.
  */
-export function PIDEditor({ value, readOnly = false, onChange }: PIDEditorProps) {
+export function PIDEditor({ value, readOnly = false, onChange, actions }: PIDEditorProps) {
 	return (
 		<ReactFlowProvider>
-			<PIDEditorContents value={value} readOnly={readOnly} onChange={onChange} />
+			<PIDEditorContents value={value} readOnly={readOnly} onChange={onChange} actions={actions} />
 		</ReactFlowProvider>
 	);
 }
@@ -188,9 +196,23 @@ export interface PIDEditorProps {
 	value: PIDGraph;
 	readOnly?: boolean;
 	onChange?: (value: PIDGraph) => void;
+
+	/**
+	 * Controls shown at the right of the tool bar, such as saving the diagram.
+	 *
+	 * They belong to the editor rather than to the page around it, because the
+	 * canvas can be made to fill the window. A control left on the page would
+	 * be out of reach for as long as it did.
+	 */
+	actions?: ReactNode;
 }
 
-function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { readOnly: boolean }) {
+function PIDEditorContents({
+	value,
+	readOnly,
+	onChange,
+	actions,
+}: PIDEditorProps & { readOnly: boolean }) {
 	const [nodes, setNodes, onNodesChange] = useNodesState<PIDNode>(editorNodes(value));
 	const [edges, setEdges, onEdgesChange] = useEdgesState<PIDEdge>(editorEdges(value));
 
@@ -199,6 +221,10 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 	// per line.
 	const [nextEdgeKind, setNextEdgeKind] = useState<PIDEdgeKind>("pipe");
 	const [showGrid, setShowGrid] = useState(false);
+
+	// Whether the diagram covers the window. A P&ID is read as a whole, and a
+	// large one does not fit beside the rest of the page.
+	const [expanded, setExpanded] = useState(false);
 
 	// Whether a symbol is being dragged. The cursor is held at the closed hand
 	// while this is true. See the "pid-editor--dragging" rule in app.css.
@@ -233,6 +259,26 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 	useEffect(() => {
 		onChange?.(pidGraph(nodes, edges));
 	}, [edges, nodes, onChange]);
+
+	// While the diagram covers the window, Escape returns it to the page and
+	// the page behind it is held still.
+	useEffect(() => {
+		if (!expanded) return;
+
+		const previousOverflow = document.body.style.overflow;
+		document.body.style.overflow = "hidden";
+
+		function onKeyDown(event: KeyboardEvent) {
+			if (event.key === "Escape") setExpanded(false);
+		}
+
+		document.addEventListener("keydown", onKeyDown);
+
+		return () => {
+			document.body.style.overflow = previousOverflow;
+			document.removeEventListener("keydown", onKeyDown);
+		};
+	}, [expanded]);
 
 	const selectedNodes = nodes.filter((node) => node.selected);
 	const selectedEdges = edges.filter((edge) => edge.selected);
@@ -610,9 +656,13 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 
 	return (
 		<div
-			className={`pid-editor mt-6 overflow-hidden rounded-xl border border-border bg-surface${
-				dragging ? " pid-editor--dragging" : ""
-			}`}
+			className={[
+				"pid-editor overflow-hidden border border-border bg-surface",
+				expanded ? "fixed inset-0 z-50 flex flex-col" : "mt-6 rounded-xl",
+				dragging ? "pid-editor--dragging" : "",
+			]
+				.filter(Boolean)
+				.join(" ")}
 			onPointerMove={movePaletteDrag}
 			onPointerUp={finishPaletteDrag}
 			onPointerCancel={cancelPaletteDrag}
@@ -631,7 +681,7 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 				</div>
 			) : null}
 
-			<div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface-muted px-4 py-3">
+			<div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-surface-muted px-4 py-3">
 				<p className="text-sm text-foreground-muted">
 					{readOnly
 						? "Drag or scroll to explore the diagram."
@@ -645,10 +695,41 @@ function PIDEditorContents({ value, readOnly, onChange }: PIDEditorProps & { rea
 						</span>
 						<Switch aria-labelledby="pid-grid-label" checked={showGrid} onChange={setShowGrid} />
 					</div>
+
+					<button
+						type="button"
+						aria-pressed={expanded}
+						title={expanded ? "Return the diagram to the page" : "Fill the window"}
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2 py-1.5 text-xs font-semibold text-foreground-muted hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
+						onClick={() => setExpanded((current) => !current)}
+					>
+						{expanded ? (
+							<ArrowsPointingInIcon className="size-4" />
+						) : (
+							<ArrowsPointingOutIcon className="size-4" />
+						)}
+						{expanded ? "Exit" : "Expand"}
+					</button>
+
+					{actions ? (
+						<div className="flex items-center gap-2 border-l border-border pl-4">{actions}</div>
+					) : null}
 				</div>
 			</div>
 
-			<div ref={canvas} className="relative h-[calc(100vh-18rem)] min-h-[42rem] bg-canvas">
+			{/*
+				In the page the canvas takes what the window leaves below the heading,
+				and never less than a useful drawing area. Filling the window, it takes
+				whatever is left beside the tool bar.
+			*/}
+			<div
+				ref={canvas}
+				className={
+					expanded
+						? "relative min-h-0 flex-1 bg-canvas"
+						: "relative h-[calc(100svh-14rem)] min-h-[42rem] bg-canvas"
+				}
+			>
 				<ReactFlow<PIDNode, PIDEdge>
 					className={
 						readOnly

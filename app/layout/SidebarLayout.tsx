@@ -248,7 +248,7 @@ export function SidebarLayout({
 			{/* Content */}
 			<main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-2 lg:pl-(--sidebar-width)">
 				<div className="grow p-6 lg:rounded-lg lg:bg-surface lg:p-10 lg:shadow-xs lg:ring-1 lg:ring-border">
-					<div className="mx-auto max-w-6xl">{children}</div>
+					<div className="app-reading-column mx-auto max-w-6xl">{children}</div>
 				</div>
 			</main>
 		</div>

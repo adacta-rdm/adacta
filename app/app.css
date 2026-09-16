@@ -72,6 +72,21 @@ body {
 	@apply bg-canvas text-foreground;
 }
 
+/*
+	Most pages are set in a column about as wide as comfortable reading allows.
+	A P&ID grows past that within a few pieces of equipment, so a page holding
+	one is given the full width of the card instead. The rule reaches the
+	column from the diagram inside it, because the layout is rendered far above
+	the route that draws the diagram.
+*/
+.app-reading-column:has(.pid-editor) {
+	/*
+		Wide, with an upper bound so the page does not stretch across a very
+		large monitor. The diagram fills the window instead when it is expanded.
+	*/
+	max-width: 120rem;
+}
+
 .pid-editor {
 	--pid-detail-line-width: 1px;
 	--pid-line-width: 1.5px;

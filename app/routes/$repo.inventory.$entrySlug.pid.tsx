@@ -180,35 +180,38 @@ export default function RepoInventoryEntrySlugPID({
 		return <Text>A P&amp;ID can be drawn for a rig.</Text>;
 	}
 
+	/*
+		Saving belongs to the tool bar of the editor. The canvas can be made to
+		fill the window, and a button left on the page would then be out of
+		reach.
+	*/
+	const actions = editing ? (
+		<Form method="post" preventScrollReset className="flex items-center gap-2">
+			<input type="hidden" name="graph" value={serializedGraph} />
+			<Button
+				type="button"
+				outline
+				onClick={() => void navigate(".", { preventScrollReset: true })}
+			>
+				Cancel
+			</Button>
+			<Button type="submit" disabled={saving}>
+				{saving ? "Saving…" : "Save diagram"}
+			</Button>
+		</Form>
+	) : (
+		<Button href="?edit">Edit diagram</Button>
+	);
+
 	return (
 		<section>
-			<div className="flex flex-wrap items-start justify-between gap-4">
-				<div>
-					<Subheading>Piping and instrumentation diagram</Subheading>
-					<Text className="mt-2">
-						{editing
-							? "Arrange equipment and connect it to describe how this rig is configured."
-							: "The diagram describes how this rig is configured."}
-					</Text>
-				</div>
-
-				{editing ? (
-					<Form method="post" preventScrollReset className="flex items-center gap-2">
-						<input type="hidden" name="graph" value={serializedGraph} />
-						<Button
-							type="button"
-							outline
-							onClick={() => void navigate(".", { preventScrollReset: true })}
-						>
-							Cancel
-						</Button>
-						<Button type="submit" disabled={saving}>
-							{saving ? "Saving…" : "Save diagram"}
-						</Button>
-					</Form>
-				) : (
-					<Button href="?edit">Edit diagram</Button>
-				)}
+			<div>
+				<Subheading>Piping and instrumentation diagram</Subheading>
+				<Text className="mt-2">
+					{editing
+						? "Arrange equipment and connect it to describe how this rig is configured."
+						: "The diagram describes how this rig is configured."}
+				</Text>
 			</div>
 
 			{actionData?.error ? (
@@ -221,6 +224,7 @@ export default function RepoInventoryEntrySlugPID({
 				value={loaderData.graph}
 				readOnly={!editing}
 				onChange={editing ? recordGraph : undefined}
+				actions={actions}
 			/>
 		</section>
 	);
