@@ -24,10 +24,12 @@ const ports = [
  * every connection draws behind itself.
  */
 export function JunctionSymbol(props: PIDSymbolProps) {
+	// The box is the dot. Anything around it would be blank space between the
+	// pipes and the mark they meet at, because a connection ends on the box.
 	return (
-		<SymbolSvg {...props} viewBox={[0, 0, 10, 10]} bodySize={10}>
+		<SymbolSvg {...props} viewBox={[0, 0, 5, 5]} bodySize={5}>
 			<g className="pid-symbol-drawing">
-				<circle cx="5" cy="5" r="2.5" fill="currentColor" stroke="none" />
+				<circle cx="2.5" cy="2.5" r="2.5" fill="currentColor" stroke="none" />
 			</g>
 		</SymbolSvg>
 	);

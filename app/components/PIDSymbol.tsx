@@ -157,9 +157,10 @@ const pidSymbolMaximumSizes = {
 
 	/**
 	 * A mark rather than a piece of equipment, for example the dot where two
-	 * pipes meet.
+	 * pipes meet. The box holds the mark and nothing else, so a pipe drawn to
+	 * the box reaches the mark.
 	 */
-	point: 10,
+	point: 5,
 } as const;
 
 export function getPIDSymbol(kind: PIDSymbolKind): PIDSymbolDefinition {

@@ -139,8 +139,28 @@ const handlePositions: Record<PIDPortSide, Position> = {
 	left: Position.Left,
 };
 
+/**
+ * Places one connection point on the symbol.
+ *
+ * React Flow ends a connection at the edge of the point that faces away from
+ * the symbol, rather than at its middle. A point centred on the outline would
+ * therefore hold the line half its own width clear of the drawing. Each point
+ * is placed just inside the outline instead, so its outward edge falls on the
+ * outline and the line meets the symbol.
+ */
 function handleOffset(port: PIDPort) {
-	return port.side === "top" || port.side === "bottom"
-		? { left: `${port.x * 100}%` }
-		: { top: `${port.y * 100}%` };
+	// React Flow centres a point on the outline with a transform. Removing the
+	// half step on the axis that leaves the symbol moves the point inside,
+	// which is what puts its outward edge on the outline. The half step across
+	// that axis stays, because it is what centres the point on its side.
+	switch (port.side) {
+		case "top":
+			return { top: 0, left: `${port.x * 100}%`, transform: "translate(-50%, 0)" };
+		case "bottom":
+			return { bottom: 0, left: `${port.x * 100}%`, transform: "translate(-50%, 0)" };
+		case "left":
+			return { left: 0, top: `${port.y * 100}%`, transform: "translate(0, -50%)" };
+		case "right":
+			return { right: 0, top: `${port.y * 100}%`, transform: "translate(0, -50%)" };
+	}
 }
