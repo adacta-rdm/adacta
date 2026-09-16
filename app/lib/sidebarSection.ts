@@ -7,7 +7,7 @@
  * section.
  */
 
-export const SIDEBAR_SECTIONS = ["catalog", "inventory", "samples", "files"] as const;
+export const SIDEBAR_SECTIONS = ["catalog", "inventory", "samples", "files", "users"] as const;
 
 export type SidebarSection = (typeof SIDEBAR_SECTIONS)[number];
 

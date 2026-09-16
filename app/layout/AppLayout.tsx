@@ -16,6 +16,7 @@ import {
 	BookOpenIcon,
 	BuildingOffice2Icon,
 	PlusIcon,
+	UserGroupIcon,
 } from "@heroicons/react/20/solid";
 import type { ReactNode } from "react";
 import { useLocation, useParams } from "react-router";
@@ -223,6 +224,10 @@ export function AppLayout({
 							<SidebarItem href={`/${repo}/files/import`} current={section === "files"}>
 								<ArrowUpTrayIcon />
 								<SidebarLabel>Import files</SidebarLabel>
+							</SidebarItem>
+							<SidebarItem href={`/${repo}/users`} current={section === "users"}>
+								<UserGroupIcon />
+								<SidebarLabel>Users</SidebarLabel>
 							</SidebarItem>
 						</SidebarSection>
 					</SidebarHeader>

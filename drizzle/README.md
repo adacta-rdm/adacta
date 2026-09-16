@@ -7,8 +7,8 @@ baselines in `migrations/`, and the drizzle-kit configuration.
 
 A table belongs to one of two databases. The file name says which:
 
-- `schema/system.*.ts` — the system database: users, sessions, and the list of
-  repositories.
+- `schema/system.*.ts` — the system database: users, sessions, repositories,
+  and repository membership.
 - `schema/repo.*.ts` — one repository's research data. Every repository has its
   own SQLite file with these tables.
 

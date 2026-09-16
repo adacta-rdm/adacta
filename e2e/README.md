@@ -16,6 +16,7 @@ The current journeys are:
 - `journeys/login.e2e.ts`: credential sign-in and rejected credentials.
 - `journeys/navigation.e2e.ts`: the repository entry point and main sections.
 - `journeys/samples.e2e.ts`: finding, opening, and creating sample batches.
+- `journeys/users.e2e.ts`: creating a record-only user.
 
 Do not cover unfinished screens, visual design, responsive layouts, incidental
 wording, list order or counts, or individual validation messages here.

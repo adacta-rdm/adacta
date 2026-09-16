@@ -58,7 +58,7 @@ export async function addSubmittedSample(
 	if (!name) errors.name = "A sample name is required.";
 
 	if (!context.preparerIds.includes(preparedById)) {
-		errors.preparedById = "The selected preparer cannot access this repository.";
+		errors.preparedById = "The selected preparer is not a user of this repository.";
 	}
 
 	if (Object.keys(errors).length > 0) return errors;

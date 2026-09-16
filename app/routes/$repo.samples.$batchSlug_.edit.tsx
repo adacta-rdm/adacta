@@ -58,7 +58,10 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	const { fields } = read;
 
 	if (!(await access.users()).some((user) => user.id === fields.preparedById)) {
-		return data({ error: "The selected preparer cannot access this repository." }, { status: 400 });
+		return data(
+			{ error: "The selected preparer is not a user of this repository." },
+			{ status: 400 },
+		);
 	}
 
 	db.update(SampleBatch).set(fields).where(eq(SampleBatch.id, batch.id)).run();

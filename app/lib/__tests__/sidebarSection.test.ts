@@ -9,6 +9,7 @@ describe("sidebarSection", () => {
 		expect(sidebarSection("/demo/samples/new", "demo")).toBe("samples");
 		expect(sidebarSection("/demo/catalog/netzsch", "demo")).toBe("catalog");
 		expect(sidebarSection("/demo/files/import", "demo")).toBe("files");
+		expect(sidebarSection("/demo/users", "demo")).toBe("users");
 	});
 
 	test("an unknown segment or the repository root has no section", () => {

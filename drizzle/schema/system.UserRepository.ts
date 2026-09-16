@@ -4,7 +4,10 @@ import { User } from "~/drizzle/schema/system.BetterAuth.ts";
 import { Repository } from "~/drizzle/schema/system.Repository.ts";
 
 /**
- * Which repositories a user may open.
+ * Each row associates one user with one repository.
+ *
+ * A user with a sign-in account may open these repositories. A user without an
+ * account can still be named in their records.
  */
 export const UserRepository = sqliteTable(
 	"UserRepository",

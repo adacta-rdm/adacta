@@ -11,7 +11,7 @@ import { Service } from "~/lib/service-container/ServiceContainer.ts";
 /**
  * Manages repository records.
  *
- * The system database stores which repositories exist and who may open them.
+ * The system database stores which repositories exist and their users.
  * DatabaseManager creates and migrates each repository database. RepoManager
  * calls it when a repository is created. A repository is usable only when its
  * database exists.

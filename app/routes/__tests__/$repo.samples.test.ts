@@ -12,6 +12,7 @@ import {
 	loader as editBatchLoader,
 } from "~/app/routes/$repo.samples.$batchSlug_.edit.tsx";
 import { action as newBatchAction } from "~/app/routes/$repo.samples.new.tsx";
+import { RepoAccess } from "~/app/services/RepoAccess.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { RepoManager } from "~/app/services/RepoManager.ts";
 import { Security } from "~/app/services/Security.ts";
@@ -143,6 +144,18 @@ describe("$repo.samples.new action", () => {
 		expect(batch.metadataCreatorId).toBe(scope.get(Security).userId);
 	});
 
+	test("accepts a record-only user as the preparer", async () => {
+		const scope = await environment();
+		const preparer = scope.get(RepoAccess).createRecordOnlyUser({
+			name: "Ada Example",
+			email: "ada@example.com",
+		});
+
+		const slug = await createBatch(scope, { preparedById: preparer.id });
+
+		expect((await loadBatch(scope, slug)).batch.preparedById).toBe(preparer.id);
+	});
+
 	test("rejects a batch without a name", async () => {
 		const scope = await environment();
 		const [args] = createMiddlewareArgs(scope, {
@@ -208,7 +221,7 @@ describe("$repo.samples.$batchSlug action", () => {
 		expect(response.data).toEqual({
 			errors: {
 				name: "A sample name is required.",
-				preparedById: "The selected preparer cannot access this repository.",
+				preparedById: "The selected preparer is not a user of this repository.",
 			},
 		});
 		expect(scope.get(RepoDB).select().from(Sample).all()).toEqual([]);

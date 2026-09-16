@@ -14,7 +14,7 @@ const user = seedUser("dev");
  */
 async function warmRoute(page: Page, path: string, heading: string): Promise<void> {
 	await page.goto(path, { waitUntil: "domcontentloaded", timeout: 90_000 });
-	await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+	await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
 }
 
 /**
@@ -58,6 +58,7 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
 			["/demo/samples/new", "Create sample batch"],
 			["/demo/catalog", "Catalog"],
 			["/demo/files/import", "Import files"],
+			["/demo/users", "Users"],
 		] as const) {
 			await warmRoute(page, path, heading);
 		}

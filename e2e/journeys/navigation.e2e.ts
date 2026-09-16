@@ -38,9 +38,10 @@ test("the main repository sections open", async ({ page, repo }) => {
 		["/:repo/inventory", "Inventory"],
 		["/:repo/samples", "Samples"],
 		["/:repo/files/import", "Import files"],
+		["/:repo/users", "Users"],
 	] as const) {
 		await page.goto(href(route, { repo }));
 		await expectURL(page, route, { repo });
-		await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+		await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
 	}
 });

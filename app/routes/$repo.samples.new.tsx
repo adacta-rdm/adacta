@@ -42,7 +42,10 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	const [db, access, security] = container.get(RepoDB, RepoAccess, Security);
 
 	if (!(await access.users()).some((user) => user.id === fields.preparedById)) {
-		return data({ error: "The selected preparer cannot access this repository." }, { status: 400 });
+		return data(
+			{ error: "The selected preparer is not a user of this repository." },
+			{ status: 400 },
+		);
 	}
 
 	// The slug is taken from the name. A batch already using that slug pushes the

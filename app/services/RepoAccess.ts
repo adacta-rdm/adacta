@@ -1,8 +1,8 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, count, eq, sql } from "drizzle-orm";
 
 import { Security } from "~/app/services/Security.ts";
 import { SystemDB } from "~/app/services/SystemDB.ts";
-import { User } from "~/drizzle/schema/system.BetterAuth.ts";
+import { Account, User } from "~/drizzle/schema/system.BetterAuth.ts";
 import { Repository } from "~/drizzle/schema/system.Repository.ts";
 import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
 import { Service } from "~/lib/service-container/ServiceContainer.ts";
@@ -19,6 +19,23 @@ export class RepositoryAccessDeniedError extends Error {
 		this.name = "RepositoryAccessDeniedError";
 	}
 }
+
+/**
+ * An email address already identifies a user in the system database.
+ */
+export class UserEmailAlreadyExistsError extends Error {
+	constructor(public readonly email: string) {
+		super(`A user with the email address "${email}" already exists.`);
+		this.name = "UserEmailAlreadyExistsError";
+	}
+}
+
+export type RepositoryUser = {
+	id: string;
+	name: string;
+	email: string;
+	canSignIn: boolean;
+};
 
 /**
  * The repository a scope works on. This is the only place that binds one.
@@ -85,20 +102,85 @@ export class RepoAccess {
 	}
 
 	/**
-	 * The users who may open the bound repository, ordered by name.
+	 * Returns the users associated with the bound repository, ordered by name.
 	 *
 	 * For example, a form that credits one of them as the author of a record
 	 * offers this list. Two users with the same name are ordered by id. The
 	 * order is therefore stable.
 	 */
 	async users(): Promise<{ id: string; name: string }[]> {
-		return this.db
-			.select({ id: User.id, name: User.name })
+		return (await this.repositoryUsers()).map(({ id, name }) => ({ id, name }));
+	}
+
+	/**
+	 * Returns the users shown in the repository directory.
+	 *
+	 * A user can be credited in repository records without holding a sign-in
+	 * account. The account state is therefore returned separately from the user
+	 * identity.
+	 */
+	async repositoryUsers(): Promise<RepositoryUser[]> {
+		const rows = await this.db
+			.select({
+				id: User.id,
+				name: User.name,
+				email: User.email,
+				accountCount: count(Account.id),
+			})
 			.from(User)
 			.innerJoin(UserRepository, eq(UserRepository.userId, User.id))
 			.innerJoin(Repository, eq(Repository.id, UserRepository.repositoryId))
+			.leftJoin(Account, eq(Account.userId, User.id))
 			.where(eq(Repository.slug, this.repository))
+			.groupBy(User.id, User.name, User.email)
 			.orderBy(asc(User.name), asc(User.id));
+
+		return rows.map(({ accountCount, ...user }) => ({
+			...user,
+			canSignIn: accountCount > 0,
+		}));
+	}
+
+	/**
+	 * Create a user who can be credited in the bound repository.
+	 *
+	 * No account is created. The user therefore cannot sign in. A later
+	 * invitation can add an account to the same identity.
+	 *
+	 * @throws UserEmailAlreadyExistsError if the email address is already used.
+	 */
+	createRecordOnlyUser({ name, email }: { name: string; email: string }): RepositoryUser {
+		return this.db.transaction((transaction) => {
+			const existing = transaction
+				.select({ id: User.id })
+				.from(User)
+				.where(sql`lower(${User.email}) = lower(${email})`)
+				.get();
+
+			if (existing) throw new UserEmailAlreadyExistsError(email);
+
+			const repository = transaction
+				.select({ id: Repository.id })
+				.from(Repository)
+				.where(eq(Repository.slug, this.repository))
+				.get();
+
+			if (!repository) {
+				throw new Error(`Repository "${this.repository}" does not exist.`);
+			}
+
+			const id = crypto.randomUUID();
+			const now = new Date();
+
+			transaction
+				.insert(User)
+				.values({ id, name, email, emailVerified: false, createdAt: now, updatedAt: now })
+				.run();
+
+			transaction.insert(UserRepository).values({ userId: id, repositoryId: repository.id }).run();
+
+			return { id, name, email, canSignIn: false };
+		});
 	}
 
 	/**

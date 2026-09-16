@@ -31,7 +31,7 @@ database, holds the users, the sessions, and the list of repositories.
 
 ```
 .adacta/db/
-  _system.sqlite     users, sessions, repositories, and who may open them
+  _system.sqlite     users, sessions, repositories, and repository membership
   repo1.sqlite        one repository's data
   repo2.sqlite
 ```

@@ -68,6 +68,7 @@ describe("AppLayout", () => {
 			"/demo/inventory",
 			"/demo/samples",
 			"/demo/files/import",
+			"/demo/users",
 		]) {
 			const markup = render(path);
 
@@ -75,6 +76,7 @@ describe("AppLayout", () => {
 			expect(markup).toContain('href="/demo/inventory"');
 			expect(markup).toContain('href="/demo/samples"');
 			expect(markup).toContain('href="/demo/files/import"');
+			expect(markup).toContain('href="/demo/users"');
 		}
 	});
 

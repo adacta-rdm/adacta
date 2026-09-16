@@ -1,9 +1,16 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 
-import { RepoAccess, RepositoryAccessDeniedError } from "~/app/services/RepoAccess.ts";
+import {
+	RepoAccess,
+	RepositoryAccessDeniedError,
+	UserEmailAlreadyExistsError,
+} from "~/app/services/RepoAccess.ts";
 import { RepoManager } from "~/app/services/RepoManager.ts";
 import { Security } from "~/app/services/Security.ts";
+import { SystemDB } from "~/app/services/SystemDB.ts";
 import { setupTestUserEnvironment, signUpTestUser } from "~/app/testUtils/testUtils.ts";
+import { Account, User } from "~/drizzle/schema/system.BetterAuth.ts";
+import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 /**
@@ -128,7 +135,7 @@ describe("RepoAccess", () => {
 	});
 
 	describe("users", () => {
-		test("lists the users who may open the bound repository", async () => {
+		test("lists the users associated with the bound repository", async () => {
 			const access = scope().get(RepoAccess);
 			access.selectRepository("demo");
 
@@ -154,6 +161,79 @@ describe("RepoAccess", () => {
 			expect(error).toBeInstanceOf(Error);
 			if (!(error instanceof Error)) return;
 			expect(error.message).toMatch(/No repository is available/);
+		});
+	});
+
+	describe("repository users", () => {
+		test("reports whether each user has a sign-in account", async () => {
+			const environment = await setupTestUserEnvironment();
+			const currentUserId = environment.get(Security).userId;
+			const manager = environment.get(RepoManager);
+
+			manager.createRepository("records");
+			manager.grantAccess(currentUserId, "records");
+
+			const requestScope = environment.clone();
+			const access = requestScope.get(RepoAccess);
+			access.selectRepository("records");
+			const recordOnly = access.createRecordOnlyUser({
+				name: "Ada Example",
+				email: "ada@example.com",
+			});
+
+			expect(await access.repositoryUsers()).toEqual([
+				{ ...recordOnly, canSignIn: false },
+				{
+					id: currentUserId,
+					name: "Test User",
+					email: "test.user@example.com",
+					canSignIn: true,
+				},
+			]);
+		});
+
+		test("creates one identity and repository membership without an account", async () => {
+			const environment = await setupTestUserEnvironment();
+			const currentUserId = environment.get(Security).userId;
+			const manager = environment.get(RepoManager);
+
+			manager.createRepository("records");
+			manager.grantAccess(currentUserId, "records");
+
+			const requestScope = environment.clone();
+			const access = requestScope.get(RepoAccess);
+			access.selectRepository("records");
+			const created = access.createRecordOnlyUser({
+				name: "Ada Example",
+				email: "ada@example.com",
+			});
+
+			const system = requestScope.get(SystemDB);
+			expect(system.select().from(User).all()).toHaveLength(2);
+			expect(system.select().from(UserRepository).all()).toHaveLength(2);
+			expect(system.select().from(Account).all()).toHaveLength(1);
+			expect((await access.users()).map((user) => user.id)).toContain(created.id);
+		});
+
+		test("rejects an email address already used by a registered user", async () => {
+			const environment = await setupTestUserEnvironment();
+			const currentUserId = environment.get(Security).userId;
+			const manager = environment.get(RepoManager);
+
+			manager.createRepository("records");
+			manager.grantAccess(currentUserId, "records");
+
+			const requestScope = environment.clone();
+			const access = requestScope.get(RepoAccess);
+			access.selectRepository("records");
+
+			expect(() =>
+				access.createRecordOnlyUser({
+					name: "Another Test User",
+					email: "test.user@example.com",
+				}),
+			).toThrow(UserEmailAlreadyExistsError);
+			expect(requestScope.get(SystemDB).select().from(User).all()).toHaveLength(1);
 		});
 	});
 });
