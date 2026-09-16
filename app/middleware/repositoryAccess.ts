@@ -10,7 +10,7 @@ import { RepoAccess, RepositoryAccessDeniedError } from "~/app/services/RepoAcce
  *
  * A missing parameter is a 404; a missing grant is a 403.
  */
-export const repositoryAccess = (({ params, context }) => {
+export const repositoryAccess = (async ({ params, context }) => {
 	const { repo } = params;
 
 	if (!repo) {
@@ -18,7 +18,7 @@ export const repositoryAccess = (({ params, context }) => {
 	}
 
 	try {
-		context.get(services).get(RepoAccess).selectRepository(repo);
+		await context.get(services).get(RepoAccess).selectRepository(repo);
 	} catch (error) {
 		if (!(error instanceof RepositoryAccessDeniedError)) throw error;
 

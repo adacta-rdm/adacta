@@ -23,10 +23,10 @@ export function meta({ loaderData }: Route.MetaArgs) {
 	return [{ title: loaderData ? `${loaderData.manufacturer.name} — Adacta` : "Catalog — Adacta" }];
 }
 
-export function loader({ context, params }: Route.LoaderArgs) {
+export async function loader({ context, params }: Route.LoaderArgs) {
 	const db = context.get(services).get(RepoDB);
 
-	const manufacturer = db
+	const manufacturer = await db
 		.select()
 		.from(Manufacturer)
 		.where(
@@ -38,7 +38,7 @@ export function loader({ context, params }: Route.LoaderArgs) {
 		throw new Response(`Manufacturer "${params.manufacturerSlug}" not found.`, { status: 404 });
 	}
 
-	const totals = db
+	const totals = await db
 		.select({ products: count(Product.id), series: countDistinct(Product.seriesId) })
 		.from(Product)
 		.where(eq(Product.manufacturerId, manufacturer.id))

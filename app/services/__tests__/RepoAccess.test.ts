@@ -31,21 +31,21 @@ beforeAll(async () => {
 	const manager = app.get(RepoManager);
 
 	for (const slug of ["demo", "pilot", "ungranted", "foreign"]) {
-		manager.createRepository(slug);
+		await manager.createRepository(slug);
 	}
 
-	manager.grantAccess(userId, "demo");
-	manager.grantAccess(userId, "pilot");
+	await manager.grantAccess(userId, "demo");
+	await manager.grantAccess(userId, "pilot");
 
 	// A second user of "demo". The user list then has more than one entry to order.
 	secondUserId = await signUpTestUser(app, {
 		name: "Zoe Researcher",
 		email: "zoe.researcher@example.com",
 	});
-	manager.grantAccess(secondUserId, "demo");
+	await manager.grantAccess(secondUserId, "demo");
 
 	const otherUser = await signUpTestUser(app, { email: "other@example.com" });
-	manager.grantAccess(otherUser, "foreign");
+	await manager.grantAccess(otherUser, "foreign");
 });
 
 /**
@@ -58,51 +58,57 @@ function scope(): ServiceContainer {
 }
 
 describe("RepoAccess", () => {
-	test("binds a repository the user may access", () => {
+	test("binds a repository the user may access", async () => {
 		const access = scope().get(RepoAccess);
-		access.selectRepository("demo");
+		await access.selectRepository("demo");
 
 		expect(access.repository).toBe("demo");
 	});
 
-	test("rejects a repository the user holds no grant for", () => {
+	test("rejects a repository the user holds no grant for", async () => {
 		const access = scope().get(RepoAccess);
 
-		expect(() => access.selectRepository("ungranted")).toThrow(RepositoryAccessDeniedError);
-	});
-
-	test("leaves the scope unbound when access is denied", () => {
-		const access = scope().get(RepoAccess);
-
-		expect(() => access.selectRepository("ungranted")).toThrow();
-		expect(() => access.repository).toThrow(/No repository is available/);
-	});
-
-	test("rejects a repository that does not exist", () => {
-		const access = scope().get(RepoAccess);
-
-		expect(() => access.selectRepository("nonsense")).toThrow(RepositoryAccessDeniedError);
-	});
-
-	test("a grant for one repository does not open another", () => {
-		const access = scope().get(RepoAccess);
-		access.selectRepository("demo");
-
-		expect(() => scope().get(RepoAccess).selectRepository("ungranted")).toThrow(
+		await expect(access.selectRepository("ungranted")).rejects.toBeInstanceOf(
 			RepositoryAccessDeniedError,
 		);
 	});
 
-	test("a grant held by another user does not apply", () => {
+	test("leaves the scope unbound when access is denied", async () => {
 		const access = scope().get(RepoAccess);
 
-		expect(() => access.selectRepository("foreign")).toThrow(RepositoryAccessDeniedError);
+		await expect(access.selectRepository("ungranted")).rejects.toBeInstanceOf(Error);
+		expect(() => access.repository).toThrow(/No repository is available/);
 	});
 
-	test("the error names the user and the repository", () => {
+	test("rejects a repository that does not exist", async () => {
 		const access = scope().get(RepoAccess);
 
-		expect(() => access.selectRepository("ungranted")).toThrow(
+		await expect(access.selectRepository("nonsense")).rejects.toBeInstanceOf(
+			RepositoryAccessDeniedError,
+		);
+	});
+
+	test("a grant for one repository does not open another", async () => {
+		const access = scope().get(RepoAccess);
+		await access.selectRepository("demo");
+
+		await expect(scope().get(RepoAccess).selectRepository("ungranted")).rejects.toBeInstanceOf(
+			RepositoryAccessDeniedError,
+		);
+	});
+
+	test("a grant held by another user does not apply", async () => {
+		const access = scope().get(RepoAccess);
+
+		await expect(access.selectRepository("foreign")).rejects.toBeInstanceOf(
+			RepositoryAccessDeniedError,
+		);
+	});
+
+	test("the error names the user and the repository", async () => {
+		const access = scope().get(RepoAccess);
+
+		await expect(access.selectRepository("ungranted")).rejects.toThrow(
 			new RegExp(`"${userId}".*"ungranted"`),
 		);
 	});
@@ -113,23 +119,23 @@ describe("RepoAccess", () => {
 		expect(() => access.repository).toThrow(/No repository is available/);
 	});
 
-	test("rejects a second selection", () => {
+	test("rejects a second selection", async () => {
 		const access = scope().get(RepoAccess);
-		access.selectRepository("demo");
+		await access.selectRepository("demo");
 
-		expect(() => access.selectRepository("pilot")).toThrow(/only be set once/);
+		await expect(access.selectRepository("pilot")).rejects.toThrow(/only be set once/);
 	});
 
-	test("names both repositories when rejecting a second selection", () => {
+	test("names both repositories when rejecting a second selection", async () => {
 		const access = scope().get(RepoAccess);
-		access.selectRepository("demo");
+		await access.selectRepository("demo");
 
-		expect(() => access.selectRepository("pilot")).toThrow(/"demo".*"pilot"/);
+		await expect(access.selectRepository("pilot")).rejects.toThrow(/"demo".*"pilot"/);
 	});
 
-	test("each scope binds independently", () => {
+	test("each scope binds independently", async () => {
 		const first = scope();
-		first.get(RepoAccess).selectRepository("demo");
+		await first.get(RepoAccess).selectRepository("demo");
 
 		expect(() => scope().get(RepoAccess).repository).toThrow(/No repository is available/);
 	});
@@ -137,7 +143,7 @@ describe("RepoAccess", () => {
 	describe("users", () => {
 		test("lists the users associated with the bound repository", async () => {
 			const access = scope().get(RepoAccess);
-			access.selectRepository("demo");
+			await access.selectRepository("demo");
 
 			expect(await access.users()).toEqual([
 				{ id: userId, name: "Test User" },
@@ -147,7 +153,7 @@ describe("RepoAccess", () => {
 
 		test("leaves out a user who holds no grant for it", async () => {
 			const access = scope().get(RepoAccess);
-			access.selectRepository("pilot");
+			await access.selectRepository("pilot");
 
 			expect((await access.users()).map((user) => user.id)).toEqual([userId]);
 		});
@@ -170,13 +176,13 @@ describe("RepoAccess", () => {
 			const currentUserId = environment.get(Security).userId;
 			const manager = environment.get(RepoManager);
 
-			manager.createRepository("records");
-			manager.grantAccess(currentUserId, "records");
+			await manager.createRepository("records");
+			await manager.grantAccess(currentUserId, "records");
 
 			const requestScope = environment.clone();
 			const access = requestScope.get(RepoAccess);
-			access.selectRepository("records");
-			const recordOnly = access.createRecordOnlyUser({
+			await access.selectRepository("records");
+			const recordOnly = await access.createRecordOnlyUser({
 				name: "Ada Example",
 				email: "ada@example.com",
 			});
@@ -197,21 +203,21 @@ describe("RepoAccess", () => {
 			const currentUserId = environment.get(Security).userId;
 			const manager = environment.get(RepoManager);
 
-			manager.createRepository("records");
-			manager.grantAccess(currentUserId, "records");
+			await manager.createRepository("records");
+			await manager.grantAccess(currentUserId, "records");
 
 			const requestScope = environment.clone();
 			const access = requestScope.get(RepoAccess);
-			access.selectRepository("records");
-			const created = access.createRecordOnlyUser({
+			await access.selectRepository("records");
+			const created = await access.createRecordOnlyUser({
 				name: "Ada Example",
 				email: "ada@example.com",
 			});
 
 			const system = requestScope.get(SystemDB);
-			expect(system.select().from(User).all()).toHaveLength(2);
-			expect(system.select().from(UserRepository).all()).toHaveLength(2);
-			expect(system.select().from(Account).all()).toHaveLength(1);
+			expect(await system.select().from(User).all()).toHaveLength(2);
+			expect(await system.select().from(UserRepository).all()).toHaveLength(2);
+			expect(await system.select().from(Account).all()).toHaveLength(1);
 			expect((await access.users()).map((user) => user.id)).toContain(created.id);
 		});
 
@@ -220,20 +226,61 @@ describe("RepoAccess", () => {
 			const currentUserId = environment.get(Security).userId;
 			const manager = environment.get(RepoManager);
 
-			manager.createRepository("records");
-			manager.grantAccess(currentUserId, "records");
+			await manager.createRepository("records");
+			await manager.grantAccess(currentUserId, "records");
 
 			const requestScope = environment.clone();
 			const access = requestScope.get(RepoAccess);
-			access.selectRepository("records");
+			await access.selectRepository("records");
 
-			expect(() =>
+			expect(
 				access.createRecordOnlyUser({
 					name: "Another Test User",
 					email: "test.user@example.com",
 				}),
-			).toThrow(UserEmailAlreadyExistsError);
-			expect(requestScope.get(SystemDB).select().from(User).all()).toHaveLength(1);
+			).rejects.toThrow(UserEmailAlreadyExistsError);
+			expect(await requestScope.get(SystemDB).select().from(User).all()).toHaveLength(1);
+		});
+
+		test("rejects an email address that differs only in case", async () => {
+			const environment = await setupTestUserEnvironment();
+			const currentUserId = environment.get(Security).userId;
+			const manager = environment.get(RepoManager);
+
+			await manager.createRepository("records");
+			await manager.grantAccess(currentUserId, "records");
+
+			const requestScope = environment.clone();
+			const access = requestScope.get(RepoAccess);
+			await access.selectRepository("records");
+
+			expect(
+				access.createRecordOnlyUser({
+					name: "Another Test User",
+					email: "Test.User@Example.com",
+				}),
+			).rejects.toThrow(UserEmailAlreadyExistsError);
+			expect(await requestScope.get(SystemDB).select().from(User).all()).toHaveLength(1);
+			expect(await requestScope.get(SystemDB).select().from(UserRepository).all()).toHaveLength(1);
+		});
+
+		test("stores the email address in lower case", async () => {
+			const environment = await setupTestUserEnvironment();
+			const currentUserId = environment.get(Security).userId;
+			const manager = environment.get(RepoManager);
+
+			await manager.createRepository("records");
+			await manager.grantAccess(currentUserId, "records");
+
+			const requestScope = environment.clone();
+			const access = requestScope.get(RepoAccess);
+			await access.selectRepository("records");
+			const created = await access.createRecordOnlyUser({
+				name: "Ada Example",
+				email: "Ada@Example.com",
+			});
+
+			expect(created.email).toBe("ada@example.com");
 		});
 	});
 });

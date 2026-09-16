@@ -1,5 +1,3 @@
-import type { Writable } from "node:stream";
-
 import type { JsonObject } from "type-fest";
 
 /**
@@ -44,7 +42,7 @@ export function logLevelFromName(name: string): LOG_LEVEL {
 
 type LoggerOptions = {
 	level: LOG_LEVEL;
-	stream: Writable;
+	stream: { write(chunk: string): unknown };
 };
 
 /**
@@ -53,7 +51,7 @@ type LoggerOptions = {
  */
 export class Logger {
 	readonly #level: LOG_LEVEL;
-	readonly #stream: Writable;
+	readonly #stream: { write(chunk: string): unknown };
 	readonly #context: JsonObject;
 
 	constructor({ level, stream }: LoggerOptions, context: JsonObject = {}) {

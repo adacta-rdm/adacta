@@ -32,10 +32,10 @@ export function meta({ loaderData }: Route.MetaArgs) {
 	return [{ title: loaderData ? `${loaderData.product.name} — Adacta` : "Catalog — Adacta" }];
 }
 
-export function loader({ context, params }: Route.LoaderArgs) {
+export async function loader({ context, params }: Route.LoaderArgs) {
 	const db = context.get(services).get(RepoDB);
 
-	const row = db
+	const row = await db
 		.select({ product: Product, series: ProductSeries })
 		.from(Product)
 		.innerJoin(Manufacturer, eq(Manufacturer.id, Product.manufacturerId))
@@ -53,34 +53,36 @@ export function loader({ context, params }: Route.LoaderArgs) {
 		throw new Response(`Product "${params.productSlug}" not found.`, { status: 404 });
 	}
 
-	const specificationsOf = (productId: number) =>
-		db
+	const specificationsOf = async (productId: number) =>
+		await db
 			.select({ name: ProductSpecification.name, value: ProductSpecification.value })
 			.from(ProductSpecification)
 			.where(eq(ProductSpecification.productId, productId))
 			.orderBy(asc(ProductSpecification.position))
 			.all();
 
-	const specifications = specificationsOf(row.product.id);
+	const specifications = await specificationsOf(row.product.id);
 
 	// The database stores every specification on every product. Which of them
 	// the family shares is therefore read back from the other members.
 	let sharedNames = new Set<string>();
 	if (row.series) {
-		const members = db
+		const members = await db
 			.select({ id: Product.id })
 			.from(Product)
 			.where(and(eq(Product.seriesId, row.series.id), isNull(Product.metadataArchivedAt)))
 			.all();
 
 		const comparison = compareSpecifications(
-			members.map((member) => ({ specifications: specificationsOf(member.id) })),
+			await Promise.all(
+				members.map(async (member) => ({ specifications: await specificationsOf(member.id) })),
+			),
 		);
 
 		sharedNames = new Set(comparison.shared.map((specification) => specification.name));
 	}
 
-	const channels = db
+	const channels = await db
 		.select({
 			key: Channel.key,
 			role: Channel.role,
@@ -92,18 +94,18 @@ export function loader({ context, params }: Route.LoaderArgs) {
 		.orderBy(asc(Channel.position))
 		.all();
 
-	const source = db
+	const source = await db
 		.select()
 		.from(CatalogSource)
 		.where(eq(CatalogSource.productId, row.product.id))
 		.get();
 
 	return {
-		manufacturerName: db
+		manufacturerName: (await db
 			.select({ name: Manufacturer.name })
 			.from(Manufacturer)
 			.where(eq(Manufacturer.slug, params.manufacturerSlug))
-			.get()!.name,
+			.get())!.name,
 		product: {
 			name: row.product.name,
 			productNumber: row.product.productNumber,

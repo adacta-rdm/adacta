@@ -1,4 +1,4 @@
-import { and, asc, count, eq, sql } from "drizzle-orm";
+import { and, asc, count, eq } from "drizzle-orm";
 
 import { Security } from "~/app/services/Security.ts";
 import { SystemDB } from "~/app/services/SystemDB.ts";
@@ -6,6 +6,7 @@ import { Account, User } from "~/drizzle/schema/system.BetterAuth.ts";
 import { Repository } from "~/drizzle/schema/system.Repository.ts";
 import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
 import { Service } from "~/lib/service-container/ServiceContainer.ts";
+import { isUniqueConstraintOn } from "~/lib/sqlite-errors/isUniqueConstraintOn.ts";
 
 /**
  * The scope's authenticated user holds no grant for the repository.
@@ -69,7 +70,7 @@ export class RepoAccess {
 	 *
 	 * @throws RepositoryAccessDeniedError if the user holds no grant.
 	 */
-	selectRepository(slug: string): void {
+	async selectRepository(slug: string): Promise<void> {
 		if (this.#slug !== undefined) {
 			throw new Error(
 				`The repository can only be set once per scope (already "${this.#slug}", attempted "${slug}").`,
@@ -78,10 +79,9 @@ export class RepoAccess {
 
 		const { userId } = this.security;
 
-		if (!this.hasAccess(userId, slug)) {
+		if (!(await this.hasAccess(userId, slug))) {
 			throw new RepositoryAccessDeniedError(userId, slug);
 		}
-
 		this.#slug = slug;
 	}
 
@@ -149,46 +149,68 @@ export class RepoAccess {
 	 *
 	 * @throws UserEmailAlreadyExistsError if the email address is already used.
 	 */
-	createRecordOnlyUser({ name, email }: { name: string; email: string }): RepositoryUser {
-		return this.db.transaction((transaction) => {
-			const existing = transaction
-				.select({ id: User.id })
-				.from(User)
-				.where(sql`lower(${User.email}) = lower(${email})`)
-				.get();
+	async createRecordOnlyUser({
+		name,
+		email,
+	}: {
+		name: string;
+		email: string;
+	}): Promise<RepositoryUser> {
+		// Better Auth stores emails in lower case. We do the same. Then the unique
+		// index also rejects "Ada@example.com" if "ada@example.com" exists.
+		email = email.toLowerCase();
 
-			if (existing) throw new UserEmailAlreadyExistsError(email);
+		// We read the repository before the transaction. Its callback must stay
+		// synchronous (see ApplicationDatabase). If the repository is deleted in
+		// between, the foreign key stops the insert.
+		const repository = await this.db
+			.select({ id: Repository.id })
+			.from(Repository)
+			.where(eq(Repository.slug, this.repository))
+			.get();
 
-			const repository = transaction
-				.select({ id: Repository.id })
-				.from(Repository)
-				.where(eq(Repository.slug, this.repository))
-				.get();
+		if (!repository) {
+			throw new Error(`Repository "${this.repository}" does not exist.`);
+		}
 
-			if (!repository) {
-				throw new Error(`Repository "${this.repository}" does not exist.`);
+		const id = crypto.randomUUID();
+		const now = new Date();
+
+		// We insert the user ourselves. The public Better Auth API only creates
+		// users who can log in. Its internal API writes outside this transaction.
+		// If the membership insert then fails, the email stays taken.
+		try {
+			await this.db.transaction((transaction) => {
+				transaction
+					.insert(User)
+					.values({ id, name, email, emailVerified: false, createdAt: now, updatedAt: now })
+					.run();
+
+				transaction
+					.insert(UserRepository)
+					.values({ userId: id, repositoryId: repository.id })
+					.run();
+			});
+		} catch (error) {
+			// The unique index decides whether the address is taken. A check
+			// before the insert cannot decide. Another request can insert the same
+			// address in between.
+			if (isUniqueConstraintOn(error, "User.email")) {
+				throw new UserEmailAlreadyExistsError(email);
 			}
 
-			const id = crypto.randomUUID();
-			const now = new Date();
+			throw error;
+		}
 
-			transaction
-				.insert(User)
-				.values({ id, name, email, emailVerified: false, createdAt: now, updatedAt: now })
-				.run();
-
-			transaction.insert(UserRepository).values({ userId: id, repositoryId: repository.id }).run();
-
-			return { id, name, email, canSignIn: false };
-		});
+		return { id, name, email, canSignIn: false };
 	}
 
 	/**
 	 * Whether a grant exists. Grants are held against the repository id. Callers
 	 * work with slugs. The query therefore joins through Repository.
 	 */
-	private hasAccess(userId: string, slug: string): boolean {
-		const rows = this.db
+	private async hasAccess(userId: string, slug: string): Promise<boolean> {
+		const rows = await this.db
 			.select({ repositoryId: UserRepository.repositoryId })
 			.from(UserRepository)
 			.innerJoin(Repository, eq(Repository.id, UserRepository.repositoryId))

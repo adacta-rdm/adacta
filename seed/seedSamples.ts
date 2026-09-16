@@ -56,8 +56,8 @@ export async function seedSamples(
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
 
-	db.delete(Sample).run();
-	db.delete(SampleBatch).run();
+	await db.delete(Sample).run();
+	await db.delete(SampleBatch).run();
 
 	const files = jsonFiles("repo", repository, "samples");
 	let samples = 0;
@@ -75,14 +75,12 @@ export async function seedSamples(
 		// to a numbered variant.
 		const slug = availableSlug(
 			seed.name,
-			db
-				.select({ slug: SampleBatch.slug })
-				.from(SampleBatch)
-				.all()
-				.map((batch) => batch.slug),
+			(await db.select({ slug: SampleBatch.slug }).from(SampleBatch).all()).map(
+				(batch) => batch.slug,
+			),
 		);
 
-		const { id: batchId } = db
+		const { id: batchId } = await db
 			.insert(SampleBatch)
 			.values({
 				slug,

@@ -42,8 +42,8 @@ export class SourceManager {
 	 * Archived files are omitted. The method throws `SourceFileNotFoundError`
 	 * when every file in the upload is archived or the upload id is unknown.
 	 */
-	artifactsOfUpload(uploadId: string) {
-		const artifacts = this.database
+	async artifactsOfUpload(uploadId: string) {
+		const artifacts = await this.database
 			.select()
 			.from(SourceArtifact)
 			.where(and(eq(SourceArtifact.uploadId, uploadId), isNull(SourceArtifact.metadataArchivedAt)))
@@ -61,8 +61,8 @@ export class SourceManager {
 	 * `getArtifact()` itself does not open the stored file. An archived file
 	 * is treated as absent.
 	 */
-	getArtifact(id: string) {
-		const artifact = this.database
+	async getArtifact(id: string) {
+		const artifact = await this.database
 			.select()
 			.from(SourceArtifact)
 			.where(and(eq(SourceArtifact.id, id), isNull(SourceArtifact.metadataArchivedAt)))
@@ -150,9 +150,9 @@ class PendingUpload {
 				metadataCreationTimestamp: createdAt,
 			})) satisfies NewEntity<"SourceArtifact">[];
 
-			this.database.transaction((transaction) => {
-				transaction.insert(SourceArtifact).values(artifacts).run();
-			});
+			// One INSERT statement records the complete upload atomically. Await it
+			// before publishing the upload identifier.
+			await this.database.insert(SourceArtifact).values(artifacts).run();
 
 			this.state = "committed";
 			return this.id;

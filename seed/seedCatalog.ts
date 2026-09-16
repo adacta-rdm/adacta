@@ -129,19 +129,22 @@ const PUBLIC_CATALOG = join(process.cwd(), "public", "catalog");
  * The rows are deleted first, children before parents, so the foreign keys
  * hold at every step.
  */
-export function seedCatalog(scope: ServiceContainer, repository: string): CatalogCounts {
+export async function seedCatalog(
+	scope: ServiceContainer,
+	repository: string,
+): Promise<CatalogCounts> {
 	const db = scope.get(RepoDB);
 	const metadata = {
 		metadataCreatorId: scope.get(Security).userId,
 		metadataCreationTimestamp: new Date(),
 	};
 
-	db.delete(CatalogSource).run();
-	db.delete(Channel).run();
-	db.delete(ProductSpecification).run();
-	db.delete(Product).run();
-	db.delete(ProductSeries).run();
-	db.delete(Manufacturer).run();
+	await db.delete(CatalogSource).run();
+	await db.delete(Channel).run();
+	await db.delete(ProductSpecification).run();
+	await db.delete(Product).run();
+	await db.delete(ProductSeries).run();
+	await db.delete(Manufacturer).run();
 
 	const counts: CatalogCounts = {
 		manufacturers: 0,
@@ -162,7 +165,7 @@ export function seedCatalog(scope: ServiceContainer, repository: string): Catalo
 		const slug = availableSlug(seed.name, manufacturerSlugs);
 		manufacturerSlugs.push(slug);
 
-		const { id: manufacturerId } = db
+		const { id: manufacturerId } = await db
 			.insert(Manufacturer)
 			.values({
 				slug,
@@ -178,7 +181,7 @@ export function seedCatalog(scope: ServiceContainer, repository: string): Catalo
 		counts.manufacturers += 1;
 
 		for (const source of seed.sources ?? []) {
-			insertSource(db, { manufacturerId }, source, metadata);
+			await insertSource(db, { manufacturerId }, source, metadata);
 		}
 
 		const products = new Map<string, SeedProduct>();
@@ -196,7 +199,7 @@ export function seedCatalog(scope: ServiceContainer, repository: string): Catalo
 			const seriesSlug = availableSlug(series.name, seriesSlugs);
 			seriesSlugs.push(seriesSlug);
 
-			const { id } = db
+			const { id } = await db
 				.insert(ProductSeries)
 				.values({
 					manufacturerId,
@@ -212,7 +215,7 @@ export function seedCatalog(scope: ServiceContainer, repository: string): Catalo
 
 			counts.series += 1;
 
-			if (series.source) insertSource(db, { seriesId: id }, series.source, metadata);
+			if (series.source) await insertSource(db, { seriesId: id }, series.source, metadata);
 
 			series.products.forEach((member, position) => {
 				if (!products.has(member)) {
@@ -245,7 +248,7 @@ export function seedCatalog(scope: ServiceContainer, repository: string): Catalo
 				throw new Error(`Product "${key}" in ${manufacturerKey} has no name or no subtitle.`);
 			}
 
-			const { id: productId } = db
+			const { id: productId } = await db
 				.insert(Product)
 				.values({
 					manufacturerId,
@@ -268,15 +271,16 @@ export function seedCatalog(scope: ServiceContainer, repository: string): Catalo
 			// meets the lines that differ before the lines that agree.
 			const specifications = [...(own.specifications ?? []), ...(shared.specifications ?? [])];
 
-			specifications.forEach((specification, position) => {
-				db.insert(ProductSpecification)
+			for (const [position, specification] of specifications.entries()) {
+				await db
+					.insert(ProductSpecification)
 					.values({ productId, position, ...specification, ...metadata })
 					.run();
 
 				counts.specifications += 1;
-			});
+			}
 
-			(own.channels ?? shared.channels ?? []).forEach((channel, position) => {
+			for (const [position, channel] of (own.channels ?? shared.channels ?? []).entries()) {
 				/*
 					The catalog file is written by hand. Checking the name here says
 					which channel is wrong, which the foreign key alone would not.
@@ -288,7 +292,8 @@ export function seedCatalog(scope: ServiceContainer, repository: string): Catalo
 					);
 				}
 
-				db.insert(Channel)
+				await db
+					.insert(Channel)
 					.values({
 						productId,
 						position,
@@ -301,11 +306,11 @@ export function seedCatalog(scope: ServiceContainer, repository: string): Catalo
 					.run();
 
 				counts.channels += 1;
-			});
+			}
 
 			// A member that cites no document of its own cites its family's.
 			const source = own.source ?? shared.source ?? family?.seed.source;
-			if (source) insertSource(db, { productId }, source, metadata);
+			if (source) await insertSource(db, { productId }, source, metadata);
 		}
 	}
 
@@ -315,13 +320,14 @@ export function seedCatalog(scope: ServiceContainer, repository: string): Catalo
 type SourceParent = { manufacturerId?: number; seriesId?: number; productId?: number };
 type Metadata = { metadataCreatorId: string; metadataCreationTimestamp: Date };
 
-function insertSource(
+async function insertSource(
 	db: RepoDB,
 	parent: SourceParent,
 	source: SeedSource,
 	metadata: Metadata,
-): void {
-	db.insert(CatalogSource)
+): Promise<void> {
+	await db
+		.insert(CatalogSource)
 		.values({
 			manufacturerId: parent.manufacturerId ?? null,
 			seriesId: parent.seriesId ?? null,

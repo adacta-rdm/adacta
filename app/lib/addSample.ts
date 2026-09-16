@@ -1,11 +1,10 @@
-import { DrizzleQueryError } from "drizzle-orm";
-
 import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError.ts";
 import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError.ts";
 import { slugify } from "~/app/lib/slugs.ts";
 import type { RepoDB } from "~/app/services/RepoDB.ts";
 import type { Entity, NewEntity } from "~/drizzle/Schema.ts";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
+import { isUniqueConstraintOn } from "~/lib/sqlite-errors/isUniqueConstraintOn.ts";
 
 type SampleValues = Omit<NewEntity<"Sample">, "slug">;
 
@@ -28,7 +27,7 @@ export async function addSample(db: RepoDB, values: SampleValues): Promise<Entit
 	let slug = base;
 	for (let i = 0; i < SLUG_ATTEMPTS; i++) {
 		try {
-			return db
+			return await db
 				.insert(Sample)
 				.values({ ...values, slug })
 				.returning()
@@ -50,17 +49,4 @@ export async function addSample(db: RepoDB, values: SampleValues): Promise<Entit
 	}
 
 	throw new SlugAllocationError("sample", values.name, base, SLUG_ATTEMPTS);
-}
-
-function isUniqueConstraintOn(error: unknown, columns: string): boolean {
-	// Drizzle wraps the SQLite error. SQLite identifies a unique constraint by
-	// its columns in the message instead of reporting the index name.
-	const databaseError = error instanceof DrizzleQueryError ? error.cause : error;
-
-	return (
-		databaseError instanceof Error &&
-		"code" in databaseError &&
-		databaseError.code === "SQLITE_CONSTRAINT_UNIQUE" &&
-		databaseError.message === `UNIQUE constraint failed: ${columns}`
-	);
 }

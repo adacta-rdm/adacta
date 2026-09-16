@@ -9,7 +9,7 @@ import type { Route } from "./+types/$repo.files.artifacts.$artifactId.ts";
  */
 export async function loader({ context, params }: Route.LoaderArgs) {
 	try {
-		const artifact = context.get(services).get(SourceManager).getArtifact(params.artifactId);
+		const artifact = await context.get(services).get(SourceManager).getArtifact(params.artifactId);
 
 		return new Response(await artifact.read(), {
 			headers: {

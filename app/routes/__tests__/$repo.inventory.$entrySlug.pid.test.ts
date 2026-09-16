@@ -41,7 +41,7 @@ describe("P&ID route", () => {
 	test("starts with an empty graph", async () => {
 		const scope = await setupRig();
 
-		expect(load(scope).graph).toEqual({ nodes: [], edges: [] });
+		expect((await load(scope)).graph).toEqual({ nodes: [], edges: [] });
 	});
 
 	test("saves a graph and reloads it", async () => {
@@ -52,7 +52,7 @@ describe("P&ID route", () => {
 		expect(response).toBeInstanceOf(Response);
 		expect((response as Response).status).toBe(303);
 		expect((response as Response).headers.get("Location")).toBe("/demo/inventory/ammonia-rig/pid");
-		expect(load(scope).graph).toEqual(graph);
+		expect((await load(scope)).graph).toEqual(graph);
 	});
 
 	test("replaces the complete graph", async () => {
@@ -61,7 +61,7 @@ describe("P&ID route", () => {
 
 		await save(scope, { nodes: [graph.nodes[1]], edges: [] });
 
-		expect(load(scope).graph).toEqual({ nodes: [graph.nodes[1]], edges: [] });
+		expect((await load(scope)).graph).toEqual({ nodes: [graph.nodes[1]], edges: [] });
 	});
 
 	test("rejects a connection to a node outside the graph", async () => {

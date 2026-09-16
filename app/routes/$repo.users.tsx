@@ -39,7 +39,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	}
 
 	try {
-		context.get(services).get(RepoAccess).createRecordOnlyUser({ name, email });
+		await context.get(services).get(RepoAccess).createRecordOnlyUser({ name, email });
 	} catch (error) {
 		if (error instanceof UserEmailAlreadyExistsError) {
 			const duplicateErrors: typeof errors = {

@@ -18,13 +18,17 @@ async function environment() {
 	const scope = await setupTestRepositoryEnvironment();
 	const db = scope.get(RepoDB);
 	const userId = scope.get(Security).userId;
-	const batch = insertBatch(db, userId, "first-batch");
+	const batch = await insertBatch(db, userId, "first-batch");
 
 	return { db, userId, batch };
 }
 
-function insertBatch(db: RepoDB, userId: string, slug: string): Entity<"SampleBatch"> {
-	return db
+async function insertBatch(
+	db: RepoDB,
+	userId: string,
+	slug: string,
+): Promise<Entity<"SampleBatch">> {
+	return await db
 		.insert(SampleBatch)
 		.values({
 			slug,
@@ -52,12 +56,12 @@ function sampleValues(
 	};
 }
 
-function insertSample(
+async function insertSample(
 	db: RepoDB,
 	values: Omit<NewEntity<"Sample">, "slug">,
 	slug: string,
-): Entity<"Sample"> {
-	return db
+): Promise<Entity<"Sample">> {
+	return await db
 		.insert(Sample)
 		.values({ ...values, slug })
 		.returning()
@@ -84,7 +88,7 @@ describe("addSample", () => {
 
 		await addSample(db, values);
 
-		expect(db.select().from(Sample).get()).toEqual(
+		expect(await db.select().from(Sample).get()).toEqual(
 			expect.objectContaining({ ...values, slug: "01" }),
 		);
 	});
@@ -93,7 +97,7 @@ describe("addSample", () => {
 		const { db, userId, batch } = await environment();
 
 		const result = await addSample(db, sampleValues(batch.id, userId));
-		const inserted = db.select().from(Sample).get();
+		const inserted = await db.select().from(Sample).get();
 		if (!inserted) throw new Error("Expected the sample to be inserted.");
 
 		expect(result).toEqual(inserted);
@@ -104,7 +108,7 @@ describe("addSample", () => {
 
 		// "#01" and "01" are different sample labels. Removing the leading "#"
 		// gives both labels the slug "01". The second slug therefore needs a suffix.
-		insertSample(db, sampleValues(batch.id, userId, "#01"), "01");
+		await insertSample(db, sampleValues(batch.id, userId, "#01"), "01");
 
 		const result = await addSample(db, sampleValues(batch.id, userId, "01"));
 
@@ -113,28 +117,32 @@ describe("addSample", () => {
 
 	test("throws an error when the batch already contains the label", async () => {
 		const { db, userId, batch } = await environment();
-		insertSample(db, sampleValues(batch.id, userId), "01");
+		await insertSample(db, sampleValues(batch.id, userId), "01");
 
 		const result = addSample(db, sampleValues(batch.id, userId));
 
 		await expectDuplicateSampleName(result, "#01");
-		expect(db.select().from(Sample).all()).toHaveLength(1);
+		expect(await db.select().from(Sample).all()).toHaveLength(1);
 	});
 
 	test("keeps the label of an archived sample reserved", async () => {
 		const { db, userId, batch } = await environment();
-		insertSample(db, { ...sampleValues(batch.id, userId), metadataArchivedAt: new Date() }, "01");
+		await insertSample(
+			db,
+			{ ...sampleValues(batch.id, userId), metadataArchivedAt: new Date() },
+			"01",
+		);
 
 		const result = addSample(db, sampleValues(batch.id, userId));
 
 		await expectDuplicateSampleName(result, "#01");
-		expect(db.select().from(Sample).all()).toHaveLength(1);
+		expect(await db.select().from(Sample).all()).toHaveLength(1);
 	});
 
 	test("allows the same label in another batch", async () => {
 		const { db, userId, batch } = await environment();
-		const otherBatch = insertBatch(db, userId, "second-batch");
-		insertSample(db, sampleValues(batch.id, userId), "01");
+		const otherBatch = await insertBatch(db, userId, "second-batch");
+		await insertSample(db, sampleValues(batch.id, userId), "01");
 
 		const result = await addSample(db, sampleValues(otherBatch.id, userId));
 
@@ -157,7 +165,7 @@ describe("addSample", () => {
 					return (table: typeof Sample) => {
 						if (table === Sample && !insertedCompetingSample) {
 							insertedCompetingSample = true;
-							insertSample(db, competingValues, "01");
+							void insertSample(db, competingValues, "01");
 						}
 
 						return db.insert(table);
@@ -172,7 +180,7 @@ describe("addSample", () => {
 		const result = await addSample(racingDb, sampleValues(batch.id, userId));
 
 		expect(result).toEqual(expect.objectContaining({ name: "#01", slug: "01-2" }));
-		expect(db.select().from(Sample).all()).toHaveLength(2);
+		expect(await db.select().from(Sample).all()).toHaveLength(2);
 	});
 
 	test("reports when five generated slugs are already in use", async () => {
@@ -180,7 +188,7 @@ describe("addSample", () => {
 
 		for (let attempt = 1; attempt <= 5; attempt++) {
 			const slug = attempt === 1 ? "01" : `01-${attempt}`;
-			insertSample(db, sampleValues(batch.id, userId, `existing-${attempt}`), slug);
+			await insertSample(db, sampleValues(batch.id, userId, `existing-${attempt}`), slug);
 		}
 
 		let error: unknown;
@@ -197,7 +205,7 @@ describe("addSample", () => {
 			base: "01",
 			attempts: 5,
 		});
-		expect(db.select().from(Sample).all()).toHaveLength(5);
+		expect(await db.select().from(Sample).all()).toHaveLength(5);
 	});
 
 	test("throws database errors unrelated to the two unique constraints", async () => {
@@ -210,6 +218,8 @@ describe("addSample", () => {
 				message: "FOREIGN KEY constraint failed",
 			},
 		});
-		expect(db.select().from(Sample).where(eq(Sample.batchId, missingBatchId)).all()).toEqual([]);
+		expect(await db.select().from(Sample).where(eq(Sample.batchId, missingBatchId)).all()).toEqual(
+			[],
+		);
 	});
 });

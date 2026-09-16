@@ -14,7 +14,7 @@ import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.
 describe("samples index loader", () => {
 	test("describes each batch", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3", preparationDate: "2025-01-15" }, 2);
+		await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3", preparationDate: "2025-01-15" }, 2);
 
 		const { batches } = await load(scope);
 
@@ -31,7 +31,7 @@ describe("samples index loader", () => {
 
 	test("counts only the samples that are not archived", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		const batch = addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 3);
+		const batch = await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 3);
 
 		scope
 			.get(RepoDB)
@@ -45,15 +45,15 @@ describe("samples index loader", () => {
 
 	test("puts the most recently prepared batch first", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "older", name: "Older", preparationDate: "2024-03-01" });
-		addBatch(scope, { slug: "newer", name: "Newer", preparationDate: "2025-06-01" });
+		await addBatch(scope, { slug: "older", name: "Older", preparationDate: "2024-03-01" });
+		await addBatch(scope, { slug: "newer", name: "Newer", preparationDate: "2025-06-01" });
 
 		expect((await load(scope)).batches.map((batch) => batch.slug)).toEqual(["newer", "older"]);
 	});
 
 	test("leaves out an archived batch", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		const batch = addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
+		const batch = await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
 
 		scope
 			.get(RepoDB)
@@ -69,7 +69,7 @@ describe("samples index loader", () => {
 describe("samples index action", () => {
 	test("archives a batch and keeps its samples", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		const batch = addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
+		const batch = await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
 
 		const response = await archive(scope, batch.slug);
 
@@ -77,9 +77,9 @@ describe("samples index action", () => {
 		expect((await load(scope)).batches).toEqual([]);
 
 		// The batch leaves the workflow. The record and its samples remain.
-		const stored = scope.get(RepoDB).select().from(SampleBatch).get();
+		const stored = await scope.get(RepoDB).select().from(SampleBatch).get();
 		expect(stored?.metadataArchivedAt).toBeInstanceOf(Date);
-		expect(scope.get(RepoDB).select().from(Sample).all()).toHaveLength(2);
+		expect(await scope.get(RepoDB).select().from(Sample).all()).toHaveLength(2);
 	});
 
 	test("answers 404 for a batch that is not there", async () => {
@@ -90,7 +90,7 @@ describe("samples index action", () => {
 
 	test("answers 404 for a batch that is already archived", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		const batch = addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
+		const batch = await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
 		await archive(scope, batch.slug);
 
 		expect(archive(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
@@ -98,7 +98,7 @@ describe("samples index action", () => {
 
 	test("reports an unrecognized operation", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
+		await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
 
 		const response = await submit(scope, {});
 		if (response instanceof Response) throw new Error("Expected action data.");
@@ -111,9 +111,9 @@ describe("samples index action", () => {
 describe("samples index archived tab", () => {
 	test("the active tab leaves out an archived batch", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "kept", name: "Kept" });
-		addBatch(scope, { slug: "gone", name: "Gone" });
-		markArchived(scope, "gone");
+		await addBatch(scope, { slug: "kept", name: "Kept" });
+		await addBatch(scope, { slug: "gone", name: "Gone" });
+		await markArchived(scope, "gone");
 
 		const { batches } = await load(scope);
 
@@ -122,9 +122,9 @@ describe("samples index archived tab", () => {
 
 	test("the archived tab shows only the archived batches", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "kept", name: "Kept" });
-		addBatch(scope, { slug: "gone", name: "Gone" });
-		markArchived(scope, "gone");
+		await addBatch(scope, { slug: "kept", name: "Kept" });
+		await addBatch(scope, { slug: "gone", name: "Gone" });
+		await markArchived(scope, "gone");
 
 		const { batches } = await load(scope, "?show=archived");
 
@@ -133,11 +133,11 @@ describe("samples index archived tab", () => {
 
 	test("both counts are reported on either tab, so the tabs can be labelled", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "kept", name: "Kept" });
-		addBatch(scope, { slug: "gone", name: "Gone" });
-		addBatch(scope, { slug: "also-gone", name: "Also gone" });
-		markArchived(scope, "gone");
-		markArchived(scope, "also-gone");
+		await addBatch(scope, { slug: "kept", name: "Kept" });
+		await addBatch(scope, { slug: "gone", name: "Gone" });
+		await addBatch(scope, { slug: "also-gone", name: "Also gone" });
+		await markArchived(scope, "gone");
+		await markArchived(scope, "also-gone");
 
 		expect((await load(scope)).counts).toEqual({ active: 1, archived: 2 });
 		expect((await load(scope, "?show=archived")).counts).toEqual({ active: 1, archived: 2 });
@@ -153,8 +153,8 @@ describe("samples index archived tab", () => {
 
 	test("an archived batch reports when it was archived", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "gone", name: "Gone" });
-		markArchived(scope, "gone");
+		await addBatch(scope, { slug: "gone", name: "Gone" });
+		await markArchived(scope, "gone");
 
 		const { batches } = await load(scope, "?show=archived");
 
@@ -165,7 +165,7 @@ describe("samples index archived tab", () => {
 describe("samples index open batch", () => {
 	test("no batch is open when the address does not ask for one", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
+		await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
 
 		const loaded = await load(scope);
 
@@ -175,7 +175,7 @@ describe("samples index open batch", () => {
 
 	test("the samples of the open batch are read", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
+		await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
 
 		const loaded = await load(scope, "?open=pt-al2o3");
 
@@ -185,8 +185,8 @@ describe("samples index open batch", () => {
 
 	test("the samples of the other batches are not read", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
-		addBatch(scope, { slug: "pd-al2o3", name: "Pd/Al2O3" }, 3);
+		await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
+		await addBatch(scope, { slug: "pd-al2o3", name: "Pd/Al2O3" }, 3);
 
 		const loaded = await load(scope, "?open=pt-al2o3");
 
@@ -195,15 +195,15 @@ describe("samples index open batch", () => {
 
 	test("an open batch with no samples reads an empty list, not nothing", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
+		await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
 
 		expect((await load(scope, "?open=pt-al2o3")).openSamples).toEqual([]);
 	});
 
 	test("a batch that is not in the list is not open", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "gone", name: "Gone" }, 2);
-		markArchived(scope, "gone");
+		await addBatch(scope, { slug: "gone", name: "Gone" }, 2);
+		await markArchived(scope, "gone");
 
 		// The active tab does not hold this batch, so its row cannot be open.
 		const loaded = await load(scope, "?open=gone");
@@ -214,8 +214,8 @@ describe("samples index open batch", () => {
 
 	test("a batch of the archived tab can be open there", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "gone", name: "Gone" }, 2);
-		markArchived(scope, "gone");
+		await addBatch(scope, { slug: "gone", name: "Gone" }, 2);
+		await markArchived(scope, "gone");
 
 		const loaded = await load(scope, "?show=archived&open=gone");
 
@@ -233,7 +233,7 @@ describe("samples index open batch", () => {
 describe("samples index restore", () => {
 	test("restores an archived batch to the active tab", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		const batch = addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
+		const batch = await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
 		await archive(scope, batch.slug);
 
 		const response = await restore(scope, batch.slug);
@@ -241,7 +241,7 @@ describe("samples index restore", () => {
 		expect(response).toBeInstanceOf(Response);
 		expect((await load(scope)).batches.map((row) => row.slug)).toEqual(["pt-al2o3"]);
 		expect((await load(scope, "?show=archived")).batches).toEqual([]);
-		expect(scope.get(RepoDB).select().from(Sample).all()).toHaveLength(2);
+		expect(await scope.get(RepoDB).select().from(Sample).all()).toHaveLength(2);
 	});
 
 	test("answers 404 for a batch that is not there", async () => {
@@ -252,7 +252,7 @@ describe("samples index restore", () => {
 
 	test("answers 404 for a batch that is not archived", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		const batch = addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
+		const batch = await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
 
 		expect(restore(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
 	});
@@ -261,7 +261,7 @@ describe("samples index restore", () => {
 describe("samples index samples in the open row", () => {
 	test("adds a sample and leaves the row open", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
+		await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
 
 		const response = await submit(scope, { batch: "pt-al2o3", add: "", name: "#01" });
 
@@ -272,7 +272,7 @@ describe("samples index samples in the open row", () => {
 
 	test("reports a label the batch already holds, without leaving the list", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 1);
+		await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 1);
 
 		const response = await submit(scope, { batch: "pt-al2o3", add: "", name: "#01" });
 
@@ -282,8 +282,8 @@ describe("samples index samples in the open row", () => {
 
 	test("deletes a sample and leaves the row open", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		const batch = addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
-		const sample = scope
+		const batch = await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 2);
+		const sample = await scope
 			.get(RepoDB)
 			.select()
 			.from(Sample)
@@ -306,8 +306,8 @@ describe("samples index samples in the open row", () => {
 
 	test("answers 404 for an archived batch", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		addBatch(scope, { slug: "gone", name: "Gone" });
-		markArchived(scope, "gone");
+		await addBatch(scope, { slug: "gone", name: "Gone" });
+		await markArchived(scope, "gone");
 
 		expect(submit(scope, { batch: "gone", add: "", name: "#01" })).rejects.toMatchObject({
 			status: 404,
@@ -344,8 +344,8 @@ function restore(scope: ServiceContainer, slug: string) {
  * Archive a batch straight in the database, when the test is about what the
  * loader shows rather than about the archive action itself.
  */
-function markArchived(scope: ServiceContainer, slug: string) {
-	scope
+async function markArchived(scope: ServiceContainer, slug: string) {
+	await scope
 		.get(RepoDB)
 		.update(SampleBatch)
 		.set({ metadataArchivedAt: new Date() })
@@ -356,7 +356,7 @@ function markArchived(scope: ServiceContainer, slug: string) {
 /**
  * Write one batch and the given number of samples in it.
  */
-function addBatch(
+async function addBatch(
 	scope: ServiceContainer,
 	values: { slug: string; name: string; preparationDate?: string },
 	sampleCount = 0,
@@ -368,7 +368,7 @@ function addBatch(
 		metadataCreationTimestamp: new Date("2026-01-15T12:00:00.000Z"),
 	};
 
-	const batch = db
+	const batch = await db
 		.insert(SampleBatch)
 		.values({
 			slug: values.slug,
@@ -381,7 +381,8 @@ function addBatch(
 		.get();
 
 	for (let index = 1; index <= sampleCount; index++) {
-		db.insert(Sample)
+		await db
+			.insert(Sample)
 			.values({
 				batchId: batch.id,
 				slug: `0${index}`,

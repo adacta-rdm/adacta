@@ -36,7 +36,7 @@ export const sessionAuth = (async ({ request, context }) => {
 		throw redirect("/login");
 	}
 
-	const user = container
+	const user = await container
 		.get(SystemDB)
 		.select({ id: User.id })
 		.from(User)

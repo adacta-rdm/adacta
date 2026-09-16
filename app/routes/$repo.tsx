@@ -30,28 +30,29 @@ import type { Route } from "./+types/$repo.ts";
  */
 export const middleware: Route.MiddlewareFunction[] = [sessionAuth, repositoryAccess];
 
-export function loader({ context, request }: Route.LoaderArgs) {
+export async function loader({ context, request }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const [access, db] = container.get(RepoAccess, RepoDB);
 
-	const entries = db
-		.select()
-		.from(InventoryEntryTable)
-		.where(isNull(InventoryEntryTable.metadataArchivedAt))
-		.all()
-		.map((row) => ({
-			id: row.id,
-			slug: row.slug,
-			name: row.name,
-			kind: row.kind,
-			location: {
-				building: row.locationBuildingIdentifier,
-				room: row.locationRoomIdentifier,
-				label: row.locationLabel,
-			},
-		}));
+	const entries = (
+		await db
+			.select()
+			.from(InventoryEntryTable)
+			.where(isNull(InventoryEntryTable.metadataArchivedAt))
+			.all()
+	).map((row) => ({
+		id: row.id,
+		slug: row.slug,
+		name: row.name,
+		kind: row.kind,
+		location: {
+			building: row.locationBuildingIdentifier,
+			room: row.locationRoomIdentifier,
+			label: row.locationLabel,
+		},
+	}));
 
-	const batches = db
+	const batches = await db
 		.select()
 		.from(SampleBatch)
 		.where(isNull(SampleBatch.metadataArchivedAt))

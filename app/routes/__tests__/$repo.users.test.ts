@@ -57,9 +57,11 @@ describe("users route", () => {
 		expect(response.headers.get("Location")).toBe("/demo/users");
 
 		const system = scope.get(SystemDB);
-		const user = system.select().from(User).where(eq(User.email, "ada@example.com")).get();
+		const user = await system.select().from(User).where(eq(User.email, "ada@example.com")).get();
 		expect(user?.name).toBe("Ada Example");
-		expect(system.select().from(Account).where(eq(Account.userId, user!.id)).all()).toEqual([]);
+		expect(await system.select().from(Account).where(eq(Account.userId, user!.id)).all()).toEqual(
+			[],
+		);
 	});
 
 	test("reports invalid fields without creating a user", async () => {
@@ -77,7 +79,7 @@ describe("users route", () => {
 			name: "A name is required.",
 			email: "Enter a valid email address.",
 		});
-		expect(scope.get(SystemDB).select().from(User).all()).toHaveLength(1);
+		expect(await scope.get(SystemDB).select().from(User).all()).toHaveLength(1);
 	});
 
 	test("reports an email address already used by another user", async () => {

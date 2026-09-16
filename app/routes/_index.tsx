@@ -21,12 +21,12 @@ export function meta() {
  */
 export const middleware: Route.MiddlewareFunction[] = [sessionAuth];
 
-export function loader({ context }: Route.LoaderArgs) {
+export async function loader({ context }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const [db, security] = container.get(SystemDB, Security);
 
 	// A repository appears only when the user holds a grant for it.
-	const repositories = db
+	const repositories = await db
 		.select({ slug: Repository.slug, name: Repository.name })
 		.from(Repository)
 		.innerJoin(UserRepository, eq(UserRepository.repositoryId, Repository.id))

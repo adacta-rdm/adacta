@@ -1,8 +1,8 @@
 /**
  * Rebuilds the SQL files used to create system and repository databases.
  *
- * `RepoManager` creates a repository database by asking `DatabaseManager` to
- * apply the repository migration files. Drizzle Kit cannot push a schema to a
+ * `RepoManager` asks `SqliteDatabaseManager` to apply repository migrations when
+ * it creates a repository. Drizzle Kit cannot push a schema to a
  * database that will be created later. These SQL files therefore remain part of
  * the application.
  *

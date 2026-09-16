@@ -26,15 +26,15 @@ import { PIDNode } from "~/drizzle/schema/repo.PIDNode.ts";
 import type { loader as entryLoader } from "./$repo.inventory.$entrySlug.tsx";
 import type { Route } from "./+types/$repo.inventory.$entrySlug.pid.ts";
 
-export function loader({ context, params }: Route.LoaderArgs) {
+export async function loader({ context, params }: Route.LoaderArgs) {
 	const db = context.get(services).get(RepoDB);
-	const entry = getRig(db, params.entrySlug);
+	const entry = await getRig(db, params.entrySlug);
 
 	if (!entry) {
 		throw new Response(`Rig "${params.entrySlug}" not found.`, { status: 404 });
 	}
 
-	const nodes = db
+	const nodes = await db
 		.select({
 			id: PIDNode.id,
 			kind: PIDNode.kind,
@@ -50,7 +50,7 @@ export function loader({ context, params }: Route.LoaderArgs) {
 		.orderBy(asc(PIDNode.drawingOrder))
 		.all();
 
-	const edges = db
+	const edges = await db
 		.select({
 			id: PIDEdge.id,
 			source: PIDEdge.sourceNodeId,
@@ -74,7 +74,7 @@ export function loader({ context, params }: Route.LoaderArgs) {
 export async function action({ context, request, params }: Route.ActionArgs) {
 	const container = context.get(services);
 	const db = container.get(RepoDB);
-	const entry = getRig(db, params.entrySlug);
+	const entry = await getRig(db, params.entrySlug);
 
 	if (!entry) {
 		throw new Response(`Rig "${params.entrySlug}" not found.`, { status: 404 });

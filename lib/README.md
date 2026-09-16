@@ -19,6 +19,7 @@ their public APIs.
 | `form-values/`       | Reads submitted form fields as typed values.                      |
 | `logger/`            | Writes structured log messages to a stream.                       |
 | `service-container/` | Resolves services and provides independently configurable scopes. |
+| `sqlite-errors/`     | Recognizes SQLite constraint failures by the columns they name.   |
 | `storage-engine/`    | Stores files as streams behind a common interface.                |
 | `tsrc/`              | Generates runtime validators from TypeScript declarations.        |
 
