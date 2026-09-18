@@ -1,0 +1,341 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-15T14:05:00.000Z",
+  "title": "Design System: Adacta",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas",
+        "canonical": "#ffffff",
+        "dark": "oklch(0.141 0.005 285.823)",
+        "tonalRamp": [
+          "oklch(0.141 0.005 285.823)",
+          "oklch(0.21 0.006 285.885)",
+          "oklch(0.274 0.006 286.033)",
+          "oklch(0.37 0.013 285.805)",
+          "oklch(0.552 0.016 285.938)",
+          "oklch(0.705 0.015 286.067)",
+          "oklch(0.871 0.006 286.286)",
+          "oklch(0.985 0 0)"
+        ]
+      },
+      "canvas-sunken": {
+        "role": "neutral",
+        "displayName": "Large-screen Canvas",
+        "canonical": "oklch(0.967 0.001 286.375)",
+        "dark": "oklch(0.141 0.005 285.823)",
+        "note": "In the dark theme, the canvas and large-screen canvas have the same value. The lighter content card provides the separation."
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "#ffffff",
+        "dark": "oklch(0.21 0.006 285.885)"
+      },
+      "surface-muted": {
+        "role": "neutral",
+        "displayName": "Muted Surface",
+        "canonical": "oklch(0.985 0 0)",
+        "dark": "oklch(0.274 0.006 286.033)"
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Foreground",
+        "canonical": "oklch(0.141 0.005 285.823)",
+        "dark": "oklch(0.985 0 0)"
+      },
+      "foreground-muted": {
+        "role": "neutral",
+        "displayName": "Muted Foreground",
+        "canonical": "oklch(0.442 0.017 285.786)",
+        "dark": "oklch(0.705 0.015 286.067)"
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "canonical": "oklch(0.92 0.004 286.32)",
+        "dark": "oklch(0.274 0.006 286.033)"
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Strong Border",
+        "canonical": "oklch(0.871 0.006 286.286)",
+        "dark": "oklch(0.37 0.013 285.805)"
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Accent",
+        "canonical": "oklch(0.5 0.134 242.749)",
+        "dark": "oklch(0.5 0.134 242.749)",
+        "note": "The filled accent has the same value in both themes. The link and focus roles use lighter values in the dark theme.",
+        "tonalRamp": [
+          "oklch(0.293 0.066 243.157)",
+          "oklch(0.391 0.09 240.876)",
+          "oklch(0.443 0.11 240.79)",
+          "oklch(0.5 0.134 242.749)",
+          "oklch(0.588 0.158 241.966)",
+          "oklch(0.685 0.169 237.323)",
+          "oklch(0.828 0.111 230.318)",
+          "oklch(0.977 0.013 236.62)"
+        ]
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Accent Hover",
+        "canonical": "oklch(0.443 0.11 240.79)",
+        "dark": "oklch(0.443 0.11 240.79)"
+      },
+      "link": {
+        "role": "primary",
+        "displayName": "Accent",
+        "canonical": "oklch(0.5 0.134 242.749)",
+        "dark": "oklch(0.746 0.16 232.661)"
+      },
+      "focus": {
+        "role": "primary",
+        "displayName": "Focus",
+        "canonical": "oklch(0.588 0.158 241.966)",
+        "dark": "oklch(0.746 0.16 232.661)"
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Danger",
+        "canonical": "oklch(0.505 0.213 27.518)",
+        "dark": "oklch(0.505 0.213 27.518)"
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Warning",
+        "canonical": "oklch(0.555 0.163 48.998)",
+        "dark": "oklch(0.828 0.189 84.429)"
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Success",
+        "canonical": "oklch(0.527 0.154 150.069)",
+        "dark": "oklch(0.792 0.209 151.711)"
+      },
+      "series-1": {
+        "role": "tertiary",
+        "displayName": "Series One",
+        "canonical": "oklch(0.588 0.158 241.966)",
+        "dark": "oklch(0.746 0.16 232.661)"
+      },
+      "series-2": {
+        "role": "tertiary",
+        "displayName": "Series Two",
+        "canonical": "oklch(0.646 0.222 41.116)",
+        "dark": "oklch(0.75 0.183 55.934)"
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The page title. Below the sm breakpoint it uses 24px/32px. At larger widths it uses 20px/32px. The larger mobile title provides context when the sidebar is absent."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section headings and the subtitle under a page title."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading text, primarily the documentation pages."
+      },
+      "supporting": {
+        "displayName": "Supporting",
+        "purpose": "The normal application size. It is used for list rows, field labels, helper text, and buttons."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Sidebar section headings and small badges."
+      }
+    },
+    "shadows": [
+      {
+        "name": "content-card",
+        "value": "0 1px 2px rgb(0 0 0 / 0.05)",
+        "purpose": "The application content card. It always includes a 1px border. The border provides most of the visible separation."
+      },
+      {
+        "name": "overlay-panel",
+        "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        "purpose": "Used for overlays such as dialogs, P&ID tool panels, file drop targets, and documentation code blocks."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-transition",
+        "value": "0.2s",
+        "purpose": "Used for hover and focus color changes on controls. Adacta does not use entrance, scroll, or attention animation."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ],
+    "themeMechanism": {
+      "strategy": "semantic-roles",
+      "description": "Each role in app/theme.css defines both theme values with light-dark(). The color-scheme property selects the applicable value. A data-theme attribute on the root element can override the operating system setting. Adacta components do not use dark: classes. The vendored Catalyst kit uses them. Therefore, app.css makes its dark variant follow the same data-theme attribute."
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The filled control for the primary form action. Pair it with a plain text link for the related action.",
+      "html": "<button class=\"ds-btn-primary\">Add product</button>",
+      "css": ".ds-btn-primary { background: var(--adacta-color-accent, oklch(0.5 0.134 242.749)); color: #fff; font-family: InterVariable, ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 20px; font-weight: 600; padding: 8px 12px; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; } .ds-btn-primary:hover { background: var(--adacta-color-accent-hover, oklch(0.443 0.11 240.79)); } .ds-btn-primary:focus-visible { outline: 2px solid var(--adacta-color-focus, oklch(0.588 0.158 241.966)); outline-offset: 2px; } .ds-btn-primary:disabled { opacity: 0.5; cursor: default; }"
+    },
+    {
+      "name": "Cancel Link",
+      "kind": "button",
+      "refersTo": "link-inline",
+      "description": "The text link used for the action related to a primary form action.",
+      "html": "<a class=\"ds-link-cancel\" href=\"#\">Cancel</a>",
+      "css": ".ds-link-cancel { color: var(--adacta-color-foreground-muted, oklch(0.442 0.017 285.786)); font-family: InterVariable, ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 20px; text-decoration: none; transition: color 0.2s; } .ds-link-cancel:hover { color: var(--adacta-color-foreground, oklch(0.141 0.005 285.823)); } .ds-link-cancel:focus-visible { outline: 2px solid var(--adacta-color-focus, oklch(0.588 0.158 241.966)); outline-offset: 2px; border-radius: 4px; }"
+    },
+    {
+      "name": "Labelled Field",
+      "kind": "input",
+      "refersTo": "input-text",
+      "description": "A field group contains a label, optional helper text, the control, and any validation message. One <label> element connects the applicable content.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Order code</span><span class=\"ds-field-help\">The code the manufacturer prints. This becomes the address of the product.</span><input class=\"ds-field-input ds-field-input--invalid\" type=\"text\" value=\"###\" aria-invalid=\"true\" aria-describedby=\"demo-error\" /><p id=\"demo-error\" role=\"alert\" class=\"ds-field-error\">An order code must contain at least one letter or number.</p></label>",
+      "css": ".ds-field { display: block; font-family: InterVariable, ui-sans-serif, system-ui, sans-serif; } .ds-field-label { display: block; font-size: 14px; font-weight: 500; color: var(--adacta-color-foreground, oklch(0.141 0.005 285.823)); } .ds-field-help { display: block; margin-top: 4px; font-size: 14px; line-height: 20px; color: var(--adacta-color-foreground-muted, oklch(0.442 0.017 285.786)); } .ds-field-input { display: block; width: 100%; margin-top: 8px; padding: 8px 12px; border: 1px solid var(--adacta-color-border, oklch(0.92 0.004 286.32)); border-radius: 8px; background: var(--adacta-color-surface, #fff); color: var(--adacta-color-foreground, oklch(0.141 0.005 285.823)); font: inherit; font-size: 14px; } .ds-field-input::placeholder { color: var(--adacta-color-foreground-muted, oklch(0.442 0.017 285.786)); } .ds-field-input:focus { border-color: var(--adacta-color-focus, oklch(0.588 0.158 241.966)); outline: none; } .ds-field-input--invalid { border-color: var(--adacta-color-danger, oklch(0.505 0.213 27.518)); } .ds-field-input--invalid:focus { border-color: var(--adacta-color-danger, oklch(0.505 0.213 27.518)); } .ds-field-error { margin: 8px 0 0; font-size: 14px; line-height: 20px; color: var(--adacta-color-danger, oklch(0.505 0.213 27.518)); }"
+    },
+    {
+      "name": "Content Card",
+      "kind": "card",
+      "refersTo": "card-shell",
+      "description": "The application content card. It is used above the lg breakpoint. At smaller widths, the content is placed directly on the page canvas.",
+      "html": "<div class=\"ds-card\"><h1 class=\"ds-card-title\">Inventory</h1><p class=\"ds-card-sub\">Custom rigs and standalone equipment in this repository.</p></div>",
+      "css": ".ds-card { background: var(--adacta-color-surface, #fff); border-radius: 8px; padding: 40px; box-shadow: 0 0 0 1px var(--adacta-color-border, oklch(0.92 0.004 286.32)), 0 1px 2px rgb(0 0 0 / 0.05); font-family: InterVariable, ui-sans-serif, system-ui, sans-serif; } .ds-card-title { margin: 0; font-size: 20px; line-height: 32px; font-weight: 600; color: var(--adacta-color-foreground, oklch(0.141 0.005 285.823)); } .ds-card-sub { margin: 4px 0 0; font-size: 14px; line-height: 24px; font-weight: 600; color: var(--adacta-color-foreground, oklch(0.141 0.005 285.823)); }"
+    },
+    {
+      "name": "Sidebar Item",
+      "kind": "nav",
+      "refersTo": "sidebar-item",
+      "description": "A navigation row. The current item uses the muted surface and a darker icon. Its text color and weight remain unchanged.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item\" href=\"#\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25\"/></svg>Catalog</a><a class=\"ds-nav-item ds-nav-item--current\" href=\"#\" aria-current=\"page\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z\"/></svg>Inventory</a></nav>",
+      "css": ".ds-nav { display: flex; flex-direction: column; gap: 2px; font-family: InterVariable, ui-sans-serif, system-ui, sans-serif; width: 200px; } .ds-nav-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; font-size: 14px; line-height: 20px; font-weight: 500; text-decoration: none; color: var(--adacta-color-foreground, oklch(0.141 0.005 285.823)); } .ds-nav-item svg { color: var(--adacta-color-foreground-muted, oklch(0.442 0.017 285.786)); flex: none; } .ds-nav-item:hover { background: var(--adacta-color-surface-muted, oklch(0.985 0 0)); } .ds-nav-item--current { background: var(--adacta-color-surface-muted, oklch(0.985 0 0)); } .ds-nav-item--current svg { color: var(--adacta-color-foreground, oklch(0.141 0.005 285.823)); } .ds-nav-item:focus-visible { outline: 2px solid var(--adacta-color-focus, oklch(0.588 0.158 241.966)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Classification Badge",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "Shows a classification that belongs to the record. For example, it can identify a rig with a P&ID or a standalone equipment item.",
+      "html": "<span class=\"ds-badge ds-badge--pid\">P&amp;ID</span> <span class=\"ds-badge\">Standalone</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 6px; font-family: InterVariable, ui-sans-serif, system-ui, sans-serif; font-size: 12px; line-height: 20px; font-weight: 500; background: var(--adacta-color-surface-muted, oklch(0.985 0 0)); color: var(--adacta-color-foreground-muted, oklch(0.442 0.017 285.786)); } .ds-badge--pid { background: oklch(0.951 0.026 236.824); color: oklch(0.443 0.11 240.79); }"
+    },
+    {
+      "name": "List Row",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "An index-page row with an icon, name, right-aligned metadata, and classification badge. Borders separate adjacent rows.",
+      "html": "<ul class=\"ds-list\"><li><a class=\"ds-row\" href=\"#\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M9 3.75H6.912a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859\"/></svg><span class=\"ds-row-name\">Ammonia Synthesis Rig</span><span class=\"ds-row-meta\">Bench 2 \u00b7 Building B3 \u00b7 Room 101</span><span class=\"ds-badge ds-badge--pid\">P&amp;ID</span></a></li><li><a class=\"ds-row\" href=\"#\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9\"/></svg><span class=\"ds-row-name\">Micro GC 490</span><span class=\"ds-row-meta\">Cabinet A \u00b7 Building B3 \u00b7 Room 102</span><span class=\"ds-badge\">Standalone</span></a></li></ul>",
+      "css": ".ds-list { list-style: none; margin: 0; padding: 0; font-family: InterVariable, ui-sans-serif, system-ui, sans-serif; } .ds-list li + li { border-top: 1px solid var(--adacta-color-border, oklch(0.92 0.004 286.32)); } .ds-row { display: flex; align-items: center; gap: 12px; padding: 12px 8px; text-decoration: none; color: var(--adacta-color-foreground, oklch(0.141 0.005 285.823)); } .ds-row:hover { background: var(--adacta-color-surface-muted, oklch(0.985 0 0)); } .ds-row svg { flex: none; color: var(--adacta-color-foreground-muted, oklch(0.442 0.017 285.786)); } .ds-row-name { flex: 1; font-size: 14px; font-weight: 500; } .ds-row-meta { font-size: 14px; color: var(--adacta-color-foreground-muted, oklch(0.442 0.017 285.786)); } .ds-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 6px; font-size: 12px; line-height: 20px; font-weight: 500; background: var(--adacta-color-surface-muted, oklch(0.985 0 0)); color: var(--adacta-color-foreground-muted, oklch(0.442 0.017 285.786)); } .ds-badge--pid { background: oklch(0.951 0.026 236.824); color: oklch(0.443 0.11 240.79); }"
+    },
+    {
+      "name": "Empty State",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "One sentence in the muted foreground color that reports the empty section.",
+      "html": "<p class=\"ds-empty\">No products yet.</p>",
+      "css": ".ds-empty { margin: 0; font-family: InterVariable, ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 24px; color: var(--adacta-color-foreground-muted, oklch(0.442 0.017 285.786)); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Laboratory Records",
+    "overview": "Adacta presents laboratory records through a restrained application interface. The data is the main content on every page. Consistent alignment, borders, and spacing make that content easier to scan. Color and motion have limited, defined purposes.\n\nThe implementation uses semantic color roles. For example, a component uses bg-surface or text-foreground-muted instead of a palette value. Each role contains a light value and a dark value. The color-scheme property and light-dark() function select the applicable value. Therefore, Adacta components do not contain separate theme branches.\n\nThe interface presents enough information for laboratory work without reducing legibility. Interface text is normally 14px, while documentation text is 16px. On large screens, the application uses one elevated content card. Components within that card use borders and muted backgrounds for separation.",
+    "keyCharacteristics": [
+      "Adacta components use semantic color roles.",
+      "Sky blue is used for primary actions, links, and focus indicators.",
+      "Zinc neutrals provide the canvas, surfaces, text, and borders.",
+      "The application shell contains one elevated content card on large screens.",
+      "InterVariable is the only typeface.",
+      "Thin borders separate content within the application."
+    ],
+    "rules": [
+      {
+        "name": "Color roles",
+        "body": "Adacta components use semantic color roles. They do not use palette names or dark: classes. When a component needs a new color purpose, add a semantic role to theme.css. Define both theme values on that role.",
+        "section": "colors"
+      },
+      {
+        "name": "Accent use",
+        "body": "Sky blue is the only interface accent. Red, amber, and green indicate status. They are used when an operation fails, needs attention, or succeeds. This distinction keeps application controls and status messages consistent.",
+        "section": "colors"
+      },
+      {
+        "name": "Interface color balance",
+        "body": "A typical page mainly uses foreground colors, muted foreground colors, and borders. Accent and status colors should cover only a small part of a page in its normal state. Extensive status color indicates that the page requires the user's attention.",
+        "section": "colors"
+      },
+      {
+        "name": "Typeface",
+        "body": "Use InterVariable throughout the application and documentation. A single typeface maintains consistent character forms in records and controls.",
+        "section": "typography"
+      },
+      {
+        "name": "Interface text size",
+        "body": "Use 14px text for application controls and supporting information. Use 16px text for prose. When a control needs more visual emphasis, adjust its spacing or weight before increasing the font size.",
+        "section": "typography"
+      },
+      {
+        "name": "Large-screen content card",
+        "body": "The elevated content card is used at the lg breakpoint and above. On smaller screens, the content is placed directly on the page canvas. This removes the card border, radius, and shadow when screen space is limited.",
+        "section": "layout"
+      },
+      {
+        "name": "Elevation",
+        "body": "Use one elevated surface during normal application use. Before adding a shadow, determine whether the component is displayed above the page. Components within the normal document flow use a border instead.",
+        "section": "elevation"
+      },
+      {
+        "name": "Corner radii",
+        "body": "Use an 8px radius by default. Use 6px for small inset elements and 12px for large framed regions. Use a fully rounded shape only for counts and controls whose meaning depends on that shape.",
+        "section": "shapes"
+      },
+      {
+        "name": "Validation messages",
+        "body": "Place a validation message below the relevant control. When several controls are invalid, report all of them in their page order. This allows the user to correct them in one attempt. Show at most one message for each control. Apply the validation rules in order and show the first applicable message.",
+        "section": "components"
+      },
+      {
+        "name": "Field width",
+        "body": "A control should match the expected length of its value. For example, an order code does not need the width used for a paragraph. Use 24ch for a code, date, or formula. Use 44ch for a name. A line of prose may use the full column.",
+        "section": "components"
+      },
+      {
+        "name": "Vendored Catalyst components",
+        "body": "The project stores the Catalyst Tailwind template in vendor/catalyst-ui-kit/. This directory is the unchanged reference version. When an application component needs different behavior or semantic colors, copy it into app/ and edit the copy. Preserve the component structure, spacing, and Headless UI integration where they meet the requirements. Replace palette colors and dark: classes with Adacta color roles.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Use a semantic color role such as bg-surface or text-foreground-muted. If the required role does not exist, add it to theme.css with light and dark values.",
+      "Use the border role to separate components within the page.",
+      "Use an 8px radius by default and 14px text for application controls.",
+      "Pair a filled primary button with a plain text link.",
+      "Put a realistic example in a placeholder. Put the explanation in the helper text.",
+      "Describe an empty section with one muted sentence.",
+      "Copy a Catalyst component into app/ when it requires changes. Convert its palette colors to semantic roles in the application copy."
+    ],
+    "donts": [
+      "Do not add palette colors or dark: classes to an Adacta component. The vendored Catalyst components use them because they remain unchanged.",
+      "Do not add another accent hue. Use status colors only for status information.",
+      "Do not add a shadow to a component in the normal document flow.",
+      "Do not add another typeface.",
+      "Do not use color, heavier text, or an accent border to identify the current navigation item. Use the muted surface and darker icon.",
+      "Do not use an illustrated panel or a multistep guide for an ordinary empty section. Reserve explanatory panels for the guided catalog creation page and the empty repository.",
+      "Do not edit files under vendor/. Copy the required component into app/."
+    ]
+  }
+}
