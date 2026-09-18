@@ -42,6 +42,19 @@ may therefore be optional.
 Both types are inferred from the table definition. A schema change therefore
 changes the corresponding entity types without a second declaration.
 
+## PROV labels
+
+Some tables end their comment with a line such as `PROV: prov:Entity.`. The
+line names the matching term in PROV, the W3C model for recording where data
+came from. For example, a note is a `prov:Entity`, and the version an edit
+replaced is linked by `prov:wasRevisionOf`. Only tables that hold evidence or
+results carry the line. The catalog and the inventory do not.
+
+In such a table the metadata columns also have a PROV meaning. The creator is
+`prov:wasAttributedTo`, and the creation time is `prov:generatedAtTime`.
+Adacta does not use PROV today. The lines show how a later migration can map
+the data onto it.
+
 ## Foreign keys
 
 Foreign keys are enforced on every connection. `DatabaseManager` turns them on

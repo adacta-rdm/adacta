@@ -9,6 +9,8 @@ import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
  * describe the scientific role of the file. For example, a scanned notebook
  * page and a table of measurements are both source artifacts. Relationships
  * between a source artifact and other records are stored separately.
+ *
+ * PROV: prov:Entity.
  */
 export const SourceArtifact = sqliteTable("SourceArtifact", {
 	/**
