@@ -14,11 +14,12 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { createAppContainer } from "~/app/.server/createAppContainer.ts";
+import { createLocalAppContainer } from "~/app/.server/appContainer.local.ts";
 import { BetterAuth } from "~/app/services/BetterAuth.ts";
 import { RepoAccess } from "~/app/services/RepoAccess.ts";
 import { RepoManager } from "~/app/services/RepoManager.ts";
 import { Security } from "~/app/services/Security.ts";
+import { SqliteDatabaseManager } from "~/app/services/SqliteDatabaseManager.ts";
 import { Env, type EnvSource } from "~/lib/env/Env.ts";
 import { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
@@ -32,7 +33,7 @@ export const TEST_USER = {
  * Create the root service-container environment shared by more specialized test fixtures.
  */
 export function setupTestEnvironment(env: EnvSource = {}): ServiceContainer {
-	return createAppContainer(new Env({ ...env, ADACTA_LOG_LEVEL: "silent" }));
+	return createLocalAppContainer(new Env({ ...env, ADACTA_LOG_LEVEL: "silent" }));
 }
 
 /**
@@ -55,7 +56,7 @@ export function setupTestPersistenceEnvironment(env: EnvSource = {}): ServiceCon
 export function setupEmptyTestDatabaseEnvironment(env: EnvSource = {}): ServiceContainer {
 	const container = setupTestPersistenceEnvironment(env);
 
-	container.get(RepoManager).migrateAll();
+	container.get(SqliteDatabaseManager).migrateSystem();
 
 	return container;
 }
@@ -83,11 +84,11 @@ export async function setupTestRepositoryEnvironment(
 	const userId = container.get(Security).userId;
 	const repositories = container.get(RepoManager);
 
-	repositories.createRepository(repository);
-	repositories.grantAccess(userId, repository);
+	await repositories.createRepository(repository);
+	await repositories.grantAccess(userId, repository);
 
 	const scope = container.clone();
-	scope.get(RepoAccess).selectRepository(repository);
+	await scope.get(RepoAccess).selectRepository(repository);
 	return scope;
 }
 

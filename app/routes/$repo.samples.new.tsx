@@ -49,14 +49,12 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	// new one to a numbered variant.
 	const slug = availableSlug(
 		fields.name,
-		db
-			.select({ slug: SampleBatch.slug })
-			.from(SampleBatch)
-			.all()
-			.map((batch) => batch.slug),
+		(await db.select({ slug: SampleBatch.slug }).from(SampleBatch).all()).map(
+			(batch) => batch.slug,
+		),
 	);
 
-	const batch = db
+	const batch = await db
 		.insert(SampleBatch)
 		.values({
 			slug,

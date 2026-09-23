@@ -57,7 +57,7 @@ type SeedRepository = {
 export async function seedDatabase(container: ServiceContainer): Promise<void> {
 	const manager = container.get(RepoManager);
 
-	manager.migrateAll();
+	await manager.migrateAll();
 
 	const userIds = await seedUsers(container);
 
@@ -68,18 +68,18 @@ export async function seedDatabase(container: ServiceContainer): Promise<void> {
 	if (slugs.length === 0) throw new Error("No repository directories in seed/repo/.");
 
 	for (const slug of slugs) {
-		ensureRepository(manager, slug);
+		await ensureRepository(manager, slug);
 
 		// Everyone works in every repository. A development login is meant to
 		// reach the whole fixture set.
-		for (const userId of userIds.values()) manager.grantAccess(userId, slug);
+		for (const userId of userIds.values()) await manager.grantAccess(userId, slug);
 
-		const scope = scopeFor(container, creatorId, slug);
+		const scope = await scopeFor(container, creatorId, slug);
 
 		const entries = seedInventory(scope, slug);
 		const { batches, samples } = await seedSamples(scope, slug, userIds);
 
-		const catalog = seedCatalog(scope, slug);
+		const catalog = await seedCatalog(scope, slug);
 
 		console.log(
 			`seeded ${slug}: ${entries} inventory entries, ` +
@@ -147,11 +147,11 @@ async function ensureUser(auth: BetterAuth, user: SeedUser): Promise<string> {
  * Create the repository unless it is already there. The directory name is the
  * slug. The display name comes from that directory's "repository.json".
  */
-function ensureRepository(manager: RepoManager, slug: string): void {
+async function ensureRepository(manager: RepoManager, slug: string): Promise<void> {
 	const { name } = readJson<SeedRepository>(seedPath("repo", slug, "repository.json"));
 
 	try {
-		manager.createRepository(slug, name);
+		await manager.createRepository(slug, name);
 	} catch (error) {
 		if (!(error instanceof RepositoryAlreadyExistsError)) throw error;
 	}
@@ -161,11 +161,15 @@ function ensureRepository(manager: RepoManager, slug: string): void {
  * A request-like scope with the seed user authenticated and one repository
  * bound. RepoDB needs both before it resolves.
  */
-function scopeFor(app: ServiceContainer, userId: string, slug: string): ServiceContainer {
+async function scopeFor(
+	app: ServiceContainer,
+	userId: string,
+	slug: string,
+): Promise<ServiceContainer> {
 	const scope = app.clone();
 
 	scope.get(Security).setCurrentUserId(userId);
-	scope.get(RepoAccess).selectRepository(slug);
+	await scope.get(RepoAccess).selectRepository(slug);
 
 	return scope;
 }

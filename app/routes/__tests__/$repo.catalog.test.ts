@@ -21,7 +21,7 @@ describe("catalog index loader", () => {
 		const scope = await setupCatalog();
 		const [args] = createMiddlewareArgs(scope, { params: { repo: "demo" } });
 
-		const { products } = indexLoader(args);
+		const { products } = await indexLoader(args);
 
 		// Ordered by manufacturer, then by order code.
 		expect(products).toEqual([
@@ -43,7 +43,7 @@ describe("catalog index loader", () => {
 describe("manufacturer product loader", () => {
 	test("puts the lines that differ in the table and the rest above it", async () => {
 		const scope = await setupCatalog();
-		const { series, standalone } = loadManufacturer(scope, "bronkhorst");
+		const { series, standalone } = await loadManufacturer(scope, "bronkhorst");
 
 		expect(series).toHaveLength(1);
 		expect(series[0]?.products.map((product) => product.productNumber)).toEqual([
@@ -67,7 +67,7 @@ describe("manufacturer product loader", () => {
 		// The loader is synchronous, so it throws instead of rejecting.
 		let thrown: unknown;
 		try {
-			loadManufacturer(scope, "no-such-maker");
+			await loadManufacturer(scope, "no-such-maker");
 		} catch (error) {
 			thrown = error;
 		}
@@ -84,7 +84,7 @@ describe("product loader", () => {
 			params: { repo: "demo", manufacturerSlug: "bronkhorst", productSlug: "f-201cv-020" },
 		});
 
-		const { product, series, specifications, channels } = productLoader(args);
+		const { product, series, specifications, channels } = await productLoader(args);
 
 		expect(product.productNumber).toBe("F-201CV-020");
 		expect(series?.name).toBe("EL-FLOW Select");
@@ -113,7 +113,7 @@ describe("product loader", () => {
 
 		let thrown: unknown;
 		try {
-			productLoader(args);
+			await productLoader(args);
 		} catch (error) {
 			thrown = error;
 		}
@@ -142,23 +142,23 @@ async function setupCatalog(): Promise<ServiceContainer> {
 		metadataCreationTimestamp: new Date("2026-01-15T12:00:00.000Z"),
 	};
 
-	const { id: manufacturerId } = db
+	const { id: manufacturerId } = await db
 		.insert(Manufacturer)
 		.values({ slug: "bronkhorst", name: "Bronkhorst", ...metadata })
 		.returning({ id: Manufacturer.id })
 		.get();
 
-	const { id: seriesId } = db
+	const { id: seriesId } = await db
 		.insert(ProductSeries)
 		.values({ manufacturerId, slug: "el-flow-select", name: "EL-FLOW Select", ...metadata })
 		.returning({ id: ProductSeries.id })
 		.get();
 
-	const addProduct = (
+	const addProduct = async (
 		values: { slug: string; productNumber: string; seriesId?: number; seriesPosition?: number },
 		specifications: { name: string; value: string }[],
 	) => {
-		const { id } = db
+		const { id } = await db
 			.insert(Product)
 			.values({
 				manufacturerId,
@@ -180,8 +180,8 @@ async function setupCatalog(): Promise<ServiceContainer> {
 		});
 	};
 
-	const addChannel = (productSlug: string) => {
-		const product = db.select().from(Product).where(eq(Product.slug, productSlug)).get();
+	const addChannel = async (productSlug: string) => {
+		const product = await db.select().from(Product).where(eq(Product.slug, productSlug)).get();
 
 		db.insert(Channel)
 			.values({
@@ -197,17 +197,23 @@ async function setupCatalog(): Promise<ServiceContainer> {
 	};
 
 	// The seeder stores a product's own lines first, then the shared ones.
-	addProduct({ slug: "f-201cv-020", productNumber: "F-201CV-020", seriesId, seriesPosition: 0 }, [
-		{ name: "Calibration gas", value: "N₂" },
-		{ name: "Accuracy", value: "±0.5%" },
-	]);
-	addProduct({ slug: "f-201cv-100", productNumber: "F-201CV-100", seriesId, seriesPosition: 1 }, [
-		{ name: "Calibration gas", value: "H₂" },
-		{ name: "Accuracy", value: "±0.5%" },
-	]);
-	addProduct({ slug: "n86", productNumber: "N86" }, [{ name: "Flow", value: "6 l/min" }]);
+	await addProduct(
+		{ slug: "f-201cv-020", productNumber: "F-201CV-020", seriesId, seriesPosition: 0 },
+		[
+			{ name: "Calibration gas", value: "N₂" },
+			{ name: "Accuracy", value: "±0.5%" },
+		],
+	);
+	await addProduct(
+		{ slug: "f-201cv-100", productNumber: "F-201CV-100", seriesId, seriesPosition: 1 },
+		[
+			{ name: "Calibration gas", value: "H₂" },
+			{ name: "Accuracy", value: "±0.5%" },
+		],
+	);
+	await addProduct({ slug: "n86", productNumber: "N86" }, [{ name: "Flow", value: "6 l/min" }]);
 
-	addChannel("f-201cv-020");
+	await addChannel("f-201cv-020");
 
 	return scope;
 }

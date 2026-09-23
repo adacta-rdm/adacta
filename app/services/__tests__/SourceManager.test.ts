@@ -24,9 +24,8 @@ describe("SourceManager", () => {
 			mediaType: "application/json",
 			source: new Blob(["{}"]).stream(),
 		});
-
 		const uploadId = await upload.commit(scope.get(Security).userId);
-		const artifacts = sources.artifactsOfUpload(uploadId);
+		const artifacts = await sources.artifactsOfUpload(uploadId);
 
 		expect(
 			artifacts.map(({ uploadId: id, originalName, mediaType, byteSize }) => ({
@@ -54,7 +53,7 @@ describe("SourceManager", () => {
 
 		const contents = await Promise.all(
 			artifacts.map(async ({ id }) => {
-				const artifact = sources.getArtifact(id);
+				const artifact = await sources.getArtifact(id);
 				return new Response(await artifact.read()).text();
 			}),
 		);
@@ -78,7 +77,7 @@ describe("SourceManager", () => {
 			expect((error as Error).message).toBe("Source failed");
 		}
 
-		expect(() => sources.artifactsOfUpload(upload.id)).toThrow(SourceFileNotFoundError);
+		await expect(sources.artifactsOfUpload(upload.id)).rejects.toBeInstanceOf(SourceFileNotFoundError);
 	});
 
 	test("archiving one file leaves the others of its upload in place", async () => {
@@ -90,7 +89,7 @@ describe("SourceManager", () => {
 		await upload.add({ originalName: "b.csv", source: new Blob(["b"]).stream() });
 
 		const uploadId = await upload.commit(scope.get(Security).userId);
-		const [first, second] = sources.artifactsOfUpload(uploadId);
+		const [first, second] = await sources.artifactsOfUpload(uploadId);
 
 		scope
 			.get(RepoDB)
@@ -99,9 +98,9 @@ describe("SourceManager", () => {
 			.where(eq(SourceArtifact.id, first!.id))
 			.run();
 
-		expect(() => sources.getArtifact(first!.id)).toThrow(SourceFileNotFoundError);
-		expect(sources.getArtifact(second!.id).originalName).toBe("b.csv");
-		expect(sources.artifactsOfUpload(uploadId).map((row) => row.originalName)).toEqual(["b.csv"]);
+		await expect(sources.getArtifact(first!.id)).rejects.toBeInstanceOf(SourceFileNotFoundError);
+		expect((await sources.getArtifact(second!.id)).originalName).toBe("b.csv");
+		expect((await sources.artifactsOfUpload(uploadId)).map((row) => row.originalName)).toEqual(["b.csv"]);
 	});
 });
 

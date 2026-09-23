@@ -73,7 +73,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 	const [db, access] = container.get(RepoDB, RepoAccess);
 	const showArchived = readTab(request);
 
-	const rows = db
+	const rows = await db
 		.select()
 		.from(SampleBatch)
 		.where(
@@ -88,13 +88,13 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 		Both counts are read on either tab. The archived tab is easy to overlook,
 		so its label carries the number of batches waiting in it.
 	*/
-	const archivedCount = db
+	const archivedCount = await db
 		.select({ total: count() })
 		.from(SampleBatch)
 		.where(isNotNull(SampleBatch.metadataArchivedAt))
 		.get();
 
-	const activeCount = db
+	const activeCount = await db
 		.select({ total: count() })
 		.from(SampleBatch)
 		.where(isNull(SampleBatch.metadataArchivedAt))
@@ -102,13 +102,14 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 
 	// One count for every batch, rather than one query per row.
 	const sampleCounts = new Map(
-		db
-			.select({ batchId: Sample.batchId, total: count() })
-			.from(Sample)
-			.where(isNull(Sample.metadataArchivedAt))
-			.groupBy(Sample.batchId)
-			.all()
-			.map((row) => [row.batchId, row.total]),
+		(
+			await db
+				.select({ batchId: Sample.batchId, total: count() })
+				.from(Sample)
+				.where(isNull(Sample.metadataArchivedAt))
+				.groupBy(Sample.batchId)
+				.all()
+		).map((row) => [row.batchId, row.total]),
 	);
 
 	// The list holds the users who may open the repository. A preparer whose
@@ -130,11 +131,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 		// Archived samples are read as well. The add row suggests the next free
 		// label, and a label that was used before is not free.
 		openSamples: openBatch
-			? db
-					.select()
-					.from(Sample)
-					.where(eq(Sample.batchId, openBatch.id))
-					.all()
+			? (await db.select().from(Sample).where(eq(Sample.batchId, openBatch.id)).all())
 					.sort((left, right) => compareSampleNames(left.name, right.name))
 					.map((sample) => ({ ...sample, preparedBy: users.get(sample.preparedById) }))
 			: null,
@@ -188,7 +185,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 		archived. Two people working at the same time therefore cannot undo each
 		other. The second click changes no row and answers 404.
 	*/
-	const changed = db
+	const changed = await db
 		.update(SampleBatch)
 		.set({ metadataArchivedAt: archiving ? new Date() : null })
 		.where(
@@ -224,7 +221,7 @@ async function editSamples(
 	repository: string,
 ) {
 	// An archived batch is treated as absent. Its samples are read only.
-	const batch = db
+	const batch = await db
 		.select()
 		.from(SampleBatch)
 		.where(and(eq(SampleBatch.slug, batchSlug), isNull(SampleBatch.metadataArchivedAt)))
@@ -238,7 +235,7 @@ async function editSamples(
 	let errors: SampleErrors | undefined;
 
 	if (deletedSampleId !== null) {
-		deleteSubmittedSample(db, deletedSampleId);
+		await deleteSubmittedSample(db, deletedSampleId);
 	} else if (values.has("add")) {
 		const [access, security, logger] = container.get(RepoAccess, Security, Logger);
 

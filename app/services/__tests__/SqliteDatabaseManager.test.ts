@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { sql } from "drizzle-orm";
 
-import { DatabaseManager, InvalidDatabaseNameError } from "~/app/services/DatabaseManager.ts";
+import { SqliteDatabaseManager, InvalidDatabaseNameError } from "~/app/services/SqliteDatabaseManager.ts";
 import { setupTestPersistenceEnvironment } from "~/app/testUtils/testUtils.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
 import { Repository } from "~/drizzle/schema/system.Repository.ts";
@@ -20,10 +20,10 @@ function dbDir(container: ServiceContainer) {
 	return container.get(Env).string("ADACTA_DB_DIR");
 }
 
-describe("DatabaseManager", () => {
+describe("SqliteDatabaseManager", () => {
 	describe("connections", () => {
 		test("hands out a usable database handle", () => {
-			const db = environment().get(DatabaseManager).system();
+			const db = environment().get(SqliteDatabaseManager).system();
 
 			db.run(sql`CREATE TABLE t (id integer primary key, name text)`);
 			db.run(sql`INSERT INTO t (name) VALUES ('ada')`);
@@ -32,7 +32,7 @@ describe("DatabaseManager", () => {
 		});
 
 		test("returns the same handle for the same database", () => {
-			const databases = environment().get(DatabaseManager);
+			const databases = environment().get(SqliteDatabaseManager);
 			const first = databases.repoDb("demo");
 
 			expect(first).toBeDefined();
@@ -40,7 +40,7 @@ describe("DatabaseManager", () => {
 		});
 
 		test("keeps databases separate", () => {
-			const databases = environment().get(DatabaseManager);
+			const databases = environment().get(SqliteDatabaseManager);
 
 			databases.repoDb("demo").run(sql`CREATE TABLE t (id integer primary key)`);
 
@@ -49,14 +49,14 @@ describe("DatabaseManager", () => {
 		});
 
 		test("the system database is not one of the repositories", () => {
-			const databases = environment().get(DatabaseManager);
+			const databases = environment().get(SqliteDatabaseManager);
 
 			expect(databases.system()).not.toBe(databases.repoDb("demo"));
 		});
 
 		test("writes files into the configured directory", () => {
 			const container = environment();
-			container.get(DatabaseManager).repoDb("demo");
+			container.get(SqliteDatabaseManager).repoDb("demo");
 
 			expect(existsSync(join(dbDir(container), "demo.sqlite"))).toBe(true);
 		});
@@ -64,13 +64,13 @@ describe("DatabaseManager", () => {
 		test("creates the directory when it does not exist", () => {
 			const nested = join(dbDir(environment()), "does", "not", "exist");
 
-			environment({ ADACTA_DB_DIR: nested }).get(DatabaseManager).system();
+			environment({ ADACTA_DB_DIR: nested }).get(SqliteDatabaseManager).system();
 
 			expect(existsSync(join(nested, "_system.sqlite"))).toBe(true);
 		});
 
 		test("enforces foreign keys", () => {
-			const db = environment().get(DatabaseManager).repoDb("demo");
+			const db = environment().get(SqliteDatabaseManager).repoDb("demo");
 
 			db.run(sql`CREATE TABLE parent (id integer primary key)`);
 			db.run(sql`CREATE TABLE child (parent_id integer references parent(id))`);
@@ -82,7 +82,7 @@ describe("DatabaseManager", () => {
 		test("is a singleton within one container", () => {
 			const container = environment();
 
-			expect(container.get(DatabaseManager)).toBe(container.get(DatabaseManager));
+			expect(container.get(SqliteDatabaseManager)).toBe(container.get(SqliteDatabaseManager));
 		});
 
 		test("separate containers do not share databases", () => {
@@ -90,7 +90,7 @@ describe("DatabaseManager", () => {
 			const second = environment();
 
 			expect(dbDir(first)).not.toBe(dbDir(second));
-			expect(first.get(DatabaseManager)).not.toBe(second.get(DatabaseManager));
+			expect(first.get(SqliteDatabaseManager)).not.toBe(second.get(SqliteDatabaseManager));
 		});
 	});
 
@@ -98,7 +98,7 @@ describe("DatabaseManager", () => {
 		test.each([["../escape"], ["a/b"], ["with space"], ["semi;colon"], [""], ["_system"]])(
 			"rejects %p",
 			(slug) => {
-				const databases = environment().get(DatabaseManager);
+				const databases = environment().get(SqliteDatabaseManager);
 
 				expect(() => databases.repoDb(slug)).toThrow(InvalidDatabaseNameError);
 			},
@@ -107,12 +107,12 @@ describe("DatabaseManager", () => {
 		test("creates no file for a rejected name", () => {
 			const container = environment();
 
-			expect(() => container.get(DatabaseManager).repoDb("../escape")).toThrow();
+			expect(() => container.get(SqliteDatabaseManager).repoDb("../escape")).toThrow();
 			expect(existsSync(join(dbDir(container), "..", "escape.sqlite"))).toBe(false);
 		});
 
 		test("accepts letters, digits, dashes and underscores", () => {
-			const databases = environment().get(DatabaseManager);
+			const databases = environment().get(SqliteDatabaseManager);
 
 			expect(() => databases.repoDb("demo-1_A")).not.toThrow();
 		});
@@ -121,7 +121,7 @@ describe("DatabaseManager", () => {
 	describe("dropping", () => {
 		test("removes the repository file", () => {
 			const container = environment();
-			const databases = container.get(DatabaseManager);
+			const databases = container.get(SqliteDatabaseManager);
 			databases.migrateRepository("demo");
 
 			databases.dropRepository("demo");
@@ -131,7 +131,7 @@ describe("DatabaseManager", () => {
 
 		test("removes the system file", () => {
 			const container = environment();
-			const databases = container.get(DatabaseManager);
+			const databases = container.get(SqliteDatabaseManager);
 			databases.migrateSystem();
 
 			databases.dropSystem();
@@ -140,7 +140,7 @@ describe("DatabaseManager", () => {
 		});
 
 		test("a dropped repository comes back as a usable empty database", () => {
-			const databases = environment().get(DatabaseManager);
+			const databases = environment().get(SqliteDatabaseManager);
 			databases.migrateRepository("demo");
 
 			databases.dropRepository("demo");
@@ -155,7 +155,7 @@ describe("DatabaseManager", () => {
 		});
 
 		test("leaves other databases alone", () => {
-			const databases = environment().get(DatabaseManager);
+			const databases = environment().get(SqliteDatabaseManager);
 			databases.migrateRepository("demo");
 			databases.migrateRepository("pilot");
 
@@ -165,20 +165,20 @@ describe("DatabaseManager", () => {
 		});
 
 		test("dropping a repository that does not exist is not an error", () => {
-			const databases = environment().get(DatabaseManager);
+			const databases = environment().get(SqliteDatabaseManager);
 
 			expect(() => databases.dropRepository("never-created")).not.toThrow();
 		});
 
 		test.each([["../escape"], ["a/b"], ["_system"]])("rejects unsafe name %p", (slug) => {
-			const databases = environment().get(DatabaseManager);
+			const databases = environment().get(SqliteDatabaseManager);
 
 			expect(() => databases.dropRepository(slug)).toThrow(InvalidDatabaseNameError);
 		});
 
 		test("dropAll empties the directory", () => {
 			const container = environment();
-			const databases = container.get(DatabaseManager);
+			const databases = container.get(SqliteDatabaseManager);
 			databases.migrateSystem();
 			databases.migrateRepository("demo");
 			databases.migrateRepository("pilot");
@@ -190,7 +190,7 @@ describe("DatabaseManager", () => {
 
 		test("dropAll removes a file no repository record knows about", () => {
 			const container = environment();
-			const databases = container.get(DatabaseManager);
+			const databases = container.get(SqliteDatabaseManager);
 			writeFileSync(join(dbDir(container), "orphan.sqlite"), "");
 
 			databases.dropAll();
@@ -200,7 +200,7 @@ describe("DatabaseManager", () => {
 
 		test("deletes nothing when the name is rejected", () => {
 			const container = environment();
-			const databases = container.get(DatabaseManager);
+			const databases = container.get(SqliteDatabaseManager);
 			databases.migrateSystem();
 
 			expect(() => databases.dropRepository("_system")).toThrow();
@@ -211,22 +211,22 @@ describe("DatabaseManager", () => {
 	describe("migrations", () => {
 		test("migrateSystem creates the system tables", () => {
 			const container = environment();
-			container.get(DatabaseManager).migrateSystem();
+			container.get(SqliteDatabaseManager).migrateSystem();
 
 			expect(() =>
-				container.get(DatabaseManager).system().select().from(Repository).all(),
+				container.get(SqliteDatabaseManager).system().select().from(Repository).all(),
 			).not.toThrow();
 		});
 
 		test("migrateRepository creates the repository tables", () => {
-			const databases = environment().get(DatabaseManager);
+			const databases = environment().get(SqliteDatabaseManager);
 			databases.migrateRepository("demo");
 
 			expect(() => databases.repoDb("demo").select().from(InventoryEntry).all()).not.toThrow();
 		});
 
 		test("migrating twice is safe", () => {
-			const databases = environment().get(DatabaseManager);
+			const databases = environment().get(SqliteDatabaseManager);
 			databases.migrateSystem();
 			databases.migrateRepository("demo");
 
@@ -237,7 +237,7 @@ describe("DatabaseManager", () => {
 		});
 
 		test("does not migrate on open", () => {
-			const databases = environment().get(DatabaseManager);
+			const databases = environment().get(SqliteDatabaseManager);
 
 			// Opening must stay cheap: the repository database is bound per request.
 			expect(() => databases.repoDb("demo").select().from(InventoryEntry).all()).toThrow();
@@ -246,7 +246,7 @@ describe("DatabaseManager", () => {
 		test("rejects an unsafe name before migrating", () => {
 			const container = environment();
 
-			expect(() => container.get(DatabaseManager).migrateRepository("../escape")).toThrow(
+			expect(() => container.get(SqliteDatabaseManager).migrateRepository("../escape")).toThrow(
 				InvalidDatabaseNameError,
 			);
 		});

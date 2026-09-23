@@ -19,7 +19,7 @@ generate and apply them.
 ## Migration baselines
 
 Migration SQL is an application input. `RepoManager` creates a repository
-database by asking `DatabaseManager` to apply the repository migration files.
+database by asking `SqliteDatabaseManager` to apply the repository migration files.
 Drizzle Kit can push the schema only to a database that already exists. It
 therefore cannot replace this initialization path.
 
@@ -44,7 +44,7 @@ changes the corresponding entity types without a second declaration.
 
 ## Foreign keys
 
-Foreign keys are enforced on every connection. `DatabaseManager` turns them on
+Foreign keys are enforced on every connection. `SqliteDatabaseManager` turns them on
 when it opens one. Two consequences follow.
 
 **A foreign key cannot cross the two databases.** A repository table that
