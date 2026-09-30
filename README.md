@@ -141,3 +141,10 @@ there.
 
 `ADACTA_DEV_USER` is meant for development. It is never read when `NODE_ENV` is
 `production`.
+
+## Funding and support
+
+Adacta was developed as part of the [NFDI4Cat](https://nfdi4cat.org) project.
+[omegadot](https://www.omegadot.software) provided further support. Its work on
+Adacta was funded by the German Federal Ministry of Research, Technology and
+Space (BMFTR).
