@@ -88,6 +88,13 @@ body {
 }
 
 .pid-editor {
+	/*
+		A P&ID is a technical drawing and always uses its light drafting surface.
+		Pin the scheme on the editor itself as well as on React Flow: this applies
+		before React hydrates, so a dark system preference cannot flash through on
+		the first paint.
+	*/
+	color-scheme: light;
 	--pid-detail-line-width: 1px;
 	--pid-line-width: 1.5px;
 	--xy-selection-background-color: color-mix(in srgb, var(--adacta-color-accent) 10%, transparent);
@@ -121,18 +128,18 @@ body {
 }
 
 /* React Flow measures hidden ports to position saved connections. */
-.pid-editor-canvas--read-only .react-flow__handle {
+.pid-editor-canvas--read-only .react-flow__handle,
+.pid-editor-canvas--read-only .pid-handle-marker {
 	opacity: 0 !important;
 	pointer-events: none !important;
 }
 
 /*
 	A symbol sits on a line of text, and a line of text is never shorter than
-	the font it is set in. A symbol drawn smaller than that, for example the
-	ten pixel dot of a junction, would sit in the upper part of a box about
-	twenty-four pixels tall. Its connection points are placed from the middle
-	of that box, so the pipes would meet several pixels below the dot. Removing
-	the line height makes the box the size of the symbol. A note sets its own
+	the font it is set in. A ten pixel junction would sit in the upper part of
+	a box about twenty-four pixels tall. Its connection points are placed from
+	the middle of that box. The pipes would then meet below the junction.
+	Removing the line height makes the box the size of the symbol. A note sets its own
 	line height, because a note is text.
 */
 .pid-editor .react-flow__node {
@@ -149,6 +156,19 @@ body {
 	outline is dashed, because nothing has happened yet.
 */
 .pid-editor .react-flow__node.pid-symbol-holder {
+	border-radius: 2px;
+	outline: 1px dashed var(--adacta-color-accent);
+	outline-offset: 5px;
+}
+
+/* The two symbols used for a helper line receive different temporary cues. */
+.pid-editor .react-flow__node.pid-symbol-helper-moving {
+	border-radius: 2px;
+	outline: 1px solid var(--adacta-color-accent);
+	outline-offset: 5px;
+}
+
+.pid-editor .react-flow__node.pid-symbol-helper-target {
 	border-radius: 2px;
 	outline: 1px dashed var(--adacta-color-accent);
 	outline-offset: 5px;

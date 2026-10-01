@@ -511,6 +511,26 @@
 			"table": "PIDEdge"
 		},
 		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "end_arrow",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "arrow_positions",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
 			"type": "text",
 			"notNull": false,
 			"autoincrement": false,
@@ -717,6 +737,16 @@
 			"default": null,
 			"generated": null,
 			"name": "drawing_order",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "inlet_count",
 			"entityType": "columns",
 			"table": "PIDNode"
 		},
@@ -1821,6 +1851,12 @@
 			"name": "PIDEdge_length_check",
 			"entityType": "checks",
 			"table": "PIDEdge"
+		},
+		{
+			"value": "\"inlet_count\" between 1 and 2",
+			"name": "PIDNode_inlet_count_check",
+			"entityType": "checks",
+			"table": "PIDNode"
 		},
 		{
 			"value": "\"orientation\" between 0 and 3",

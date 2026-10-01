@@ -7,6 +7,7 @@ import { Security } from "~/app/services/Security.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
 import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
+import { PIDNode } from "~/drizzle/schema/repo.PIDNode.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 const graph: PIDGraph = {
@@ -17,6 +18,7 @@ const graph: PIDGraph = {
 			label: "Feed gas",
 			secondaryLabel: null,
 			parentId: null,
+			inletCount: 1,
 			orientation: 0,
 			position: { x: 120, y: 160 },
 		},
@@ -26,6 +28,7 @@ const graph: PIDGraph = {
 			label: "Inlet valve",
 			secondaryLabel: null,
 			parentId: null,
+			inletCount: 1,
 			orientation: 1,
 			position: { x: 260, y: 160 },
 		},
@@ -34,6 +37,8 @@ const graph: PIDGraph = {
 		{
 			id: "feed-line",
 			kind: "pipe",
+			endArrow: true,
+			arrowPositions: [25, 75],
 			weight: 1,
 			material: "stainless steel 1.4571",
 			innerDiameter: { value: 4, unit: "mm" },
@@ -65,6 +70,19 @@ describe("P&ID route", () => {
 		expect((await load(scope)).graph).toEqual(graph);
 	});
 
+	test("keeps a three-way valve's inlet count", async () => {
+		const scope = await setupRig();
+		const valve: PIDGraphNode = {
+			...graph.nodes[1],
+			kind: "three-way-valve",
+			inletCount: 2,
+		};
+
+		await save(scope, { nodes: [valve], edges: [] });
+
+		expect((await load(scope)).graph.nodes).toEqual([valve]);
+	});
+
 	test("replaces the complete graph", async () => {
 		const scope = await setupRig();
 		await save(scope, graph);
@@ -72,6 +90,50 @@ describe("P&ID route", () => {
 		await save(scope, { nodes: [graph.nodes[1]], edges: [] });
 
 		expect((await load(scope)).graph).toEqual({ nodes: [graph.nodes[1]], edges: [] });
+	});
+
+	test("keeps the saved graph when a save fails", async () => {
+		const scope = await setupRig();
+		await save(scope, graph);
+
+		// Node ids are unique across all diagrams. A node of another rig with an
+		// id from the new graph therefore makes the insert fail after validation.
+		const db = scope.get(RepoDB);
+		const userId = scope.get(Security).userId;
+		const other = await db
+			.insert(InventoryEntry)
+			.values({
+				slug: "other-rig",
+				name: "Other rig",
+				kind: "rig",
+				metadataCreatorId: userId,
+				metadataCreationTimestamp: new Date(),
+			})
+			.returning({ id: InventoryEntry.id })
+			.get();
+		await db
+			.insert(PIDNode)
+			.values({
+				id: "taken-elsewhere",
+				inventoryEntryId: other.id,
+				kind: "valve",
+				label: "Taken",
+				drawingOrder: 0,
+				orientation: 0,
+				positionX: 0,
+				positionY: 0,
+				metadataCreatorId: userId,
+				metadataCreationTimestamp: new Date(),
+			})
+			.run();
+
+		const clash = {
+			nodes: [...graph.nodes, { ...graph.nodes[0], id: "taken-elsewhere" }],
+			edges: [],
+		};
+		await save(scope, clash).catch(() => undefined);
+
+		expect((await load(scope)).graph).toEqual(graph);
 	});
 
 	test("rejects a connection to a node outside the graph", async () => {
@@ -96,6 +158,7 @@ describe("P&ID route", () => {
 			label: "MFC",
 			secondaryLabel: "H2",
 			parentId: null,
+			inletCount: 1,
 			orientation: 0,
 			position: { x: 200, y: 160 },
 		};
@@ -113,6 +176,7 @@ describe("P&ID route", () => {
 			label: "Tap",
 			secondaryLabel: null,
 			parentId: graph.nodes[0].id,
+			inletCount: 1,
 			orientation: 0,
 			position: { x: 10, y: 20 },
 		};
@@ -144,10 +208,12 @@ describe("P&ID route", () => {
 
 	test("keeps the kind of each connection", async () => {
 		const scope = await setupRig();
-		const others = (["jacketed", "traced", "caption"] as const).map((kind) => ({
+		const others = (["jacketed", "traced", "electrical", "caption"] as const).map((kind) => ({
 			...graph.edges[0],
 			id: `${kind}-line`,
 			kind,
+			endArrow: kind === "jacketed",
+			arrowPositions: [],
 		}));
 
 		await save(scope, { nodes: graph.nodes, edges: [graph.edges[0], ...others] });
@@ -156,8 +222,54 @@ describe("P&ID route", () => {
 			"pipe",
 			"jacketed",
 			"traced",
+			"electrical",
 			"caption",
 		]);
+	});
+
+	test("keeps endpoint and mid-line arrow settings", async () => {
+		const scope = await setupRig();
+
+		await save(scope, graph);
+
+		expect((await load(scope)).graph.edges[0]).toMatchObject({
+			endArrow: true,
+			arrowPositions: [25, 75],
+		});
+	});
+
+	test.each([
+		{ name: "an out-of-range position", edge: { ...graph.edges[0], arrowPositions: [0] } },
+		{ name: "a fractional position", edge: { ...graph.edges[0], arrowPositions: [49.5] } },
+		{ name: "a duplicate position", edge: { ...graph.edges[0], arrowPositions: [50, 50] } },
+		{
+			name: "a caption mid-line arrow",
+			edge: { ...graph.edges[0], kind: "caption" as const, endArrow: false, arrowPositions: [50] },
+		},
+		{
+			name: "a caption endpoint arrow",
+			edge: { ...graph.edges[0], kind: "caption" as const, endArrow: true, arrowPositions: [] },
+		},
+		{
+			name: "an electrical mid-line arrow",
+			edge: {
+				...graph.edges[0],
+				kind: "electrical" as const,
+				endArrow: false,
+				arrowPositions: [50],
+			},
+		},
+		{
+			name: "an electrical endpoint arrow",
+			edge: { ...graph.edges[0], kind: "electrical" as const, endArrow: true, arrowPositions: [] },
+		},
+	])("rejects $name", async ({ edge }) => {
+		const scope = await setupRig();
+		const response = await save(scope, { nodes: graph.nodes, edges: [edge] });
+
+		if (response instanceof Response) throw new Error("Expected action data.");
+		expect(response.init?.status).toBe(400);
+		expect(response.data).toEqual({ error: "The diagram contains invalid data." });
 	});
 
 	test("keeps what a pipe is made of and how large it is", async () => {
@@ -233,6 +345,20 @@ describe("P&ID route", () => {
 		if (response instanceof Response) throw new Error("Expected action data.");
 		expect(response.init?.status).toBe(400);
 		expect(response.data).toEqual({ error: "The diagram contains invalid data." });
+	});
+
+	test("rejects an unsupported inlet count", async () => {
+		const scope = await setupRig();
+		const invalidGraph = {
+			...graph,
+			nodes: [{ ...graph.nodes[0], inletCount: 3 }],
+			edges: [],
+		};
+
+		const response = await save(scope, invalidGraph);
+
+		if (response instanceof Response) throw new Error("Expected action data.");
+		expect(response.init?.status).toBe(400);
 	});
 });
 

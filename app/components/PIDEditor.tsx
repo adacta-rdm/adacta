@@ -2,36 +2,34 @@ import {
 	ArrowsPointingInIcon,
 	ArrowsPointingOutIcon,
 	ChevronDownIcon,
-	CursorArrowRaysIcon,
-	HandRaisedIcon,
 	MagnifyingGlassIcon,
 	TrashIcon,
 	XMarkIcon,
 } from "@heroicons/react/20/solid";
 import {
 	addEdge,
+	applyEdgeChanges,
+	applyNodeChanges,
 	Background,
 	BackgroundVariant,
-	BaseEdge,
+	ConnectionMode,
 	ConnectionLineType,
 	ControlButton,
 	Controls,
-	MarkerType,
-	getSmoothStepPath,
-	Panel as ReactFlowPanel,
 	ReactFlow,
 	ReactFlowProvider,
 	useEdgesState,
 	useNodesState,
 	useReactFlow,
 	useUpdateNodeInternals,
+	useViewport,
 	type Connection,
-	type Edge,
-	type EdgeMarker,
-	type EdgeProps,
-	type Node,
+	type EdgeChange,
+	type InternalNode,
+	type NodeChange,
 	type NodeOrigin,
-	type NodeProps,
+	type NodePositionChange,
+	type XYPosition,
 } from "@xyflow/react";
 import {
 	useEffect,
@@ -41,53 +39,83 @@ import {
 	type ReactNode,
 } from "react";
 
+import { PIDConnection, PIDConnectionSample } from "~/app/components/PIDEditorConnections.tsx";
+import { PIDEditorDebugPanel } from "~/app/components/PIDEditorDebugPanel.tsx";
+import { PIDSymbolNode } from "~/app/components/PIDEditorSymbolNode.tsx";
+import { PIDEditorToolbar } from "~/app/components/PIDEditorToolbar.tsx";
+import {
+	getPIDAnchorAlignment,
+	PID_HELPER_LINE_SNAP_DISTANCE,
+	PIDHelperLinesRenderer,
+	type PIDHelperAnchor,
+	type PIDHelperLines,
+} from "~/app/components/PIDHelperLines.tsx";
 import {
 	getPIDSymbol,
-	maximumSizeForPIDSymbol,
 	PIDSymbol,
 	pidInstrumentPresets,
 	pidSymbolGroups,
 	type PIDOrientation,
 	type PIDSymbolKind,
 } from "~/app/components/PIDSymbol.tsx";
-import { getPIDSymbolComponents } from "~/app/components/pid-symbols/PIDSymbolRegistry.ts";
+import { PIDHandleVisibilityContext } from "~/app/components/pid-symbols/ConnectablePIDSymbol.tsx";
 import {
 	PID_EDGE_KINDS,
 	PID_LENGTH_UNITS,
 	type PIDEdgeKind,
 	type PIDGraph,
+	type PIDInletCount,
 	type PIDLength,
 	type PIDLengthUnit,
 } from "~/app/lib/PID.ts";
+import {
+	copyPIDSubgraph,
+	instantiatePIDClipboard,
+	type PIDClipboardFragment,
+} from "~/app/lib/PIDClipboard.ts";
+import {
+	arrowsAfterKindChange,
+	defaultEndArrow,
+	moveArrowPosition,
+	nextArrowPosition,
+	removeArrowPosition,
+} from "~/app/lib/PIDEdgeArrows.ts";
+import {
+	edgeData,
+	edgeKind,
+	editorEdges,
+	editorNodes,
+	holdersFirst,
+	pidGraph,
+	withContents,
+	type PIDEdge,
+	type PIDEdgeData,
+	type PIDNode,
+} from "~/app/lib/PIDEditorGraph.ts";
+import {
+	clonePIDGraph,
+	commitPIDHistory,
+	createPIDHistory,
+	pidGraphsEqual,
+	redoPIDHistory,
+	type PIDHistory,
+	undoPIDHistory,
+} from "~/app/lib/PIDHistory.ts";
+import {
+	alignPIDBoxes,
+	countPIDLayoutCollisions,
+	distributePIDBoxes,
+	hasPIDLayoutMovement,
+	nudgePIDNodes,
+	PID_GRID_SIZE,
+	snapPIDPosition,
+	type PIDAlignment,
+	type PIDDistributionAxis,
+	type PIDLayoutDelta,
+} from "~/app/lib/PIDLayout.ts";
 import { Switch } from "~/catalyst-ui/switch.tsx";
-import { parallelLines } from "~/lib/parallel-lines/ParallelLines.ts";
 
 import "@xyflow/react/dist/style.css";
-
-type PIDNodeData = {
-	kind: PIDSymbolKind;
-	label: string;
-	secondaryLabel: string | null;
-
-	/**
-	 * Whether this symbol sits inside another. A symbol that does draws no
-	 * caption, because the caption would land on the one belonging to the
-	 * symbol that holds it.
-	 */
-	contained: boolean;
-
-	orientation: PIDOrientation;
-};
-type PIDNode = Node<PIDNodeData, "pid-symbol">;
-type PIDEdgeData = {
-	kind: PIDEdgeKind;
-	weight: number;
-	material: string | null;
-	innerDiameter: PIDLength | null;
-	outerDiameter: PIDLength | null;
-	length: PIDLength | null;
-};
-type PIDEdge = Edge<PIDEdgeData, "pid-connection">;
 
 type PaletteDrag = {
 	pointerId: number;
@@ -97,21 +125,19 @@ type PaletteDrag = {
 	moved: boolean;
 };
 type EditorTool = "select" | "pan";
+type HelperLineSession = {
+	nodeId: string;
+	startPosition: XYPosition;
+	movingAnchors: PIDHelperAnchor[];
+	stationaryAnchors: PIDHelperAnchor[];
+};
 
 const nodeTypes = { "pid-symbol": PIDSymbolNode };
 
-const LINE_COLOR = "var(--adacta-color-foreground)";
-const SELECTED_COLOR = "var(--adacta-color-accent)";
-const NOTE_COLOR = "var(--adacta-color-foreground-muted)";
-
-/**
- * The width a connection is drawn with. It is a little thinner than the
- * "--pid-line-width" the symbols use, so a symbol stays the stronger mark on
- * the page. The geometry needs the number, so the value cannot be read from
- * the stylesheet here.
- */
-const LINE_WIDTH = 1;
+export { connectionDrawing } from "~/app/components/PIDEditorConnections.tsx";
 const edgeTypes = { "pid-connection": PIDConnection };
+const PID_NUDGE_STEP = PID_GRID_SIZE;
+const PID_LARGE_NUDGE_STEP = PID_GRID_SIZE * 5;
 
 /**
  * Returns an identifier for a new symbol or connection.
@@ -129,47 +155,6 @@ function randomId(prefix: string): string {
 	const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 
 	return `${prefix}-${hex}`;
-}
-
-/**
- * Returns the kind of a connection, or "pipe" when the edge carries no data.
- *
- * React Flow permits an edge without data. Every edge created by this editor
- * carries a kind. The default therefore applies only to an edge created
- * elsewhere in React Flow.
- */
-function edgeKind(edge: { data?: PIDEdgeData }): PIDEdgeKind {
-	return edge.data?.kind ?? "pipe";
-}
-
-/**
- * Returns everything recorded about a connection, filling in what an edge
- * created outside this editor would leave empty.
- */
-function edgeData(edge: { data?: PIDEdgeData }): PIDEdgeData {
-	return {
-		kind: edgeKind(edge),
-		weight: edge.data?.weight ?? 1,
-		material: edge.data?.material ?? null,
-		innerDiameter: edge.data?.innerDiameter ?? null,
-		outerDiameter: edge.data?.outerDiameter ?? null,
-		length: edge.data?.length ?? null,
-	};
-}
-
-/**
- * Returns the arrow drawn at the end of a connection, or undefined when the
- * connection carries none.
- *
- * A pipe and a jacketed pipe both indicate the direction of flow.
- */
-function arrowFor(kind: PIDEdgeKind, color: string): EdgeMarker | undefined {
-	// A caption attaches a note, so nothing flows along it. A tracer runs beside
-	// the pipe rather than along its centre, so an arrow on it would point from
-	// off to one side. Neither carries one.
-	if (kind === "caption" || kind === "traced") return undefined;
-
-	return { type: MarkerType.ArrowClosed, color };
 }
 
 /**
@@ -213,14 +198,25 @@ function PIDEditorContents({
 	onChange,
 	actions,
 }: PIDEditorProps & { readOnly: boolean }) {
-	const [nodes, setNodes, onNodesChange] = useNodesState<PIDNode>(editorNodes(value));
-	const [edges, setEdges, onEdgesChange] = useEdgesState<PIDEdge>(editorEdges(value));
+	const [nodes, setNodes] = useNodesState<PIDNode>(editorNodes(value));
+	const [edges, setEdges] = useEdgesState<PIDEdge>(editorEdges(value));
+	const nodesRef = useRef(nodes);
+	const edgesRef = useRef(edges);
+	const [history, setHistory] = useState<PIDHistory>(createPIDHistory);
+	const historyRef = useRef(history);
+	const openHistoryGroup = useRef<PIDGraph | undefined>(undefined);
+	const pressedNudgeKeys = useRef(new Set<string>());
+	const [clipboard, setClipboard] = useState<PIDClipboardFragment>();
+	const pasteCount = useRef(0);
+	const externalValue = useRef(clonePIDGraph(value));
+	const reportedValue = useRef(clonePIDGraph(value));
 
 	// The kind given to the next connection drawn. It stays as chosen until it
 	// is changed, so a run of jacketed pipes needs one choice rather than one
 	// per line.
 	const [nextEdgeKind, setNextEdgeKind] = useState<PIDEdgeKind>("pipe");
 	const [showGrid, setShowGrid] = useState(false);
+	const [showHandles, setShowHandles] = useState(false);
 
 	// Whether the diagram covers the window. A P&ID is read as a whole, and a
 	// large one does not fit beside the rest of the page.
@@ -229,6 +225,7 @@ function PIDEditorContents({
 	// Whether a symbol is being dragged. The cursor is held at the closed hand
 	// while this is true. See the "pid-editor--dragging" rule in app.css.
 	const [dragging, setDragging] = useState(false);
+	const [helperLines, setHelperLines] = useState<PIDHelperLines>({});
 
 	// The symbol that would hold the one being dragged, if it were released
 	// now. It is outlined while the drag lasts, so the reader sees what is
@@ -246,18 +243,40 @@ function PIDEditorContents({
 	}>();
 	const nextNodeNumber = useRef(value.nodes.length + 1);
 	const paletteDrag = useRef<PaletteDrag | undefined>(undefined);
+	const editor = useRef<HTMLDivElement>(null);
 	const canvas = useRef<HTMLDivElement>(null);
+	const helperLineSession = useRef<HelperLineSession | undefined>(undefined);
 	const { screenToFlowPosition, zoomTo, getInternalNode } = useReactFlow<PIDNode, PIDEdge>();
+	const { zoom } = useViewport();
 	const updateNodeInternals = useUpdateNodeInternals();
 
 	useEffect(() => {
-		setNodes(editorNodes(value));
-		setEdges(editorEdges(value));
+		if (pidGraphsEqual(value, externalValue.current)) return;
+		if (pidGraphsEqual(value, reportedValue.current)) {
+			externalValue.current = clonePIDGraph(value);
+			return;
+		}
+
+		externalValue.current = clonePIDGraph(value);
+		const nextNodes = editorNodes(value);
+		const nextEdges = editorEdges(value);
+		const nextHistory = createPIDHistory();
+		nodesRef.current = nextNodes;
+		edgesRef.current = nextEdges;
+		historyRef.current = nextHistory;
+		setNodes(nextNodes);
+		setEdges(nextEdges);
+		setHistory(nextHistory);
+		setClipboard(undefined);
+		openHistoryGroup.current = undefined;
+		pasteCount.current = 0;
 		nextNodeNumber.current = value.nodes.length + 1;
 	}, [setEdges, setNodes, value]);
 
 	useEffect(() => {
-		onChange?.(pidGraph(nodes, edges));
+		const graph = pidGraph(nodes, edges);
+		reportedValue.current = clonePIDGraph(graph);
+		onChange?.(graph);
 	}, [edges, nodes, onChange]);
 
 	// While the diagram covers the window, Escape returns it to the page and
@@ -282,6 +301,12 @@ function PIDEditorContents({
 
 	const selectedNodes = nodes.filter((node) => node.selected);
 	const selectedEdges = edges.filter((edge) => edge.selected);
+	const selectedLayoutBoxes = selectedNodes.flatMap((node) => {
+		if (node.parentId !== undefined) return [];
+
+		const box = symbolBox(node.id);
+		return box ? [{ id: node.id, ...box }] : [];
+	});
 	const selectedItemCount = selectedNodes.length + selectedEdges.length;
 	const selectedNode = selectedItemCount === 1 ? selectedNodes[0] : undefined;
 	const selectedEdge = selectedItemCount === 1 ? selectedEdges[0] : undefined;
@@ -291,6 +316,16 @@ function PIDEditorContents({
 	]
 		.filter(Boolean)
 		.join(" · ");
+	const selectionTitle = selectedNode
+		? "Selected symbol"
+		: selectedEdge
+			? "Selected connection"
+			: selectedEdges.length === 0
+				? `${selectionPart(selectedNodes.length, "symbol")} selected`
+				: selectedNodes.length === 0
+					? `${selectionPart(selectedEdges.length, "connection")} selected`
+					: `${selectedItemCount} items selected`;
+	const hasMixedSelection = selectedNodes.length > 0 && selectedEdges.length > 0;
 	const normalizedPaletteFilter = paletteFilter.trim().toLocaleLowerCase();
 	const visibleSymbolGroups = pidSymbolGroups
 		.map((group) => ({
@@ -302,66 +337,358 @@ function PIDEditorContents({
 		.filter((group) => group.symbols.length > 0);
 	// The symbol a dragged symbol would be put inside is outlined. React Flow
 	// puts the class on the element it draws for the symbol.
-	const displayedNodes = nodes.map((node) =>
-		node.id === holderCandidate ? { ...node, className: "pid-symbol-holder" } : node,
-	);
-	// PIDConnection draws the line and reads the kind from the edge. Only the
-	// arrow is prepared here. Its color follows the selection.
-	const displayedEdges = edges.map((edge) => {
-		const color = edge.selected ? SELECTED_COLOR : LINE_COLOR;
+	const helperNodeRoles = new Map<string, "moving" | "target">();
+	for (const line of [helperLines.horizontal, helperLines.vertical]) {
+		if (!line) continue;
 
-		return { ...edge, markerEnd: arrowFor(edgeKind(edge), color) };
+		helperNodeRoles.set(line.moving.nodeId, "moving");
+		for (const anchor of line.alignedStationary) {
+			helperNodeRoles.set(anchor.nodeId, "target");
+		}
+	}
+	const displayedNodes = nodes.map((node) => {
+		const classes = [
+			node.id === holderCandidate ? "pid-symbol-holder" : "",
+			helperNodeRoles.get(node.id) === "moving" ? "pid-symbol-helper-moving" : "",
+			helperNodeRoles.get(node.id) === "target" ? "pid-symbol-helper-target" : "",
+		].filter(Boolean);
+
+		return classes.length === 0 ? node : { ...node, className: classes.join(" ") };
 	});
+	const displayedEdges = edges;
+	const canUndo = history.past.length > 0;
+	const canRedo = history.future.length > 0;
+	const canCopySelection = selectedNodes.length > 0;
+	const canPaste = clipboard !== undefined;
+	const canAlignSelection = selectedLayoutBoxes.length >= 2;
+	const canDistributeSelection = selectedLayoutBoxes.length >= 3;
+	const alignmentLayouts: Record<PIDAlignment, PIDLayoutDelta[]> = {
+		left: alignPIDBoxes(selectedLayoutBoxes, "left"),
+		right: alignPIDBoxes(selectedLayoutBoxes, "right"),
+		top: alignPIDBoxes(selectedLayoutBoxes, "top"),
+		bottom: alignPIDBoxes(selectedLayoutBoxes, "bottom"),
+	};
+	const distributionLayouts: Record<PIDDistributionAxis, PIDLayoutDelta[]> = {
+		horizontal: distributePIDBoxes(selectedLayoutBoxes, "horizontal"),
+		vertical: distributePIDBoxes(selectedLayoutBoxes, "vertical"),
+	};
+	const alignmentChanges = {
+		left: hasPIDLayoutMovement(alignmentLayouts.left),
+		right: hasPIDLayoutMovement(alignmentLayouts.right),
+		top: hasPIDLayoutMovement(alignmentLayouts.top),
+		bottom: hasPIDLayoutMovement(alignmentLayouts.bottom),
+	};
+	const distributionChanges = {
+		horizontal: hasPIDLayoutMovement(distributionLayouts.horizontal),
+		vertical: hasPIDLayoutMovement(distributionLayouts.vertical),
+	};
+	const alignmentCollisions = {
+		left: countPIDLayoutCollisions(selectedLayoutBoxes, alignmentLayouts.left),
+		right: countPIDLayoutCollisions(selectedLayoutBoxes, alignmentLayouts.right),
+		top: countPIDLayoutCollisions(selectedLayoutBoxes, alignmentLayouts.top),
+		bottom: countPIDLayoutCollisions(selectedLayoutBoxes, alignmentLayouts.bottom),
+	};
+	const distributionCollisions = {
+		horizontal: countPIDLayoutCollisions(selectedLayoutBoxes, distributionLayouts.horizontal),
+		vertical: countPIDLayoutCollisions(selectedLayoutBoxes, distributionLayouts.vertical),
+	};
+
+	function replaceNodes(next: PIDNode[]) {
+		nodesRef.current = next;
+		setNodes(next);
+	}
+
+	function replaceEdges(next: PIDEdge[]) {
+		edgesRef.current = next;
+		setEdges(next);
+	}
+
+	function changeCurrentNodes(change: (current: PIDNode[]) => PIDNode[]) {
+		replaceNodes(change(nodesRef.current));
+	}
+
+	function changeCurrentEdges(change: (current: PIDEdge[]) => PIDEdge[]) {
+		replaceEdges(change(edgesRef.current));
+	}
+
+	function setHistoryValue(next: PIDHistory) {
+		historyRef.current = next;
+		setHistory(next);
+	}
+
+	function currentGraph() {
+		return pidGraph(nodesRef.current, edgesRef.current);
+	}
+
+	function beginHistoryGroup() {
+		openHistoryGroup.current ??= currentGraph();
+	}
+
+	function finishHistoryGroup() {
+		const before = openHistoryGroup.current;
+		if (!before) return;
+
+		openHistoryGroup.current = undefined;
+		setHistoryValue(commitPIDHistory(historyRef.current, before, currentGraph()));
+	}
+
+	function performEdit(edit: () => void) {
+		if (openHistoryGroup.current) {
+			edit();
+			return;
+		}
+
+		const before = currentGraph();
+		edit();
+		setHistoryValue(commitPIDHistory(historyRef.current, before, currentGraph()));
+	}
+
+	function restoreGraph(graph: PIDGraph) {
+		const selectedNodeIds = new Set(
+			nodesRef.current.filter((node) => node.selected).map((node) => node.id),
+		);
+		const selectedEdgeIds = new Set(
+			edgesRef.current.filter((edge) => edge.selected).map((edge) => edge.id),
+		);
+		const restoredNodes = editorNodes(graph).map((node) => ({
+			...node,
+			selected: selectedNodeIds.has(node.id),
+		}));
+		const restoredEdges = editorEdges(graph).map((edge) => ({
+			...edge,
+			selected: selectedEdgeIds.has(edge.id),
+		}));
+
+		replaceNodes(restoredNodes);
+		replaceEdges(restoredEdges);
+		requestAnimationFrame(() => updateNodeInternals(restoredNodes.map((node) => node.id)));
+	}
+
+	function undo() {
+		finishHistoryGroup();
+		const step = undoPIDHistory(historyRef.current, currentGraph());
+		if (!step.graph) return;
+
+		setHistoryValue(step.history);
+		restoreGraph(step.graph);
+	}
+
+	function redo() {
+		finishHistoryGroup();
+		const step = redoPIDHistory(historyRef.current, currentGraph());
+		if (!step.graph) return;
+
+		setHistoryValue(step.history);
+		restoreGraph(step.graph);
+	}
+
+	function applyLayout(deltas: PIDLayoutDelta[]) {
+		if (deltas.length === 0) return;
+
+		const deltaById = new Map(deltas.map((delta) => [delta.id, delta]));
+		performEdit(() => {
+			changeCurrentNodes((current) =>
+				current.map((node) => {
+					const delta = deltaById.get(node.id);
+					if (!delta) return node;
+
+					return {
+						...node,
+						position: {
+							x: node.position.x + delta.x,
+							y: node.position.y + delta.y,
+						},
+					};
+				}),
+			);
+		});
+
+		setHelperLines({});
+		setHolderCandidate(undefined);
+		requestAnimationFrame(() => updateNodeInternals(deltas.map((delta) => delta.id)));
+	}
+
+	function alignSelectedNodes(alignment: PIDAlignment) {
+		if (!canAlignSelection || alignmentCollisions[alignment] > 0 || !alignmentChanges[alignment]) {
+			return;
+		}
+		applyLayout(alignmentLayouts[alignment]);
+	}
+
+	function distributeSelectedNodes(axis: PIDDistributionAxis) {
+		if (!canDistributeSelection || distributionCollisions[axis] > 0 || !distributionChanges[axis]) {
+			return;
+		}
+		applyLayout(distributionLayouts[axis]);
+	}
+
+	function nudgeSelectedNodes(movement: XYPosition) {
+		const currentNodes = nodesRef.current;
+		const deltas = nudgePIDNodes(
+			currentNodes.map((node) => {
+				const internal = getInternalNode(node.id);
+
+				return {
+					id: node.id,
+					parentId: node.parentId,
+					position: node.position,
+					width: internal?.measured.width,
+					height: internal?.measured.height,
+				};
+			}),
+			currentNodes.filter((node) => node.selected).map((node) => node.id),
+			movement,
+		);
+
+		if (hasPIDLayoutMovement(deltas)) applyLayout(deltas);
+	}
+
+	function selectedClipboardFragment(): PIDClipboardFragment | undefined {
+		const detachedRootPositions = new Map(
+			selectedNodes.flatMap((node) => {
+				const box = symbolBox(node.id);
+				return box
+					? [[node.id, { x: box.x + box.width / 2, y: box.y + box.height / 2 }] as const]
+					: [];
+			}),
+		);
+
+		return copyPIDSubgraph(
+			currentGraph(),
+			selectedNodes.map((node) => node.id),
+			detachedRootPositions,
+		);
+	}
+
+	function insertClipboardFragment(fragment: PIDClipboardFragment, offset: number) {
+		const pasted = instantiatePIDClipboard(
+			fragment,
+			(kind) => randomId(kind === "node" ? "pid-node" : "pid-edge"),
+			{ x: offset, y: offset },
+		);
+		const pastedNodes = editorNodes({ nodes: pasted.nodes, edges: [] }).map((node) => ({
+			...node,
+			selected: true,
+		}));
+		const pastedEdges = editorEdges({ nodes: [], edges: pasted.edges });
+
+		performEdit(() => {
+			changeCurrentNodes((current) =>
+				holdersFirst([...current.map((node) => ({ ...node, selected: false })), ...pastedNodes]),
+			);
+			changeCurrentEdges((current) => [
+				...current.map((edge) => ({ ...edge, selected: false })),
+				...pastedEdges,
+			]);
+		});
+
+		setHelperLines({});
+		setHolderCandidate(undefined);
+		requestAnimationFrame(() => updateNodeInternals(pastedNodes.map((node) => node.id)));
+	}
+
+	function duplicateSelection() {
+		const fragment = selectedClipboardFragment();
+		if (!fragment) return;
+
+		insertClipboardFragment(fragment, 20);
+	}
+
+	function copySelection() {
+		const fragment = selectedClipboardFragment();
+		if (!fragment) return;
+
+		setClipboard(fragment);
+		pasteCount.current = 0;
+	}
+
+	function pasteClipboard() {
+		if (!clipboard) return;
+
+		pasteCount.current += 1;
+		insertClipboardFragment(clipboard, pasteCount.current * 20);
+	}
 
 	function addNode(kind: PIDSymbolKind, position?: { x: number; y: number }) {
 		const symbol = getPIDSymbol(kind);
 		const number = nextNodeNumber.current++;
 		const id = randomId("pid-node");
+		const snappedPosition = position ? snapPIDPosition(position) : undefined;
 
-		setNodes((current) => [
-			...current.map((node) => ({ ...node, selected: false })),
-			{
-				id,
-				type: "pid-symbol",
-				position: position ?? {
-					x: 160 + ((number - 1) % 3) * 150,
-					y: 120 + Math.floor((number - 1) / 3) * 130,
+		performEdit(() => {
+			changeCurrentNodes((current) => [
+				...current.map((node) => ({ ...node, selected: false })),
+				{
+					id,
+					type: "pid-symbol",
+					position: snappedPosition ?? {
+						x: 160 + ((number - 1) % 3) * 150,
+						y: 120 + Math.floor((number - 1) / 3) * 130,
+					},
+					data: {
+						kind,
+						label: symbol.label,
+						secondaryLabel: null,
+						contained: false,
+						inletCount: 1,
+						orientation: 0,
+					},
+					selected: true,
 				},
-				data: { kind, label: symbol.label, secondaryLabel: null, contained: false, orientation: 0 },
-				selected: true,
-			},
-		]);
-		setEdges((current) => current.map((edge) => ({ ...edge, selected: false })));
+			]);
+			changeCurrentEdges((current) => current.map((edge) => ({ ...edge, selected: false })));
+		});
 	}
 
 	function connect(connection: Connection) {
 		// The new connection is selected, so the inspector opens on it and its
 		// kind can be set without hunting for it again.
-		setNodes((current) => current.map((node) => ({ ...node, selected: false })));
+		performEdit(() => {
+			changeCurrentNodes((current) => current.map((node) => ({ ...node, selected: false })));
 
-		setEdges((current) =>
-			addEdge<PIDEdge>(
-				{
-					...connection,
-					id: randomId("pid-edge"),
-					type: "pid-connection",
-					data: {
-						kind: nextEdgeKind,
-						weight: 1,
-						material: null,
-						innerDiameter: null,
-						outerDiameter: null,
-						length: null,
+			changeCurrentEdges((current) =>
+				addEdge<PIDEdge>(
+					{
+						...connection,
+						id: randomId("pid-edge"),
+						type: "pid-connection",
+						data: {
+							kind: nextEdgeKind,
+							endArrow: defaultEndArrow(nextEdgeKind),
+							arrowPositions: [],
+							weight: 1,
+							material: null,
+							innerDiameter: null,
+							outerDiameter: null,
+							length: null,
+						},
+						selected: true,
 					},
-					selected: true,
-					markerEnd: {
-						type: MarkerType.ArrowClosed,
-						color: LINE_COLOR,
-					},
-				},
-				current.map((edge) => ({ ...edge, selected: false })),
-			),
+					current.map((edge) => ({ ...edge, selected: false })),
+				),
+			);
+		});
+	}
+
+	function validConnection(connection: Connection | PIDEdge) {
+		if (connection.source === connection.target) return false;
+
+		return (
+			connectionEndAllows(connection.source, connection.sourceHandle, "source") &&
+			connectionEndAllows(connection.target, connection.targetHandle, "target")
 		);
+	}
+
+	function connectionEndAllows(
+		nodeId: string,
+		handleId: string | null | undefined,
+		role: "source" | "target",
+	) {
+		const node = getInternalNode(nodeId);
+		if (!node || !handleId) return false;
+		if (node.data.kind === "junction") return true;
+
+		return node.internals.handleBounds?.[role]?.some((handle) => handle.id === handleId) ?? false;
 	}
 
 	function startPaletteDrag(event: ReactPointerEvent<HTMLDivElement>, kind: PIDSymbolKind) {
@@ -428,36 +755,64 @@ function PIDEditorContents({
 	function renameSelectedNode(label: string) {
 		if (!selectedNode) return;
 
-		setNodes((current) =>
-			current.map((node) =>
-				node.id === selectedNode.id ? { ...node, data: { ...node.data, label } } : node,
-			),
-		);
+		performEdit(() => {
+			changeCurrentNodes((current) =>
+				current.map((node) =>
+					node.id === selectedNode.id ? { ...node, data: { ...node.data, label } } : node,
+				),
+			);
+		});
 	}
 
 	function setSelectedNodeTag(secondaryLabel: string) {
 		if (!selectedNode) return;
 
-		setNodes((current) =>
-			current.map((node) =>
-				node.id === selectedNode.id
-					? { ...node, data: { ...node.data, secondaryLabel: secondaryLabel || null } }
-					: node,
-			),
-		);
+		performEdit(() => {
+			changeCurrentNodes((current) =>
+				current.map((node) =>
+					node.id === selectedNode.id
+						? { ...node, data: { ...node.data, secondaryLabel: secondaryLabel || null } }
+						: node,
+				),
+			);
+		});
 	}
 
 	function orientSelectedNode(orientation: PIDOrientation) {
 		if (!selectedNode) return;
 
-		setNodes((current) =>
-			current.map((node) =>
-				node.id === selectedNode.id ? { ...node, data: { ...node.data, orientation } } : node,
-			),
-		);
+		performEdit(() => {
+			changeCurrentNodes((current) =>
+				current.map((node) =>
+					node.id === selectedNode.id ? { ...node, data: { ...node.data, orientation } } : node,
+				),
+			);
+		});
 
 		// React Flow caches handle positions. Recalculate them after the rotated
 		// symbol and its connection points have reached the DOM.
+		requestAnimationFrame(() => updateNodeInternals(selectedNode.id));
+	}
+
+	function setSelectedNodeInletCount(inletCount: PIDInletCount) {
+		if (!selectedNode || selectedNode.data.kind !== "three-way-valve") return;
+		if (selectedNode.data.inletCount === inletCount) return;
+
+		performEdit(() => {
+			changeCurrentNodes((current) =>
+				current.map((node) =>
+					node.id === selectedNode.id ? { ...node, data: { ...node.data, inletCount } } : node,
+				),
+			);
+			changeCurrentEdges((current) =>
+				current.filter(
+					(edge) => edge.source !== selectedNode.id && edge.target !== selectedNode.id,
+				),
+			);
+		});
+
+		// Changing the count reverses every handle. Recalculate them after React
+		// has rendered the new source and target roles.
 		requestAnimationFrame(() => updateNodeInternals(selectedNode.id));
 	}
 
@@ -491,10 +846,9 @@ function PIDEditorContents({
 	 */
 	function holderUnder(dragged: PIDNode): string | undefined {
 		const box = symbolBox(dragged.id);
-		if (!box) return undefined;
+		const center = nodeCanvasCenter(dragged);
+		if (!box || !center) return undefined;
 
-		const centerX = box.x + box.width / 2;
-		const centerY = box.y + box.height / 2;
 		const area = box.width * box.height;
 
 		// A symbol cannot be held by itself or by anything it holds.
@@ -512,8 +866,8 @@ function PIDEditorContents({
 			const other = symbolBox(node.id);
 			if (!other) continue;
 
-			if (centerX < other.x || centerX > other.x + other.width) continue;
-			if (centerY < other.y || centerY > other.y + other.height) continue;
+			if (center.x < other.x || center.x > other.x + other.width) continue;
+			if (center.y < other.y || center.y > other.y + other.height) continue;
 
 			const otherArea = other.width * other.height;
 			if (otherArea <= area) continue;
@@ -524,6 +878,16 @@ function PIDEditorContents({
 		return best?.id;
 	}
 
+	/** Returns a node's stored centre in canvas coordinates. */
+	function nodeCanvasCenter(node: PIDNode): XYPosition | undefined {
+		if (node.parentId === undefined) return node.position;
+
+		const parent = symbolBox(node.parentId);
+		if (!parent) return undefined;
+
+		return { x: parent.x + node.position.x, y: parent.y + node.position.y };
+	}
+
 	/**
 	 * Puts a symbol inside another, so that it travels with it.
 	 *
@@ -531,31 +895,33 @@ function PIDEditorContents({
 	 * that holds it. The symbol therefore keeps the place on the canvas where
 	 * it was released.
 	 */
-	function holdNode(id: string, holderId: string) {
-		const box = symbolBox(id);
+	function holdNode(heldNode: PIDNode, holderId: string) {
+		const center = nodeCanvasCenter(heldNode);
 		const holder = symbolBox(holderId);
-		if (!box || !holder) return;
+		if (!center || !holder) return;
 
 		const position = {
-			x: box.x + box.width / 2 - holder.x,
-			y: box.y + box.height / 2 - holder.y,
+			x: center.x - holder.x,
+			y: center.y - holder.y,
 		};
 
-		setNodes((current) =>
-			holdersFirst(
-				current.map((node) =>
-					node.id === id
-						? {
-								...node,
-								parentId: holderId,
-								extent: "parent" as const,
-								position,
-								data: { ...node.data, contained: true },
-							}
-						: node,
+		performEdit(() => {
+			changeCurrentNodes((current) =>
+				holdersFirst(
+					current.map((node) =>
+						node.id === heldNode.id
+							? {
+									...node,
+									parentId: holderId,
+									extent: "parent" as const,
+									position,
+									data: { ...node.data, contained: true },
+								}
+							: node,
+					),
 				),
-			),
-		);
+			);
+		});
 	}
 
 	/**
@@ -568,23 +934,28 @@ function PIDEditorContents({
 		const box = symbolBox(selectedNode.id);
 		if (!box) return;
 
-		const position = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+		const position = snapPIDPosition({
+			x: box.x + box.width / 2,
+			y: box.y + box.height / 2,
+		});
 
-		setNodes((current) =>
-			holdersFirst(
-				current.map((node) =>
-					node.id === selectedNode.id
-						? {
-								...node,
-								parentId: undefined,
-								extent: undefined,
-								position,
-								data: { ...node.data, contained: false },
-							}
-						: node,
+		performEdit(() => {
+			changeCurrentNodes((current) =>
+				holdersFirst(
+					current.map((node) =>
+						node.id === selectedNode.id
+							? {
+									...node,
+									parentId: undefined,
+									extent: undefined,
+									position,
+									data: { ...node.data, contained: false },
+								}
+							: node,
+					),
 				),
-			),
-		);
+			);
+		});
 	}
 
 	function dragNode(node: PIDNode, dragged: PIDNode[]) {
@@ -593,16 +964,126 @@ function PIDEditorContents({
 		setHolderCandidate(dragged.length === 1 ? holderUnder(node) : undefined);
 	}
 
+	function startNodeDrag(node: PIDNode, dragged: PIDNode[]) {
+		beginHistoryGroup();
+		setDragging(true);
+		setHelperLines({});
+		helperLineSession.current =
+			dragged.length === 1 ? createHelperLineSession(node, nodes, getInternalNode) : undefined;
+	}
+
+	function changeNodes(changes: NodeChange<PIDNode>[]) {
+		const snappedChanges = changes.map((change) => {
+			if (change.type !== "position" || !change.position) return change;
+
+			const node = getInternalNode(change.id);
+			const parent = node?.parentId ? getInternalNode(node.parentId) : undefined;
+			const canvasOffset = parent?.internals.positionAbsolute ?? { x: 0, y: 0 };
+
+			return { ...change, position: snapPIDPosition(change.position, canvasOffset) };
+		});
+		const session = helperLineSession.current;
+		const draggedChanges = snappedChanges.filter(
+			(change): change is NodePositionChange =>
+				change.type === "position" && Boolean(change.dragging && change.position),
+		);
+
+		if (!session || draggedChanges.length !== 1 || draggedChanges[0].id !== session.nodeId) {
+			if (draggedChanges.length > 0) setHelperLines({});
+			applyNodeChange(snappedChanges);
+			return;
+		}
+
+		const draggedChange = draggedChanges[0];
+		const draggedPosition = draggedChange.position;
+		if (!draggedPosition) return;
+
+		const movement = {
+			x: draggedPosition.x - session.startPosition.x,
+			y: draggedPosition.y - session.startPosition.y,
+		};
+		const movingAnchors = session.movingAnchors.map((anchor) => ({
+			...anchor,
+			x: anchor.x + movement.x,
+			y: anchor.y + movement.y,
+		}));
+		const alignment = getPIDAnchorAlignment(
+			movingAnchors,
+			session.stationaryAnchors,
+			PID_HELPER_LINE_SNAP_DISTANCE / zoom,
+		);
+		const node = getInternalNode(session.nodeId);
+		const parent = node?.parentId ? getInternalNode(node.parentId) : undefined;
+		const canvasOffset = parent?.internals.positionAbsolute ?? { x: 0, y: 0 };
+		const helperPosition = {
+			x: draggedPosition.x + alignment.delta.x,
+			y: draggedPosition.y + alignment.delta.y,
+		};
+		const gridPosition = snapPIDPosition(helperPosition, canvasOffset);
+		const acceptsHorizontalCorrection = Math.abs(helperPosition.x - gridPosition.x) < 0.001;
+		const acceptsVerticalCorrection = Math.abs(helperPosition.y - gridPosition.y) < 0.001;
+		const alignedChanges = snappedChanges.map((change) =>
+			change.type === "position" && change.id === session.nodeId && change.position
+				? {
+						...change,
+						position: {
+							x: acceptsHorizontalCorrection ? helperPosition.x : change.position.x,
+							y: acceptsVerticalCorrection ? helperPosition.y : change.position.y,
+						},
+					}
+				: change,
+		);
+
+		// Helper lines may pull a centre to another grid point when zoomed out,
+		// but a fractional correction must not override the grid invariant.
+		setHelperLines({
+			horizontal: acceptsVerticalCorrection ? alignment.lines.horizontal : undefined,
+			vertical: acceptsHorizontalCorrection ? alignment.lines.vertical : undefined,
+		});
+		applyNodeChange(alignedChanges);
+	}
+
+	function applyNodeChange(changes: NodeChange<PIDNode>[]) {
+		const apply = () =>
+			changeCurrentNodes((current) => applyNodeChanges<PIDNode>(changes, current));
+		const changesGraph = changes.some(
+			(change) => change.type !== "select" && change.type !== "dimensions",
+		);
+
+		if (changesGraph) {
+			performEdit(apply);
+		} else {
+			apply();
+		}
+	}
+
+	function changeEdges(changes: EdgeChange<PIDEdge>[]) {
+		const apply = () =>
+			changeCurrentEdges((current) => applyEdgeChanges<PIDEdge>(changes, current));
+		const changesGraph = changes.some((change) => change.type !== "select");
+
+		if (changesGraph) {
+			performEdit(apply);
+		} else {
+			apply();
+		}
+	}
+
 	function dropNode(node: PIDNode, dragged: PIDNode[]) {
+		const droppedNode = nodesRef.current.find((candidate) => candidate.id === node.id) ?? node;
+
 		setDragging(false);
 		setHolderCandidate(undefined);
+		setHelperLines({});
+		helperLineSession.current = undefined;
 
-		if (dragged.length !== 1) return;
+		if (dragged.length === 1) {
+			const holderId = holderUnder(droppedNode);
+			if (holderId !== undefined && holderId !== droppedNode.parentId)
+				holdNode(droppedNode, holderId);
+		}
 
-		const holderId = holderUnder(node);
-		if (holderId === undefined || holderId === node.parentId) return;
-
-		holdNode(node.id, holderId);
+		finishHistoryGroup();
 	}
 
 	/**
@@ -612,32 +1093,59 @@ function PIDEditorContents({
 	function editSelectedEdge(change: Partial<PIDEdgeData>) {
 		if (!selectedEdge) return;
 
-		setEdges((current) =>
-			current.map((edge) =>
-				edge.id === selectedEdge.id ? { ...edge, data: { ...edgeData(edge), ...change } } : edge,
-			),
-		);
+		performEdit(() => {
+			changeCurrentEdges((current) =>
+				current.map((edge) =>
+					edge.id === selectedEdge.id ? { ...edge, data: { ...edgeData(edge), ...change } } : edge,
+				),
+			);
+		});
+	}
+
+	function changeSelectedEdgeKind(kind: PIDEdgeKind) {
+		if (!selectedEdge) return;
+
+		const current = edgeData(selectedEdge);
+		editSelectedEdge({
+			kind,
+			...arrowsAfterKindChange(current.kind, kind, current),
+		});
+	}
+
+	function addSelectedEdgeArrow() {
+		if (!selectedEdge) return;
+
+		const current = edgeData(selectedEdge);
+		const position = nextArrowPosition(current.arrowPositions);
+		if (position !== undefined) {
+			editSelectedEdge({ arrowPositions: [...current.arrowPositions, position] });
+		}
 	}
 
 	function deleteSelectedItems() {
-		const selectedEdgeIds = new Set(selectedEdges.map((edge) => edge.id));
+		const currentNodes = nodesRef.current;
+		const currentEdges = edgesRef.current;
+		const selectedEdgeIds = new Set(
+			currentEdges.filter((edge) => edge.selected).map((edge) => edge.id),
+		);
+		const selectedNodeIdsOnly = currentNodes.filter((node) => node.selected).map((node) => node.id);
+		if (selectedEdgeIds.size === 0 && selectedNodeIdsOnly.length === 0) return;
 
 		// Deleting a symbol deletes what sits inside it. A symbol left behind
 		// would name a holder that is no longer in the diagram.
-		const selectedNodeIds = withContents(
-			nodes,
-			selectedNodes.map((node) => node.id),
-		);
+		const selectedNodeIds = withContents(currentNodes, selectedNodeIdsOnly);
 
-		setNodes((current) => current.filter((node) => !selectedNodeIds.has(node.id)));
-		setEdges((current) =>
-			current.filter(
-				(edge) =>
-					!selectedEdgeIds.has(edge.id) &&
-					!selectedNodeIds.has(edge.source) &&
-					!selectedNodeIds.has(edge.target),
-			),
-		);
+		performEdit(() => {
+			changeCurrentNodes((current) => current.filter((node) => !selectedNodeIds.has(node.id)));
+			changeCurrentEdges((current) =>
+				current.filter(
+					(edge) =>
+						!selectedEdgeIds.has(edge.id) &&
+						!selectedNodeIds.has(edge.source) &&
+						!selectedNodeIds.has(edge.target),
+				),
+			);
+		});
 	}
 
 	function togglePaletteGroup(label: string) {
@@ -654,8 +1162,104 @@ function PIDEditorContents({
 		});
 	}
 
+	useEffect(() => {
+		if (readOnly) return;
+
+		function onKeyDown(event: KeyboardEvent) {
+			if (!editor.current?.contains(event.target as globalThis.Node)) return;
+
+			const key = event.key.toLocaleLowerCase();
+			const command = event.metaKey || event.ctrlKey;
+			const editingText = isEditableTarget(event.target);
+			const nudgeMovement = movementForNudgeKey(
+				event.key,
+				event.shiftKey ? PID_LARGE_NUDGE_STEP : PID_NUDGE_STEP,
+			);
+
+			if (
+				nudgeMovement &&
+				!command &&
+				!event.altKey &&
+				!isNudgeBlockedTarget(event.target) &&
+				activeTool === "select" &&
+				selectedNodes.length > 0
+			) {
+				event.preventDefault();
+				event.stopPropagation();
+
+				if (pressedNudgeKeys.current.size === 0) beginHistoryGroup();
+				pressedNudgeKeys.current.add(event.key);
+				nudgeSelectedNodes(nudgeMovement);
+				return;
+			}
+
+			if (command && !editingText && key === "d" && canCopySelection) {
+				event.preventDefault();
+				duplicateSelection();
+				return;
+			}
+
+			if (command && !editingText && key === "c" && canCopySelection) {
+				event.preventDefault();
+				copySelection();
+				return;
+			}
+
+			if (command && !editingText && key === "v" && canPaste) {
+				event.preventDefault();
+				pasteClipboard();
+				return;
+			}
+
+			if (command && key === "z") {
+				event.preventDefault();
+				if (event.shiftKey) {
+					redo();
+				} else {
+					undo();
+				}
+				return;
+			}
+
+			if (command && key === "y") {
+				event.preventDefault();
+				redo();
+				return;
+			}
+
+			if (!command && (event.key === "Backspace" || event.key === "Delete")) {
+				if (editingText) return;
+
+				event.preventDefault();
+				deleteSelectedItems();
+			}
+		}
+
+		function onKeyUp(event: KeyboardEvent) {
+			if (!pressedNudgeKeys.current.delete(event.key)) return;
+			if (pressedNudgeKeys.current.size === 0) finishHistoryGroup();
+		}
+
+		function onWindowBlur() {
+			if (pressedNudgeKeys.current.size === 0) return;
+
+			pressedNudgeKeys.current.clear();
+			finishHistoryGroup();
+		}
+
+		document.addEventListener("keydown", onKeyDown, true);
+		document.addEventListener("keyup", onKeyUp);
+		window.addEventListener("blur", onWindowBlur);
+		return () => {
+			document.removeEventListener("keydown", onKeyDown, true);
+			document.removeEventListener("keyup", onKeyUp);
+			window.removeEventListener("blur", onWindowBlur);
+		};
+	});
+
 	return (
 		<div
+			ref={editor}
 			className={[
 				"pid-editor overflow-hidden border border-border bg-surface",
 				expanded ? "fixed inset-0 z-50 flex flex-col" : "mt-6 rounded-xl",
@@ -695,6 +1299,16 @@ function PIDEditorContents({
 						</span>
 						<Switch aria-labelledby="pid-grid-label" checked={showGrid} onChange={setShowGrid} />
 					</div>
+					<div className="flex items-center gap-2">
+						<span id="pid-handles-label" className="text-sm text-foreground-muted">
+							Handles
+						</span>
+						<Switch
+							aria-labelledby="pid-handles-label"
+							checked={showHandles}
+							onChange={setShowHandles}
+						/>
+					</div>
 
 					<button
 						type="button"
@@ -724,117 +1338,127 @@ function PIDEditorContents({
 			*/}
 			<div
 				ref={canvas}
+				tabIndex={readOnly ? undefined : -1}
 				className={
 					expanded
-						? "relative min-h-0 flex-1 bg-canvas"
-						: "relative h-[calc(100svh-14rem)] min-h-[42rem] bg-canvas"
+						? "relative min-h-0 flex-1 bg-canvas focus:outline-none"
+						: "relative h-[calc(100svh-14rem)] min-h-[42rem] bg-canvas focus:outline-none"
 				}
 			>
-				<ReactFlow<PIDNode, PIDEdge>
-					className={
-						readOnly
-							? "pid-editor-canvas--read-only"
-							: activeTool === "pan"
-								? "pid-editor-canvas--pan"
-								: undefined
-					}
-					nodes={displayedNodes}
-					edges={displayedEdges}
-					nodeTypes={nodeTypes}
-					edgeTypes={edgeTypes}
-					onNodesChange={readOnly ? undefined : onNodesChange}
-					onEdgesChange={readOnly ? undefined : onEdgesChange}
-					onConnect={readOnly ? undefined : connect}
-					onNodeDragStart={() => setDragging(true)}
-					onNodeDrag={(_event, node, dragged) => dragNode(node, dragged)}
-					onNodeDragStop={(_event, node, dragged) => dropNode(node, dragged)}
-					onSelectionDragStart={() => setDragging(true)}
-					onSelectionDragStop={() => setDragging(false)}
-					colorMode="system"
-					connectionLineType={ConnectionLineType.Step}
-					defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-					defaultEdgeOptions={{
-						type: "pid-connection",
-						markerEnd: {
-							type: MarkerType.ArrowClosed,
-							color: LINE_COLOR,
-						},
+				<PIDHandleVisibilityContext.Provider
+					value={{
+						visible: showHandles,
+						interactive: !readOnly && activeTool === "select",
 					}}
-					nodeOrigin={nodeOrigin}
-					minZoom={0.25}
-					maxZoom={2}
-					zoomOnScroll={false}
-					zoomOnDoubleClick={false}
-					panOnScroll
-					panOnDrag={readOnly || activeTool === "pan" ? [0, 1] : [1]}
-					nodesDraggable={!readOnly && activeTool === "select"}
-					nodesConnectable={!readOnly && activeTool === "select"}
-					elementsSelectable={!readOnly && activeTool === "select"}
-					selectionKeyCode={null}
-					selectionOnDrag={!readOnly && activeTool === "select"}
-					snapToGrid
-					snapGrid={[10, 10]}
 				>
-					{!readOnly ? (
-						<ReactFlowPanel position="top-left" className="m-3">
-							<div
-								role="toolbar"
-								aria-label="Diagram tools"
-								className="flex gap-1 rounded-lg border border-border bg-surface/95 p-1 shadow-lg backdrop-blur-sm"
-							>
-								<button
-									type="button"
-									aria-label="Select"
-									aria-pressed={activeTool === "select"}
-									title="Select"
-									className={toolButtonClass(activeTool === "select")}
-									onClick={() => setActiveTool("select")}
-								>
-									<CursorArrowRaysIcon className="size-4" />
-									Select
-								</button>
-								<button
-									type="button"
-									aria-label="Hand"
-									aria-pressed={activeTool === "pan"}
-									title="Pan canvas"
-									className={toolButtonClass(activeTool === "pan")}
-									onClick={() => setActiveTool("pan")}
-								>
-									<HandRaisedIcon className="size-4" />
-									Hand
-								</button>
-							</div>
-						</ReactFlowPanel>
-					) : null}
+					<ReactFlow<PIDNode, PIDEdge>
+						className={[
+							"pid-editor-canvas",
+							readOnly ? "pid-editor-canvas--read-only" : "",
+							activeTool === "pan" ? "pid-editor-canvas--pan" : "",
+						]
+							.filter(Boolean)
+							.join(" ")}
+						nodes={displayedNodes}
+						edges={displayedEdges}
+						nodeTypes={nodeTypes}
+						edgeTypes={edgeTypes}
+						onNodesChange={readOnly ? undefined : changeNodes}
+						onEdgesChange={readOnly ? undefined : changeEdges}
+						onConnect={readOnly ? undefined : connect}
+						onNodeDragStart={(_event, node, dragged) => startNodeDrag(node, dragged)}
+						onNodeDrag={(_event, node, dragged) => dragNode(node, dragged)}
+						onNodeDragStop={(_event, node, dragged) => dropNode(node, dragged)}
+						onSelectionDragStart={() => {
+							beginHistoryGroup();
+							setDragging(true);
+							setHelperLines({});
+							helperLineSession.current = undefined;
+						}}
+						onSelectionDragStop={() => {
+							setDragging(false);
+							setHelperLines({});
+							finishHistoryGroup();
+						}}
+						onSelectionEnd={() => canvas.current?.focus({ preventScroll: true })}
+						colorMode="light"
+						connectionMode={ConnectionMode.Loose}
+						connectionLineType={ConnectionLineType.Step}
+						isValidConnection={validConnection}
+						defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+						defaultEdgeOptions={{
+							type: "pid-connection",
+						}}
+						nodeOrigin={nodeOrigin}
+						minZoom={0.25}
+						maxZoom={2}
+						zoomOnScroll={false}
+						zoomOnDoubleClick={false}
+						panOnScroll
+						panOnDrag={readOnly || activeTool === "pan" ? [0, 1] : [1]}
+						nodesDraggable={!readOnly && activeTool === "select"}
+						nodesConnectable={!readOnly && activeTool === "select"}
+						elementsSelectable={!readOnly && activeTool === "select"}
+						selectionKeyCode={null}
+						deleteKeyCode={null}
+						selectionOnDrag={!readOnly && activeTool === "select"}
+					>
+						{!readOnly ? (
+							<PIDEditorToolbar
+								activeTool={activeTool}
+								setActiveTool={setActiveTool}
+								canCopySelection={canCopySelection}
+								canPaste={canPaste}
+								duplicateSelection={duplicateSelection}
+								copySelection={copySelection}
+								pasteClipboard={pasteClipboard}
+								canAlignSelection={canAlignSelection}
+								selectionCount={selectedLayoutBoxes.length}
+								alignmentCollisions={alignmentCollisions}
+								alignmentChanges={alignmentChanges}
+								alignSelectedNodes={alignSelectedNodes}
+								canDistributeSelection={canDistributeSelection}
+								distributionCollisions={distributionCollisions}
+								distributionChanges={distributionChanges}
+								distributeSelectedNodes={distributeSelectedNodes}
+								canUndo={canUndo}
+								canRedo={canRedo}
+								undo={undo}
+								redo={redo}
+							/>
+						) : null}
 
-					<Controls showInteractive={false}>
-						<ControlButton
-							onClick={() => void zoomTo(1, { duration: 200 })}
-							title="Reset zoom"
-							aria-label="Reset zoom"
-						>
-							<span className="text-[0.625rem] font-semibold">1:1</span>
-						</ControlButton>
-					</Controls>
-					{showGrid ? (
-						<Background
-							variant={BackgroundVariant.Lines}
-							gap={20}
-							color="var(--adacta-color-border)"
-						/>
-					) : null}
-				</ReactFlow>
+						<Controls showInteractive={false}>
+							<ControlButton
+								onClick={() => void zoomTo(1, { duration: 200 })}
+								title="Reset zoom"
+								aria-label="Reset zoom"
+							>
+								<span className="text-[0.625rem] font-semibold">1:1</span>
+							</ControlButton>
+						</Controls>
+						{showGrid ? (
+							<Background
+								variant={BackgroundVariant.Lines}
+								gap={20}
+								color="var(--adacta-color-border)"
+							/>
+						) : null}
+						<PIDHelperLinesRenderer lines={helperLines} />
+					</ReactFlow>
+				</PIDHandleVisibilityContext.Provider>
+
+				{import.meta.env.DEV ? (
+					<PIDEditorDebugPanel
+						nodes={nodes}
+						lines={helperLines}
+						getInternalNode={getInternalNode}
+					/>
+				) : null}
 
 				{!readOnly && selectedItemCount > 0 ? (
-					<aside className="absolute bottom-3 left-14 z-10 flex max-h-[calc(100%-1.5rem)] w-56 flex-col rounded-lg border border-border bg-surface/95 shadow-lg backdrop-blur-sm">
-						<h3 className="px-4 pt-4 text-sm font-semibold text-foreground">
-							{selectedNode
-								? "Selected symbol"
-								: selectedEdge
-									? "Selected connection"
-									: `${selectedItemCount} items selected`}
-						</h3>
+					<aside className="absolute bottom-3 left-14 z-10 flex max-h-[calc(100%-1.5rem)] w-60 flex-col rounded-lg border border-border bg-surface/95 shadow-lg backdrop-blur-sm">
+						<h3 className="px-4 pt-4 text-sm font-semibold text-foreground">{selectionTitle}</h3>
 
 						{/*
 							Only the fields scroll. The delete button therefore stays in
@@ -849,7 +1473,12 @@ function PIDEditorContents({
 										</span>
 										<input
 											value={selectedNode.data.label}
-											onChange={(event) => renameSelectedNode(event.target.value)}
+											onFocus={beginHistoryGroup}
+											onBlur={finishHistoryGroup}
+											onChange={(event) => {
+												beginHistoryGroup();
+												renameSelectedNode(event.target.value);
+											}}
 											className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground focus:border-focus focus:outline-none"
 										/>
 									</label>
@@ -879,7 +1508,12 @@ function PIDEditorContents({
 												<span className="text-xs font-medium text-foreground-muted">Tag</span>
 												<input
 													value={selectedNode.data.secondaryLabel ?? ""}
-													onChange={(event) => setSelectedNodeTag(event.target.value)}
+													onFocus={beginHistoryGroup}
+													onBlur={finishHistoryGroup}
+													onChange={(event) => {
+														beginHistoryGroup();
+														setSelectedNodeTag(event.target.value);
+													}}
 													className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground focus:border-focus focus:outline-none"
 												/>
 											</label>
@@ -901,6 +1535,29 @@ function PIDEditorContents({
 											</button>
 										</div>
 									)}
+
+									{selectedNode.data.kind === "three-way-valve" ? (
+										<fieldset>
+											<legend className="text-xs font-medium text-foreground-muted">Inlets</legend>
+											<div className="mt-1 grid grid-cols-2 gap-1">
+												{([1, 2] as const).map((inletCount) => (
+													<button
+														key={inletCount}
+														type="button"
+														aria-pressed={selectedNode.data.inletCount === inletCount}
+														className="rounded-md border border-border px-2 py-1.5 text-xs text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
+														onClick={() => setSelectedNodeInletCount(inletCount)}
+													>
+														{inletCount}
+													</button>
+												))}
+											</div>
+											<p className="mt-1 text-[0.6875rem] text-foreground-muted">
+												Changing this removes the valve&apos;s connections because their directions
+												reverse.
+											</p>
+										</fieldset>
+									) : null}
 
 									<fieldset>
 										<legend className="text-xs font-medium text-foreground-muted">
@@ -940,15 +1597,15 @@ function PIDEditorContents({
 													aria-pressed={edgeKind(selectedEdge) === kind}
 													title={PID_EDGE_KINDS[kind].description}
 													className="rounded-md border border-border px-2 py-1.5 text-xs text-foreground hover:bg-surface-muted aria-pressed:border-accent aria-pressed:bg-surface-muted aria-pressed:font-semibold focus-visible:outline-2 focus-visible:outline-focus"
-													onClick={() => editSelectedEdge({ kind })}
+													onClick={() => changeSelectedEdgeKind(kind)}
 												>
 													{PID_EDGE_KINDS[kind].name}
 												</button>
 											))}
 										</div>
 
-										{/* A caption carries no fluid, so it is not a pipe and has no bore. */}
-										{edgeKind(selectedEdge) === "caption" ? null : (
+										{/* Only process lines have pipe dimensions. */}
+										{PID_EDGE_KINDS[edgeKind(selectedEdge)].carriesProcessFluid ? (
 											<div className="mt-3 space-y-2">
 												<label className="block">
 													<span className="text-xs font-medium text-foreground-muted">
@@ -957,9 +1614,12 @@ function PIDEditorContents({
 													<input
 														value={selectedEdge.data?.material ?? ""}
 														placeholder="Stainless steel 1.4571"
-														onChange={(event) =>
-															editSelectedEdge({ material: event.target.value || null })
-														}
+														onFocus={beginHistoryGroup}
+														onBlur={finishHistoryGroup}
+														onChange={(event) => {
+															beginHistoryGroup();
+															editSelectedEdge({ material: event.target.value || null });
+														}}
 														className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs text-foreground placeholder:text-foreground-muted focus:border-focus focus:outline-none"
 													/>
 												</label>
@@ -968,19 +1628,25 @@ function PIDEditorContents({
 													label="Inner diameter"
 													value={selectedEdge.data?.innerDiameter ?? null}
 													onChange={(innerDiameter) => editSelectedEdge({ innerDiameter })}
+													onEditStart={beginHistoryGroup}
+													onEditEnd={finishHistoryGroup}
 												/>
 												<LengthField
 													label="Outer diameter"
 													value={selectedEdge.data?.outerDiameter ?? null}
 													onChange={(outerDiameter) => editSelectedEdge({ outerDiameter })}
+													onEditStart={beginHistoryGroup}
+													onEditEnd={finishHistoryGroup}
 												/>
 												<LengthField
 													label="Length"
 													value={selectedEdge.data?.length ?? null}
 													onChange={(length) => editSelectedEdge({ length })}
+													onEditStart={beginHistoryGroup}
+													onEditEnd={finishHistoryGroup}
 												/>
 											</div>
-										)}
+										) : null}
 									</fieldset>
 
 									<fieldset className="min-w-0">
@@ -1012,15 +1678,131 @@ function PIDEditorContents({
 												</button>
 											))}
 										</div>
+
+										{PID_EDGE_KINDS[edgeKind(selectedEdge)].supportsArrows ? (
+											<div className="mt-4 border-t border-border pt-3">
+												<div className="flex items-center justify-between gap-3">
+													<span className="text-xs font-medium text-foreground-muted">Arrows</span>
+													<button
+														type="button"
+														disabled={(selectedEdge.data?.arrowPositions.length ?? 0) >= 99}
+														className="rounded-md border border-border px-2 py-1 text-[0.6875rem] font-medium text-foreground hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50"
+														onClick={addSelectedEdgeArrow}
+													>
+														Add arrow
+													</button>
+												</div>
+
+												<div className="mt-2 flex items-center justify-between gap-3">
+													<span className="text-xs text-foreground">At end</span>
+													<Switch
+														aria-label="Arrow at end"
+														checked={
+															selectedEdge.data?.endArrow ?? defaultEndArrow(edgeKind(selectedEdge))
+														}
+														onChange={(endArrow) => editSelectedEdge({ endArrow })}
+													/>
+												</div>
+
+												{(selectedEdge.data?.arrowPositions ?? []).length > 0 ? (
+													<div className="mt-3 space-y-2">
+														{(selectedEdge.data?.arrowPositions ?? []).map((position, index) => (
+															<div
+																key={index}
+																className="grid grid-cols-[minmax(0,1fr)_2.5rem_auto] items-center gap-2"
+															>
+																<input
+																	type="range"
+																	min={1}
+																	max={99}
+																	step={1}
+																	value={position}
+																	aria-label={`Arrow ${index + 1} position`}
+																	className="min-w-0 accent-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+																	onFocus={beginHistoryGroup}
+																	onBlur={finishHistoryGroup}
+																	onChange={(event) => {
+																		beginHistoryGroup();
+																		editSelectedEdge({
+																			arrowPositions: moveArrowPosition(
+																				selectedEdge.data?.arrowPositions ?? [],
+																				index,
+																				Number(event.target.value),
+																			),
+																		});
+																	}}
+																/>
+																<output className="text-right text-xs tabular-nums text-foreground-muted">
+																	{position}%
+																</output>
+																<button
+																	type="button"
+																	aria-label={`Remove arrow ${index + 1}`}
+																	title="Remove arrow"
+																	className="rounded p-1 text-foreground-muted hover:bg-danger-surface hover:text-danger-surface-foreground focus-visible:outline-2 focus-visible:outline-focus"
+																	onClick={() =>
+																		editSelectedEdge({
+																			arrowPositions: removeArrowPosition(
+																				selectedEdge.data?.arrowPositions ?? [],
+																				index,
+																			),
+																		})
+																	}
+																>
+																	<XMarkIcon className="size-3.5" />
+																</button>
+															</div>
+														))}
+													</div>
+												) : null}
+											</div>
+										) : null}
 									</fieldset>
 								</div>
-							) : (
-								<div className="mt-2 space-y-1 text-sm text-foreground-muted">
-									<p>{selectionSummary}</p>
-									<p>Drag a selected symbol to move the group.</p>
-								</div>
-							)}
+							) : hasMixedSelection ? (
+								<p className="mt-2 text-xs text-foreground-muted">{selectionSummary}</p>
+							) : null}
 						</div>
+
+						{selectedNodes.length > 0 ? (
+							<div className="mt-3 border-t border-border px-4 py-3">
+								<p className="text-xs font-medium text-foreground">
+									Move {selectedNodes.length > 1 ? "selection" : "symbol"}
+								</p>
+								<table className="mt-2 w-full text-xs text-foreground-muted">
+									<tbody>
+										<tr>
+											<th className="py-0.5 text-left font-medium text-foreground">Drag symbol</th>
+											<td className="py-0.5 text-left whitespace-nowrap">
+												{selectedNodes.length > 1 ? "Move group" : "Move freely"}
+											</td>
+										</tr>
+										<tr>
+											<th className="py-0.5 text-left font-medium text-foreground">
+												<kbd className="whitespace-nowrap rounded border border-border bg-surface-muted px-1.5 py-0.5 font-sans font-medium">
+													Arrow keys
+												</kbd>
+											</th>
+											<td className="py-0.5 text-left whitespace-nowrap">1 grid step</td>
+										</tr>
+										<tr>
+											<th className="py-0.5 text-left font-medium text-foreground">
+												<span className="flex items-center gap-1">
+													<kbd className="whitespace-nowrap rounded border border-border bg-surface-muted px-1.5 py-0.5 font-sans font-medium">
+														Shift
+													</kbd>
+													<span>+</span>
+													<kbd className="whitespace-nowrap rounded border border-border bg-surface-muted px-1.5 py-0.5 font-sans font-medium">
+														Arrow keys
+													</kbd>
+												</span>
+											</th>
+											<td className="py-0.5 text-left whitespace-nowrap">5 grid steps</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						) : null}
 
 						<button
 							type="button"
@@ -1034,7 +1816,7 @@ function PIDEditorContents({
 				) : null}
 
 				{!readOnly ? (
-					<aside className="absolute inset-y-3 right-3 z-10 flex w-60 max-w-[calc(100%-1.5rem)] flex-col overflow-hidden rounded-lg border border-border bg-surface/95 shadow-lg backdrop-blur-sm">
+					<aside className="absolute top-3 right-3 bottom-3 z-10 flex w-60 max-w-[calc(100%-1.5rem)] flex-col overflow-hidden rounded-lg border border-border bg-surface/95 shadow-lg backdrop-blur-sm max-lg:top-24">
 						<div className="border-b border-border p-3">
 							<h3 className="text-sm font-semibold text-foreground">Connection</h3>
 							<p className="mt-0.5 text-xs text-foreground-muted">
@@ -1148,129 +1930,43 @@ function PIDEditorContents({
 	);
 }
 
-function editorNodes(value: PIDGraph): PIDNode[] {
-	const nodes: PIDNode[] = value.nodes.map((node) => ({
-		id: node.id,
-		type: "pid-symbol",
-		position: { ...node.position },
+function createHelperLineSession(
+	node: PIDNode,
+	nodes: PIDNode[],
+	getInternalNode: (id: string) => InternalNode<PIDNode> | undefined,
+): HelperLineSession | undefined {
+	const internalNode = getInternalNode(node.id);
+	if (!internalNode) return undefined;
 
-		// A symbol that sits inside another is kept within it while it is
-		// dragged, and its position is measured from that symbol.
-		...(node.parentId === null ? {} : { parentId: node.parentId, extent: "parent" as const }),
+	const stationaryAnchors = nodes
+		.filter((candidate) => candidate.id !== node.id)
+		.flatMap((candidate) => {
+			const internalCandidate = getInternalNode(candidate.id);
 
-		data: {
-			kind: node.kind,
-			label: node.label,
-			secondaryLabel: node.secondaryLabel,
-			contained: node.parentId !== null,
-			orientation: node.orientation,
-		},
-	}));
+			return internalCandidate ? helperAnchors(internalCandidate) : [];
+		});
 
-	return holdersFirst(nodes);
-}
-
-/**
- * Returns the given symbols together with everything inside them.
- *
- * A symbol may hold another that holds a third, so the search continues until
- * it finds nothing further.
- */
-function withContents(nodes: PIDNode[], ids: string[]): Set<string> {
-	const doomed = new Set(ids);
-	let added = true;
-
-	while (added) {
-		added = false;
-
-		for (const node of nodes) {
-			if (node.parentId === undefined) continue;
-			if (doomed.has(node.id)) continue;
-			if (!doomed.has(node.parentId)) continue;
-
-			doomed.add(node.id);
-			added = true;
-		}
-	}
-
-	return doomed;
-}
-
-/**
- * Returns the symbols with every holder before what it holds.
- *
- * React Flow reads the list in order and needs a symbol to exist before it
- * places anything inside it. One pass is not enough, because a holder may
- * itself sit inside another. The list is therefore walked until nothing moves.
- */
-function holdersFirst(nodes: PIDNode[]): PIDNode[] {
-	const placed = new Set<string>();
-	const ordered: PIDNode[] = [];
-	let remaining = nodes;
-
-	while (remaining.length > 0) {
-		const ready = remaining.filter(
-			(node) => node.parentId === undefined || placed.has(node.parentId),
-		);
-
-		// A symbol naming a holder that is not in the diagram would otherwise
-		// loop here. The route rejects such a diagram, so this only guards
-		// against a graph built in some other way.
-		if (ready.length === 0) return [...ordered, ...remaining];
-
-		for (const node of ready) placed.add(node.id);
-
-		ordered.push(...ready);
-		remaining = remaining.filter((node) => !placed.has(node.id));
-	}
-
-	return ordered;
-}
-
-function editorEdges(value: PIDGraph): PIDEdge[] {
-	return value.edges.map((edge) => ({
-		id: edge.id,
-		type: "pid-connection",
-		data: {
-			kind: edge.kind,
-			weight: edge.weight,
-			material: edge.material,
-			innerDiameter: edge.innerDiameter,
-			outerDiameter: edge.outerDiameter,
-			length: edge.length,
-		},
-		source: edge.source,
-		target: edge.target,
-		sourceHandle: edge.sourceHandle,
-		targetHandle: edge.targetHandle,
-	}));
-}
-
-function pidGraph(nodes: PIDNode[], edges: PIDEdge[]): PIDGraph {
 	return {
-		nodes: nodes.map((node) => ({
-			id: node.id,
-			kind: node.data.kind,
-			label: node.data.label,
-			secondaryLabel: node.data.secondaryLabel,
-			parentId: node.parentId ?? null,
-			orientation: node.data.orientation,
-			position: { ...node.position },
-		})),
-		edges: edges.map((edge) => ({
-			id: edge.id,
-			kind: edgeKind(edge),
-			weight: edge.data?.weight ?? 1,
-			material: edge.data?.material ?? null,
-			innerDiameter: edge.data?.innerDiameter ?? null,
-			outerDiameter: edge.data?.outerDiameter ?? null,
-			length: edge.data?.length ?? null,
-			source: edge.source,
-			target: edge.target,
-			sourceHandle: edge.sourceHandle ?? null,
-			targetHandle: edge.targetHandle ?? null,
-		})),
+		nodeId: node.id,
+		startPosition: { ...node.position },
+		movingAnchors: helperAnchors(internalNode),
+		stationaryAnchors,
 	};
+}
+
+/** Returns the measured center of one symbol. */
+function helperAnchors(node: InternalNode<PIDNode>): PIDHelperAnchor[] {
+	const width = node.measured.width;
+	const height = node.measured.height;
+	if (width === undefined || height === undefined) return [];
+
+	return [
+		{
+			nodeId: node.id,
+			x: node.internals.positionAbsolute.x + width / 2,
+			y: node.internals.positionAbsolute.y + height / 2,
+		},
+	];
 }
 
 /**
@@ -1285,10 +1981,14 @@ function LengthField({
 	label,
 	value,
 	onChange,
+	onEditStart,
+	onEditEnd,
 }: {
 	label: string;
 	value: PIDLength | null;
 	onChange: (value: PIDLength | null) => void;
+	onEditStart: () => void;
+	onEditEnd: () => void;
 }) {
 	const [unit, setUnit] = useState<PIDLengthUnit>(value?.unit ?? "mm");
 	const chosenUnit = value?.unit ?? unit;
@@ -1303,7 +2003,10 @@ function LengthField({
 					min={0}
 					step="any"
 					value={value?.value ?? ""}
+					onFocus={onEditStart}
+					onBlur={onEditEnd}
 					onChange={(event) => {
+						onEditStart();
 						const typed = event.target.value;
 
 						onChange(typed === "" ? null : { value: Number(typed), unit: chosenUnit });
@@ -1314,7 +2017,10 @@ function LengthField({
 				<select
 					aria-label={`Unit of ${label.toLocaleLowerCase()}`}
 					value={chosenUnit}
+					onFocus={onEditStart}
+					onBlur={onEditEnd}
 					onChange={(event) => {
+						onEditStart();
 						const nextUnit = event.target.value as PIDLengthUnit;
 
 						setUnit(nextUnit);
@@ -1350,261 +2056,25 @@ function selectionPart(count: number, singular: string) {
 	return `${count} ${count === 1 ? singular : `${singular}s`}`;
 }
 
-function toolButtonClass(active: boolean) {
-	return `flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold focus-visible:outline-2 focus-visible:outline-focus ${
-		active
-			? "bg-accent text-accent-foreground"
-			: "text-foreground-muted hover:bg-surface-muted hover:text-foreground"
-	}`;
-}
-
-/**
- * Draws one connection between two symbols according to its kind.
- *
- * A pipe is drawn as a single line. A jacketed pipe is drawn as a wide line
- * covered by a narrower line in the canvas color. Two parallel lines therefore
- * remain visible. A traced line uses a dash-dot pattern, which stands for the
- * tracer that heats or cools the pipe. A caption line is dashed, because it
- * carries no process fluid.
- *
- * The v2 editor drew a traced line as the process line with a separate dash-dot
- * tracer beside it. That needs a path offset by a fixed distance, which this
- * component does not compute. The pattern therefore sits on the process line
- * itself for now.
- */
-function PIDConnection({
-	sourceX,
-	sourceY,
-	targetX,
-	targetY,
-	sourcePosition,
-	targetPosition,
-	data,
-	selected,
-	markerEnd,
-}: EdgeProps<PIDEdge>) {
-	// A P&ID uses right angles, so the corner radius is zero. The ends are
-	// rounded to whole pixels. Two ports that sit a fraction of a pixel apart
-	// would otherwise produce a short step in a line that should be straight.
-	const [route] = getSmoothStepPath({
-		sourceX: Math.round(sourceX),
-		sourceY: Math.round(sourceY),
-		targetX: Math.round(targetX),
-		targetY: Math.round(targetY),
-		sourcePosition,
-		targetPosition,
-		borderRadius: 0,
-	});
-
-	const kind = edgeKind({ data });
-
-	// Selecting a connection changes its color. The width stays the same, so
-	// the drawing does not shift as the selection moves.
-	const color = selected ? SELECTED_COLOR : kind === "caption" ? NOTE_COLOR : LINE_COLOR;
-
-	// A heavier line is drawn thicker, and its parallel lines move apart with
-	// it, so the whole connection grows rather than only its centre.
-	const lineWidth = LINE_WIDTH * (data?.weight ?? 1);
-	const drawing = connectionDrawing(route, kind, lineWidth);
-
+function isEditableTarget(target: EventTarget | null): boolean {
 	return (
-		<>
-			{drawing.background ? <Crossing shape={drawing.background} /> : null}
-
-			{drawing.lines.map((line, index) => (
-				<BaseEdge
-					key={index}
-					path={line.path}
-					markerEnd={line.arrow ? markerEnd : undefined}
-					style={{ stroke: color, strokeWidth: lineWidth, strokeDasharray: line.dashes }}
-				/>
-			))}
-		</>
+		target instanceof HTMLInputElement ||
+		target instanceof HTMLTextAreaElement ||
+		target instanceof HTMLSelectElement ||
+		(target instanceof HTMLElement && target.isContentEditable)
 	);
 }
 
-interface ConnectionDrawing {
-	/**
-	 * The shape filled behind the connection, where it has one.
-	 */
-	background?: string;
-
-	/**
-	 * The lines to stroke, in the order they are drawn.
-	 */
-	lines: { path: string; dashes?: string; arrow?: boolean }[];
-}
-
-/**
- * Returns the lines that make up one connection.
- *
- * The diagram and the sample shown in the palette are both built from this, so
- * the two cannot drift apart.
- *
- * A caption is a single line. A pipe is a centre line. A jacketed pipe adds a
- * line on each side of the centre, stopping them short so that the pipe alone
- * enters the symbol. A traced pipe drops the centre line and keeps the two side
- * lines, one solid and one dash-dot, because the tracer is a separate line
- * running along the pipe.
- *
- * Pass withArrow as false where no arrow is drawn. The jacket then needs only
- * its usual gap, rather than one wide enough to clear an arrow.
- */
-function connectionDrawing(
-	route: string,
-	kind: PIDEdgeKind,
-	lineWidth: number,
-	withArrow = true,
-): ConnectionDrawing {
-	if (kind === "caption") {
-		return { lines: [{ path: route }] };
-	}
-
-	if (kind === "pipe") {
-		const lines = parallelLines(route, { spacing: 2 + lineWidth, lineWidth });
-
-		return {
-			background: lines.centerBackground,
-			lines: [{ path: lines.center, arrow: withArrow }],
-		};
-	}
-
-	if (kind === "jacketed") {
-		const spacing = 2 + lineWidth;
-
-		// The arrow is taller than the jacket is wide, so a jacket ending closer
-		// than one spacing behind it appears to run into it.
-		const outerEndGap = withArrow ? lineWidth + arrowLength(lineWidth) + spacing : spacing;
-		const lines = parallelLines(route, { spacing, lineWidth, outerEndGap });
-
-		return {
-			background: lines.fullBackground,
-			lines: [{ path: lines.left + lines.right }, { path: lines.center, arrow: withArrow }],
-		};
-	}
-
-	// Both lines reach the symbol, because one of them is the pipe. Neither
-	// carries an arrow: they run beside the centre, so an arrow on one of them
-	// would point from the side.
-	const lines = parallelLines(route, { spacing: 1 + lineWidth, lineWidth, outerEndGap: 0 });
-
-	return {
-		background: lines.fullBackground,
-		lines: [{ path: lines.right }, { path: lines.left, dashes: tracerDashes(lineWidth) }],
-	};
-}
-
-/**
- * Draws a short piece of one connection kind, for the selector in the palette.
- */
-function PIDConnectionSample({ kind }: { kind: PIDEdgeKind }) {
-	const width = 40;
-	const height = 12;
-	const middle = height / 2;
-
-	const drawing = connectionDrawing(
-		`M 1 ${middle} L ${width - 1} ${middle}`,
-		kind,
-		LINE_WIDTH,
-		false,
-	);
-
+function isNudgeBlockedTarget(target: EventTarget | null): boolean {
 	return (
-		<svg viewBox={`0 0 ${width} ${height}`} className="h-3 w-10 shrink-0" aria-hidden="true">
-			{drawing.lines.map((line, index) => (
-				<path
-					key={index}
-					d={line.path}
-					fill="none"
-					stroke={kind === "caption" ? NOTE_COLOR : "currentColor"}
-					strokeWidth={LINE_WIDTH}
-					strokeDasharray={line.dashes}
-				/>
-			))}
-		</svg>
+		isEditableTarget(target) ||
+		(target instanceof HTMLElement && target.closest("button, a, [role='menuitem']") !== null)
 	);
 }
 
-/**
- * Fills a shape in the canvas color behind a connection.
- *
- * A line drawn underneath is hidden where the shape covers it. A reader can
- * therefore tell which of two crossing lines passes over the other.
- */
-function Crossing({ shape }: { shape: string }) {
-	// React Flow styles the paths inside an edge. Without an explicit "none" the
-	// shape is outlined as well as filled.
-	return (
-		<path
-			d={shape}
-			fill="var(--adacta-color-canvas)"
-			stroke="none"
-			style={{ pointerEvents: "none" }}
-		/>
-	);
-}
-
-/**
- * Returns how far the arrow at the end of a connection reaches back from its
- * tip.
- *
- * React Flow draws the arrow in a marker 12.5 units wide whose view box is 20
- * units wide, and scales the marker by the width of the line it sits on. The
- * arrow covers 5 of those 20 units behind its tip.
- */
-function arrowLength(lineWidth: number): number {
-	return 5 * (12.5 / 20) * lineWidth;
-}
-
-/**
- * Returns the dash pattern for a tracer line, scaled to the width it is drawn
- * with. The pattern repeats a long dash and a short one.
- */
-function tracerDashes(lineWidth: number): string {
-	return [5, 2, 1, 1].map((part) => part * lineWidth).join(" ");
-}
-
-function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {
-	const ConnectableSymbol = getPIDSymbolComponents(data.kind).ConnectableSymbol;
-	const maximumSize = maximumSizeForPIDSymbol(data.kind, 56);
-
-	// A note is its own text. Drawing the palette glyph as well would put a mark
-	// on the diagram that stands for nothing.
-	if (data.kind === "note") {
-		return (
-			<div
-				className={
-					selected
-						? "pid-symbol-selected max-w-48 rounded bg-surface/90 px-1 text-xs leading-normal text-foreground"
-						: "max-w-48 rounded bg-surface/90 px-1 text-xs leading-normal text-foreground"
-				}
-			>
-				{data.label || "Note"}
-			</div>
-		);
-	}
-
-	return (
-		<div className="group/pid-node relative inline-flex items-center justify-center text-foreground">
-			<ConnectableSymbol
-				nodeId={id}
-				selected={selected}
-				orientation={data.orientation}
-				maximumSize={maximumSize}
-			/>
-
-			{data.kind === "junction" || data.contained ? null : data.kind === "instrument" ? (
-				<span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center leading-none">
-					<span className="max-w-full truncate px-1 text-[0.5rem] font-medium">{data.label}</span>
-					<span className="max-w-full truncate px-1 text-[0.5rem]">
-						{data.secondaryLabel ?? ""}
-					</span>
-				</span>
-			) : (
-				<span className="pointer-events-none absolute top-full left-1/2 mt-1 w-max max-w-32 -translate-x-1/2 rounded bg-surface/90 px-1 text-center text-xs font-medium">
-					{data.label || "Unnamed"}
-				</span>
-			)}
-		</div>
-	);
+function movementForNudgeKey(key: string, distance: number): XYPosition | undefined {
+	if (key === "ArrowLeft") return { x: -distance, y: 0 };
+	if (key === "ArrowRight") return { x: distance, y: 0 };
+	if (key === "ArrowUp") return { x: 0, y: -distance };
+	if (key === "ArrowDown") return { x: 0, y: distance };
 }

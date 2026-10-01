@@ -1,3 +1,5 @@
+import type { PIDInletCount } from "~/app/lib/PID.ts";
+
 import {
 	ConnectablePIDSymbol,
 	type ConnectablePIDSymbolProps,
@@ -5,11 +7,27 @@ import {
 } from "./ConnectablePIDSymbol.tsx";
 import { SymbolSvg, type PIDSymbolProps } from "./SymbolSvg.tsx";
 
-const ports = [
-	{ id: "inlet", type: "target", side: "top", x: 0.63, y: 0 },
-	{ id: "outlet-left", type: "source", side: "bottom", x: 0.14, y: 1 },
-	{ id: "outlet-right", type: "source", side: "bottom", x: 0.63, y: 1 },
-] satisfies readonly PIDPort[];
+export function threeWayValvePorts(inletCount: PIDInletCount): readonly PIDPort[] {
+	const singleInlet = inletCount === 1;
+
+	return [
+		{ id: "inlet", type: singleInlet ? "target" : "source", side: "right", x: 0.86903125, y: 0.5 },
+		{
+			id: "outlet-left",
+			type: singleInlet ? "source" : "target",
+			side: "top",
+			x: 0.3825625,
+			y: 0.0135,
+		},
+		{
+			id: "outlet-right",
+			type: singleInlet ? "source" : "target",
+			side: "bottom",
+			x: 0.3825625,
+			y: 0.9865,
+		},
+	];
+}
 
 export function ThreeWayValveSymbol(props: PIDSymbolProps) {
 	return (
@@ -24,6 +42,7 @@ export function ThreeWayValveSymbol(props: PIDSymbolProps) {
 export function ConnectableThreeWayValveSymbol({
 	nodeId,
 	selected,
+	inletCount = 1,
 	orientation = 0,
 	maximumSize,
 	className,
@@ -33,7 +52,7 @@ export function ConnectableThreeWayValveSymbol({
 			nodeId={nodeId}
 			selected={selected}
 			orientation={orientation}
-			ports={ports}
+			ports={threeWayValvePorts(inletCount)}
 		>
 			<ThreeWayValveSymbol
 				orientation={orientation}

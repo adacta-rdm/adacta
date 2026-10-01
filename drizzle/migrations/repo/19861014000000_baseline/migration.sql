@@ -61,6 +61,8 @@ CREATE TABLE `PIDEdge` (
 	`target_node_id` text NOT NULL,
 	`kind` text NOT NULL,
 	`weight` integer NOT NULL,
+	`end_arrow` integer NOT NULL,
+	`arrow_positions` text NOT NULL,
 	`material` text,
 	`inner_diameter_value` real,
 	`inner_diameter_unit` text,
@@ -96,6 +98,7 @@ CREATE TABLE `PIDNode` (
 	`secondary_label` text,
 	`parent_node_id` text,
 	`drawing_order` integer NOT NULL,
+	`inlet_count` integer DEFAULT 1 NOT NULL,
 	`orientation` integer NOT NULL,
 	`position_x` real NOT NULL,
 	`position_y` real NOT NULL,
@@ -104,6 +107,7 @@ CREATE TABLE `PIDNode` (
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_PIDNode_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_PIDNode_parent_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`parent_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
+	CONSTRAINT "PIDNode_inlet_count_check" CHECK("inlet_count" between 1 and 2),
 	CONSTRAINT "PIDNode_orientation_check" CHECK("orientation" between 0 and 3)
 );
 --> statement-breakpoint

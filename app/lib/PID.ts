@@ -1,4 +1,5 @@
 export type PIDOrientation = 0 | 1 | 2 | 3;
+export type PIDInletCount = 1 | 2;
 
 export interface PIDGraph {
 	nodes: PIDGraphNode[];
@@ -31,6 +32,8 @@ export interface PIDGraphNode {
 	 */
 	parentId: string | null;
 
+	/** The number of inlets on a three-way valve. Other symbols keep the default of one. */
+	inletCount: PIDInletCount;
 	orientation: PIDOrientation;
 	position: { x: number; y: number };
 }
@@ -38,6 +41,8 @@ export interface PIDGraphNode {
 export interface PIDGraphEdge {
 	id: string;
 	kind: PIDEdgeKind;
+	endArrow: boolean;
+	arrowPositions: number[];
 
 	/**
 	 * How heavy the line is drawn, from 1 to 3.
@@ -98,7 +103,7 @@ export const PID_LENGTH_UNITS = ["mm", "cm", "m", "in", "ft"] as const satisfies
  * therefore distinguish it from a plain pipe. The kind does not restrict which
  * symbols may be connected.
  */
-export type PIDEdgeKind = "pipe" | "jacketed" | "traced" | "caption";
+export type PIDEdgeKind = "pipe" | "jacketed" | "traced" | "electrical" | "caption";
 
 /**
  * The connection kinds the application supports, with the name the editor
@@ -112,11 +117,15 @@ export const PID_EDGE_KINDS = {
 	pipe: {
 		name: "Pipe",
 		description: "Process fluid travels from one symbol to the other.",
+		carriesProcessFluid: true,
+		supportsArrows: true,
 	},
 
 	jacketed: {
 		name: "Jacketed",
 		description: "A pipe enclosed by a second pipe that heats or cools it.",
+		carriesProcessFluid: true,
+		supportsArrows: true,
 	},
 
 	traced: {
@@ -124,13 +133,32 @@ export const PID_EDGE_KINDS = {
 		description:
 			"A pipe with a tracer line beside it that heats or cools it. Steam tracing " +
 			"and electric tracing are both drawn this way.",
+		carriesProcessFluid: true,
+		supportsArrows: true,
+	},
+
+	electrical: {
+		name: "Electrical wiring",
+		description: "An electrical signal or power connection drawn as a dashed line.",
+		carriesProcessFluid: false,
+		supportsArrows: false,
 	},
 
 	caption: {
 		name: "Caption",
 		description: "A note attached to a symbol. No process fluid travels along it.",
+		carriesProcessFluid: false,
+		supportsArrows: false,
 	},
-} satisfies Record<PIDEdgeKind, { name: string; description: string }>;
+} satisfies Record<
+	PIDEdgeKind,
+	{
+		name: string;
+		description: string;
+		carriesProcessFluid: boolean;
+		supportsArrows: boolean;
+	}
+>;
 
 export type PIDSymbolKind =
 	| "instrument"

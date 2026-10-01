@@ -50,6 +50,12 @@ export const PIDEdge = sqliteTable(
 		 */
 		weight: integer("weight").notNull(),
 
+		/** Stores whether an arrow is drawn at the target end. */
+		endArrow: integer("end_arrow", { mode: "boolean" }).notNull(),
+
+		/** Stores integer percentages for arrows between the two ends. */
+		arrowPositions: text("arrow_positions", { mode: "json" }).$type<number[]>().notNull(),
+
 		/**
 		 * What the pipe is made of, as the laboratory writes it. For example,
 		 * "stainless steel 1.4571".

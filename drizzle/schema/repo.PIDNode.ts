@@ -9,7 +9,7 @@ import {
 	type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
-import type { PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
+import type { PIDInletCount, PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
@@ -47,6 +47,7 @@ export const PIDNode = sqliteTable(
 		}),
 
 		drawingOrder: integer("drawing_order").notNull(),
+		inletCount: integer("inlet_count").$type<PIDInletCount>().notNull().default(1),
 		orientation: integer("orientation").$type<PIDOrientation>().notNull(),
 		positionX: real("position_x").notNull(),
 		positionY: real("position_y").notNull(),
@@ -55,6 +56,7 @@ export const PIDNode = sqliteTable(
 	},
 	(table) => [
 		index("PIDNode_inventory_entry_idx").on(table.inventoryEntryId),
+		check("PIDNode_inlet_count_check", sql`${table.inletCount} between 1 and 2`),
 		check("PIDNode_orientation_check", sql`${table.orientation} between 0 and 3`),
 	],
 );

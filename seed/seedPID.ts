@@ -16,7 +16,8 @@
  */
 import { eq } from "drizzle-orm";
 
-import type { PIDEdgeKind, PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
+import type { PIDEdgeKind, PIDInletCount, PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
+import { defaultEndArrow, isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { PIDEdge } from "~/drizzle/schema/repo.PIDEdge.ts";
@@ -49,6 +50,7 @@ type SeedPIDNode = {
 	 */
 	parent?: string;
 
+	inletCount?: PIDInletCount;
 	orientation: PIDOrientation;
 	position: { x: number; y: number };
 };
@@ -56,6 +58,8 @@ type SeedPIDNode = {
 type SeedPIDEdge = {
 	key: string;
 	kind: PIDEdgeKind;
+	endArrow?: boolean;
+	arrowPositions?: number[];
 
 	/**
 	 * How heavy the line is drawn, from 1 to 3. A line that omits this is drawn
@@ -139,6 +143,12 @@ async function writeDiagram(
 				throw new Error(`Connection "${edge.key}" in ${file} names no node "${end}".`);
 			}
 		}
+
+		const endArrow = edge.endArrow ?? defaultEndArrow(edge.kind);
+		const arrowPositions = edge.arrowPositions ?? [];
+		if (!isValidArrowConfiguration(edge.kind, endArrow, arrowPositions)) {
+			throw new Error(`Connection "${edge.key}" in ${file} has invalid arrow settings.`);
+		}
 	}
 
 	await db.transaction(async (transaction) => {
@@ -157,6 +167,7 @@ async function writeDiagram(
 						secondaryLabel: node.secondaryLabel ?? null,
 						parentNodeId: node.parent === undefined ? null : nodeIds.get(node.parent)!,
 						drawingOrder,
+						inletCount: node.inletCount ?? 1,
 						orientation: node.orientation,
 						positionX: node.position.x,
 						positionY: node.position.y,
@@ -175,6 +186,8 @@ async function writeDiagram(
 						id: `pid-edge-${entryId}-${edge.key}`,
 						inventoryEntryId: entryId,
 						kind: edge.kind,
+						endArrow: edge.endArrow ?? defaultEndArrow(edge.kind),
+						arrowPositions: edge.arrowPositions ?? [],
 						weight: edge.weight ?? 1,
 						sourceNodeId: nodeIds.get(edge.source)!,
 						targetNodeId: nodeIds.get(edge.target)!,

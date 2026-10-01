@@ -14,6 +14,7 @@ import { isPIDGraph } from "@/tsrc/app/lib/PID";
 import { services } from "~/app/.server/context.ts";
 import { PIDEditor } from "~/app/components/PIDEditor.tsx";
 import type { PIDGraph, PIDLength, PIDLengthUnit } from "~/app/lib/PID.ts";
+import { isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { Button } from "~/catalyst-ui/button.tsx";
@@ -41,6 +42,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			label: PIDNode.label,
 			secondaryLabel: PIDNode.secondaryLabel,
 			parentId: PIDNode.parentNodeId,
+			inletCount: PIDNode.inletCount,
 			orientation: PIDNode.orientation,
 			position: {
 				x: PIDNode.positionX,
@@ -63,6 +65,8 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	const edges = edgeRows.map((edge) => ({
 		id: edge.id,
 		kind: edge.kind,
+		endArrow: edge.endArrow,
+		arrowPositions: edge.arrowPositions,
 		weight: edge.weight,
 		material: edge.material,
 		innerDiameter: pidLength(edge.innerDiameterValue, edge.innerDiameterUnit),
@@ -102,12 +106,15 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 
 	// A save describes the complete current diagram. Replacing both collections
 	// also removes symbols and connections that disappeared from the canvas.
-	await db.transaction(async (transaction) => {
-		await transaction.delete(PIDEdge).where(eq(PIDEdge.inventoryEntryId, entry.id)).run();
-		await transaction.delete(PIDNode).where(eq(PIDNode.inventoryEntryId, entry.id)).run();
+	// Do not use await in this callback. Bun commits the transaction at the
+	// first await. For example, the deletes would be committed at once. If an
+	// insert then fails, the old diagram is gone and the new one is missing.
+	db.transaction((transaction) => {
+		transaction.delete(PIDEdge).where(eq(PIDEdge.inventoryEntryId, entry.id)).run();
+		transaction.delete(PIDNode).where(eq(PIDNode.inventoryEntryId, entry.id)).run();
 
 		if (graph.nodes.length > 0) {
-			await transaction
+			transaction
 				.insert(PIDNode)
 				.values(
 					graph.nodes.map((node, drawingOrder) => ({
@@ -118,6 +125,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 						secondaryLabel: node.secondaryLabel,
 						parentNodeId: node.parentId,
 						drawingOrder,
+						inletCount: node.inletCount,
 						orientation: node.orientation,
 						positionX: node.position.x,
 						positionY: node.position.y,
@@ -129,13 +137,15 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 		}
 
 		if (graph.edges.length > 0) {
-			await transaction
+			transaction
 				.insert(PIDEdge)
 				.values(
 					graph.edges.map((edge, drawingOrder) => ({
 						id: edge.id,
 						inventoryEntryId: entry.id,
 						kind: edge.kind,
+						endArrow: edge.endArrow,
+						arrowPositions: edge.arrowPositions,
 						weight: edge.weight,
 						material: edge.material,
 						innerDiameterValue: edge.innerDiameter?.value ?? null,
@@ -290,7 +300,11 @@ function parseGraph(value: FormDataEntryValue | null): PIDGraph | undefined {
 	const edgeIds = new Set(parsed.edges.map((edge) => edge.id));
 	if (
 		parsed.edges.some(
-			(edge) => edge.id.length === 0 || !nodeIds.has(edge.source) || !nodeIds.has(edge.target),
+			(edge) =>
+				edge.id.length === 0 ||
+				!nodeIds.has(edge.source) ||
+				!nodeIds.has(edge.target) ||
+				!isValidArrowConfiguration(edge.kind, edge.endArrow, edge.arrowPositions),
 		) ||
 		edgeIds.size !== parsed.edges.length
 	) {
