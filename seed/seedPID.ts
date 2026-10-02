@@ -14,8 +14,6 @@
  * A diagram belongs to a rig. A file named after an entry of another kind is
  * an error, because the application draws a P&ID only for a rig.
  */
-import { eq } from "drizzle-orm";
-
 import type { PIDEdgeKind, PIDInletCount, PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
 import { defaultEndArrow, isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
@@ -74,11 +72,8 @@ type SeedPIDEdge = {
 };
 
 /**
- * Replaces the diagrams of the bound repository with those in the seed tree.
+ * Add the diagrams from the seed tree to the bound repository.
  * Returns the number of diagrams written.
- *
- * The rows of each seeded entry are deleted first. A diagram whose file was
- * removed therefore disappears on the next run.
  */
 export async function seedPID(
 	scope: ServiceContainer,
@@ -112,7 +107,7 @@ export async function seedPID(
 }
 
 /**
- * Writes one diagram and replaces the rows the entry held before.
+ * Writes one diagram. The nodes and edges are inserted in one transaction.
  *
  * A node id is composed of the entry id and the node key. Two repositories can
  * therefore both seed a node named "reactor" without a collision.
@@ -151,12 +146,9 @@ async function writeDiagram(
 		}
 	}
 
-	await db.transaction(async (transaction) => {
-		await transaction.delete(PIDEdge).where(eq(PIDEdge.inventoryEntryId, entryId)).run();
-		await transaction.delete(PIDNode).where(eq(PIDNode.inventoryEntryId, entryId)).run();
-
+	await db.transaction((transaction) => {
 		if (diagram.nodes.length > 0) {
-			await transaction
+			transaction
 				.insert(PIDNode)
 				.values(
 					diagram.nodes.map((node, drawingOrder) => ({
@@ -179,7 +171,7 @@ async function writeDiagram(
 		}
 
 		if (diagram.edges.length > 0) {
-			await transaction
+			transaction
 				.insert(PIDEdge)
 				.values(
 					diagram.edges.map((edge, drawingOrder) => ({

@@ -2,13 +2,12 @@
  * `db:*` — commands that act on the databases as a whole. They take no
  * <repo> argument; repository administration lives in scripts/repo.ts.
  *
- *   bun scripts/db.ts <migrate|refresh|reset|setup|seed>
+ *   bun scripts/db.ts <migrate|refresh|reset|setup>
  *
  *   migrate  apply pending migrations to the system database and every repository
  *   refresh  replace both migration histories with current baseline migrations
  *   reset    delete every database, then migrate from scratch
  *   setup    reset, then load the development seed
- *   seed     load the development seed
  *
  * Environment values come from the process. Bun loads a .env file into it
  * on its own.
@@ -19,7 +18,7 @@ import { SqliteDatabaseManager } from "~/app/services/SqliteDatabaseManager.ts";
 import { refreshMigrations } from "~/scripts/db/refreshMigrations.ts";
 import { seedDatabase } from "~/seed/seed.ts";
 
-const COMMANDS = "migrate, refresh, reset, setup, seed";
+const COMMANDS = "migrate, refresh, reset, setup";
 
 const [command, ...rest] = process.argv.slice(2);
 
@@ -49,10 +48,6 @@ switch (command) {
 		// Deleting first makes a seeded database the same every time, whatever
 		// state it was in before.
 		await reset();
-		await seedDatabase(app());
-		break;
-
-	case "seed":
 		await seedDatabase(app());
 		break;
 

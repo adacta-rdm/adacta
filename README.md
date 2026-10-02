@@ -69,7 +69,6 @@ Set `ADACTA_STORAGE_DIR` to store the files in another directory.
 | `bun run db:migrations:migrate` | Apply pending migrations to the system database and every repository |
 | `bun run db:reset`              | Delete every database, then migrate from scratch                     |
 | `bun run db:setup`              | Reset, then seed                                                     |
-| `bun run db:seed`               | Load the development seed                                            |
 | `bun run precommit`             | Type check, lint, format, then run the tests. Repairs what it can    |
 | `bun test`                      | Run the test suite                                                   |
 | `bun run test:e2e`              | Run the browser journeys in headless Chromium                        |
@@ -83,11 +82,8 @@ Use `db:setup` when a database is in an unclear state. It starts from an empty
 directory. The result is therefore the same whether databases were present or
 not.
 
-`db:reset`, `db:setup`, and `db:seed` stop with an error when `NODE_ENV` is
+`db:reset` and `db:setup` stop with an error when `NODE_ENV` is
 `production`. The migration refresh and migrate commands are always allowed.
-
-Running `db:seed` again is safe. It replaces the inventory of each repository
-and leaves the users and the repositories unchanged.
 
 ### Browser tests
 

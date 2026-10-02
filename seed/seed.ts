@@ -7,16 +7,14 @@
  * its data is written. Nothing here reaches for a raw database handle. The seed
  * therefore exercises the real access path.
  *
- * Migrations run first. This works on an empty database directory. Running it
- * again on a populated one replaces the inventory, the diagrams, the sample
- * batches, and the samples of each repository. Users and repository records
- * remain.
+ * db:setup resets the databases and applies migrations before loading this
+ * seed. All users, repositories, and fixtures are created in empty databases.
  *
- * Run with "bun run db:seed", or "bun run db:setup" to start from a wipe.
+ * Run with "bun run db:setup".
  */
 import { BetterAuth } from "~/app/services/BetterAuth.ts";
 import { RepoAccess } from "~/app/services/RepoAccess.ts";
-import { RepoManager, RepositoryAlreadyExistsError } from "~/app/services/RepoManager.ts";
+import { RepoManager } from "~/app/services/RepoManager.ts";
 import { Security } from "~/app/services/Security.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, keyOf, readJson, seedPath, subdirs } from "~/seed/files.ts";
@@ -59,8 +57,6 @@ type SeedRepository = {
 export async function seedDatabase(container: ServiceContainer): Promise<void> {
 	const manager = container.get(RepoManager);
 
-	await manager.migrateAll();
-
 	const userIds = await seedUsers(container);
 
 	const creatorId = userIds.get(CREATOR);
@@ -70,7 +66,7 @@ export async function seedDatabase(container: ServiceContainer): Promise<void> {
 	if (slugs.length === 0) throw new Error("No repository directories in seed/repo/.");
 
 	for (const slug of slugs) {
-		await ensureRepository(manager, slug);
+		await createRepository(manager, slug);
 
 		// Everyone works in every repository. A development login is meant to
 		// reach the whole fixture set.
@@ -111,7 +107,7 @@ async function seedUsers(app: ServiceContainer): Promise<Map<string, string>> {
 
 	for (const file of files) {
 		const user = readJson<SeedUser>(file);
-		const userId = await ensureUser(auth, user);
+		const userId = await createUser(auth, user);
 
 		idsByKey.set(keyOf(file), userId);
 
@@ -122,42 +118,32 @@ async function seedUsers(app: ServiceContainer): Promise<Map<string, string>> {
 }
 
 /**
- * Sign a seed user up through Better Auth, or find them if they exist.
+ * Sign a seed user up through Better Auth.
  *
  * Sign-up goes through the server API rather than through an insert. The
  * password is therefore hashed the way a normal registration hashes it.
  */
-async function ensureUser(auth: BetterAuth, user: SeedUser): Promise<string> {
+async function createUser(auth: BetterAuth, user: SeedUser): Promise<string> {
 	const response = await auth.api.signUpEmail({
 		body: { name: user.name, email: user.email, password: user.password },
 		asResponse: true,
 	});
 
-	if (response.ok) {
-		const { user: created } = (await response.json()) as { user: { id: string } };
-		return created.id;
-	}
+	if (!response.ok)
+		throw new Error(`Could not create seed user "${user.email}": ${response.status}.`);
 
-	// The user was signed up on an earlier run. Sign in instead.
-	const session = await auth.api.signInEmail({
-		body: { email: user.email, password: user.password },
-	});
-
-	return session.user.id;
+	const { user: created } = (await response.json()) as { user: { id: string } };
+	return created.id;
 }
 
 /**
- * Create the repository unless it is already there. The directory name is the
- * slug. The display name comes from that directory's "repository.json".
+ * Create the repository. The directory name is the slug. The display name
+ * comes from that directory's "repository.json".
  */
-async function ensureRepository(manager: RepoManager, slug: string): Promise<void> {
+async function createRepository(manager: RepoManager, slug: string): Promise<void> {
 	const { name } = readJson<SeedRepository>(seedPath("repo", slug, "repository.json"));
 
-	try {
-		await manager.createRepository(slug, name);
-	} catch (error) {
-		if (!(error instanceof RepositoryAlreadyExistsError)) throw error;
-	}
+	await manager.createRepository(slug, name);
 }
 
 /**

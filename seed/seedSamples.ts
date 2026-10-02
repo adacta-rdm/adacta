@@ -14,7 +14,6 @@ import { addSample } from "~/app/lib/addSample.ts";
 import { availableSlug } from "~/app/lib/slugs.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
-import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, readJson } from "~/seed/files.ts";
@@ -39,11 +38,8 @@ type SeedBatch = {
 };
 
 /**
- * Replace the sample batches of the bound repository with the ones in the seed
- * tree. Returns how many batches and samples were written.
- *
- * The rows are deleted first. The database then holds what the seed tree holds.
- * A batch whose file was removed therefore disappears on the next run.
+ * Add the sample batches and samples from the seed tree to the bound
+ * repository. Returns how many batches and samples were written.
  *
  * @throws Error if a batch names a preparer that no user file defines.
  */
@@ -55,9 +51,6 @@ export async function seedSamples(
 	const db = scope.get(RepoDB);
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
-
-	await db.delete(Sample).run();
-	await db.delete(SampleBatch).run();
 
 	const files = jsonFiles("repo", repository, "samples");
 	let samples = 0;

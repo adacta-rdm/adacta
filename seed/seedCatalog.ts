@@ -124,10 +124,7 @@ export type CatalogCounts = {
 const PUBLIC_CATALOG = join(process.cwd(), "public", "catalog");
 
 /**
- * Replace the catalog of the bound repository with the catalog seed tree.
- *
- * The rows are deleted first, children before parents, so the foreign keys
- * hold at every step.
+ * Add the catalog from the seed tree to the bound repository.
  */
 export async function seedCatalog(
 	scope: ServiceContainer,
@@ -138,13 +135,6 @@ export async function seedCatalog(
 		metadataCreatorId: scope.get(Security).userId,
 		metadataCreationTimestamp: new Date(),
 	};
-
-	await db.delete(CatalogSource).run();
-	await db.delete(Channel).run();
-	await db.delete(ProductSpecification).run();
-	await db.delete(Product).run();
-	await db.delete(ProductSeries).run();
-	await db.delete(Manufacturer).run();
 
 	const counts: CatalogCounts = {
 		manufacturers: 0,
@@ -342,7 +332,7 @@ async function insertSource(
 
 /**
  * Copy the images of one manufacturer into "public/catalog/". The directory is
- * replaced, so an image whose file was removed disappears on the next run.
+ * cleared before copying so old images do not remain after a database reset.
  */
 function publishImages(repository: string, manufacturerKey: string, directory: string): void {
 	const target = join(PUBLIC_CATALOG, repository, manufacturerKey);

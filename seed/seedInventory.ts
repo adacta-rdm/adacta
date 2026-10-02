@@ -35,11 +35,8 @@ type SeedInventoryEntry = {
 };
 
 /**
- * Replace the inventory of the bound repository with the entries in the seed
- * tree. Returns the id of each entry, indexed by the key of its file.
- *
- * The rows are deleted first. The database then holds what the seed tree holds.
- * An entry whose file was removed therefore disappears on the next run.
+ * Add the inventory entries from the seed tree to the bound repository.
+ * Returns the id of each entry, indexed by the key of its file.
  *
  * A later fixture names an entry by that key. For example, the P&ID file
  * "methanation-test-stand.json" describes the entry with the key
@@ -53,16 +50,13 @@ export async function seedInventory(
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
 
-	await db.delete(InventoryEntry).run();
-
 	const files = jsonFiles("repo", repository, "inventory");
 	if (files.length === 0) return new Map();
 
 	const entries = files.map((file) => readJson<SeedInventoryEntry>(file));
 
-	// The table was emptied above, so the slugs taken so far are the ones handed
-	// out in this loop. Two names that reduce to the same slug push the second
-	// one to a numbered variant.
+	// The slugs taken so far are the ones handed out in this loop. Two names
+	// that reduce to the same slug push the second one to a numbered variant.
 	const takenSlugs: string[] = [];
 
 	const rows = entries.map((entry) => {
