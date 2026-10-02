@@ -39,7 +39,7 @@ export class UploadManager {
 	/**
 	 * Returns the files of one upload, in the order they arrived.
 	 *
-	 * Archived files are omitted. The method throws `OriginalFileNotFoundError`
+	 * Archived files are omitted. The method throws `UploadNotFoundError`
 	 * when every file in the upload is archived or the upload id is unknown.
 	 */
 	async filesOfUpload(uploadId: string) {
@@ -49,7 +49,7 @@ export class UploadManager {
 			.where(and(eq(OriginalFile.uploadId, uploadId), isNull(OriginalFile.metadataArchivedAt)))
 			.all();
 
-		if (files.length === 0) throw new OriginalFileNotFoundError(uploadId);
+		if (files.length === 0) throw new UploadNotFoundError(uploadId);
 
 		return files;
 	}
@@ -201,6 +201,16 @@ function uploadPath(uploadId: string, fileId: string): string {
 
 function originalFilePath(fileId: string): string {
 	return `original-files/${fileId}`;
+}
+
+/**
+ * Reports that an upload has no available files.
+ */
+export class UploadNotFoundError extends Error {
+	constructor(uploadId: string) {
+		super(`Upload not found: ${uploadId}`);
+		this.name = "UploadNotFoundError";
+	}
 }
 
 /**

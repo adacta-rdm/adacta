@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { loader } from "~/app/routes/$repo.files.originals.$fileId.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
+import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
 
 import { setupUpload } from "./$repo.files.$uploadId.test.ts";
 
@@ -22,5 +23,17 @@ describe("original file download", () => {
 			"attachment; filename*=UTF-8''measurement%20%C3%A4.csv",
 		);
 		expect(await response.text()).toBe("a,b\n1,2\n3,4");
+	});
+
+	test("answers 404 for an unknown file", async () => {
+		const scope = await setupTestRepositoryEnvironment("demo");
+		const fileId = "no-such-file";
+		const request = new Request(`http://localhost/demo/files/originals/${fileId}`);
+		const [args] = createMiddlewareArgs(scope, {
+			request,
+			params: { repo: "demo", fileId },
+		});
+
+		expect(loader(args)).rejects.toMatchObject({ status: 404 });
 	});
 });

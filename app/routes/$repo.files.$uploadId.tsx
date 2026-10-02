@@ -2,7 +2,7 @@ import { ArrowDownTrayIcon, DocumentTextIcon } from "@heroicons/react/20/solid";
 import { Link } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
-import { OriginalFileNotFoundError, UploadManager } from "~/app/services/UploadManager.ts";
+import { UploadManager, UploadNotFoundError } from "~/app/services/UploadManager.ts";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
@@ -21,7 +21,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 
 		return { files };
 	} catch (error) {
-		if (error instanceof OriginalFileNotFoundError || error instanceof FileNotFoundError) {
+		if (error instanceof UploadNotFoundError || error instanceof FileNotFoundError) {
 			throw new Response("Upload not found.", { status: 404 });
 		}
 		throw error;

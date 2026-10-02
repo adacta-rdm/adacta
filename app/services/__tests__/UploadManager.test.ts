@@ -4,7 +4,11 @@ import { eq } from "drizzle-orm";
 
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
-import { OriginalFileNotFoundError, UploadManager } from "~/app/services/UploadManager.ts";
+import {
+	OriginalFileNotFoundError,
+	UploadManager,
+	UploadNotFoundError,
+} from "~/app/services/UploadManager.ts";
 import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
 import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
 
@@ -77,9 +81,7 @@ describe("UploadManager", () => {
 			expect((error as Error).message).toBe("Source failed");
 		}
 
-		await expect(manager.filesOfUpload(upload.id)).rejects.toBeInstanceOf(
-			OriginalFileNotFoundError,
-		);
+		await expect(manager.filesOfUpload(upload.id)).rejects.toBeInstanceOf(UploadNotFoundError);
 	});
 
 	test("archiving one file leaves the others of its upload in place", async () => {
