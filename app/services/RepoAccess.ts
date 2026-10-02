@@ -189,7 +189,7 @@ export class RepoAccess {
 			// The unique index decides whether the address is taken. A check
 			// before the insert cannot decide. Another request can insert the same
 			// address in between.
-			if (isUniqueConstraintOn(error, "User.email")) {
+			if (isUniqueConstraintOn(error, [User.email])) {
 				throw new UserEmailAlreadyExistsError(email);
 			}
 

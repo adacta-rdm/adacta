@@ -39,12 +39,12 @@ export async function addSample(db: RepoDB, values: SampleValues): Promise<Entit
 
 			return (await db.select().from(Sample).where(eq(Sample.id, id)).get())!;
 		} catch (error) {
-			if (isUniqueConstraintOn(error, "Sample.sample_batch_id, Sample.name")) {
+			if (isUniqueConstraintOn(error, [Sample.name])) {
 				throw new EntityAlreadyExistsError("Sample", "name", values.name);
 			}
 
 			// Another insertion can take the selected slug before this insertion begins.
-			if (isUniqueConstraintOn(error, "Sample.sample_batch_id, Sample.slug")) {
+			if (isUniqueConstraintOn(error, [Sample.slug])) {
 				slug = `${base}-${i + 2}`;
 				continue;
 			}
