@@ -5,6 +5,7 @@ import { services } from "~/app/.server/context.ts";
 import { UploadManager, UploadNotFoundError } from "~/app/services/UploadManager.ts";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
+import { parseId53 } from "~/lib/id53/parseId53.ts";
 import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
 
 import type { Route } from "./+types/$repo.files.$uploadId.ts";
@@ -16,8 +17,13 @@ export function meta() {
 }
 
 export async function loader({ context, params }: Route.LoaderArgs) {
+	const uploadId = parseId53(params.uploadId);
+
+	// Text that is not an ID gets the same answer as an unknown ID.
+	if (uploadId === undefined) throw new Response("Upload not found.", { status: 404 });
+
 	try {
-		const files = await context.get(services).get(UploadManager).filesOfUpload(params.uploadId);
+		const files = await context.get(services).get(UploadManager).filesOfUpload(uploadId);
 
 		return { files };
 	} catch (error) {

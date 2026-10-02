@@ -2,7 +2,9 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import type { NewEntity } from "~/drizzle/Schema.ts";
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
+import { id53 } from "~/lib/id53/id53.ts";
 import { Service } from "~/lib/service-container/ServiceContainer.ts";
 import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
 
@@ -42,7 +44,7 @@ export class UploadManager {
 	 * Archived files are omitted. The method throws `UploadNotFoundError`
 	 * when every file in the upload is archived or the upload id is unknown.
 	 */
-	async filesOfUpload(uploadId: string) {
+	async filesOfUpload(uploadId: number) {
 		const files = await this.database
 			.select()
 			.from(OriginalFile)
@@ -61,7 +63,7 @@ export class UploadManager {
 	 * `getFile()` itself does not open the stored file. An archived file
 	 * is treated as absent.
 	 */
-	async getFile(id: string) {
+	async getFile(id: number) {
 		const file = await this.database
 			.select()
 			.from(OriginalFile)
@@ -86,7 +88,7 @@ class PendingUpload {
 	 * directory is also named after it. For example, a file is staged at
 	 * `uploads/<upload id>/<file id>`.
 	 */
-	readonly id = crypto.randomUUID();
+	readonly id = id53();
 	private readonly files: StagedFile[] = [];
 	private state: "open" | "failed" | "committed" = "open";
 
@@ -96,14 +98,16 @@ class PendingUpload {
 	) {}
 
 	/**
-	 * Stores one file in the staging area and returns its identifier.
+	 * Stores one file in the staging area and returns its identifier. The
+	 * identifier is generated before the file is staged. The file record and
+	 * its row in Id are written later by `commit()` with this identifier.
 	 *
 	 * The method returns after storage has read the complete file stream. A
 	 * storage failure ends the upload.
 	 */
-	async add(upload: FileUpload): Promise<string> {
+	async add(upload: FileUpload): Promise<number> {
 		this.assertOpen();
-		const id = crypto.randomUUID();
+		const id = id53();
 		const path = uploadPath(this.id, id);
 
 		try {
@@ -127,11 +131,11 @@ class PendingUpload {
 	 * Records every staged file and returns the upload identifier.
 	 *
 	 * At least one file must have been added. The method first moves every
-	 * file to its permanent location. It then writes all the records in one
-	 * database transaction. A recorded file is therefore always present in
+	 * file to its permanent location. It then writes the Id rows and the file
+	 * records in one batch. A recorded file is therefore always present in
 	 * storage.
 	 */
-	async commit(creatorId: string): Promise<string> {
+	async commit(creatorId: string): Promise<number> {
 		this.assertOpen();
 		if (this.files.length === 0) throw new Error("An upload requires a file.");
 
@@ -150,9 +154,12 @@ class PendingUpload {
 				metadataCreationTimestamp: createdAt,
 			})) satisfies NewEntity<"OriginalFile">[];
 
-			// One INSERT statement records the complete upload atomically. Await it
+			// The batch writes either every row of the upload or none. Await it
 			// before publishing the upload identifier.
-			await this.database.insert(OriginalFile).values(files).run();
+			await this.database.batch([
+				this.database.insert(Id).values(files.map(({ id }) => ({ id }))),
+				this.database.insert(OriginalFile).values(files),
+			]);
 
 			this.state = "committed";
 			return this.id;
@@ -172,7 +179,7 @@ class PendingUpload {
 }
 
 type StagedFile = {
-	id: string;
+	id: number;
 	originalName: string;
 	mediaType: string | null;
 	byteSize: number;
@@ -195,11 +202,11 @@ type FileUpload = {
 	source: ReadableStream<Uint8Array>;
 };
 
-function uploadPath(uploadId: string, fileId: string): string {
+function uploadPath(uploadId: number, fileId: number): string {
 	return `uploads/${uploadId}/${fileId}`;
 }
 
-function originalFilePath(fileId: string): string {
+function originalFilePath(fileId: number): string {
 	return `original-files/${fileId}`;
 }
 
@@ -207,7 +214,7 @@ function originalFilePath(fileId: string): string {
  * Reports that an upload has no available files.
  */
 export class UploadNotFoundError extends Error {
-	constructor(uploadId: string) {
+	constructor(uploadId: number) {
 		super(`Upload not found: ${uploadId}`);
 		this.name = "UploadNotFoundError";
 	}
@@ -217,7 +224,7 @@ export class UploadNotFoundError extends Error {
  * Reports that no available original file matched an identifier.
  */
 export class OriginalFileNotFoundError extends Error {
-	constructor(id: string) {
+	constructor(id: number) {
 		super(`Original file record not found: ${id}`);
 		this.name = "OriginalFileNotFoundError";
 	}

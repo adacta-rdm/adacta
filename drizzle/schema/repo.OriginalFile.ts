@@ -1,5 +1,6 @@
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
@@ -13,9 +14,13 @@ import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 export const OriginalFile = sqliteTable("OriginalFile", {
 	/**
 	 * The identifier is also the file name below `original-files/`. For
-	 * example, the bytes of file `a1b2` are stored at `original-files/a1b2`.
+	 * example, the bytes of file 1234567890123 are stored at
+	 * `original-files/1234567890123`.
 	 */
-	id: text("original_file_id").primaryKey(),
+	id: integer("original_file_id")
+		.notNull()
+		.primaryKey()
+		.references(() => Id.id),
 
 	/**
 	 * The identifier of the upload that supplied this file. Files submitted
@@ -26,7 +31,7 @@ export const OriginalFile = sqliteTable("OriginalFile", {
 	 * records only that files were submitted together. For example, a table of
 	 * measurements and its sidecar file may share an upload id.
 	 */
-	uploadId: text("upload_id").notNull(),
+	uploadId: integer("upload_id").notNull(),
 
 	originalName: text("original_name").notNull(),
 

@@ -12,7 +12,7 @@ describe("original file download", () => {
 		const request = new Request(`http://localhost/demo/files/originals/${fileId}`);
 		const [args] = createMiddlewareArgs(scope, {
 			request,
-			params: { repo: "demo", fileId },
+			params: { repo: "demo", fileId: String(fileId) },
 		});
 
 		const response = await loader(args);
@@ -27,13 +27,26 @@ describe("original file download", () => {
 
 	test("answers 404 for an unknown file", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		const fileId = "no-such-file";
+		const fileId = "1234567890123";
 		const request = new Request(`http://localhost/demo/files/originals/${fileId}`);
 		const [args] = createMiddlewareArgs(scope, {
 			request,
 			params: { repo: "demo", fileId },
 		});
 
-		expect(loader(args)).rejects.toMatchObject({ status: 404 });
+		await expect(loader(args)).rejects.toMatchObject({ status: 404 });
 	});
+
+	test.each([["abc"], ["12abc"], ["1e3"], ["-5"], ["9007199254740992"]])(
+		"answers 404 for the invalid file ID %p",
+		async (fileId) => {
+			const scope = await setupTestRepositoryEnvironment("demo");
+			const [args] = createMiddlewareArgs(scope, {
+				request: new Request(`http://localhost/demo/files/originals/${fileId}`),
+				params: { repo: "demo", fileId },
+			});
+
+			await expect(loader(args)).rejects.toMatchObject({ status: 404 });
+		},
+	);
 });

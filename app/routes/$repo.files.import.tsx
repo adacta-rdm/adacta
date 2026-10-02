@@ -49,11 +49,15 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 
 				pending ??= context.get(services).get(UploadManager).beginUpload();
 
-				return pending.add({
+				const fileId = await pending.add({
 					originalName: upload.name,
 					mediaType: upload.type,
 					source: upload.stream(),
 				});
+
+				// Form data holds only text and files. The handler therefore returns
+				// the ID as text.
+				return String(fileId);
 			},
 		);
 	} catch (error) {

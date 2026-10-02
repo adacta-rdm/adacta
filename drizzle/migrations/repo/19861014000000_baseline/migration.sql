@@ -60,14 +60,15 @@ CREATE TABLE `Manufacturer` (
 );
 --> statement-breakpoint
 CREATE TABLE `OriginalFile` (
-	`original_file_id` text PRIMARY KEY,
-	`upload_id` text NOT NULL,
+	`original_file_id` integer PRIMARY KEY,
+	`upload_id` integer NOT NULL,
 	`original_name` text NOT NULL,
 	`media_type` text,
 	`byte_size` integer NOT NULL,
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
-	`metadata_archived_at` integer
+	`metadata_archived_at` integer,
+	CONSTRAINT `fk_OriginalFile_original_file_id_Id_id_fk` FOREIGN KEY (`original_file_id`) REFERENCES `Id`(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `PIDEdge` (

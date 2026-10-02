@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
@@ -10,6 +10,7 @@ import {
 	UploadNotFoundError,
 } from "~/app/services/UploadManager.ts";
 import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
 
 describe("UploadManager", () => {
@@ -63,6 +64,52 @@ describe("UploadManager", () => {
 		);
 
 		expect(contents).toEqual(["source contents", "{}"]);
+	});
+
+	test("gives each committed file a row in Id", async () => {
+		const scope = await setupTestRepositoryEnvironment();
+		const manager = scope.get(UploadManager);
+		const upload = manager.beginUpload();
+
+		const first = await upload.add({ originalName: "a.csv", source: new Blob(["a"]).stream() });
+		const second = await upload.add({ originalName: "b.csv", source: new Blob(["b"]).stream() });
+		await upload.commit(scope.get(Security).userId);
+
+		const rows = await scope
+			.get(RepoDB)
+			.select()
+			.from(Id)
+			.where(inArray(Id.id, [first, second]))
+			.all();
+
+		expect(rows).toHaveLength(2);
+	});
+
+	test("writes no rows when the commit fails", async () => {
+		const scope = await setupTestRepositoryEnvironment();
+		const manager = scope.get(UploadManager);
+		const upload = manager.beginUpload();
+
+		const first = await upload.add({ originalName: "a.csv", source: new Blob(["a"]).stream() });
+
+		// The column original_name is NOT NULL. The second statement of the batch
+		// therefore fails after the first has written the Id row.
+		const second = await upload.add({
+			originalName: null as unknown as string,
+			source: new Blob(["b"]).stream(),
+		});
+
+		await expect(upload.commit(scope.get(Security).userId)).rejects.toThrow();
+
+		const db = scope.get(RepoDB);
+		expect(
+			await db
+				.select()
+				.from(Id)
+				.where(inArray(Id.id, [first, second]))
+				.all(),
+		).toEqual([]);
+		expect(await db.select().from(OriginalFile).all()).toEqual([]);
 	});
 
 	test("publishes nothing when one of the files fails to arrive", async () => {

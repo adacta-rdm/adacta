@@ -1,5 +1,6 @@
 import { services } from "~/app/.server/context.ts";
 import { OriginalFileNotFoundError, UploadManager } from "~/app/services/UploadManager.ts";
+import { parseId53 } from "~/lib/id53/parseId53.ts";
 import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
 
 import type { Route } from "./+types/$repo.files.originals.$fileId.ts";
@@ -8,8 +9,13 @@ import type { Route } from "./+types/$repo.files.originals.$fileId.ts";
  * Downloads one original file.
  */
 export async function loader({ context, params }: Route.LoaderArgs) {
+	const fileId = parseId53(params.fileId);
+
+	// Text that is not an ID gets the same answer as an unknown ID.
+	if (fileId === undefined) throw new Response("Original file not found.", { status: 404 });
+
 	try {
-		const file = await context.get(services).get(UploadManager).getFile(params.fileId);
+		const file = await context.get(services).get(UploadManager).getFile(fileId);
 
 		return new Response(await file.read(), {
 			headers: {

@@ -465,7 +465,7 @@
 			"table": "Manufacturer"
 		},
 		{
-			"type": "text",
+			"type": "integer",
 			"notNull": false,
 			"autoincrement": false,
 			"default": null,
@@ -475,7 +475,7 @@
 			"table": "OriginalFile"
 		},
 		{
-			"type": "text",
+			"type": "integer",
 			"notNull": true,
 			"autoincrement": false,
 			"default": null,
@@ -1469,6 +1469,17 @@
 			"name": "fk_InventoryEntry_inventory_entry_id_Id_id_fk",
 			"entityType": "fks",
 			"table": "InventoryEntry"
+		},
+		{
+			"columns": ["original_file_id"],
+			"tableTo": "Id",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_OriginalFile_original_file_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "OriginalFile"
 		},
 		{
 			"columns": ["inventory_entry_id"],

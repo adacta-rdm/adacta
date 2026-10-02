@@ -12,7 +12,7 @@ describe("uploaded files loader", () => {
 		const request = new Request(`http://localhost/demo/files/${uploadId}`);
 		const [args] = createMiddlewareArgs(scope, {
 			request,
-			params: { repo: "demo", uploadId },
+			params: { repo: "demo", uploadId: String(uploadId) },
 		});
 
 		const result = await loader(args);
@@ -29,14 +29,27 @@ describe("uploaded files loader", () => {
 
 	test("answers 404 for an upload that delivered nothing", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
-		const uploadId = "no-such-upload";
+		const uploadId = "1234567890123";
 		const [args] = createMiddlewareArgs(scope, {
 			request: new Request(`http://localhost/demo/files/${uploadId}`),
 			params: { repo: "demo", uploadId },
 		});
 
-		expect(loader(args)).rejects.toMatchObject({ status: 404 });
+		await expect(loader(args)).rejects.toMatchObject({ status: 404 });
 	});
+
+	test.each([["abc"], ["12abc"], ["1e3"], ["-5"], ["9007199254740992"]])(
+		"answers 404 for the invalid upload ID %p",
+		async (uploadId) => {
+			const scope = await setupTestRepositoryEnvironment("demo");
+			const [args] = createMiddlewareArgs(scope, {
+				request: new Request(`http://localhost/demo/files/${uploadId}`),
+				params: { repo: "demo", uploadId },
+			});
+
+			await expect(loader(args)).rejects.toMatchObject({ status: 404 });
+		},
+	);
 });
 
 export async function setupUpload() {

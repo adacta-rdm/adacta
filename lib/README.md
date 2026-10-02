@@ -17,7 +17,7 @@ their public APIs.
 | -------------------- | ----------------------------------------------------------------- |
 | `env/`               | Reads environment values as typed values.                         |
 | `form-values/`       | Reads submitted form fields as typed values.                      |
-| `id53/`              | Generates 53-bit IDs that increase within a sequence.             |
+| `id53/`              | Generates and reads 53-bit IDs that increase within a sequence.   |
 | `logger/`            | Writes structured log messages to a stream.                       |
 | `parallel-lines/`    | Turns a route of right-angled segments into parallel lines.       |
 | `service-container/` | Resolves services and provides independently configurable scopes. |
