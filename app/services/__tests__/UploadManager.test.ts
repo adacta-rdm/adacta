@@ -95,7 +95,7 @@ describe("UploadManager", () => {
 		const uploadId = await upload.commit(scope.get(Security).userId);
 		const [first, second] = await manager.filesOfUpload(uploadId);
 
-		scope
+		await scope
 			.get(RepoDB)
 			.update(OriginalFile)
 			.set({ metadataArchivedAt: new Date() })

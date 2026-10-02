@@ -173,17 +173,19 @@ async function setupCatalog(): Promise<ServiceContainer> {
 			.returning({ id: Product.id })
 			.get();
 
-		specifications.forEach((specification, position) => {
-			db.insert(ProductSpecification)
+		for (const [position, specification] of specifications.entries()) {
+			await db
+				.insert(ProductSpecification)
 				.values({ productId: id, position, ...specification, ...metadata })
 				.run();
-		});
+		}
 	};
 
 	const addChannel = async (productSlug: string) => {
 		const product = await db.select().from(Product).where(eq(Product.slug, productSlug)).get();
 
-		db.insert(Channel)
+		await db
+			.insert(Channel)
 			.values({
 				productId: product!.id,
 				position: 0,

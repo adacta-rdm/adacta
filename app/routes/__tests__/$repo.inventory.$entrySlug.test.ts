@@ -37,7 +37,7 @@ describe("inventory entry loader", () => {
 	test("ignores an archived entry", async () => {
 		const scope = await setupEntry();
 
-		scope.get(RepoDB).update(InventoryEntry).set({ metadataArchivedAt: new Date() }).run();
+		await scope.get(RepoDB).update(InventoryEntry).set({ metadataArchivedAt: new Date() }).run();
 
 		const response = await loader(argsFor(scope, "methanation-test-stand")).then(
 			() => undefined,
@@ -61,7 +61,7 @@ function argsFor(scope: ServiceContainer, entrySlug: string) {
 async function setupEntry(): Promise<ServiceContainer> {
 	const scope = await setupTestRepositoryEnvironment("demo");
 
-	scope
+	await scope
 		.get(RepoDB)
 		.insert(InventoryEntry)
 		.values({

@@ -7,14 +7,12 @@ import type { BatchItem } from "drizzle-orm/batch";
 import type { SQLiteAsyncDatabase } from "drizzle-orm/sqlite-core";
 
 /**
- * The subset of Drizzle's SQLite database shared by the synchronous Bun driver
- * and an asynchronous remote driver. Callers must await query results, which
- * works for both result kinds. Writes that belong together use `batch`. A
- * manager replaces a driver's own batch method with one that returns
- * `BatchResult[]`.
+ * Every query result is typed as a promise. Callers therefore await it.
+ * Writes that belong together use `batch`. A manager replaces a driver's own
+ * batch method with one that returns `BatchResult[]`.
  */
 export type ApplicationDatabase = Omit<
-	SQLiteAsyncDatabase<"sync" | "async", any, AnyRelations>,
+	SQLiteAsyncDatabase<"async", any, AnyRelations>,
 	"transaction" | "batch"
 > & {
 	/**

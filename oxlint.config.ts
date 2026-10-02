@@ -13,6 +13,10 @@ export default defineConfig({
 		// for example Database.exec in bun:sqlite.
 		"typescript/no-deprecated": "error",
 
+		// A promise that nobody awaits passes the type check. This rule reports it.
+		// For example, a database query without await.
+		"typescript/no-floating-promises": "error",
+
 		// Ignore names starting with an underscore. This is the common way to mark
 		// a parameter or variable as intentionally unused.
 		"no-unused-vars": [

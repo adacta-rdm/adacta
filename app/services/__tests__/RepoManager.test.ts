@@ -93,7 +93,7 @@ describe("RepoManager", () => {
 
 		await manager.grantAccess(userId, "demo");
 
-		expect(container.get(SystemDB).select().from(UserRepository).all()).toHaveLength(1);
+		expect(await container.get(SystemDB).select().from(UserRepository).all()).toHaveLength(1);
 	});
 
 	test("granting twice is not an error", async () => {
@@ -105,7 +105,7 @@ describe("RepoManager", () => {
 		await manager.grantAccess(userId, "demo");
 		await manager.grantAccess(userId, "demo");
 
-		expect(container.get(SystemDB).select().from(UserRepository).all()).toHaveLength(1);
+		expect(await container.get(SystemDB).select().from(UserRepository).all()).toHaveLength(1);
 	});
 
 	test("rejects a grant for a repository that does not exist", async () => {
@@ -148,7 +148,7 @@ describe("RepoManager", () => {
 
 		await manager.deleteRepository("demo");
 
-		expect(container.get(SystemDB).select().from(UserRepository).all()).toEqual([]);
+		expect(await container.get(SystemDB).select().from(UserRepository).all()).toEqual([]);
 	});
 
 	test("rejects deleting a repository that does not exist", async () => {
@@ -231,7 +231,7 @@ describe("the quantity kinds of a repository", () => {
 
 	test("a kind the application no longer lists is removed", async () => {
 		const { manager, db } = await repository();
-		db.insert(QuantityKind).values({ id: "LuminousFlux" }).run();
+		await db.insert(QuantityKind).values({ id: "LuminousFlux" }).run();
 
 		await manager.migrateAll();
 
@@ -262,7 +262,8 @@ describe("the quantity kinds of a repository", () => {
 		const { db, addChannel } = await repository();
 		const channel = await addChannel("VolumeFlowRate");
 
-		db.update(QuantityKind)
+		await db
+			.update(QuantityKind)
 			.set({ id: "VolumetricFlowRate" })
 			.where(eq(QuantityKind.id, "VolumeFlowRate"))
 			.run();

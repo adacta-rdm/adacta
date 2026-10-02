@@ -148,7 +148,9 @@ export class SqliteDatabaseManager extends DatabaseManager {
 	}
 
 	#applicationDatabase(connection: BunDatabase): ApplicationDatabase {
-		return connection;
+		// The Bun driver returns each result at once. `await` accepts such a
+		// value. However, calling then, catch, or finally on a result throws.
+		return connection as unknown as ApplicationDatabase;
 	}
 
 	/**

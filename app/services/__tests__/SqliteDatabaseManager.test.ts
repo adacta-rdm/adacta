@@ -16,6 +16,14 @@ import { Env } from "~/lib/env/Env.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 /**
+ * Runs a query inside an async function. The Bun driver throws at once.
+ * Inside an async function, the throw becomes a rejection.
+ */
+async function settle<T>(query: () => Promise<T>): Promise<T> {
+	return await query();
+}
+
+/**
  * A container whose databases live in a fresh temporary directory.
  */
 const environment = setupTestPersistenceEnvironment;
@@ -30,13 +38,13 @@ function dbDir(container: ServiceContainer) {
 
 describe("SqliteDatabaseManager", () => {
 	describe("connections", () => {
-		test("hands out a usable database handle", () => {
+		test("hands out a usable database handle", async () => {
 			const db = environment().get(SqliteDatabaseManager).system();
 
-			db.run(sql`CREATE TABLE t (id integer primary key, name text)`);
-			db.run(sql`INSERT INTO t (name) VALUES ('ada')`);
+			await db.run(sql`CREATE TABLE t (id integer primary key, name text)`);
+			await db.run(sql`INSERT INTO t (name) VALUES ('ada')`);
 
-			expect(db.all(sql`SELECT name FROM t`)).toEqual([{ name: "ada" }]);
+			expect(await db.all(sql`SELECT name FROM t`)).toEqual([{ name: "ada" }]);
 		});
 
 		test("returns the same handle for the same database", () => {
@@ -47,13 +55,15 @@ describe("SqliteDatabaseManager", () => {
 			expect(databases.repoDb("demo")).toBe(first);
 		});
 
-		test("keeps databases separate", () => {
+		test("keeps databases separate", async () => {
 			const databases = environment().get(SqliteDatabaseManager);
 
-			databases.repoDb("demo").run(sql`CREATE TABLE t (id integer primary key)`);
+			await databases.repoDb("demo").run(sql`CREATE TABLE t (id integer primary key)`);
 
 			// The table exists in demo only. Pilot must therefore not see it.
-			expect(() => databases.repoDb("pilot").all(sql`SELECT * FROM t`)).toThrow();
+			await expect(
+				settle(() => databases.repoDb("pilot").all(sql`SELECT * FROM t`)),
+			).rejects.toThrow();
 		});
 
 		test("the system database is not one of the repositories", () => {
@@ -77,14 +87,16 @@ describe("SqliteDatabaseManager", () => {
 			expect(existsSync(join(nested, "_system.sqlite"))).toBe(true);
 		});
 
-		test("enforces foreign keys", () => {
+		test("enforces foreign keys", async () => {
 			const db = environment().get(SqliteDatabaseManager).repoDb("demo");
 
-			db.run(sql`CREATE TABLE parent (id integer primary key)`);
-			db.run(sql`CREATE TABLE child (parent_id integer references parent(id))`);
+			await db.run(sql`CREATE TABLE parent (id integer primary key)`);
+			await db.run(sql`CREATE TABLE child (parent_id integer references parent(id))`);
 
 			// No parent row with id 1 exists. The child row must therefore be rejected.
-			expect(() => db.run(sql`INSERT INTO child (parent_id) VALUES (1)`)).toThrow();
+			await expect(
+				settle(() => db.run(sql`INSERT INTO child (parent_id) VALUES (1)`)),
+			).rejects.toThrow();
 		});
 
 		test("is a singleton within one container", () => {
@@ -193,7 +205,7 @@ describe("SqliteDatabaseManager", () => {
 			expect(existsSync(join(dbDir(container), "_system.sqlite"))).toBe(false);
 		});
 
-		test("a dropped repository comes back as a usable empty database", () => {
+		test("a dropped repository comes back as a usable empty database", async () => {
 			const databases = environment().get(SqliteDatabaseManager);
 			databases.migrateRepository("demo");
 
@@ -202,20 +214,22 @@ describe("SqliteDatabaseManager", () => {
 			// A closed handle would throw here. Opening again has to build a new
 			// database. That database starts without the migrated tables.
 			const db = databases.repoDb("demo");
-			db.run(sql`CREATE TABLE t (id integer primary key)`);
+			await db.run(sql`CREATE TABLE t (id integer primary key)`);
 
-			expect(db.all(sql`SELECT * FROM t`)).toEqual([]);
-			expect(() => db.select().from(InventoryEntry).all()).toThrow();
+			expect(await db.all(sql`SELECT * FROM t`)).toEqual([]);
+			await expect(settle(() => db.select().from(InventoryEntry).all())).rejects.toThrow();
 		});
 
-		test("leaves other databases alone", () => {
+		test("leaves other databases alone", async () => {
 			const databases = environment().get(SqliteDatabaseManager);
 			databases.migrateRepository("demo");
 			databases.migrateRepository("pilot");
 
 			databases.dropRepository("demo");
 
-			expect(() => databases.repoDb("pilot").select().from(InventoryEntry).all()).not.toThrow();
+			await expect(
+				settle(() => databases.repoDb("pilot").select().from(InventoryEntry).all()),
+			).resolves.toEqual([]);
 		});
 
 		test("dropping a repository that does not exist is not an error", () => {
@@ -263,20 +277,22 @@ describe("SqliteDatabaseManager", () => {
 	});
 
 	describe("migrations", () => {
-		test("migrateSystem creates the system tables", () => {
+		test("migrateSystem creates the system tables", async () => {
 			const container = environment();
 			container.get(SqliteDatabaseManager).migrateSystem();
 
-			expect(() =>
-				container.get(SqliteDatabaseManager).system().select().from(Repository).all(),
-			).not.toThrow();
+			await expect(
+				settle(() => container.get(SqliteDatabaseManager).system().select().from(Repository).all()),
+			).resolves.toEqual([]);
 		});
 
-		test("migrateRepository creates the repository tables", () => {
+		test("migrateRepository creates the repository tables", async () => {
 			const databases = environment().get(SqliteDatabaseManager);
 			databases.migrateRepository("demo");
 
-			expect(() => databases.repoDb("demo").select().from(InventoryEntry).all()).not.toThrow();
+			await expect(
+				settle(() => databases.repoDb("demo").select().from(InventoryEntry).all()),
+			).resolves.toEqual([]);
 		});
 
 		test("migrating twice is safe", () => {
@@ -290,11 +306,13 @@ describe("SqliteDatabaseManager", () => {
 			}).not.toThrow();
 		});
 
-		test("does not migrate on open", () => {
+		test("does not migrate on open", async () => {
 			const databases = environment().get(SqliteDatabaseManager);
 
 			// Opening must stay cheap: the repository database is bound per request.
-			expect(() => databases.repoDb("demo").select().from(InventoryEntry).all()).toThrow();
+			await expect(
+				settle(() => databases.repoDb("demo").select().from(InventoryEntry).all()),
+			).rejects.toThrow();
 		});
 
 		test("rejects an unsafe name before migrating", () => {

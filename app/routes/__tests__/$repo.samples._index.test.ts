@@ -33,7 +33,7 @@ describe("samples index loader", () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
 		const batch = await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" }, 3);
 
-		scope
+		await scope
 			.get(RepoDB)
 			.update(Sample)
 			.set({ metadataArchivedAt: new Date() })
@@ -55,7 +55,7 @@ describe("samples index loader", () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
 		const batch = await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
 
-		scope
+		await scope
 			.get(RepoDB)
 			.update(SampleBatch)
 			.set({ metadataArchivedAt: new Date() })
