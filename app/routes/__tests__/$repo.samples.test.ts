@@ -18,8 +18,10 @@ import { RepoManager } from "~/app/services/RepoManager.ts";
 import { Security } from "~/app/services/Security.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
 import { setupTestRepositoryEnvironment, signUpTestUser } from "~/app/testUtils/testUtils.ts";
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { id53 } from "~/lib/id53/id53.ts";
 import { LOG_LEVEL, Logger } from "~/lib/logger/Logger.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
@@ -39,11 +41,14 @@ function post(fields: Record<string, string>): Request {
 
 async function insertBatchRecord(scope: ServiceContainer) {
 	const userId = scope.get(Security).userId;
+	const id = id53();
+	await scope.get(RepoDB).insert(Id).values({ id }).run();
 
 	return await scope
 		.get(RepoDB)
 		.insert(SampleBatch)
 		.values({
+			id,
 			slug: "pt-batch",
 			name: "Pt batch",
 			preparationDate: "2026-01-15",
@@ -100,9 +105,10 @@ describe("$repo.samples.new action", () => {
 		const scope = await environment();
 
 		const slug = await createBatch(scope, { activeMaterial: "Pt", support: "Al2O3" });
+		const batch = (await loadBatch(scope, slug)).batch;
 
 		expect(slug).toBe("pt-batch");
-		expect((await loadBatch(scope, slug)).batch).toEqual(
+		expect(batch).toEqual(
 			expect.objectContaining({
 				name: "Pt batch",
 				preparationDate: "2025-01-15",
@@ -110,6 +116,9 @@ describe("$repo.samples.new action", () => {
 				support: "Al2O3",
 			}),
 		);
+		expect(await scope.get(RepoDB).select().from(Id).where(eq(Id.id, batch.id)).get()).toEqual({
+			id: batch.id,
+		});
 	});
 
 	test("leaves an omitted composition empty", async () => {
@@ -326,9 +335,12 @@ describe("$repo.samples.$batchSlug action", () => {
 		const batch = await insertBatchRecord(scope);
 
 		for (let attempt = 1; attempt <= 5; attempt++) {
+			const id = id53();
+			await db.insert(Id).values({ id }).run();
 			await db
 				.insert(Sample)
 				.values({
+					id,
 					batchId: batch.id,
 					slug: attempt === 1 ? "01" : `01-${attempt}`,
 					name: `existing-${attempt}`,

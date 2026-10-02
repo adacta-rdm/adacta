@@ -1,5 +1,6 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
@@ -8,7 +9,10 @@ import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 export const SampleBatch = sqliteTable(
 	"SampleBatch",
 	{
-		id: integer("sample_batch_id").primaryKey({ autoIncrement: true }),
+		id: integer("sample_batch_id")
+			.notNull()
+			.primaryKey()
+			.references(() => Id.id),
 
 		slug: text("slug").notNull(),
 

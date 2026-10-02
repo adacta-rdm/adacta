@@ -5,12 +5,15 @@ import { eq } from "drizzle-orm";
 import { addSample } from "~/app/lib/addSample.ts";
 import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError.ts";
 import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError.ts";
+import type { BatchStatements } from "~/app/services/DatabaseManager.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
 import type { Entity, NewEntity } from "~/drizzle/Schema.ts";
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { id53 } from "~/lib/id53/id53.ts";
 
 const CREATION_TIME = new Date("2026-01-15T12:00:00.000Z");
 
@@ -28,9 +31,12 @@ async function insertBatch(
 	userId: string,
 	slug: string,
 ): Promise<Entity<"SampleBatch">> {
+	const id = id53();
+	await db.insert(Id).values({ id }).run();
 	return await db
 		.insert(SampleBatch)
 		.values({
+			id,
 			slug,
 			name: slug,
 			preparationDate: "2026-01-15",
@@ -46,7 +52,7 @@ function sampleValues(
 	batchId: number,
 	userId: string,
 	name = "#01",
-): Omit<NewEntity<"Sample">, "slug"> {
+): Omit<NewEntity<"Sample">, "slug" | "id"> {
 	return {
 		batchId,
 		name,
@@ -58,12 +64,14 @@ function sampleValues(
 
 async function insertSample(
 	db: RepoDB,
-	values: Omit<NewEntity<"Sample">, "slug">,
+	values: Omit<NewEntity<"Sample">, "slug" | "id">,
 	slug: string,
 ): Promise<Entity<"Sample">> {
+	const id = id53();
+	await db.insert(Id).values({ id }).run();
 	return await db
 		.insert(Sample)
-		.values({ ...values, slug })
+		.values({ ...values, slug, id })
 		.returning()
 		.get();
 }
@@ -103,6 +111,14 @@ describe("addSample", () => {
 		expect(result).toEqual(inserted);
 	});
 
+	test("creates an ID row for the sample", async () => {
+		const { db, userId, batch } = await environment();
+
+		const sample = await addSample(db, sampleValues(batch.id, userId));
+
+		expect(await db.select().from(Id).where(eq(Id.id, sample.id)).get()).toEqual({ id: sample.id });
+	});
+
 	test("adds a numeric suffix when another label has the same slug", async () => {
 		const { db, userId, batch } = await environment();
 
@@ -118,11 +134,13 @@ describe("addSample", () => {
 	test("throws an error when the batch already contains the label", async () => {
 		const { db, userId, batch } = await environment();
 		await insertSample(db, sampleValues(batch.id, userId), "01");
+		const idsBefore = await db.select().from(Id).all();
 
 		const result = addSample(db, sampleValues(batch.id, userId));
 
 		await expectDuplicateSampleName(result, "#01");
 		expect(await db.select().from(Sample).all()).toHaveLength(1);
+		expect(await db.select().from(Id).all()).toEqual(idsBefore);
 	});
 
 	test("keeps the label of an archived sample reserved", async () => {
@@ -157,18 +175,18 @@ describe("addSample", () => {
 		let insertedCompetingSample = false;
 
 		// Insert the competing row after addSample has selected a slug and just
-		// before it tries to insert. This makes the unique constraint report the
-		// same collision that two requests can produce.
+		// before its batch starts. This makes the unique constraint report
+		// the same collision that two requests can produce.
 		const racingDb = new Proxy(db, {
 			get(target, property) {
-				if (property === "insert") {
-					return (table: typeof Sample) => {
-						if (table === Sample && !insertedCompetingSample) {
+				if (property === "batch") {
+					return async (statements: BatchStatements) => {
+						if (!insertedCompetingSample) {
 							insertedCompetingSample = true;
-							void insertSample(db, competingValues, "01");
+							await insertSample(db, competingValues, "01");
 						}
 
-						return db.insert(table);
+						return db.batch(statements);
 					};
 				}
 
@@ -181,6 +199,7 @@ describe("addSample", () => {
 
 		expect(result).toEqual(expect.objectContaining({ name: "#01", slug: "01-2" }));
 		expect(await db.select().from(Sample).all()).toHaveLength(2);
+		expect(await db.select().from(Id).all()).toHaveLength(3);
 	});
 
 	test("reports when five generated slugs are already in use", async () => {
@@ -212,7 +231,7 @@ describe("addSample", () => {
 		const { db, userId } = await environment();
 		const missingBatchId = 999_999;
 
-		expect(addSample(db, sampleValues(missingBatchId, userId))).rejects.toMatchObject({
+		await expect(addSample(db, sampleValues(missingBatchId, userId))).rejects.toMatchObject({
 			cause: {
 				code: "SQLITE_CONSTRAINT_FOREIGNKEY",
 				message: "FOREIGN KEY constraint failed",

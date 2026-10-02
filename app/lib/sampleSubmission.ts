@@ -8,13 +8,14 @@
  * A deleted sample is removed for good. A sample is deleted only while nothing
  * else refers to it. A sample that has been used is archived instead.
  */
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, notExists } from "drizzle-orm";
 
 import { addSample } from "~/app/lib/addSample.ts";
 import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError.ts";
 import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError.ts";
 import type { RepoDB } from "~/app/services/RepoDB.ts";
 import type { Entity } from "~/drizzle/Schema.ts";
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import type { FormValues } from "~/lib/form-values/FormValues.ts";
 import type { Logger } from "~/lib/logger/Logger.ts";
@@ -105,10 +106,17 @@ export async function addSubmittedSample(
  * @throws Response 404 when the sample is not there, or is archived.
  */
 export async function deleteSubmittedSample(db: RepoDB, sampleId: number): Promise<void> {
-	const deleted = await db
-		.delete(Sample)
-		.where(and(eq(Sample.id, sampleId), isNull(Sample.metadataArchivedAt)))
-		.run();
+	const [deleted] = await db.batch([
+		db.delete(Sample).where(and(eq(Sample.id, sampleId), isNull(Sample.metadataArchivedAt))),
+		db
+			.delete(Id)
+			.where(
+				and(
+					eq(Id.id, sampleId),
+					notExists(db.select().from(Sample).where(eq(Sample.id, sampleId))),
+				),
+			),
+	]);
 
 	if (deleted.changes === 0) {
 		throw new Response("Sample not found.", { status: 404 });

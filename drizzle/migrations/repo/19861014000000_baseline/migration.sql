@@ -29,8 +29,12 @@ CREATE TABLE `Channel` (
 	CONSTRAINT `fk_Channel_quantity_kind_id_QuantityKind_quantity_kind_id_fk` FOREIGN KEY (`quantity_kind_id`) REFERENCES `QuantityKind`(`quantity_kind_id`) ON UPDATE CASCADE
 );
 --> statement-breakpoint
+CREATE TABLE `Id` (
+	`id` integer PRIMARY KEY
+);
+--> statement-breakpoint
 CREATE TABLE `InventoryEntry` (
-	`inventory_entry_id` integer PRIMARY KEY AUTOINCREMENT,
+	`inventory_entry_id` integer PRIMARY KEY,
 	`slug` text NOT NULL,
 	`name` text NOT NULL,
 	`kind` text NOT NULL,
@@ -39,7 +43,8 @@ CREATE TABLE `InventoryEntry` (
 	`location_label` text,
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
-	`metadata_archived_at` integer
+	`metadata_archived_at` integer,
+	CONSTRAINT `fk_InventoryEntry_inventory_entry_id_Id_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `Id`(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `Manufacturer` (
@@ -171,7 +176,7 @@ CREATE TABLE `QuantityKind` (
 );
 --> statement-breakpoint
 CREATE TABLE `Sample` (
-	`sample_id` integer PRIMARY KEY AUTOINCREMENT,
+	`sample_id` integer PRIMARY KEY,
 	`sample_batch_id` integer NOT NULL,
 	`slug` text NOT NULL,
 	`name` text NOT NULL,
@@ -179,11 +184,12 @@ CREATE TABLE `Sample` (
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
+	CONSTRAINT `fk_Sample_sample_id_Id_id_fk` FOREIGN KEY (`sample_id`) REFERENCES `Id`(`id`),
 	CONSTRAINT `fk_Sample_sample_batch_id_SampleBatch_sample_batch_id_fk` FOREIGN KEY (`sample_batch_id`) REFERENCES `SampleBatch`(`sample_batch_id`)
 );
 --> statement-breakpoint
 CREATE TABLE `SampleBatch` (
-	`sample_batch_id` integer PRIMARY KEY AUTOINCREMENT,
+	`sample_batch_id` integer PRIMARY KEY,
 	`slug` text NOT NULL,
 	`name` text NOT NULL,
 	`preparation_date` text NOT NULL,
@@ -192,7 +198,8 @@ CREATE TABLE `SampleBatch` (
 	`support` text,
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
-	`metadata_archived_at` integer
+	`metadata_archived_at` integer,
+	CONSTRAINT `fk_SampleBatch_sample_batch_id_Id_id_fk` FOREIGN KEY (`sample_batch_id`) REFERENCES `Id`(`id`)
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `Channel_key_role_unique` ON `Channel` (`product_id`,`key`,`role`);--> statement-breakpoint

@@ -1,5 +1,6 @@
 import { CatalogSource } from "~/drizzle/schema/repo.CatalogSource.ts";
 import { Channel } from "~/drizzle/schema/repo.Channel.ts";
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
 import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
 import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
@@ -20,6 +21,7 @@ const Schema = {
 	Account,
 	CatalogSource,
 	Channel,
+	Id,
 	InventoryEntry,
 	Manufacturer,
 	OriginalFile,

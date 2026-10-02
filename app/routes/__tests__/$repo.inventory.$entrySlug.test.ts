@@ -5,7 +5,9 @@ import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
 import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
+import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 describe("inventory entry loader", () => {
@@ -60,11 +62,14 @@ function argsFor(scope: ServiceContainer, entrySlug: string) {
 
 async function setupEntry(): Promise<ServiceContainer> {
 	const scope = await setupTestRepositoryEnvironment("demo");
+	const id = id53();
+	await scope.get(RepoDB).insert(Id).values({ id }).run();
 
 	await scope
 		.get(RepoDB)
 		.insert(InventoryEntry)
 		.values({
+			id,
 			slug: "methanation-test-stand",
 			name: "Methanation Test Stand",
 			kind: "rig",

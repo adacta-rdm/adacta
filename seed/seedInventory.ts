@@ -14,7 +14,9 @@
 import { availableSlug } from "~/app/lib/slugs.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
+import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, keyOf, readJson } from "~/seed/files.ts";
 
@@ -64,6 +66,7 @@ export async function seedInventory(
 		takenSlugs.push(slug);
 
 		return {
+			id: id53(),
 			slug,
 			name: entry.name,
 			kind: entry.kind,
@@ -75,11 +78,10 @@ export async function seedInventory(
 		};
 	});
 
-	const inserted = await db
-		.insert(InventoryEntry)
-		.values(rows)
-		.returning({ id: InventoryEntry.id })
-		.all();
+	await db.batch([
+		db.insert(Id).values(rows.map(({ id }) => ({ id }))),
+		db.insert(InventoryEntry).values(rows),
+	]);
 
-	return new Map(inserted.map((row, index) => [keyOf(files[index]), row.id]));
+	return new Map(rows.map((row, index) => [keyOf(files[index]), row.id]));
 }

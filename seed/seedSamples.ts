@@ -14,7 +14,9 @@ import { addSample } from "~/app/lib/addSample.ts";
 import { availableSlug } from "~/app/lib/slugs.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, readJson } from "~/seed/files.ts";
 
@@ -73,9 +75,11 @@ export async function seedSamples(
 			),
 		);
 
-		const { id: batchId } = await db
-			.insert(SampleBatch)
-			.values({
+		const batchId = id53();
+		await db.batch([
+			db.insert(Id).values({ id: batchId }),
+			db.insert(SampleBatch).values({
+				id: batchId,
 				slug,
 				name: seed.name,
 				preparationDate: seed.preparationDate,
@@ -84,9 +88,8 @@ export async function seedSamples(
 				support: seed.support,
 				metadataCreatorId: creatorId,
 				metadataCreationTimestamp: createdAt,
-			})
-			.returning({ id: SampleBatch.id })
-			.get();
+			}),
+		]);
 
 		for (const name of seed.samples) {
 			await addSample(db, {

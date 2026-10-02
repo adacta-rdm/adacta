@@ -6,8 +6,10 @@ import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
 import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
 import { PIDNode } from "~/drizzle/schema/repo.PIDNode.ts";
+import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 const graph: PIDGraph = {
@@ -100,9 +102,12 @@ describe("P&ID route", () => {
 		// id from the new graph therefore makes the insert fail after validation.
 		const db = scope.get(RepoDB);
 		const userId = scope.get(Security).userId;
+		const id = id53();
+		await db.insert(Id).values({ id }).run();
 		const other = await db
 			.insert(InventoryEntry)
 			.values({
+				id,
 				slug: "other-rig",
 				name: "Other rig",
 				kind: "rig",
@@ -365,11 +370,14 @@ describe("P&ID route", () => {
 async function setupRig(): Promise<ServiceContainer> {
 	const scope = await setupTestRepositoryEnvironment("demo");
 	const userId = scope.get(Security).userId;
+	const id = id53();
+	await scope.get(RepoDB).insert(Id).values({ id }).run();
 
 	await scope
 		.get(RepoDB)
 		.insert(InventoryEntry)
 		.values({
+			id,
 			slug: "ammonia-rig",
 			name: "Ammonia rig",
 			kind: "rig",

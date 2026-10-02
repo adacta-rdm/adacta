@@ -7,8 +7,10 @@ import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
 import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 describe("samples index loader", () => {
@@ -367,10 +369,13 @@ async function addBatch(
 		metadataCreatorId: userId,
 		metadataCreationTimestamp: new Date("2026-01-15T12:00:00.000Z"),
 	};
+	const batchId = id53();
+	await db.insert(Id).values({ id: batchId }).run();
 
 	const batch = await db
 		.insert(SampleBatch)
 		.values({
+			id: batchId,
 			slug: values.slug,
 			name: values.name,
 			preparationDate: values.preparationDate ?? "2025-01-15",
@@ -381,9 +386,12 @@ async function addBatch(
 		.get();
 
 	for (let index = 1; index <= sampleCount; index++) {
+		const id = id53();
+		await db.insert(Id).values({ id }).run();
 		await db
 			.insert(Sample)
 			.values({
+				id,
 				batchId: batch.id,
 				slug: `0${index}`,
 				name: `#0${index}`,

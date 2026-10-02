@@ -10,8 +10,10 @@ import { Security } from "~/app/services/Security.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import type { NewEntity } from "~/drizzle/Schema.ts";
+import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
 import { FormValues } from "~/lib/form-values/FormValues.ts";
+import { id53 } from "~/lib/id53/id53.ts";
 
 import type { Route } from "./+types/$repo.samples.new.ts";
 
@@ -57,18 +59,19 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 		),
 	);
 
-	const batch = await db
-		.insert(SampleBatch)
-		.values({
+	const id = id53();
+	await db.batch([
+		db.insert(Id).values({ id }),
+		db.insert(SampleBatch).values({
+			id,
 			slug,
 			...fields,
 			metadataCreatorId: security.userId,
 			metadataCreationTimestamp: new Date(),
-		} satisfies NewEntity<"SampleBatch">)
-		.returning({ slug: SampleBatch.slug })
-		.get();
+		} satisfies NewEntity<"SampleBatch">),
+	]);
 
-	return redirect(`/${params.repo}/samples/${batch.slug}`, 303);
+	return redirect(`/${params.repo}/samples/${slug}`, 303);
 }
 
 export default function NewSampleBatch({ actionData, loaderData, params }: Route.ComponentProps) {

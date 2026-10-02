@@ -13,6 +13,10 @@
 			"entityType": "tables"
 		},
 		{
+			"name": "Id",
+			"entityType": "tables"
+		},
+		{
 			"name": "InventoryEntry",
 			"entityType": "tables"
 		},
@@ -263,7 +267,17 @@
 		{
 			"type": "integer",
 			"notNull": false,
-			"autoincrement": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "Id"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
 			"default": null,
 			"generated": null,
 			"name": "inventory_entry_id",
@@ -1213,7 +1227,7 @@
 		{
 			"type": "integer",
 			"notNull": false,
-			"autoincrement": true,
+			"autoincrement": false,
 			"default": null,
 			"generated": null,
 			"name": "sample_id",
@@ -1293,7 +1307,7 @@
 		{
 			"type": "integer",
 			"notNull": false,
-			"autoincrement": true,
+			"autoincrement": false,
 			"default": null,
 			"generated": null,
 			"name": "sample_batch_id",
@@ -1447,6 +1461,17 @@
 		},
 		{
 			"columns": ["inventory_entry_id"],
+			"tableTo": "Id",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_InventoryEntry_inventory_entry_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "InventoryEntry"
+		},
+		{
+			"columns": ["inventory_entry_id"],
 			"tableTo": "InventoryEntry",
 			"columnsTo": ["inventory_entry_id"],
 			"onUpdate": "NO ACTION",
@@ -1556,6 +1581,17 @@
 			"table": "ProductSpecification"
 		},
 		{
+			"columns": ["sample_id"],
+			"tableTo": "Id",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Sample_sample_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "Sample"
+		},
+		{
 			"columns": ["sample_batch_id"],
 			"tableTo": "SampleBatch",
 			"columnsTo": ["sample_batch_id"],
@@ -1565,6 +1601,17 @@
 			"name": "fk_Sample_sample_batch_id_SampleBatch_sample_batch_id_fk",
 			"entityType": "fks",
 			"table": "Sample"
+		},
+		{
+			"columns": ["sample_batch_id"],
+			"tableTo": "Id",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_SampleBatch_sample_batch_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "SampleBatch"
 		},
 		{
 			"columns": ["catalog_source_id"],
@@ -1578,6 +1625,13 @@
 			"nameExplicit": false,
 			"name": "Channel_pk",
 			"table": "Channel",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "Id_pk",
+			"table": "Id",
 			"entityType": "pks"
 		},
 		{
