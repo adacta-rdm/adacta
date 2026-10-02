@@ -2,6 +2,7 @@ import { CatalogSource } from "~/drizzle/schema/repo.CatalogSource.ts";
 import { Channel } from "~/drizzle/schema/repo.Channel.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
 import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
+import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
 import { PIDEdge } from "~/drizzle/schema/repo.PIDEdge.ts";
 import { PIDEdgeKind } from "~/drizzle/schema/repo.PIDEdgeKind.ts";
 import { PIDNode } from "~/drizzle/schema/repo.PIDNode.ts";
@@ -11,7 +12,6 @@ import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification
 import { QuantityKind } from "~/drizzle/schema/repo.QuantityKind.ts";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
-import { SourceArtifact } from "~/drizzle/schema/repo.SourceArtifact.ts";
 import { Account, Session, User, Verification } from "~/drizzle/schema/system.BetterAuth.ts";
 import { Repository } from "~/drizzle/schema/system.Repository.ts";
 import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
@@ -22,6 +22,7 @@ const Schema = {
 	Channel,
 	InventoryEntry,
 	Manufacturer,
+	OriginalFile,
 	PIDEdge,
 	PIDEdgeKind,
 	PIDNode,
@@ -33,7 +34,6 @@ const Schema = {
 	Sample,
 	SampleBatch,
 	Session,
-	SourceArtifact,
 	User,
 	UserRepository,
 	Verification,

@@ -10,10 +10,10 @@ import {
 } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
-import { SourceUploadForm } from "~/app/components/SourceUploadForm.tsx";
+import { UploadForm } from "~/app/components/UploadForm.tsx";
 import type { RepositoryContext } from "~/app/routes/$repo.tsx";
 import { Security } from "~/app/services/Security.ts";
-import { SourceManager } from "~/app/services/SourceManager.ts";
+import { UploadManager } from "~/app/services/UploadManager.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 
@@ -32,14 +32,14 @@ export function meta() {
  * that stream is read. The upload is recorded after every file has been stored.
  */
 export async function action({ request, context, params }: Route.ActionArgs) {
-	let pending: ReturnType<SourceManager["beginUpload"]> | undefined;
+	let pending: ReturnType<UploadManager["beginUpload"]> | undefined;
 	let formData: FormData;
 
 	try {
 		formData = await parseFormData(
 			request,
 			{
-				// By default, the parser rejects a file larger than 2 MiB. Source
+				// By default, the parser rejects a file larger than 2 MiB. Uploaded
 				// files are written directly to storage and may be much larger. No
 				// byte limit is therefore set here.
 				maxFileSize: Number.POSITIVE_INFINITY,
@@ -47,7 +47,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 			async (upload) => {
 				if (upload.fieldName !== "files") return;
 
-				pending ??= context.get(services).get(SourceManager).beginUpload();
+				pending ??= context.get(services).get(UploadManager).beginUpload();
 
 				return pending.add({
 					originalName: upload.name,
@@ -79,7 +79,7 @@ export default function RepoFilesImport({ actionData }: Route.ComponentProps) {
 	const location = useLocation();
 	const navigation = useNavigation();
 	const submit = useSubmit();
-	const { sourceBundle, addSourceFiles, removeSourceFile, clearSourceFiles } =
+	const { selectedFiles, addSelectedFiles, removeSelectedFile, clearSelectedFiles } =
 		useOutletContext<RepositoryContext>();
 
 	useEffect(() => {
@@ -89,16 +89,16 @@ export default function RepoFilesImport({ actionData }: Route.ComponentProps) {
 			navigation.formData?.has("files") === true &&
 			navigation.location.pathname !== location.pathname;
 
-		if (completedUpload) clearSourceFiles();
-	}, [clearSourceFiles, location.pathname, navigation]);
+		if (completedUpload) clearSelectedFiles();
+	}, [clearSelectedFiles, location.pathname, navigation]);
 
 	function uploadFiles(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
-		if (sourceBundle.length === 0) return;
+		if (selectedFiles.length === 0) return;
 
 		const formData = new FormData();
 
-		for (const file of sourceBundle) {
+		for (const file of selectedFiles) {
 			formData.append("files", file);
 			formData.append("lastModified", String(file.lastModified));
 		}
@@ -113,17 +113,16 @@ export default function RepoFilesImport({ actionData }: Route.ComponentProps) {
 		<>
 			<Heading>Import files</Heading>
 			<Text className="mt-2">
-				Add the original files that belong to this source bundle. A raw text preview is generated in
-				the browser.
+				Add the original files for this upload. A raw text preview is generated in the browser.
 			</Text>
 
-			<SourceUploadForm
-				files={sourceBundle}
+			<UploadForm
+				files={selectedFiles}
 				isUploading={isUploading}
 				uploadError={uploadError}
-				onAddFiles={addSourceFiles}
-				onRemoveFile={removeSourceFile}
-				onClear={clearSourceFiles}
+				onAddFiles={addSelectedFiles}
+				onRemoveFile={removeSelectedFile}
+				onClear={clearSelectedFiles}
 				onSubmit={uploadFiles}
 			/>
 		</>

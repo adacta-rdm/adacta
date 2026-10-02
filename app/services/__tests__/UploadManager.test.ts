@@ -4,15 +4,15 @@ import { eq } from "drizzle-orm";
 
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
-import { SourceFileNotFoundError, SourceManager } from "~/app/services/SourceManager.ts";
+import { OriginalFileNotFoundError, UploadManager } from "~/app/services/UploadManager.ts";
 import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
-import { SourceArtifact } from "~/drizzle/schema/repo.SourceArtifact.ts";
+import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
 
-describe("SourceManager", () => {
+describe("UploadManager", () => {
 	test("publishes the files of one upload under a shared upload id", async () => {
 		const scope = await setupTestRepositoryEnvironment();
-		const sources = scope.get(SourceManager);
-		const upload = sources.beginUpload();
+		const manager = scope.get(UploadManager);
+		const upload = manager.beginUpload();
 
 		await upload.add({
 			originalName: "measurement.csv",
@@ -25,10 +25,10 @@ describe("SourceManager", () => {
 			source: new Blob(["{}"]).stream(),
 		});
 		const uploadId = await upload.commit(scope.get(Security).userId);
-		const artifacts = await sources.artifactsOfUpload(uploadId);
+		const files = await manager.filesOfUpload(uploadId);
 
 		expect(
-			artifacts.map(({ uploadId: id, originalName, mediaType, byteSize }) => ({
+			files.map(({ uploadId: id, originalName, mediaType, byteSize }) => ({
 				uploadId: id,
 				originalName,
 				mediaType,
@@ -49,12 +49,12 @@ describe("SourceManager", () => {
 			},
 		]);
 
-		expect(artifacts[0]?.metadataCreatorId).toBe(scope.get(Security).userId);
+		expect(files[0]?.metadataCreatorId).toBe(scope.get(Security).userId);
 
 		const contents = await Promise.all(
-			artifacts.map(async ({ id }) => {
-				const artifact = await sources.getArtifact(id);
-				return new Response(await artifact.read()).text();
+			files.map(async ({ id }) => {
+				const file = await manager.getFile(id);
+				return new Response(await file.read()).text();
 			}),
 		);
 
@@ -63,8 +63,8 @@ describe("SourceManager", () => {
 
 	test("publishes nothing when one of the files fails to arrive", async () => {
 		const scope = await setupTestRepositoryEnvironment();
-		const sources = scope.get(SourceManager);
-		const upload = sources.beginUpload();
+		const manager = scope.get(UploadManager);
+		const upload = manager.beginUpload();
 
 		try {
 			await upload.add({
@@ -77,32 +77,32 @@ describe("SourceManager", () => {
 			expect((error as Error).message).toBe("Source failed");
 		}
 
-		await expect(sources.artifactsOfUpload(upload.id)).rejects.toBeInstanceOf(
-			SourceFileNotFoundError,
+		await expect(manager.filesOfUpload(upload.id)).rejects.toBeInstanceOf(
+			OriginalFileNotFoundError,
 		);
 	});
 
 	test("archiving one file leaves the others of its upload in place", async () => {
 		const scope = await setupTestRepositoryEnvironment();
-		const sources = scope.get(SourceManager);
-		const upload = sources.beginUpload();
+		const manager = scope.get(UploadManager);
+		const upload = manager.beginUpload();
 
 		await upload.add({ originalName: "a.csv", source: new Blob(["a"]).stream() });
 		await upload.add({ originalName: "b.csv", source: new Blob(["b"]).stream() });
 
 		const uploadId = await upload.commit(scope.get(Security).userId);
-		const [first, second] = await sources.artifactsOfUpload(uploadId);
+		const [first, second] = await manager.filesOfUpload(uploadId);
 
 		scope
 			.get(RepoDB)
-			.update(SourceArtifact)
+			.update(OriginalFile)
 			.set({ metadataArchivedAt: new Date() })
-			.where(eq(SourceArtifact.id, first!.id))
+			.where(eq(OriginalFile.id, first!.id))
 			.run();
 
-		await expect(sources.getArtifact(first!.id)).rejects.toBeInstanceOf(SourceFileNotFoundError);
-		expect((await sources.getArtifact(second!.id)).originalName).toBe("b.csv");
-		expect((await sources.artifactsOfUpload(uploadId)).map((row) => row.originalName)).toEqual([
+		await expect(manager.getFile(first!.id)).rejects.toBeInstanceOf(OriginalFileNotFoundError);
+		expect((await manager.getFile(second!.id)).originalName).toBe("b.csv");
+		expect((await manager.filesOfUpload(uploadId)).map((row) => row.originalName)).toEqual([
 			"b.csv",
 		]);
 	});

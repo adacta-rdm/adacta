@@ -2,7 +2,7 @@ import { ArrowDownTrayIcon, DocumentTextIcon } from "@heroicons/react/20/solid";
 import { Link } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
-import { SourceFileNotFoundError, SourceManager } from "~/app/services/SourceManager.ts";
+import { OriginalFileNotFoundError, UploadManager } from "~/app/services/UploadManager.ts";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
@@ -17,14 +17,11 @@ export function meta() {
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	try {
-		const artifacts = await context
-			.get(services)
-			.get(SourceManager)
-			.artifactsOfUpload(params.uploadId);
+		const files = await context.get(services).get(UploadManager).filesOfUpload(params.uploadId);
 
-		return { artifacts };
+		return { files };
 	} catch (error) {
-		if (error instanceof SourceFileNotFoundError || error instanceof FileNotFoundError) {
+		if (error instanceof OriginalFileNotFoundError || error instanceof FileNotFoundError) {
 			throw new Response("Upload not found.", { status: 404 });
 		}
 		throw error;
@@ -44,20 +41,20 @@ export default function RepoFilesUploadId({ loaderData, params }: Route.Componen
 			<section className="rounded-xl border border-border bg-surface p-5">
 				<Subheading>Original files</Subheading>
 				<ul className="mt-4 divide-y divide-border">
-					{loaderData.artifacts.map((artifact) => (
-						<li key={artifact.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+					{loaderData.files.map((file) => (
+						<li key={file.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
 							<DocumentTextIcon className="size-5 shrink-0 text-foreground-muted" />
 							<span className="min-w-0 flex-1">
 								<span className="block truncate text-sm font-medium text-foreground">
-									{artifact.originalName}
+									{file.originalName}
 								</span>
 								<span className="block text-xs text-foreground-muted">
-									{formatFileSize(artifact.byteSize)}
+									{formatFileSize(file.byteSize)}
 								</span>
 							</span>
 							<a
-								href={`/${params.repo}/files/artifacts/${artifact.id}`}
-								aria-label={`Download ${artifact.originalName}`}
+								href={`/${params.repo}/files/originals/${file.id}`}
+								aria-label={`Download ${file.originalName}`}
 								className="rounded-md p-2 text-foreground-muted hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
 							>
 								<ArrowDownTrayIcon className="size-5" />

@@ -2,14 +2,14 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import type { NewEntity } from "~/drizzle/Schema.ts";
-import { SourceArtifact } from "~/drizzle/schema/repo.SourceArtifact.ts";
+import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
 import { Service } from "~/lib/service-container/ServiceContainer.ts";
 import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
 
 /**
  * Stores uploaded files and makes them available for later retrieval.
  *
- * Each file is kept exactly as it arrived and recorded as a source artifact.
+ * Each file is kept exactly as it arrived and recorded as an original file.
  * Files remain in a staging area until every file in the upload has been
  * stored. They are then moved to permanent storage and recorded together. A
  * file can therefore be retrieved only after the complete upload succeeds.
@@ -20,7 +20,7 @@ import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
  * recorded separately during import.
  */
 @Service(StorageEngine, RepoDB)
-export class SourceManager {
+export class UploadManager {
 	constructor(
 		private storage: StorageEngine,
 		private database: RepoDB,
@@ -39,40 +39,40 @@ export class SourceManager {
 	/**
 	 * Returns the files of one upload, in the order they arrived.
 	 *
-	 * Archived files are omitted. The method throws `SourceFileNotFoundError`
+	 * Archived files are omitted. The method throws `OriginalFileNotFoundError`
 	 * when every file in the upload is archived or the upload id is unknown.
 	 */
-	async artifactsOfUpload(uploadId: string) {
-		const artifacts = await this.database
+	async filesOfUpload(uploadId: string) {
+		const files = await this.database
 			.select()
-			.from(SourceArtifact)
-			.where(and(eq(SourceArtifact.uploadId, uploadId), isNull(SourceArtifact.metadataArchivedAt)))
+			.from(OriginalFile)
+			.where(and(eq(OriginalFile.uploadId, uploadId), isNull(OriginalFile.metadataArchivedAt)))
 			.all();
 
-		if (artifacts.length === 0) throw new SourceFileNotFoundError(uploadId);
+		if (files.length === 0) throw new OriginalFileNotFoundError(uploadId);
 
-		return artifacts;
+		return files;
 	}
 
 	/**
 	 * Returns the record of one file and a way to read its bytes.
 	 *
 	 * The returned `read()` method opens a new stream each time it is called.
-	 * `getArtifact()` itself does not open the stored file. An archived file
+	 * `getFile()` itself does not open the stored file. An archived file
 	 * is treated as absent.
 	 */
-	async getArtifact(id: string) {
-		const artifact = await this.database
+	async getFile(id: string) {
+		const file = await this.database
 			.select()
-			.from(SourceArtifact)
-			.where(and(eq(SourceArtifact.id, id), isNull(SourceArtifact.metadataArchivedAt)))
+			.from(OriginalFile)
+			.where(and(eq(OriginalFile.id, id), isNull(OriginalFile.metadataArchivedAt)))
 			.get();
 
-		if (!artifact) throw new SourceFileNotFoundError(id);
+		if (!file) throw new OriginalFileNotFoundError(id);
 
 		return {
-			...artifact,
-			read: () => this.storage.read(artifactPath(artifact.id)),
+			...file,
+			read: () => this.storage.read(originalFilePath(file.id)),
 		};
 	}
 }
@@ -87,7 +87,7 @@ class PendingUpload {
 	 * `uploads/<upload id>/<file id>`.
 	 */
 	readonly id = crypto.randomUUID();
-	private readonly artifacts: StagedArtifact[] = [];
+	private readonly files: StagedFile[] = [];
 	private state: "open" | "failed" | "committed" = "open";
 
 	constructor(
@@ -98,17 +98,17 @@ class PendingUpload {
 	/**
 	 * Stores one file in the staging area and returns its identifier.
 	 *
-	 * The method returns after storage has read the complete source stream. A
+	 * The method returns after storage has read the complete file stream. A
 	 * storage failure ends the upload.
 	 */
-	async add(upload: ArtifactUpload): Promise<string> {
+	async add(upload: FileUpload): Promise<string> {
 		this.assertOpen();
 		const id = crypto.randomUUID();
 		const path = uploadPath(this.id, id);
 
 		try {
 			await this.storage.write(path, upload.source);
-			this.artifacts.push({
+			this.files.push({
 				id,
 				originalName: upload.originalName,
 				mediaType: upload.mediaType ?? null,
@@ -117,7 +117,7 @@ class PendingUpload {
 			return id;
 		} catch (error) {
 			// The garbage collector removes files that remain in the staging
-			// area. No source artifact record refers to them.
+			// area. No original file record refers to them.
 			this.state = "failed";
 			throw error;
 		}
@@ -133,33 +133,33 @@ class PendingUpload {
 	 */
 	async commit(creatorId: string): Promise<string> {
 		this.assertOpen();
-		if (this.artifacts.length === 0) throw new Error("An upload requires a file.");
+		if (this.files.length === 0) throw new Error("An upload requires a file.");
 
-		const movedArtifacts: StagedArtifact[] = [];
+		const movedFiles: StagedFile[] = [];
 		try {
-			for (const artifact of this.artifacts) {
-				await this.storage.rename(uploadPath(this.id, artifact.id), artifactPath(artifact.id));
-				movedArtifacts.push(artifact);
+			for (const file of this.files) {
+				await this.storage.rename(uploadPath(this.id, file.id), originalFilePath(file.id));
+				movedFiles.push(file);
 			}
 
 			const createdAt = new Date();
-			const artifacts = this.artifacts.map((artifact) => ({
-				...artifact,
+			const files = this.files.map((file) => ({
+				...file,
 				uploadId: this.id,
 				metadataCreatorId: creatorId,
 				metadataCreationTimestamp: createdAt,
-			})) satisfies NewEntity<"SourceArtifact">[];
+			})) satisfies NewEntity<"OriginalFile">[];
 
 			// One INSERT statement records the complete upload atomically. Await it
 			// before publishing the upload identifier.
-			await this.database.insert(SourceArtifact).values(artifacts).run();
+			await this.database.insert(OriginalFile).values(files).run();
 
 			this.state = "committed";
 			return this.id;
 		} catch (error) {
 			this.state = "failed";
-			for (const artifact of movedArtifacts) {
-				await this.storage.remove(artifactPath(artifact.id));
+			for (const file of movedFiles) {
+				await this.storage.remove(originalFilePath(file.id));
 			}
 			throw error;
 		}
@@ -171,14 +171,14 @@ class PendingUpload {
 	}
 }
 
-type StagedArtifact = {
+type StagedFile = {
 	id: string;
 	originalName: string;
 	mediaType: string | null;
 	byteSize: number;
 };
 
-type ArtifactUpload = {
+type FileUpload = {
 	/**
 	 * The name supplied by the user's file system.
 	 */
@@ -195,20 +195,20 @@ type ArtifactUpload = {
 	source: ReadableStream<Uint8Array>;
 };
 
-function uploadPath(uploadId: string, artifactId: string): string {
-	return `uploads/${uploadId}/${artifactId}`;
+function uploadPath(uploadId: string, fileId: string): string {
+	return `uploads/${uploadId}/${fileId}`;
 }
 
-function artifactPath(artifactId: string): string {
-	return `source-artifacts/${artifactId}`;
+function originalFilePath(fileId: string): string {
+	return `original-files/${fileId}`;
 }
 
 /**
- * Reports that no available source file matched an identifier.
+ * Reports that no available original file matched an identifier.
  */
-export class SourceFileNotFoundError extends Error {
+export class OriginalFileNotFoundError extends Error {
 	constructor(id: string) {
-		super(`Source file record not found: ${id}`);
-		this.name = "SourceFileNotFoundError";
+		super(`Original file record not found: ${id}`);
+		this.name = "OriginalFileNotFoundError";
 	}
 }

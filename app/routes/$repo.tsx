@@ -69,24 +69,23 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 }
 
 export type RepositoryContext = {
-	sourceBundle: File[];
-	addSourceFiles: (files: File[]) => void;
-	removeSourceFile: (file: File) => void;
-	clearSourceFiles: () => void;
+	selectedFiles: File[];
+	addSelectedFiles: (files: File[]) => void;
+	removeSelectedFile: (file: File) => void;
+	clearSelectedFiles: () => void;
 };
 
 export default function Repository({ loaderData }: Route.ComponentProps) {
 	const navigate = useNavigate();
 	const location = useLocation();
-	const [pendingBundle, setPendingBundle] = useState<{
+	const [selection, setSelection] = useState<{
 		repository: string;
 		files: File[];
 	}>();
-	const sourceBundle =
-		pendingBundle?.repository === loaderData.repository ? pendingBundle.files : [];
+	const selectedFiles = selection?.repository === loaderData.repository ? selection.files : [];
 
-	function addSourceFiles(files: File[]) {
-		setPendingBundle((current) => ({
+	function addSelectedFiles(files: File[]) {
+		setSelection((current) => ({
 			repository: loaderData.repository,
 			files: appendUniqueFiles(
 				current?.repository === loaderData.repository ? current.files : [],
@@ -95,34 +94,35 @@ export default function Repository({ loaderData }: Route.ComponentProps) {
 		}));
 	}
 
-	function removeSourceFile(file: File) {
-		setPendingBundle((current) => {
+	function removeSelectedFile(file: File) {
+		setSelection((current) => {
 			if (current?.repository !== loaderData.repository) return current;
 			const files = current.files.filter((candidate) => candidate !== file);
 			return files.length > 0 ? { ...current, files } : undefined;
 		});
 	}
 
-	function clearSourceFiles() {
-		setPendingBundle(undefined);
+	function clearSelectedFiles() {
+		setSelection(undefined);
 	}
 
-	function importSourceFiles(files: File[]) {
-		addSourceFiles(files);
+	// Add files dropped in the repository to the selection and open the import page.
+	function addDroppedFiles(files: File[]) {
+		addSelectedFiles(files);
 
 		const importPath = `/${loaderData.repository}/files/import`;
 		if (location.pathname !== importPath) void navigate(importPath);
 	}
 
 	const context: RepositoryContext = {
-		sourceBundle,
-		addSourceFiles,
-		removeSourceFile,
-		clearSourceFiles,
+		selectedFiles,
+		addSelectedFiles,
+		removeSelectedFile,
+		clearSelectedFiles,
 	};
 
 	return (
-		<RepositoryFileDropTarget onDropFiles={importSourceFiles}>
+		<RepositoryFileDropTarget onDropFiles={addDroppedFiles}>
 			<AppLayout
 				sidebarWidth={loaderData.sidebarWidth}
 				repository={loaderData.repository}

@@ -13,7 +13,7 @@ type PreviewState =
 
 type ActivePreviewState = PreviewState | { status: "loading" };
 
-export function SourceUploadForm({
+export function UploadForm({
 	files,
 	isUploading,
 	uploadError,

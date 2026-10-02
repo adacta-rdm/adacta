@@ -54,6 +54,17 @@ CREATE TABLE `Manufacturer` (
 	`metadata_archived_at` integer
 );
 --> statement-breakpoint
+CREATE TABLE `OriginalFile` (
+	`original_file_id` text PRIMARY KEY,
+	`upload_id` text NOT NULL,
+	`original_name` text NOT NULL,
+	`media_type` text,
+	`byte_size` integer NOT NULL,
+	`metadata_creator_id` text NOT NULL,
+	`metadata_creation_timestamp` integer NOT NULL,
+	`metadata_archived_at` integer
+);
+--> statement-breakpoint
 CREATE TABLE `PIDEdge` (
 	`pid_edge_id` text PRIMARY KEY,
 	`inventory_entry_id` integer NOT NULL,
@@ -179,17 +190,6 @@ CREATE TABLE `SampleBatch` (
 	`prepared_by` text NOT NULL,
 	`active_material` text,
 	`support` text,
-	`metadata_creator_id` text NOT NULL,
-	`metadata_creation_timestamp` integer NOT NULL,
-	`metadata_archived_at` integer
-);
---> statement-breakpoint
-CREATE TABLE `SourceArtifact` (
-	`source_artifact_id` text PRIMARY KEY,
-	`upload_id` text NOT NULL,
-	`original_name` text NOT NULL,
-	`media_type` text,
-	`byte_size` integer NOT NULL,
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer

@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
 import { action } from "~/app/routes/$repo.files.import.tsx";
-import { SourceManager } from "~/app/services/SourceManager.ts";
+import { UploadManager } from "~/app/services/UploadManager.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
 import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
 
 describe("import action", () => {
-	test("rejects a form without source files", async () => {
+	test("rejects a form without files", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
 		const request = multipartRequest(new FormData());
 		const [args] = createMiddlewareArgs(scope, { request, params: { repo: "demo" } });
@@ -32,20 +32,18 @@ describe("import action", () => {
 		expect(response.status).toBe(303);
 		const location = response.headers.get("Location");
 		expect(location).toMatch(/^\/demo\/files\/[0-9a-f-]{36}$/);
-		const artifacts = await scope
-			.get(SourceManager)
-			.artifactsOfUpload(location!.split("/").at(-1)!);
-		expect(artifacts.map((artifact) => artifact.originalName)).toEqual(["first.txt", "second.txt"]);
+		const files = await scope.get(UploadManager).filesOfUpload(location!.split("/").at(-1)!);
+		expect(files.map((file) => file.originalName)).toEqual(["first.txt", "second.txt"]);
 		const contents = await Promise.all(
-			artifacts.map(async (artifact) => {
-				const storedArtifact = await scope.get(SourceManager).getArtifact(artifact.id);
-				return new Response(await storedArtifact.read()).text();
+			files.map(async (file) => {
+				const storedFile = await scope.get(UploadManager).getFile(file.id);
+				return new Response(await storedFile.read()).text();
 			}),
 		);
 		expect(contents.sort()).toEqual(["first file", "second file"]);
 	});
 
-	test("accepts a source file larger than the parser default", async () => {
+	test("accepts a file larger than the parser default", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
 		const bytes = new Uint8Array(2 * 1024 * 1024 + 1);
 		const formData = new FormData();
@@ -58,8 +56,8 @@ describe("import action", () => {
 		if (!(response instanceof Response)) throw new Error("Expected a redirect.");
 		expect(response.status).toBe(303);
 		const uploadId = response.headers.get("Location")!.split("/").at(-1)!;
-		const artifacts = await scope.get(SourceManager).artifactsOfUpload(uploadId);
-		expect(artifacts[0]!.byteSize).toBe(bytes.byteLength);
+		const files = await scope.get(UploadManager).filesOfUpload(uploadId);
+		expect(files[0]!.byteSize).toBe(bytes.byteLength);
 	});
 });
 

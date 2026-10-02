@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { appendUniqueFiles } from "~/app/lib/appendUniqueFiles.ts";
 
 describe("appendUniqueFiles", () => {
-	test("adds files to the source bundle in selection order", () => {
+	test("adds files to the upload in selection order", () => {
 		const first = new File(["first"], "first.txt", { lastModified: 1 });
 		const second = new File(["second"], "second.txt", { lastModified: 2 });
 

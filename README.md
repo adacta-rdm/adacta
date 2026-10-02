@@ -38,22 +38,21 @@ database, holds the users, the sessions, and the list of repositories.
 
 Set `ADACTA_DB_DIR` to store the files in another directory.
 
-## Source files
+## Original files
 
-Imported source files are stored separately for each repository. The server
-assigns each file an identifier instead of using its browser filename as a
-storage path.
+Original files are stored separately for each repository. The server assigns
+each file an identifier instead of using its browser filename as a storage path.
 
 ```
 .adacta/storage/
-  repo1/uploads/<bundle id>/<artifact id>              staged uploads
-  repo1/source-artifacts/<artifact id>                  original file bytes
+  repo1/uploads/<upload id>/<file id>                    staged files
+  repo1/original-files/<file id>                         original file bytes
   repo2/...
 ```
 
-The repository database holds the bundle and artifact metadata. These records
-are written only after every artifact has moved out of the upload directory. An
-incomplete upload therefore does not appear as a source bundle.
+The repository database records each original file after every file in its
+upload has moved out of the staging directory. An incomplete upload therefore
+has no file records.
 
 Set `ADACTA_STORAGE_DIR` to store the files in another directory.
 

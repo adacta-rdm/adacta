@@ -14,7 +14,7 @@ All CSV import paths describe the same information: the file structure, the time
 2. Supply a **JSON sidecar** when you can add a second file but must retain the existing CSV structure.
 3. Use **guided import** when neither the CSV nor a sidecar contains enough information.
 
-All supplied files form a source bundle. Adacta keeps that source evidence, the interpretation used for the import, and the resulting dataset separate. This means an improved or corrected import does not require the original data to be discarded or overwritten.
+All supplied files form an upload. Adacta keeps the original files, the interpretation used for the import, and the resulting dataset separate. This means an improved or corrected import does not require the original data to be discarded or overwritten.
 
 ## 1. Use the Adacta Standard Format
 
@@ -39,7 +39,7 @@ time,flow measurement,flow setpoint,temperature measurement
 
 The first row provides the names shown in Adacta. The second row identifies the physical device that produced each measurement. It is empty for the time axis because a timestamp does not belong to a device. The third row identifies either the special `time` axis or the channel of the identified device, given as the channel followed by its role. A device can report the same channel in more than one sense, such as a measured flow and a requested one. The fourth row gives each measurement's physical unit. The remaining rows contain the recorded values.
 
-Because the file describes its own structure and meaning, Adacta can recognize it, validate the referenced devices and channels, and import it with little or no manual mapping. The file forms a source bundle containing one file.
+Because the file describes its own structure and meaning, Adacta can recognize it, validate the referenced devices and channels, and import it with little or no manual mapping. The upload contains one file.
 
 ## 2. Supply a JSON sidecar with an existing CSV file
 
@@ -96,7 +96,7 @@ The accompanying `run-042.json` file supplies the same information that the Stan
 }
 ```
 
-Drop the CSV and JSON file into Adacta together. They form one source bundle containing two files. Adacta preserves both originals and uses the JSON sidecar to interpret the CSV.
+Drop the CSV and JSON file into Adacta together. They form one upload containing two files. Adacta preserves both originals and uses the JSON sidecar to interpret the CSV.
 
 ## Generate device mappings in control software
 
@@ -121,7 +121,7 @@ You can then choose one of two actions:
 - Correct the source file or sidecar and upload the corrected files when the imported device information is wrong.
 - Change the facility record when the imported device information is correct and the saved facility flowchart no longer reflects the real setup.
 
-The original source bundle remains available in either case. Corrected files are uploaded as a new source bundle; Adacta does not overwrite the original evidence.
+The original upload remains available in either case. Corrected files form a new upload; Adacta does not overwrite the original evidence.
 
 ## Validate the imported dataset
 

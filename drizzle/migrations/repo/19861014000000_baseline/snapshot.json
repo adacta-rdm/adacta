@@ -21,6 +21,10 @@
 			"entityType": "tables"
 		},
 		{
+			"name": "OriginalFile",
+			"entityType": "tables"
+		},
+		{
 			"name": "PIDEdge",
 			"entityType": "tables"
 		},
@@ -54,10 +58,6 @@
 		},
 		{
 			"name": "SampleBatch",
-			"entityType": "tables"
-		},
-		{
-			"name": "SourceArtifact",
 			"entityType": "tables"
 		},
 		{
@@ -449,6 +449,86 @@
 			"name": "metadata_archived_at",
 			"entityType": "columns",
 			"table": "Manufacturer"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "original_file_id",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "upload_id",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "original_name",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "media_type",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "byte_size",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "OriginalFile"
 		},
 		{
 			"type": "text",
@@ -1311,86 +1391,6 @@
 			"table": "SampleBatch"
 		},
 		{
-			"type": "text",
-			"notNull": false,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "source_artifact_id",
-			"entityType": "columns",
-			"table": "SourceArtifact"
-		},
-		{
-			"type": "text",
-			"notNull": true,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "upload_id",
-			"entityType": "columns",
-			"table": "SourceArtifact"
-		},
-		{
-			"type": "text",
-			"notNull": true,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "original_name",
-			"entityType": "columns",
-			"table": "SourceArtifact"
-		},
-		{
-			"type": "text",
-			"notNull": false,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "media_type",
-			"entityType": "columns",
-			"table": "SourceArtifact"
-		},
-		{
-			"type": "integer",
-			"notNull": true,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "byte_size",
-			"entityType": "columns",
-			"table": "SourceArtifact"
-		},
-		{
-			"type": "text",
-			"notNull": true,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "metadata_creator_id",
-			"entityType": "columns",
-			"table": "SourceArtifact"
-		},
-		{
-			"type": "integer",
-			"notNull": true,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "metadata_creation_timestamp",
-			"entityType": "columns",
-			"table": "SourceArtifact"
-		},
-		{
-			"type": "integer",
-			"notNull": false,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "metadata_archived_at",
-			"entityType": "columns",
-			"table": "SourceArtifact"
-		},
-		{
 			"columns": ["manufacturer_id"],
 			"tableTo": "Manufacturer",
 			"columnsTo": ["manufacturer_id"],
@@ -1595,6 +1595,13 @@
 			"entityType": "pks"
 		},
 		{
+			"columns": ["original_file_id"],
+			"nameExplicit": false,
+			"name": "OriginalFile_pk",
+			"table": "OriginalFile",
+			"entityType": "pks"
+		},
+		{
 			"columns": ["pid_edge_id"],
 			"nameExplicit": false,
 			"name": "PIDEdge_pk",
@@ -1655,13 +1662,6 @@
 			"nameExplicit": false,
 			"name": "SampleBatch_pk",
 			"table": "SampleBatch",
-			"entityType": "pks"
-		},
-		{
-			"columns": ["source_artifact_id"],
-			"nameExplicit": false,
-			"name": "SourceArtifact_pk",
-			"table": "SourceArtifact",
 			"entityType": "pks"
 		},
 		{

@@ -21,7 +21,7 @@ A **source bundle** is the complete group of original files supplied together fo
 - operator notes; or
 - other documentation needed to understand the source.
 
-Each file in the bundle is a **source artifact** with a role such as data, manifest, calibration, or documentation. The original artifacts are preserved unchanged. A dataset created from them is a separate result and remains linked to its source bundle.
+Each file in the bundle is an **original file**. Its role may be data, manifest, calibration, or documentation. The original files are preserved unchanged. A dataset created from them is a separate result and remains linked to its source bundle.
 
 A source bundle does not require several files. A single Emerson data file is also a valid bundle.
 

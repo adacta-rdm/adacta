@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { loader } from "~/app/routes/$repo.files.$uploadId.tsx";
 import { Security } from "~/app/services/Security.ts";
-import { SourceManager } from "~/app/services/SourceManager.ts";
+import { UploadManager } from "~/app/services/UploadManager.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
 import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
 
@@ -17,7 +17,7 @@ describe("uploaded files loader", () => {
 
 		const result = await loader(args);
 
-		expect(result.artifacts).toEqual([
+		expect(result.files).toEqual([
 			expect.objectContaining({
 				uploadId,
 				originalName: "measurement ä.csv",
@@ -41,10 +41,10 @@ describe("uploaded files loader", () => {
 
 export async function setupUpload() {
 	const scope = await setupTestRepositoryEnvironment("demo");
-	const sources = scope.get(SourceManager);
-	const upload = sources.beginUpload();
+	const manager = scope.get(UploadManager);
+	const upload = manager.beginUpload();
 
-	const artifactId = await upload.add({
+	const fileId = await upload.add({
 		originalName: "measurement ä.csv",
 		mediaType: "text/csv",
 		source: new Blob(["a,b\n1,2\n3,4"]).stream(),
@@ -52,5 +52,5 @@ export async function setupUpload() {
 
 	const uploadId = await upload.commit(scope.get(Security).userId);
 
-	return { scope, uploadId, artifactId };
+	return { scope, uploadId, fileId };
 }
