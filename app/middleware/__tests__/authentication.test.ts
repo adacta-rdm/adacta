@@ -53,7 +53,7 @@ describe("sessionAuth", () => {
 		const container = setupEmptyTestDatabaseEnvironment({ ADACTA_DEV_USER: "nobody@example.com" });
 		const [args] = createMiddlewareArgs(container);
 
-		expect(sessionAuth(args)).rejects.toThrow(/nobody@example.com/);
+		await expect(sessionAuth(args)).rejects.toThrow(/nobody@example.com/);
 	});
 
 	test("ignores ADACTA_DEV_USER in production", async () => {

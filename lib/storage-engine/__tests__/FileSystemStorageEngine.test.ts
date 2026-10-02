@@ -42,7 +42,7 @@ describe("FileSystemStorageEngine", () => {
 			},
 		});
 
-		expect(storage.write("source.txt", source)).rejects.toThrow("Source failed");
+		await expect(storage.write("source.txt", source)).rejects.toThrow("Source failed");
 	});
 
 	describe("range reads", () => {
@@ -68,13 +68,13 @@ describe("FileSystemStorageEngine", () => {
 		});
 
 		test("rejects invalid ranges", async () => {
-			expect(storage.read("values.txt", { start: -1 })).rejects.toBeInstanceOf(RangeError);
-			expect(storage.read("values.txt", { length: 1.5 })).rejects.toBeInstanceOf(RangeError);
+			await expect(storage.read("values.txt", { start: -1 })).rejects.toBeInstanceOf(RangeError);
+			await expect(storage.read("values.txt", { length: 1.5 })).rejects.toBeInstanceOf(RangeError);
 		});
 	});
 
 	test("reports a missing file before returning a read stream", async () => {
-		expect(storage.read("missing.txt")).rejects.toBeInstanceOf(FileNotFoundError);
+		await expect(storage.read("missing.txt")).rejects.toBeInstanceOf(FileNotFoundError);
 	});
 
 	test("reports size and existence", async () => {
@@ -98,7 +98,7 @@ describe("FileSystemStorageEngine", () => {
 		await storage.write("source.txt", textStream("source contents"));
 		await storage.write("destination.txt", textStream("destination contents"));
 
-		expect(storage.rename("source.txt", "destination.txt")).rejects.toBeInstanceOf(
+		await expect(storage.rename("source.txt", "destination.txt")).rejects.toBeInstanceOf(
 			FileAlreadyExistsError,
 		);
 		expect(await readText(storage, "source.txt")).toBe("source contents");
@@ -121,14 +121,16 @@ describe("FileSystemStorageEngine", () => {
 	});
 
 	test("uses one missing-file error for read, size, and rename", async () => {
-		expect(storage.read("missing.txt")).rejects.toBeInstanceOf(FileNotFoundError);
-		expect(storage.size("missing.txt")).rejects.toBeInstanceOf(FileNotFoundError);
-		expect(storage.rename("missing.txt", "new.txt")).rejects.toBeInstanceOf(FileNotFoundError);
+		await expect(storage.read("missing.txt")).rejects.toBeInstanceOf(FileNotFoundError);
+		await expect(storage.size("missing.txt")).rejects.toBeInstanceOf(FileNotFoundError);
+		await expect(storage.rename("missing.txt", "new.txt")).rejects.toBeInstanceOf(
+			FileNotFoundError,
+		);
 	});
 
 	test("rejects paths outside the storage directory", async () => {
 		for (const path of ["", ".", "../outside.txt", "/absolute.txt"]) {
-			expect(storage.write(path, textStream("contents"))).rejects.toBeInstanceOf(
+			await expect(storage.write(path, textStream("contents"))).rejects.toBeInstanceOf(
 				InvalidStoragePathError,
 			);
 		}

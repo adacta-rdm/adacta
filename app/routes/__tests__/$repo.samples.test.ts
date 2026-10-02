@@ -419,13 +419,17 @@ describe("$repo.samples.$batchSlug action", () => {
 		const scope = await environment();
 		const slug = await createBatch(scope);
 
-		expect(submitBatch(scope, slug, { delete: "999999" })).rejects.toMatchObject({ status: 404 });
+		await expect(submitBatch(scope, slug, { delete: "999999" })).rejects.toMatchObject({
+			status: 404,
+		});
 	});
 
 	test("answers 404 for a batch that is not there", async () => {
 		const scope = await environment();
 
-		expect(submitBatch(scope, "no-such-batch", { add: "", name: "#01" })).rejects.toMatchObject({
+		await expect(
+			submitBatch(scope, "no-such-batch", { add: "", name: "#01" }),
+		).rejects.toMatchObject({
 			status: 404,
 		});
 	});
@@ -455,7 +459,7 @@ describe("$repo.samples.$batchSlug archived batch", () => {
 		const batch = await insertBatchRecord(scope);
 		await archive(scope, batch.slug);
 
-		expect(submitBatch(scope, batch.slug, { add: "", name: "#01" })).rejects.toMatchObject({
+		await expect(submitBatch(scope, batch.slug, { add: "", name: "#01" })).rejects.toMatchObject({
 			status: 404,
 		});
 	});
@@ -514,7 +518,7 @@ describe("$repo.samples.$batchSlug edit loader", () => {
 	test("answers 404 for a batch that is not there", async () => {
 		const scope = await environment();
 
-		expect(loadEditBatch(scope, "no-such-batch")).rejects.toMatchObject({ status: 404 });
+		await expect(loadEditBatch(scope, "no-such-batch")).rejects.toMatchObject({ status: 404 });
 	});
 
 	test("answers 404 for an archived batch", async () => {
@@ -522,7 +526,7 @@ describe("$repo.samples.$batchSlug edit loader", () => {
 		const batch = await insertBatchRecord(scope);
 		await archive(scope, batch.slug);
 
-		expect(loadEditBatch(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
+		await expect(loadEditBatch(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
 	});
 });
 
@@ -601,6 +605,6 @@ describe("$repo.samples.$batchSlug edit action", () => {
 		const batch = await insertBatchRecord(scope);
 		await archive(scope, batch.slug);
 
-		expect(editBatch(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
+		await expect(editBatch(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
 	});
 });

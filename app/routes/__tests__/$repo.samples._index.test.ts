@@ -87,7 +87,7 @@ describe("samples index action", () => {
 	test("answers 404 for a batch that is not there", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
 
-		expect(archive(scope, "no-such-batch")).rejects.toMatchObject({ status: 404 });
+		await expect(archive(scope, "no-such-batch")).rejects.toMatchObject({ status: 404 });
 	});
 
 	test("answers 404 for a batch that is already archived", async () => {
@@ -95,7 +95,7 @@ describe("samples index action", () => {
 		const batch = await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
 		await archive(scope, batch.slug);
 
-		expect(archive(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
+		await expect(archive(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
 	});
 
 	test("reports an unrecognized operation", async () => {
@@ -249,14 +249,14 @@ describe("samples index restore", () => {
 	test("answers 404 for a batch that is not there", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
 
-		expect(restore(scope, "no-such-batch")).rejects.toMatchObject({ status: 404 });
+		await expect(restore(scope, "no-such-batch")).rejects.toMatchObject({ status: 404 });
 	});
 
 	test("answers 404 for a batch that is not archived", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
 		const batch = await addBatch(scope, { slug: "pt-al2o3", name: "Pt/Al2O3" });
 
-		expect(restore(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
+		await expect(restore(scope, batch.slug)).rejects.toMatchObject({ status: 404 });
 	});
 });
 
@@ -301,7 +301,9 @@ describe("samples index samples in the open row", () => {
 	test("answers 404 for a batch that is not there", async () => {
 		const scope = await setupTestRepositoryEnvironment("demo");
 
-		expect(submit(scope, { batch: "no-such-batch", add: "", name: "#01" })).rejects.toMatchObject({
+		await expect(
+			submit(scope, { batch: "no-such-batch", add: "", name: "#01" }),
+		).rejects.toMatchObject({
 			status: 404,
 		});
 	});
@@ -311,7 +313,7 @@ describe("samples index samples in the open row", () => {
 		await addBatch(scope, { slug: "gone", name: "Gone" });
 		await markArchived(scope, "gone");
 
-		expect(submit(scope, { batch: "gone", add: "", name: "#01" })).rejects.toMatchObject({
+		await expect(submit(scope, { batch: "gone", add: "", name: "#01" })).rejects.toMatchObject({
 			status: 404,
 		});
 	});

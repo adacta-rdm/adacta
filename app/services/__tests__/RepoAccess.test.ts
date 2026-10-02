@@ -233,7 +233,7 @@ describe("RepoAccess", () => {
 			const access = requestScope.get(RepoAccess);
 			await access.selectRepository("records");
 
-			expect(
+			await expect(
 				access.createRecordOnlyUser({
 					name: "Another Test User",
 					email: "test.user@example.com",
@@ -254,7 +254,7 @@ describe("RepoAccess", () => {
 			const access = requestScope.get(RepoAccess);
 			await access.selectRepository("records");
 
-			expect(
+			await expect(
 				access.createRecordOnlyUser({
 					name: "Another Test User",
 					email: "Test.User@Example.com",

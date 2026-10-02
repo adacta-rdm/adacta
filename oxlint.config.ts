@@ -27,4 +27,18 @@ export default defineConfig({
 			},
 		],
 	},
+
+	overrides: [
+		{
+			// In Bun 1.4, a matcher after .rejects or .resolves waits for the promise
+			// itself and returns nothing. The tests still await it, because Bun plans
+			// to return a promise instead (oven-sh/bun pull request 33289). Until a
+			// release does so, this rule reports each of those awaits. Remove this
+			// override after that release.
+			files: ["**/*.test.ts", "**/*.test.tsx"],
+			rules: {
+				"typescript/await-thenable": "off",
+			},
+		},
+	],
 });
