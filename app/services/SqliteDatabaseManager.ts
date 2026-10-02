@@ -5,7 +5,13 @@ import type { AnyRelations } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 
-import { DatabaseManager, InvalidDatabaseNameError } from "~/app/services/DatabaseManager.ts";
+import {
+	DatabaseManager,
+	InvalidDatabaseNameError,
+	type ApplicationDatabase,
+	type BatchResult,
+	type BatchStatements,
+} from "~/app/services/DatabaseManager.ts";
 import { authRelations } from "~/drizzle/schema/system.BetterAuth.ts";
 import { Env } from "~/lib/env/Env.ts";
 
@@ -18,6 +24,11 @@ const SUFFIX = ".sqlite";
 
 const SYSTEM_MIGRATIONS = "drizzle/migrations/system";
 const REPO_MIGRATIONS = "drizzle/migrations/repo";
+
+/**
+ * A Bun connection with the batch method of the contract added.
+ */
+type BunDatabase = ReturnType<typeof drizzle> & Pick<ApplicationDatabase, "batch">;
 
 /**
  * The lifecycle of the SQLite files. Where they live, what they may be called,
@@ -34,7 +45,7 @@ const REPO_MIGRATIONS = "drizzle/migrations/repo";
  * connection when it collects it.
  */
 export class SqliteDatabaseManager extends DatabaseManager {
-	readonly #connections = new Map<string, ReturnType<typeof drizzle>>();
+	readonly #connections = new Map<string, BunDatabase>();
 	readonly #dbDir: string;
 
 	constructor(env: Env) {
@@ -47,23 +58,25 @@ export class SqliteDatabaseManager extends DatabaseManager {
 	/**
 	 * The one system database.
 	 */
-	system() {
-		return this.#open(SYSTEM_DB_NAME, authRelations);
+	system(): ApplicationDatabase {
+		return this.#applicationDatabase(this.#open(SYSTEM_DB_NAME, authRelations));
 	}
 
 	/**
 	 * One repository's database. The slug is also the file name.
 	 */
-	repoDb(slug: string) {
-		return this.#open(this.#validated(slug), undefined);
+	repoDb(slug: string): ApplicationDatabase {
+		return this.#applicationDatabase(this.#open(this.#validated(slug), undefined));
 	}
 
 	migrateSystem(): void {
-		migrate(this.system(), { migrationsFolder: SYSTEM_MIGRATIONS });
+		migrate(this.#open(SYSTEM_DB_NAME, authRelations), { migrationsFolder: SYSTEM_MIGRATIONS });
 	}
 
 	migrateRepository(slug: string): void {
-		migrate(this.repoDb(slug), { migrationsFolder: REPO_MIGRATIONS });
+		migrate(this.#open(this.#validated(slug), undefined), {
+			migrationsFolder: REPO_MIGRATIONS,
+		});
 	}
 
 	/**
@@ -93,7 +106,10 @@ export class SqliteDatabaseManager extends DatabaseManager {
 		}
 	}
 
-	#open<TRelations extends AnyRelations | undefined>(dbName: string, relations: TRelations) {
+	#open<TRelations extends AnyRelations | undefined>(
+		dbName: string,
+		relations: TRelations,
+	): BunDatabase {
 		let connection = this.#connections.get(dbName);
 
 		if (!connection) {
@@ -106,10 +122,32 @@ export class SqliteDatabaseManager extends DatabaseManager {
 			// transaction.
 			client.run("PRAGMA foreign_keys = ON");
 
-			connection = drizzle({ client, relations });
+			connection = this.#withBatch(drizzle({ client, relations }));
 			this.#connections.set(dbName, connection);
 		}
 
+		return connection;
+	}
+
+	/**
+	 * Adds the batch method of the contract to a new connection.
+	 */
+	#withBatch(connection: ReturnType<typeof drizzle>): BunDatabase {
+		return Object.assign(connection, {
+			async batch(statements: BatchStatements): Promise<BatchResult[]> {
+				if (statements.length === 0) return [];
+
+				return connection.transaction(() =>
+					statements.map((statement) => {
+						const result = statement.run() as { changes: number };
+						return { changes: result.changes };
+					}),
+				);
+			},
+		});
+	}
+
+	#applicationDatabase(connection: BunDatabase): ApplicationDatabase {
 		return connection;
 	}
 

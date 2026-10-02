@@ -15,6 +15,7 @@ import { services } from "~/app/.server/context.ts";
 import { PIDEditor } from "~/app/components/PIDEditor.tsx";
 import type { PIDGraph, PIDLength, PIDLengthUnit } from "~/app/lib/PID.ts";
 import { isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
+import type { BatchStatement } from "~/app/services/DatabaseManager.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { Button } from "~/catalyst-ui/button.tsx";
@@ -106,66 +107,63 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 
 	// A save describes the complete current diagram. Replacing both collections
 	// also removes symbols and connections that disappeared from the canvas.
-	// Do not use await in this callback. Bun commits the transaction at the
-	// first await. For example, the deletes would be committed at once. If an
-	// insert then fails, the old diagram is gone and the new one is missing.
-	db.transaction((transaction) => {
-		transaction.delete(PIDEdge).where(eq(PIDEdge.inventoryEntryId, entry.id)).run();
-		transaction.delete(PIDNode).where(eq(PIDNode.inventoryEntryId, entry.id)).run();
+	const statements: BatchStatement[] = [
+		db.delete(PIDEdge).where(eq(PIDEdge.inventoryEntryId, entry.id)),
+		db.delete(PIDNode).where(eq(PIDNode.inventoryEntryId, entry.id)),
+	];
 
-		if (graph.nodes.length > 0) {
-			transaction
-				.insert(PIDNode)
-				.values(
-					graph.nodes.map((node, drawingOrder) => ({
-						id: node.id,
-						inventoryEntryId: entry.id,
-						kind: node.kind,
-						label: node.label,
-						secondaryLabel: node.secondaryLabel,
-						parentNodeId: node.parentId,
-						drawingOrder,
-						inletCount: node.inletCount,
-						orientation: node.orientation,
-						positionX: node.position.x,
-						positionY: node.position.y,
-						metadataCreatorId: creatorId,
-						metadataCreationTimestamp: createdAt,
-					})),
-				)
-				.run();
-		}
+	if (graph.nodes.length > 0) {
+		statements.push(
+			db.insert(PIDNode).values(
+				graph.nodes.map((node, drawingOrder) => ({
+					id: node.id,
+					inventoryEntryId: entry.id,
+					kind: node.kind,
+					label: node.label,
+					secondaryLabel: node.secondaryLabel,
+					parentNodeId: node.parentId,
+					drawingOrder,
+					inletCount: node.inletCount,
+					orientation: node.orientation,
+					positionX: node.position.x,
+					positionY: node.position.y,
+					metadataCreatorId: creatorId,
+					metadataCreationTimestamp: createdAt,
+				})),
+			),
+		);
+	}
 
-		if (graph.edges.length > 0) {
-			transaction
-				.insert(PIDEdge)
-				.values(
-					graph.edges.map((edge, drawingOrder) => ({
-						id: edge.id,
-						inventoryEntryId: entry.id,
-						kind: edge.kind,
-						endArrow: edge.endArrow,
-						arrowPositions: edge.arrowPositions,
-						weight: edge.weight,
-						material: edge.material,
-						innerDiameterValue: edge.innerDiameter?.value ?? null,
-						innerDiameterUnit: edge.innerDiameter?.unit ?? null,
-						outerDiameterValue: edge.outerDiameter?.value ?? null,
-						outerDiameterUnit: edge.outerDiameter?.unit ?? null,
-						lengthValue: edge.length?.value ?? null,
-						lengthUnit: edge.length?.unit ?? null,
-						sourceNodeId: edge.source,
-						targetNodeId: edge.target,
-						sourceHandle: edge.sourceHandle,
-						targetHandle: edge.targetHandle,
-						drawingOrder,
-						metadataCreatorId: creatorId,
-						metadataCreationTimestamp: createdAt,
-					})),
-				)
-				.run();
-		}
-	});
+	if (graph.edges.length > 0) {
+		statements.push(
+			db.insert(PIDEdge).values(
+				graph.edges.map((edge, drawingOrder) => ({
+					id: edge.id,
+					inventoryEntryId: entry.id,
+					kind: edge.kind,
+					endArrow: edge.endArrow,
+					arrowPositions: edge.arrowPositions,
+					weight: edge.weight,
+					material: edge.material,
+					innerDiameterValue: edge.innerDiameter?.value ?? null,
+					innerDiameterUnit: edge.innerDiameter?.unit ?? null,
+					outerDiameterValue: edge.outerDiameter?.value ?? null,
+					outerDiameterUnit: edge.outerDiameter?.unit ?? null,
+					lengthValue: edge.length?.value ?? null,
+					lengthUnit: edge.length?.unit ?? null,
+					sourceNodeId: edge.source,
+					targetNodeId: edge.target,
+					sourceHandle: edge.sourceHandle,
+					targetHandle: edge.targetHandle,
+					drawingOrder,
+					metadataCreatorId: creatorId,
+					metadataCreationTimestamp: createdAt,
+				})),
+			),
+		);
+	}
+
+	await db.batch(statements);
 
 	return redirect(`/${params.repo}/inventory/${encodeURIComponent(params.entrySlug)}/pid`, 303);
 }

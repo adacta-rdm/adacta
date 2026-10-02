@@ -16,6 +16,7 @@
  */
 import type { PIDEdgeKind, PIDInletCount, PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
 import { defaultEndArrow, isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
+import type { BatchStatement } from "~/app/services/DatabaseManager.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { PIDEdge } from "~/drizzle/schema/repo.PIDEdge.ts";
@@ -107,7 +108,7 @@ export async function seedPID(
 }
 
 /**
- * Writes one diagram. The nodes and edges are inserted in one transaction.
+ * Writes one diagram. The nodes and edges are inserted in one batch.
  *
  * A node id is composed of the entry id and the node key. Two repositories can
  * therefore both seed a node named "reactor" without a collision.
@@ -146,51 +147,50 @@ async function writeDiagram(
 		}
 	}
 
-	await db.transaction((transaction) => {
-		if (diagram.nodes.length > 0) {
-			transaction
-				.insert(PIDNode)
-				.values(
-					diagram.nodes.map((node, drawingOrder) => ({
-						id: nodeIds.get(node.key)!,
-						inventoryEntryId: entryId,
-						kind: node.kind,
-						label: node.label,
-						secondaryLabel: node.secondaryLabel ?? null,
-						parentNodeId: node.parent === undefined ? null : nodeIds.get(node.parent)!,
-						drawingOrder,
-						inletCount: node.inletCount ?? 1,
-						orientation: node.orientation,
-						positionX: node.position.x,
-						positionY: node.position.y,
-						metadataCreatorId: creatorId,
-						metadataCreationTimestamp: createdAt,
-					})),
-				)
-				.run();
-		}
+	const statements: BatchStatement[] = [];
+	if (diagram.nodes.length > 0) {
+		statements.push(
+			db.insert(PIDNode).values(
+				diagram.nodes.map((node, drawingOrder) => ({
+					id: nodeIds.get(node.key)!,
+					inventoryEntryId: entryId,
+					kind: node.kind,
+					label: node.label,
+					secondaryLabel: node.secondaryLabel ?? null,
+					parentNodeId: node.parent === undefined ? null : nodeIds.get(node.parent)!,
+					drawingOrder,
+					inletCount: node.inletCount ?? 1,
+					orientation: node.orientation,
+					positionX: node.position.x,
+					positionY: node.position.y,
+					metadataCreatorId: creatorId,
+					metadataCreationTimestamp: createdAt,
+				})),
+			),
+		);
+	}
 
-		if (diagram.edges.length > 0) {
-			transaction
-				.insert(PIDEdge)
-				.values(
-					diagram.edges.map((edge, drawingOrder) => ({
-						id: `pid-edge-${entryId}-${edge.key}`,
-						inventoryEntryId: entryId,
-						kind: edge.kind,
-						endArrow: edge.endArrow ?? defaultEndArrow(edge.kind),
-						arrowPositions: edge.arrowPositions ?? [],
-						weight: edge.weight ?? 1,
-						sourceNodeId: nodeIds.get(edge.source)!,
-						targetNodeId: nodeIds.get(edge.target)!,
-						sourceHandle: edge.sourceHandle,
-						targetHandle: edge.targetHandle,
-						drawingOrder,
-						metadataCreatorId: creatorId,
-						metadataCreationTimestamp: createdAt,
-					})),
-				)
-				.run();
-		}
-	});
+	if (diagram.edges.length > 0) {
+		statements.push(
+			db.insert(PIDEdge).values(
+				diagram.edges.map((edge, drawingOrder) => ({
+					id: `pid-edge-${entryId}-${edge.key}`,
+					inventoryEntryId: entryId,
+					kind: edge.kind,
+					endArrow: edge.endArrow ?? defaultEndArrow(edge.kind),
+					arrowPositions: edge.arrowPositions ?? [],
+					weight: edge.weight ?? 1,
+					sourceNodeId: nodeIds.get(edge.source)!,
+					targetNodeId: nodeIds.get(edge.target)!,
+					sourceHandle: edge.sourceHandle,
+					targetHandle: edge.targetHandle,
+					drawingOrder,
+					metadataCreatorId: creatorId,
+					metadataCreationTimestamp: createdAt,
+				})),
+			),
+		);
+	}
+
+	await db.batch(statements);
 }

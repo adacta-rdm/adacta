@@ -160,9 +160,8 @@ export class RepoAccess {
 		// index also rejects "Ada@example.com" if "ada@example.com" exists.
 		email = email.toLowerCase();
 
-		// We read the repository before the transaction. Its callback must stay
-		// synchronous (see ApplicationDatabase). If the repository is deleted in
-		// between, the foreign key stops the insert.
+		// If the repository is deleted after this read, the foreign key rejects
+		// the insert.
 		const repository = await this.db
 			.select({ id: Repository.id })
 			.from(Repository)
@@ -177,20 +176,15 @@ export class RepoAccess {
 		const now = new Date();
 
 		// We insert the user ourselves. The public Better Auth API only creates
-		// users who can log in. Its internal API writes outside this transaction.
+		// users who can log in. Its internal API writes outside this batch.
 		// If the membership insert then fails, the email stays taken.
 		try {
-			await this.db.transaction((transaction) => {
-				transaction
+			await this.db.batch([
+				this.db
 					.insert(User)
-					.values({ id, name, email, emailVerified: false, createdAt: now, updatedAt: now })
-					.run();
-
-				transaction
-					.insert(UserRepository)
-					.values({ userId: id, repositoryId: repository.id })
-					.run();
-			});
+					.values({ id, name, email, emailVerified: false, createdAt: now, updatedAt: now }),
+				this.db.insert(UserRepository).values({ userId: id, repositoryId: repository.id }),
+			]);
 		} catch (error) {
 			// The unique index decides whether the address is taken. A check
 			// before the insert cannot decide. Another request can insert the same

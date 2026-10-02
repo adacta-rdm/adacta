@@ -3,6 +3,7 @@ import { existsSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { sql } from "drizzle-orm";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 import {
 	SqliteDatabaseManager,
@@ -18,6 +19,10 @@ import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.
  * A container whose databases live in a fresh temporary directory.
  */
 const environment = setupTestPersistenceEnvironment;
+const BatchTest = sqliteTable("batch_test", {
+	id: integer("id").primaryKey(),
+	name: text("name").notNull().unique(),
+});
 
 function dbDir(container: ServiceContainer) {
 	return container.get(Env).string("ADACTA_DB_DIR");
@@ -94,6 +99,52 @@ describe("SqliteDatabaseManager", () => {
 
 			expect(dbDir(first)).not.toBe(dbDir(second));
 			expect(first.get(SqliteDatabaseManager)).not.toBe(second.get(SqliteDatabaseManager));
+		});
+	});
+
+	describe("batch", () => {
+		test("writes every statement and reports changes in order", async () => {
+			const databases = environment().get(SqliteDatabaseManager);
+			const db = databases.repoDb("demo");
+			await db.run(
+				sql`CREATE TABLE batch_test (id integer primary key, name text not null unique)`,
+			);
+
+			const results = await db.batch([
+				db.insert(BatchTest).values([
+					{ id: 1, name: "first" },
+					{ id: 2, name: "second" },
+				]),
+				db.delete(BatchTest).where(sql`${BatchTest.name} = 'first'`),
+				db.insert(BatchTest).values({ id: 3, name: "third" }),
+			]);
+
+			expect(results).toEqual([{ changes: 2 }, { changes: 1 }, { changes: 1 }]);
+			expect((await db.select().from(BatchTest).all()).map((row) => row.name)).toEqual([
+				"second",
+				"third",
+			]);
+		});
+
+		test("rolls back earlier statements when a later statement fails", async () => {
+			const databases = environment().get(SqliteDatabaseManager);
+			const db = databases.repoDb("demo");
+			await db.run(
+				sql`CREATE TABLE batch_test (id integer primary key, name text not null unique)`,
+			);
+
+			await expect(
+				db.batch([
+					db.insert(BatchTest).values({ id: 1, name: "same" }),
+					db.insert(BatchTest).values({ id: 2, name: "same" }),
+				]),
+			).rejects.toThrow();
+			expect(await db.select().from(BatchTest).all()).toEqual([]);
+		});
+
+		test("accepts an empty list", async () => {
+			const databases = environment().get(SqliteDatabaseManager);
+			expect(await databases.repoDb("demo").batch([])).toEqual([]);
 		});
 	});
 
