@@ -21,39 +21,41 @@ function inProduction<T>(body: () => T): T {
 }
 
 describe("BetterAuth", () => {
-	test("takes the base URL from ADACTA_URL", () => {
-		const container = setupEmptyTestDatabaseEnvironment({ ADACTA_URL: "https://adacta.example" });
+	test("takes the base URL from ADACTA_URL", async () => {
+		const container = await setupEmptyTestDatabaseEnvironment({
+			ADACTA_URL: "https://adacta.example",
+		});
 
 		expect(container.get(BetterAuth).options.baseURL).toBe("https://adacta.example/");
 	});
 
-	test("falls back to the development server address", () => {
-		const container = setupEmptyTestDatabaseEnvironment();
+	test("falls back to the development server address", async () => {
+		const container = await setupEmptyTestDatabaseEnvironment();
 
 		expect(container.get(BetterAuth).options.baseURL).toBe("http://localhost:5173/");
 	});
 
-	test("reports a base URL that is not a URL", () => {
-		const container = setupEmptyTestDatabaseEnvironment({ ADACTA_URL: "not a url" });
+	test("reports a base URL that is not a URL", async () => {
+		const container = await setupEmptyTestDatabaseEnvironment({ ADACTA_URL: "not a url" });
 
 		expect(() => container.get(BetterAuth)).toThrow(/ADACTA_URL/);
 	});
 
-	test("uses a development secret outside production", () => {
-		const container = setupEmptyTestDatabaseEnvironment();
+	test("uses a development secret outside production", async () => {
+		const container = await setupEmptyTestDatabaseEnvironment();
 
 		expect(container.get(BetterAuth).options.secret).toBeString();
 	});
 
-	test("takes the secret from ADACTA_AUTH_SECRET", () => {
+	test("takes the secret from ADACTA_AUTH_SECRET", async () => {
 		const secret = "a-secret-that-is-long-enough-for-better-auth";
-		const container = setupEmptyTestDatabaseEnvironment({ ADACTA_AUTH_SECRET: secret });
+		const container = await setupEmptyTestDatabaseEnvironment({ ADACTA_AUTH_SECRET: secret });
 
 		expect(container.get(BetterAuth).options.secret).toBe(secret);
 	});
 
-	test("requires the secret in production", () => {
-		const container = setupEmptyTestDatabaseEnvironment();
+	test("requires the secret in production", async () => {
+		const container = await setupEmptyTestDatabaseEnvironment();
 
 		// Better Auth signs cookies with the secret. A shared default would let
 		// anyone forge a session.

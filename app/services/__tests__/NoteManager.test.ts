@@ -2,19 +2,18 @@ import { describe, expect, test } from "bun:test";
 
 import { eq } from "drizzle-orm";
 
-import type { BatchStatements } from "~/app/services/DatabaseManager.ts";
+import { type BatchStatements, ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { NoteManager, NoteNotFoundError, type NoteInput } from "~/app/services/NoteManager.ts";
-import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
-import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
-import { Id } from "~/drizzle/schema/repo.Id.ts";
-import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
-import { Note } from "~/drizzle/schema/repo.Note.ts";
-import { NoteAttachment } from "~/drizzle/schema/repo.NoteAttachment.ts";
-import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
-import { Sample } from "~/drizzle/schema/repo.Sample.ts";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
+import { Id } from "~/drizzle/schema/Id.ts";
+import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Note } from "~/drizzle/schema/Note.ts";
+import { NoteAttachment } from "~/drizzle/schema/NoteAttachment.ts";
+import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
+import { Sample } from "~/drizzle/schema/Sample.ts";
+import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
@@ -31,7 +30,7 @@ function input(fields: Partial<NoteInput>): NoteInput {
  * Returns a new ID with its row in Id. A batch, a sample, or a rig uses it as
  * its primary key.
  */
-async function newId(db: RepoDB): Promise<number> {
+async function newId(db: ApplicationDatabase): Promise<number> {
 	const id = id53();
 	await db.insert(Id).values({ id }).run();
 
@@ -53,8 +52,8 @@ async function stageUpload(scope: ServiceContainer, names: readonly string[]) {
 }
 
 async function environment() {
-	const scope = await setupTestRepositoryEnvironment("demo");
-	const db = scope.get(RepoDB);
+	const scope = await setupTestRequestScope();
+	const db = scope.get(ApplicationDatabase);
 	const notes = scope.get(NoteManager);
 	const creatorId = scope.get(Security).userId;
 	const batch = await db
@@ -234,7 +233,7 @@ describe("NoteManager", () => {
 				const value: unknown = Reflect.get(target, property, target);
 				return typeof value === "function" ? value.bind(target) : value;
 			},
-		}) as RepoDB;
+		}) as ApplicationDatabase;
 
 		const notes = scope.set(
 			new NoteManager(failingDb, scope.get(UploadManager), scope.get(Security)),
@@ -457,7 +456,7 @@ describe("NoteManager", () => {
 				const value: unknown = Reflect.get(target, property, target);
 				return typeof value === "function" ? value.bind(target) : value;
 			},
-		}) as RepoDB;
+		}) as ApplicationDatabase;
 
 		const racingNotes = scope.set(
 			new NoteManager(racingDb, scope.get(UploadManager), scope.get(Security)),

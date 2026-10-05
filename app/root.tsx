@@ -68,15 +68,15 @@ export default function App() {
 }
 
 /**
- * Catches what no route below has caught. A repository page is caught by the
- * repository layout instead, which keeps the sidebar. This page therefore has
- * no sidebar to offer, so it sends the reader to the repository list.
+ * Catches errors outside the application layout.
+ * Application pages report errors inside that layout and keep the sidebar.
+ * This boundary links back to the application landing page.
  */
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 	return (
 		<main className="flex min-h-svh flex-col justify-center bg-canvas">
 			<ErrorPanel error={error}>
-				<ErrorPanelAction href="/">Back to repositories</ErrorPanelAction>
+				<ErrorPanelAction href="/">Back to Adacta</ErrorPanelAction>
 			</ErrorPanel>
 		</main>
 	);

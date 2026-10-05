@@ -41,11 +41,11 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
 		await page.getByLabel("Password").fill(user.password);
 
 		await Promise.all([
-			page.waitForURL((url) => url.pathname === "/"),
+			page.waitForURL((url) => url.pathname === "/inventory"),
 			page.getByRole("button", { name: "Sign in" }).click(),
 		]);
 
-		await expect(page.getByRole("heading", { name: "Repositories" })).toBeVisible();
+		await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
 
 		mkdirSync(dirname(AUTH_STATE_PATH), { recursive: true });
 		await page.context().storageState({ path: AUTH_STATE_PATH });
@@ -53,12 +53,12 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
 		if (process.env.CI) return;
 
 		for (const [path, heading] of [
-			["/demo/inventory", "Inventory"],
-			["/demo/samples", "Samples"],
-			["/demo/samples/new", "Create sample batch"],
-			["/demo/catalog", "Catalog"],
-			["/demo/files/import", "Import files"],
-			["/demo/users", "Users"],
+			["/inventory", "Inventory"],
+			["/samples", "Samples"],
+			["/samples/new", "Create sample batch"],
+			["/catalog", "Catalog"],
+			["/files/import", "Import files"],
+			["/users", "Users"],
 		] as const) {
 			await warmRoute(page, path, heading);
 		}
@@ -66,7 +66,7 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
 		// Dynamic routes are opened through links because their identifiers belong
 		// to the application.
 		const inventoryEntry = seedInventoryEntry("ammonia-synthesis-rig");
-		await warmRoute(page, "/demo/inventory", "Inventory");
+		await warmRoute(page, "/inventory", "Inventory");
 		await page
 			.getByRole("list", { name: "Inventory by location" })
 			.getByRole("link", { name: inventoryEntry.name })
@@ -74,7 +74,7 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
 		await expect(page.getByRole("heading", { name: inventoryEntry.name })).toBeVisible();
 
 		const batch = seedSampleBatch("ni-al2o3-2024a");
-		await warmRoute(page, "/demo/samples", "Samples");
+		await warmRoute(page, "/samples", "Samples");
 		await page
 			.getByRole("tree", { name: "Batches by composition" })
 			.getByRole("link", { name: batch.name, exact: true })

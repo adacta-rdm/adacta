@@ -1,28 +1,33 @@
 /**
- * `db:*` — commands that act on the databases as a whole. They take no
- * <repo> argument; repository administration lives in scripts/repo.ts.
+ * Commands for the application database.
  *
- *   bun scripts/db.ts <migrate|refresh|reset|setup>
+ *   bun scripts/db.ts <migrate|refresh|reset|setup> [preset]
  *
- *   migrate  apply pending migrations to the system database and every repository
- *   refresh  replace both migration histories with current baseline migrations
- *   reset    delete every database, then migrate from scratch
- *   setup    reset, then load the development seed
+ *   migrate  apply pending SQL migrations
+ *   refresh  replace the migration history with the current schema baseline
+ *   reset    delete the database and migrate from scratch
+ *   setup    reset and load one preset, defaulting to demo
  *
- * Environment values come from the process. Bun loads a .env file into it
- * on its own.
+ * Only setup accepts a preset name. Bun loads environment values from .env.
  */
+import { rmSync } from "node:fs";
+
 import { createAppContainer } from "~/app/.server/appContainer.ts";
-import { RepoManager } from "~/app/services/RepoManager.ts";
-import { SqliteDatabaseManager } from "~/app/services/SqliteDatabaseManager.ts";
+import { migrateSqliteDatabase } from "~/app/.server/migrateSqliteDatabase.ts";
+import { sqliteDatabasePath } from "~/app/.server/sqliteDatabase.ts";
+import { Env } from "~/lib/env/Env.ts";
 import { refreshMigrations } from "~/scripts/db/refreshMigrations.ts";
-import { seedDatabase } from "~/seed/seed.ts";
+import { assertPresetExists, seedDatabase } from "~/seed/seed.ts";
 
 const COMMANDS = "migrate, refresh, reset, setup";
 
 const [command, ...rest] = process.argv.slice(2);
 
-if (rest.length > 0) fail(`db commands take no arguments (got "${rest[0]}")`);
+if (command === "setup") {
+	if (rest.length > 1) fail("setup accepts one preset name");
+} else if (rest.length > 0) {
+	fail(`Only setup accepts a preset name (got "${rest[0]}").`);
+}
 
 let container: ReturnType<typeof createAppContainer> | undefined;
 
@@ -45,10 +50,10 @@ switch (command) {
 		break;
 
 	case "setup":
-		// Deleting first makes a seeded database the same every time, whatever
-		// state it was in before.
+		// Validate before resetting so a misspelled preset preserves the current database.
+		assertPresetExists(rest[0] ?? "demo");
 		await reset();
-		await seedDatabase(app());
+		await seedDatabase(app(), rest[0]);
 		break;
 
 	case undefined:
@@ -60,20 +65,19 @@ switch (command) {
 }
 
 async function migrate(): Promise<void> {
-	await app().get(RepoManager).migrateAll();
+	migrateSqliteDatabase(sqliteDatabasePath(new Env()));
 
 	console.log("Migrations applied.");
 }
 
 /**
- * Delete every database, then migrate from scratch. Starting from an empty
- * directory makes the result the same whether the databases were already there
- * or not.
+ * Delete the application database and migrate from scratch.
+ * The result is the same whether the database was present or absent.
  */
 async function reset(): Promise<void> {
-	app().get(SqliteDatabaseManager).dropAll();
+	rmSync(sqliteDatabasePath(new Env()), { force: true });
 
-	console.log("Databases dropped.");
+	console.log("Database dropped.");
 
 	await migrate();
 }

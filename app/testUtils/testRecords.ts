@@ -2,14 +2,15 @@ import { desc, eq } from "drizzle-orm";
 
 import { addSample } from "~/app/lib/addSample.ts";
 import { slugify } from "~/app/lib/slugs.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { NoteManager } from "~/app/services/NoteManager.ts";
-import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
+import { UploadManager } from "~/app/services/UploadManager.ts";
 import type { Entity, NewEntity } from "~/drizzle/Schema.ts";
-import { Id } from "~/drizzle/schema/repo.Id.ts";
-import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
-import { Note } from "~/drizzle/schema/repo.Note.ts";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { Id } from "~/drizzle/schema/Id.ts";
+import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Note } from "~/drizzle/schema/Note.ts";
+import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
@@ -22,7 +23,7 @@ export async function createTestRig(
 	scope: ServiceContainer,
 	overrides: Partial<NewEntity<"InventoryEntry">> = {},
 ): Promise<Entity<"InventoryEntry">> {
-	const db = scope.get(RepoDB);
+	const db = scope.get(ApplicationDatabase);
 	const name = overrides.name ?? "Test rig";
 	const values = {
 		id: id53(),
@@ -49,7 +50,7 @@ export async function createTestBatch(
 	scope: ServiceContainer,
 	overrides: Partial<NewEntity<"SampleBatch">> = {},
 ): Promise<Entity<"SampleBatch">> {
-	const db = scope.get(RepoDB);
+	const db = scope.get(ApplicationDatabase);
 	const userId = scope.get(Security).userId;
 	const name = overrides.name ?? "Pt batch";
 	const values = {
@@ -76,7 +77,7 @@ export async function createTestSample(
 	batch: Entity<"SampleBatch">,
 	overrides: Partial<Omit<NewEntity<"Sample">, "id" | "slug">> = {},
 ): Promise<Entity<"Sample">> {
-	return addSample(scope.get(RepoDB), {
+	return addSample(scope.get(ApplicationDatabase), {
 		batchId: batch.id,
 		name: "#01",
 		preparedById: batch.preparedById,
@@ -106,7 +107,7 @@ export async function createTestNote(
 	> = {},
 	options: { supersedes?: Entity<"Note"> } = {},
 ): Promise<Entity<"Note">> {
-	const db = scope.get(RepoDB);
+	const db = scope.get(ApplicationDatabase);
 	const notes = scope.get(NoteManager);
 	const input = {
 		body: overrides.body ?? "Test note",
@@ -132,4 +133,20 @@ export async function createTestNote(
 		.where(eq(Note.id, created.id))
 		.returning()
 		.get();
+}
+
+/**
+ * Store a measurement file and return its upload and file identifiers.
+ */
+export async function createTestUpload(scope: ServiceContainer) {
+	const upload = scope.get(UploadManager).beginUpload();
+	const fileId = await upload.add({
+		originalName: "measurement ä.csv",
+		mediaType: "text/csv",
+		source: new Blob(["a,b\n1,2\n3,4"]).stream(),
+	});
+
+	const uploadId = await upload.commit(scope.get(Security).userId);
+
+	return { uploadId, fileId };
 }

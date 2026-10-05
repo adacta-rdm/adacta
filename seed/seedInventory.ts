@@ -1,7 +1,7 @@
 /**
  * The things that stand in a laboratory: rigs and equipment.
  *
- * One file per entry in "seed/repo/<repository>/inventory/", named for its key.
+ * One file per entry in "seed/presets/<preset>/inventory/", named for its key.
  * For example "micro-gc-490.json".
  *
  * An entry that has no fixed place omits "location". A spare part in a drawer
@@ -12,16 +12,16 @@
  * cannot produce a slug the application could not produce.
  */
 import { availableSlug } from "~/app/lib/slugs.ts";
-import { RepoDB } from "~/app/services/RepoDB.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
-import { Id } from "~/drizzle/schema/repo.Id.ts";
-import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
+import { Id } from "~/drizzle/schema/Id.ts";
+import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, keyOf, readJson } from "~/seed/files.ts";
 
 /**
- * One file in a repository's "inventory/" directory.
+ * One file in a preset's "inventory/" directory.
  *
  * The identifiers are text because building and room codes are often
  * alphanumeric. For example a building may be called "B3".
@@ -37,7 +37,7 @@ type SeedInventoryEntry = {
 };
 
 /**
- * Add the inventory entries from the seed tree to the bound repository.
+ * Add the inventory entries from the seed tree to the database.
  * Returns the id of each entry, indexed by the key of its file.
  *
  * A later fixture names an entry by that key. For example, the P&ID file
@@ -46,13 +46,13 @@ type SeedInventoryEntry = {
  */
 export async function seedInventory(
 	scope: ServiceContainer,
-	repository: string,
+	preset: string,
 ): Promise<Map<string, number>> {
-	const db = scope.get(RepoDB);
+	const db = scope.get(ApplicationDatabase);
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
 
-	const files = jsonFiles("repo", repository, "inventory");
+	const files = jsonFiles("presets", preset, "inventory");
 	if (files.length === 0) return new Map();
 
 	const entries = files.map((file) => readJson<SeedInventoryEntry>(file));

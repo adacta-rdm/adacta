@@ -28,16 +28,16 @@ export interface SeedSampleBatch {
 	samples: string[];
 }
 
-export interface SeedRepository {
+export interface SeedPreset {
 	key: string;
 	name: string;
 }
 
 /**
- * The repository exercised by the browser suite. Its directory is part of the
+ * The preset exercised by the browser suite. Its directory is part of the
  * committed development seed.
  */
-export const SEED_REPO = "demo";
+export const SEED_PRESET = "demo";
 
 function readJson<T>(path: string): T {
 	return JSON.parse(readFileSync(path, "utf8")) as T;
@@ -75,15 +75,19 @@ function pick<T extends { key: string }>(entries: readonly T[], kind: string, ke
 
 const users = readSeedDirectory<Omit<SeedUser, "key">>("users");
 const inventory = readSeedDirectory<Omit<SeedInventoryEntry, "key">>(
-	"repo",
-	SEED_REPO,
+	"presets",
+	SEED_PRESET,
 	"inventory",
 );
-const sampleBatches = readSeedDirectory<Omit<SeedSampleBatch, "key">>("repo", SEED_REPO, "samples");
+const sampleBatches = readSeedDirectory<Omit<SeedSampleBatch, "key">>(
+	"presets",
+	SEED_PRESET,
+	"samples",
+);
 
-export const SEED_REPOSITORY: SeedRepository = {
-	...readJson<Omit<SeedRepository, "key">>(seedPath("repo", SEED_REPO, "repository.json")),
-	key: SEED_REPO,
+export const SEED_PRESET_INFO: SeedPreset = {
+	...readJson<Omit<SeedPreset, "key">>(seedPath("presets", SEED_PRESET, "preset.json")),
+	key: SEED_PRESET,
 };
 
 export const seedUser = (key: string): SeedUser => pick(users, "user", key);

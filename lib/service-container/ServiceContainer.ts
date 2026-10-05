@@ -188,7 +188,7 @@ export class ServiceContainer {
 	 * @param factory - A factory function that returns an instance of the service.
 	 */
 	static configure<T extends object>(
-		Constructor: Constructor<T> | AbstractConstructor<T>,
+		Constructor: ServiceKey<T>,
 		factory: (container: ServiceContainer) => T,
 	): void;
 
@@ -293,7 +293,7 @@ export class ServiceContainer {
 	 * @param factory - A factory function that returns an instance of the service.
 	 */
 	configure<T extends object>(
-		Constructor: Constructor<T>,
+		Constructor: ServiceKey<T>,
 		factory: (container: ServiceContainer) => T,
 	): void;
 
@@ -411,8 +411,10 @@ export class ServiceContainer {
 			// parameters with container.getParameter(token). It can also resolve other
 			// services against the same container. That container may be a scoped one.
 			if (typeof metadata === "function") {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-				return this.set(metadata(this));
+				const instance = metadata(this) as T;
+				return isFactoryService(ServiceConstructor)
+					? this.set(ServiceConstructor, instance)
+					: this.set(instance);
 			}
 
 			// Metadata exists to instantiate the service

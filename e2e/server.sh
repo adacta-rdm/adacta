@@ -13,7 +13,7 @@ export ADACTA_LOG_LEVEL="warn"
 unset ADACTA_DEV_USER
 unset NODE_ENV
 
-bun run db:setup
+bun run db:setup demo
 
 case "$mode" in
 	dev)

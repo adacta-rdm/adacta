@@ -1,7 +1,7 @@
 /**
  * Sample batches and the samples cut from them.
  *
- * One file per batch in "seed/repo/<repository>/samples/", named for its key.
+ * One file per batch in "seed/presets/<preset>/samples/", named for its key.
  * For example "pt-al2o3-2024a.json".
  *
  * Slugs are not written by hand. A batch takes its slug from its name through
@@ -12,16 +12,16 @@
  */
 import { addSample } from "~/app/lib/addSample.ts";
 import { availableSlug } from "~/app/lib/slugs.ts";
-import { RepoDB } from "~/app/services/RepoDB.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
-import { Id } from "~/drizzle/schema/repo.Id.ts";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { Id } from "~/drizzle/schema/Id.ts";
+import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, readJson } from "~/seed/files.ts";
 
 /**
- * One file in a repository's "samples/" directory.
+ * One file in a preset's "samples/" directory.
  *
  * `preparedBy` is a key from "seed/users/". The person who prepared the
  * material also prepared every sample cut from it.
@@ -40,21 +40,20 @@ type SeedBatch = {
 };
 
 /**
- * Add the sample batches and samples from the seed tree to the bound
- * repository. Returns how many batches and samples were written.
+ * Add the sample batches and samples from the preset to the database. Returns how many batches and samples were written.
  *
  * @throws Error if a batch names a preparer that no user file defines.
  */
 export async function seedSamples(
 	scope: ServiceContainer,
-	repository: string,
+	preset: string,
 	userIds: Map<string, string>,
 ): Promise<{ batches: number; samples: number }> {
-	const db = scope.get(RepoDB);
+	const db = scope.get(ApplicationDatabase);
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
 
-	const files = jsonFiles("repo", repository, "samples");
+	const files = jsonFiles("presets", preset, "samples");
 	let samples = 0;
 
 	for (const file of files) {

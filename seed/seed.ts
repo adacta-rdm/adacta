@@ -1,20 +1,9 @@
 /**
- * Development seed.
- *
- * Everything written here comes from the "seed/" tree. Users are read from
- * "seed/users/" and created with Better Auth. Each subdirectory of "seed/repo/"
- * is one repository, created with RepoManager and bound with RepoAccess before
- * its data is written. Nothing here reaches for a raw database handle. The seed
- * therefore exercises the real access path.
- *
- * db:setup resets the databases and applies migrations before loading this
- * seed. All users, repositories, and fixtures are created in empty databases.
- *
- * Run with "bun run db:setup".
+ * Registers every user in seed/users/ and loads one preset from seed/presets/.
+ * For example, bun run db:setup pilot loads the pilot inventory and samples.
+ * The setup command resets and migrates the database before loading these fixtures.
  */
 import { BetterAuth } from "~/app/services/BetterAuth.ts";
-import { RepoAccess } from "~/app/services/RepoAccess.ts";
-import { RepoManager } from "~/app/services/RepoManager.ts";
 import { Security } from "~/app/services/Security.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, keyOf, readJson, seedPath, subdirs } from "~/seed/files.ts";
@@ -44,51 +33,48 @@ type SeedUser = {
 };
 
 /**
- * The "repository.json" of one repository directory. The directory name is
- * the slug, so the file carries only what the slug cannot say.
+ * The preset.json file names the fixture set for a reader.
  */
-type SeedRepository = {
+type SeedPreset = {
 	name: string;
 };
 
 /**
- * Write the development fixtures into the databases of this container.
+ * Rejects an unknown preset and lists the available names.
+ * Setup calls this before deleting the current database.
  */
-export async function seedDatabase(container: ServiceContainer): Promise<void> {
-	const manager = container.get(RepoManager);
+export function assertPresetExists(preset: string): void {
+	const available = subdirs("presets");
 
+	if (!available.includes(preset)) {
+		throw new Error(`Unknown preset "${preset}". Available presets: ${available.join(", ")}.`);
+	}
+}
+
+/**
+ * Write the selected preset and every seed user into the application database.
+ */
+export async function seedDatabase(container: ServiceContainer, preset = "demo"): Promise<void> {
+	assertPresetExists(preset);
+	const { name } = readJson<SeedPreset>(seedPath("presets", preset, "preset.json"));
 	const userIds = await seedUsers(container);
-
 	const creatorId = userIds.get(CREATOR);
 	if (creatorId === undefined) throw new Error(`No user file named "${CREATOR}.json".`);
 
-	const slugs = subdirs("repo");
-	if (slugs.length === 0) throw new Error("No repository directories in seed/repo/.");
+	const scope = container.clone();
+	scope.get(Security).setCurrentUserId(creatorId);
 
-	for (const slug of slugs) {
-		await createRepository(manager, slug);
+	const entryIds = await seedInventory(scope, preset);
+	const diagrams = await seedPID(scope, preset, entryIds);
+	const { batches, samples } = await seedSamples(scope, preset, userIds);
+	const catalog = await seedCatalog(scope, preset);
 
-		// Everyone works in every repository. A development login is meant to
-		// reach the whole fixture set.
-		for (const userId of userIds.values()) await manager.grantAccess(userId, slug);
-
-		const scope = await scopeFor(container, creatorId, slug);
-
-		const entryIds = await seedInventory(scope, slug);
-		const diagrams = await seedPID(scope, slug, entryIds);
-		const { batches, samples } = await seedSamples(scope, slug, userIds);
-
-		const catalog = await seedCatalog(scope, slug);
-
-		console.log(
-			`seeded ${slug}: ${entryIds.size} inventory entries, ${diagrams} diagrams, ` +
-				`${batches} sample batches, ${samples} samples, ` +
-				`${catalog.manufacturers} manufacturers, ${catalog.products} products ` +
-				`(${catalog.specifications} specifications, ${catalog.channels} channels)`,
-		);
-	}
-
-	console.log(`repositories: ${slugs.join(", ")}`);
+	console.log(
+		`seeded ${preset} (${name}): ${entryIds.size} inventory entries, ${diagrams} diagrams, ` +
+			`${batches} sample batches, ${samples} samples, ` +
+			`${catalog.manufacturers} manufacturers, ${catalog.products} products ` +
+			`(${catalog.specifications} specifications, ${catalog.channels} channels)`,
+	);
 }
 
 /**
@@ -134,31 +120,4 @@ async function createUser(auth: BetterAuth, user: SeedUser): Promise<string> {
 
 	const { user: created } = (await response.json()) as { user: { id: string } };
 	return created.id;
-}
-
-/**
- * Create the repository. The directory name is the slug. The display name
- * comes from that directory's "repository.json".
- */
-async function createRepository(manager: RepoManager, slug: string): Promise<void> {
-	const { name } = readJson<SeedRepository>(seedPath("repo", slug, "repository.json"));
-
-	await manager.createRepository(slug, name);
-}
-
-/**
- * A request-like scope with the seed user authenticated and one repository
- * bound. RepoDB needs both before it resolves.
- */
-async function scopeFor(
-	app: ServiceContainer,
-	userId: string,
-	slug: string,
-): Promise<ServiceContainer> {
-	const scope = app.clone();
-
-	scope.get(Security).setCurrentUserId(userId);
-	await scope.get(RepoAccess).selectRepository(slug);
-
-	return scope;
 }

@@ -8,12 +8,11 @@ title: Importing files
 
 Importing turns a source file into a resource that remains understandable in
 its experimental context. Adacta should retain the original file, record how it
-was interpreted, and associate the result with the applicable repository,
-facility, inventory item, and sample. {% .lead %}
+was interpreted, and associate the result with the facility, inventory item, and sample. {% .lead %}
 
 ## Start an import
 
-Drop a file anywhere inside a repository. Adacta opens the import preview and
+Drop a file anywhere inside Adacta. Adacta opens the import preview and
 captures the context of the page where the file was dropped. For example, a
 file dropped while viewing an inventory item is pre-associated with that item.
 The planned association is shown before upload and is represented in the URL

@@ -26,7 +26,7 @@ export type SampleBatchFieldsResult =
  * and gives back a message for the person at the form. For example,
  * "2026-02-31" has the shape of a date, and February has no 31st.
  *
- * Whether the chosen preparer may open the repository is not decided here.
+ * The route checks that the chosen preparer is a known user.
  * That question needs the database.
  */
 export function readSampleBatchFields(values: FormValues): SampleBatchFieldsResult {

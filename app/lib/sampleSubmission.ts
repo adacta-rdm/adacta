@@ -13,11 +13,11 @@ import { and, eq, isNull, notExists } from "drizzle-orm";
 import { addSample } from "~/app/lib/addSample.ts";
 import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError.ts";
 import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError.ts";
-import type { RepoDB } from "~/app/services/RepoDB.ts";
+import type { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import type { Entity } from "~/drizzle/Schema.ts";
-import { Id } from "~/drizzle/schema/repo.Id.ts";
-import { Note } from "~/drizzle/schema/repo.Note.ts";
-import { Sample } from "~/drizzle/schema/repo.Sample.ts";
+import { Id } from "~/drizzle/schema/Id.ts";
+import { Note } from "~/drizzle/schema/Note.ts";
+import { Sample } from "~/drizzle/schema/Sample.ts";
 import type { FormValues } from "~/lib/form-values/FormValues.ts";
 import type { Logger } from "~/lib/logger/Logger.ts";
 
@@ -29,17 +29,18 @@ export type SampleErrors = Partial<Record<"form" | "name" | "preparedById", stri
  * container and out of the request.
  */
 export interface SampleContext {
-	db: RepoDB;
+	db: ApplicationDatabase;
 	logger: Logger;
 
-	/** Everyone who may open this repository. */
+	/**
+	 * Every user who can be credited as a preparer.
+	 */
 	preparerIds: readonly string[];
 
-	/** Who is adding the sample. */
+	/**
+	 * The user adding the sample.
+	 */
 	creatorId: string;
-
-	/** The repository slug, named in the log when a slug cannot be allocated. */
-	repository: string;
 }
 
 /**
@@ -60,7 +61,7 @@ export async function addSubmittedSample(
 	if (!name) errors.name = "A sample name is required.";
 
 	if (!context.preparerIds.includes(preparedById)) {
-		errors.preparedById = "The selected preparer is not a user of this repository.";
+		errors.preparedById = "The selected preparer is not a registered user.";
 	}
 
 	if (Object.keys(errors).length > 0) return errors;
@@ -82,7 +83,6 @@ export async function addSubmittedSample(
 			context.logger
 				.bind({
 					event: "sample_slug_allocation_failed",
-					repository: context.repository,
 					batchId: batch.id,
 					sampleName: name,
 					baseSlug: error.base,
@@ -108,7 +108,7 @@ export async function addSubmittedSample(
  * @throws Response 404 when the sample is not there, or is archived.
  */
 export async function deleteSubmittedSample(
-	db: RepoDB,
+	db: ApplicationDatabase,
 	sampleId: number,
 ): Promise<SampleErrors | undefined> {
 	const note = await db

@@ -1,7 +1,7 @@
 /**
  * The block shown in place of a page that could not be loaded.
  *
- * It centers itself in the space it is given. Inside the repository layout
+ * It centers itself in the space it is given. Inside the application layout
  * that is the content area, so the sidebar stays and is the way out. On a full
  * page it is the window, and the caller passes a link instead.
  *

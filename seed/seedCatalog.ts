@@ -1,7 +1,7 @@
 /**
  * The product catalog: manufacturers, series, products, and what they measure.
  *
- * Each repository may have a "catalog/" directory. It contains one directory
+ * Each preset may have a "catalog/" directory. It contains one directory
  * per manufacturer. Inside it, "manufacturer.json" describes the company,
  * "products/" holds one file per product, and "series/" holds one file per
  * family the manufacturer groups its products into.
@@ -20,7 +20,7 @@
  * members by it. Slugs are not written by hand either. They are generated the
  * way the application generates them.
  *
- * Images are copied into a repository-specific directory under
+ * Images are copied into a preset-specific directory under
  * "public/catalog/" and served from there. The database stores the address
  * they are served from.
  */
@@ -29,14 +29,14 @@ import { basename, join } from "node:path";
 
 import { isQuantityKind } from "~/app/lib/quantities.ts";
 import { availableSlug } from "~/app/lib/slugs.ts";
-import { RepoDB } from "~/app/services/RepoDB.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
-import { CatalogSource } from "~/drizzle/schema/repo.CatalogSource.ts";
-import { Channel } from "~/drizzle/schema/repo.Channel.ts";
-import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
-import { Product } from "~/drizzle/schema/repo.Product.ts";
-import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries.ts";
-import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification.ts";
+import { CatalogSource } from "~/drizzle/schema/CatalogSource.ts";
+import { Channel } from "~/drizzle/schema/Channel.ts";
+import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
+import { Product } from "~/drizzle/schema/Product.ts";
+import { ProductSeries } from "~/drizzle/schema/ProductSeries.ts";
+import { ProductSpecification } from "~/drizzle/schema/ProductSpecification.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, keyOf, readJson, seedPath, subdirs } from "~/seed/files.ts";
 
@@ -52,7 +52,11 @@ type SeedChannel = {
 	key: string;
 	role: "measurement" | "setpoint" | "state" | "status";
 
-	/** One of the names in app/lib/quantities.ts. */
+	/**
+
+	 * One of the names in app/lib/quantities.ts.
+
+	 */
 	quantityKind?: string;
 	description?: string;
 };
@@ -124,13 +128,10 @@ export type CatalogCounts = {
 const PUBLIC_CATALOG = join(process.cwd(), "public", "catalog");
 
 /**
- * Add the catalog from the seed tree to the bound repository.
+ * Add the catalog from the seed tree to the database.
  */
-export async function seedCatalog(
-	scope: ServiceContainer,
-	repository: string,
-): Promise<CatalogCounts> {
-	const db = scope.get(RepoDB);
+export async function seedCatalog(scope: ServiceContainer, preset: string): Promise<CatalogCounts> {
+	const db = scope.get(ApplicationDatabase);
 	const metadata = {
 		metadataCreatorId: scope.get(Security).userId,
 		metadataCreationTimestamp: new Date(),
@@ -146,11 +147,11 @@ export async function seedCatalog(
 
 	const manufacturerSlugs: string[] = [];
 
-	for (const manufacturerKey of subdirs("repo", repository, "catalog")) {
-		const directory = seedPath("repo", repository, "catalog", manufacturerKey);
+	for (const manufacturerKey of subdirs("presets", preset, "catalog")) {
+		const directory = seedPath("presets", preset, "catalog", manufacturerKey);
 		const seed = readJson<SeedManufacturer>(join(directory, "manufacturer.json"));
 
-		publishImages(repository, manufacturerKey, directory);
+		publishImages(preset, manufacturerKey, directory);
 
 		const slug = availableSlug(seed.name, manufacturerSlugs);
 		manufacturerSlugs.push(slug);
@@ -162,7 +163,7 @@ export async function seedCatalog(
 				name: seed.name,
 				website: seed.website ?? null,
 				description: seed.description ?? null,
-				logoPath: servedPath(repository, manufacturerKey, seed.logo),
+				logoPath: servedPath(preset, manufacturerKey, seed.logo),
 				...metadata,
 			})
 			.returning({ id: Manufacturer.id })
@@ -175,7 +176,7 @@ export async function seedCatalog(
 		}
 
 		const products = new Map<string, SeedProduct>();
-		for (const file of jsonFiles("repo", repository, "catalog", manufacturerKey, "products")) {
+		for (const file of jsonFiles("presets", preset, "catalog", manufacturerKey, "products")) {
 			products.set(keyOf(file), readJson<SeedProduct>(file));
 		}
 
@@ -184,7 +185,7 @@ export async function seedCatalog(
 		const familyOf = new Map<string, { id: number; seed: SeedSeries; position: number }>();
 		const seriesSlugs: string[] = [];
 
-		for (const file of jsonFiles("repo", repository, "catalog", manufacturerKey, "series")) {
+		for (const file of jsonFiles("presets", preset, "catalog", manufacturerKey, "series")) {
 			const series = readJson<SeedSeries>(file);
 			const seriesSlug = availableSlug(series.name, seriesSlugs);
 			seriesSlugs.push(seriesSlug);
@@ -249,7 +250,7 @@ export async function seedCatalog(
 					productNumber: own.productNumber,
 					subtitle,
 					description: own.description ?? shared.description ?? null,
-					imagePath: servedPath(repository, manufacturerKey, own.image ?? shared.image),
+					imagePath: servedPath(preset, manufacturerKey, own.image ?? shared.image),
 					...metadata,
 				})
 				.returning({ id: Product.id })
@@ -311,7 +312,7 @@ type SourceParent = { manufacturerId?: number; seriesId?: number; productId?: nu
 type Metadata = { metadataCreatorId: string; metadataCreationTimestamp: Date };
 
 async function insertSource(
-	db: RepoDB,
+	db: ApplicationDatabase,
 	parent: SourceParent,
 	source: SeedSource,
 	metadata: Metadata,
@@ -334,8 +335,8 @@ async function insertSource(
  * Copy the images of one manufacturer into "public/catalog/". The directory is
  * cleared before copying so old images do not remain after a database reset.
  */
-function publishImages(repository: string, manufacturerKey: string, directory: string): void {
-	const target = join(PUBLIC_CATALOG, repository, manufacturerKey);
+function publishImages(preset: string, manufacturerKey: string, directory: string): void {
+	const target = join(PUBLIC_CATALOG, preset, manufacturerKey);
 
 	rmSync(target, { recursive: true, force: true });
 
@@ -355,9 +356,9 @@ function publishImages(repository: string, manufacturerKey: string, directory: s
  * stores nothing.
  */
 function servedPath(
-	repository: string,
+	preset: string,
 	manufacturerKey: string,
 	image: string | undefined,
 ): string | null {
-	return image ? `/catalog/${repository}/${manufacturerKey}/${basename(image)}` : null;
+	return image ? `/catalog/${preset}/${manufacturerKey}/${basename(image)}` : null;
 }

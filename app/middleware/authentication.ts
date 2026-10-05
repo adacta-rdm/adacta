@@ -2,10 +2,10 @@ import { eq } from "drizzle-orm";
 import { redirect, type MiddlewareFunction } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { BetterAuth } from "~/app/services/BetterAuth.ts";
 import { Security } from "~/app/services/Security.ts";
-import { SystemDB } from "~/app/services/SystemDB.ts";
-import { User } from "~/drizzle/schema/system.BetterAuth.ts";
+import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { Env } from "~/lib/env/Env.ts";
 
 /**
@@ -37,7 +37,7 @@ export const sessionAuth = (async ({ request, context }) => {
 	}
 
 	const user = await container
-		.get(SystemDB)
+		.get(ApplicationDatabase)
 		.select({ id: User.id })
 		.from(User)
 		.where(eq(User.email, devUserEmail))

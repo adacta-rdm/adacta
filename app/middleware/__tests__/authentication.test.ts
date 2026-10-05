@@ -12,7 +12,7 @@ import {
 
 describe("sessionAuth", () => {
 	test("redirects to the login page when there is no session", async () => {
-		const container = setupEmptyTestDatabaseEnvironment();
+		const container = await setupEmptyTestDatabaseEnvironment();
 		const [args] = createMiddlewareArgs(container);
 
 		const thrown = await sessionAuth(args).then(
@@ -26,7 +26,7 @@ describe("sessionAuth", () => {
 	});
 
 	test("establishes the user from a session cookie", async () => {
-		const container = setupEmptyTestDatabaseEnvironment();
+		const container = await setupEmptyTestDatabaseEnvironment();
 		const userId = await signUpTestUser(container);
 		const cookie = await signInTestUser(container);
 
@@ -40,7 +40,7 @@ describe("sessionAuth", () => {
 	});
 
 	test("signs in as ADACTA_DEV_USER outside production", async () => {
-		const container = setupEmptyTestDatabaseEnvironment({ ADACTA_DEV_USER: TEST_USER.email });
+		const container = await setupEmptyTestDatabaseEnvironment({ ADACTA_DEV_USER: TEST_USER.email });
 		const userId = await signUpTestUser(container);
 
 		const [args] = createMiddlewareArgs(container);
@@ -50,14 +50,16 @@ describe("sessionAuth", () => {
 	});
 
 	test("reports an ADACTA_DEV_USER that does not exist", async () => {
-		const container = setupEmptyTestDatabaseEnvironment({ ADACTA_DEV_USER: "nobody@example.com" });
+		const container = await setupEmptyTestDatabaseEnvironment({
+			ADACTA_DEV_USER: "nobody@example.com",
+		});
 		const [args] = createMiddlewareArgs(container);
 
 		await expect(sessionAuth(args)).rejects.toThrow(/nobody@example.com/);
 	});
 
 	test("ignores ADACTA_DEV_USER in production", async () => {
-		const container = setupEmptyTestDatabaseEnvironment({ ADACTA_DEV_USER: TEST_USER.email });
+		const container = await setupEmptyTestDatabaseEnvironment({ ADACTA_DEV_USER: TEST_USER.email });
 		await signUpTestUser(container);
 
 		const [args] = createMiddlewareArgs(container);

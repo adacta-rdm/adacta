@@ -4,17 +4,17 @@ import { eq } from "drizzle-orm";
 
 import { addSample } from "~/app/lib/addSample.ts";
 import { deleteSubmittedSample } from "~/app/lib/sampleSubmission.ts";
-import { RepoDB } from "~/app/services/RepoDB.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
-import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
-import { Id } from "~/drizzle/schema/repo.Id.ts";
-import { Sample } from "~/drizzle/schema/repo.Sample.ts";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
+import { Id } from "~/drizzle/schema/Id.ts";
+import { Sample } from "~/drizzle/schema/Sample.ts";
+import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 
 async function setupSample() {
-	const scope = await setupTestRepositoryEnvironment();
-	const db = scope.get(RepoDB);
+	const scope = await setupTestRequestScope();
+	const db = scope.get(ApplicationDatabase);
 	const userId = scope.get(Security).userId;
 	const batchId = id53();
 	await db.insert(Id).values({ id: batchId }).run();

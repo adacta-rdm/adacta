@@ -1,8 +1,11 @@
-import { join } from "node:path";
 import { stdout } from "node:process";
 
-import { RepoAccess } from "~/app/services/RepoAccess.ts";
-import { SqliteDatabaseManager } from "~/app/services/SqliteDatabaseManager.ts";
+import {
+	applicationDatabase,
+	openSqliteDatabase,
+	sqliteDatabasePath,
+} from "~/app/.server/sqliteDatabase.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Env } from "~/lib/env/Env.ts";
 import { Logger, logLevelFromName } from "~/lib/logger/Logger.ts";
 import { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
@@ -10,16 +13,27 @@ import { FileSystemStorageEngine } from "~/lib/storage-engine/FileSystemStorageE
 
 const root = createLocalAppContainer();
 
-/** Creates an application container for a local request. */
+/**
+ * Creates an application container for a local request.
+ */
 export function createAppContainer(): ServiceContainer {
 	return root.clone();
 }
 
-/** Creates a local application container with the supplied environment. */
+/**
+ * Creates a local application container with the supplied environment.
+ */
 export function createLocalAppContainer(env = new Env()): ServiceContainer {
 	const container = new ServiceContainer();
 	container.set(env);
-	container.configure(SqliteDatabaseManager, (scope) => new SqliteDatabaseManager(scope.get(Env)));
+
+	// Every request uses the same file. Hence, the root container keeps one
+	// connection for the life of the process and shares it with request scopes.
+	let database: ApplicationDatabase | undefined;
+	const connection = () =>
+		(database ??= applicationDatabase(openSqliteDatabase(sqliteDatabasePath(env))));
+	container.configure(ApplicationDatabase, connection);
+
 	container.set(
 		new Logger({
 			level: logLevelFromName(env.string("ADACTA_LOG_LEVEL", "info")),
@@ -28,11 +42,7 @@ export function createLocalAppContainer(env = new Env()): ServiceContainer {
 	);
 
 	const storageDirectory = env.path("ADACTA_STORAGE_DIR", ".adacta/storage");
-	container.configure(
-		FileSystemStorageEngine,
-		(scope) =>
-			new FileSystemStorageEngine(join(storageDirectory, scope.get(RepoAccess).repository)),
-	);
+	container.configure(FileSystemStorageEngine, () => new FileSystemStorageEngine(storageDirectory));
 
 	return container;
 }

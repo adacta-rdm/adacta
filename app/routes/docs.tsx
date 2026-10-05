@@ -7,7 +7,7 @@ import { DocsShell } from "~/app/components/docs/DocsShell.tsx";
  * docs.$slug under this file, so the shell (header + sidebar) renders once and
  * the routed page fills the <Outlet />.
  */
-export default function DocsRoot() {
+export default function Docs() {
 	return (
 		<DocsShell>
 			<Outlet />

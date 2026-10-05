@@ -19,67 +19,62 @@ bun run dev
 ```
 
 Open <http://localhost:5173> and sign in as `dev@adacta.test` with the password
-`password`. The seed creates two repositories, `demo` and `pilot`.
+`password`. Setup loads the `demo` preset. Run `bun run db:setup pilot` to load
+`pilot` instead.
 
-`bun run dev` does not apply migrations. Run `bun run db:setup && bun run dev`
-after pulling a change to the schema.
+`bun run dev` and `bun run start` apply pending SQL migrations before starting
+the server. A regenerated baseline requires a database reset. Run
+`bun run db:setup` after pulling that change.
 
 ## Databases
 
-Each repository has its own SQLite file. One further database, the system
-database, holds the users, the sessions, and the list of repositories.
+One SQLite file holds authentication and laboratory records:
 
 ```
-.adacta/db/
-  _system.sqlite     users, sessions, repositories, and repository membership
-  repo1.sqlite        one repository's data
-  repo2.sqlite
+.adacta/db/adacta.sqlite
 ```
 
-Set `ADACTA_DB_DIR` to store the files in another directory.
+Set `ADACTA_DB_DIR` to store the file in another directory.
 
 ## Original files
 
-Original files are stored separately for each repository. The server assigns
-each file an identifier instead of using its browser filename as a storage path.
+The server assigns each file an identifier and stores its bytes under
+`ADACTA_STORAGE_DIR`:
 
 ```
 .adacta/storage/
-  repo1/uploads/<upload id>/<file id>                    staged files
-  repo1/original-files/<file id>                         original file bytes
-  repo2/...
+  uploads/<upload id>/<file id>       staged files
+  original-files/<file id>            original file bytes
 ```
 
-The repository database records each original file after every file in its
-upload has moved out of the staging directory. An incomplete upload therefore
-has no file records.
+The database records each original file after every file in its upload has
+moved out of staging. An incomplete upload therefore has no file records.
 
 Set `ADACTA_STORAGE_DIR` to store the files in another directory.
 
 ## Commands
 
-| Command                         | What it does                                                         |
-| ------------------------------- | -------------------------------------------------------------------- |
-| `bun run dev`                   | Start the development server on <http://localhost:5173>              |
-| `bun run build`                 | Build the client and server bundles into `build/`                    |
-| `bun run build:tsrc`            | Generate runtime validators from the TypeScript declarations         |
-| `bun run start`                 | Serve a build, on `PORT` or on port 3000                             |
-| `bun run db:migrations:refresh` | Rebuild the system and repository migration baselines                |
-| `bun run db:migrations:migrate` | Apply pending migrations to the system database and every repository |
-| `bun run db:reset`              | Delete every database, then migrate from scratch                     |
-| `bun run db:setup`              | Reset, then seed                                                     |
-| `bun run precommit`             | Type check, lint, format, then run the tests. Repairs what it can    |
-| `bun test`                      | Run the test suite                                                   |
-| `bun run test:e2e`              | Run the browser journeys in headless Chromium                        |
-| `bun run test:e2e:ui`           | Open the interactive Playwright test runner                          |
-| `bun run typecheck`             | Generate route types and runtime validators, then run `tsc`          |
-| `bun run lint`                  | Run oxlint                                                           |
-| `bun run format`                | Format with oxfmt                                                    |
-| `bun run format:check`          | Report formatting problems without changing files                    |
+| Command                         | What it does                                                          |
+| ------------------------------- | --------------------------------------------------------------------- |
+| `bun run dev`                   | Migrate, then start the development server on <http://localhost:5173> |
+| `bun run build`                 | Build the client and server bundles into `build/`                     |
+| `bun run build:tsrc`            | Generate runtime validators from the TypeScript declarations          |
+| `bun run start`                 | Migrate, then serve a build on `PORT` or port 3000                    |
+| `bun run db:migrations:refresh` | Rebuild the application migration baseline                            |
+| `bun run db:migrations:migrate` | Apply pending SQL migrations                                          |
+| `bun run db:reset`              | Delete the application database and migrate from scratch              |
+| `bun run db:setup [preset]`     | Reset and load a preset, defaulting to `demo`                         |
+| `bun run precommit`             | Type check, lint, format, then run the tests. Repairs what it can     |
+| `bun test`                      | Run the test suite                                                    |
+| `bun run test:e2e`              | Run the browser journeys in headless Chromium                         |
+| `bun run test:e2e:ui`           | Open the interactive Playwright test runner                           |
+| `bun run typecheck`             | Generate route types and runtime validators, then run `tsc`           |
+| `bun run lint`                  | Run oxlint                                                            |
+| `bun run format`                | Format with oxfmt                                                     |
+| `bun run format:check`          | Report formatting problems without changing files                     |
 
 Use `db:setup` when a database is in an unclear state. It starts from an empty
-directory. The result is therefore the same whether databases were present or
-not.
+database. The result is therefore the same whether it was present or absent.
 
 `db:reset` and `db:setup` stop with an error when `NODE_ENV` is
 `production`. The migration refresh and migrate commands are always allowed.
@@ -93,28 +88,23 @@ writing these tests.
 
 ## Changing the schema
 
-Tables live in `drizzle/schema/`, named after the database they belong to:
-`system.*.ts` for the system database, `repo.*.ts` for a repository.
+Tables live in `drizzle/schema/`. All tables share one database and migration
+history.
 
-Adacta keeps generated migration SQL because `RepoManager` uses it to initialize
-each new repository database. Drizzle Kit can push a schema to one existing
-database, but it cannot provide the SQL needed when a repository is created
-later.
-
-Refresh both migration baselines after changing a table, then rebuild the
-development databases:
+Migration SQL initializes the application database. Refresh the baseline after
+changing a table or a fixed lookup list, then rebuild the development database:
 
 ```bash
-# after editing a file in drizzle/schema/
+# after changing the schema or fixed lookup lists
 bun run db:migrations:refresh
 bun run db:setup
 ```
 
-The refresh command deletes both existing migration histories and generates new
-baselines. Their directory names and snapshot identifiers are stable. Git
+The refresh command deletes the existing migration history and generates new
+baselines. Its directory name and snapshot identifier are stable. Git
 therefore shows the schema changes within the same files. The baseline describes an empty
 database becoming the current schema. It is therefore used with `db:setup`,
-which deletes the development databases first.
+which deletes the application database first.
 
 Foreign keys are enforced on every connection. This limits how a migration may
 change an existing table. See [`drizzle/README.md`](drizzle/README.md).
@@ -126,7 +116,7 @@ there.
 
 | Variable             | Meaning                                                                         |
 | -------------------- | ------------------------------------------------------------------------------- |
-| `ADACTA_DB_DIR`      | Directory that holds the SQLite files. Defaults to `.adacta/db`                 |
+| `ADACTA_DB_DIR`      | Directory that holds adacta.sqlite. Defaults to `.adacta/db`                    |
 | `ADACTA_STORAGE_DIR` | Directory that holds imported source files. Defaults to `.adacta/storage`       |
 | `ADACTA_URL`         | Address the application is reached at. Defaults to `http://localhost:5173`      |
 | `ADACTA_AUTH_SECRET` | Secret for signing cookies and tokens. Required when `NODE_ENV` is `production` |

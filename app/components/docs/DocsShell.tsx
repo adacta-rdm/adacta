@@ -59,7 +59,7 @@ function Header() {
 			<div className="relative flex basis-0 items-center justify-end gap-6 sm:gap-8 md:grow">
 				<Search />
 				{/* Leave the docs and return to the application. "/" resolves to the
-				    user's landing spot (login, account, or their repo inventory), so
+				    user's landing spot (login, account, or the inventory), so
 				    a bare link is enough — no need to know where they came from. */}
 				<Link to="/" className="text-sm font-medium text-foreground-muted hover:text-foreground">
 					Back to app

@@ -25,8 +25,8 @@ test("valid credentials start a real session", async ({ page, request }) => {
 	await page.getByLabel("Password").fill(user.password);
 	await page.getByRole("button", { name: "Sign in" }).click();
 
-	await expectURL(page, "/");
-	await expect(page.getByRole("heading", { name: "Repositories" })).toBeVisible();
+	await expectURL(page, "/inventory");
+	await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
 
 	const signedInUser = await currentAuthUser(page.request);
 	expect(signedInUser?.email).toBe(user.email);

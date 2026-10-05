@@ -1,9 +1,9 @@
 /**
- * The error boundary every section under a repository exports.
+ * The error boundary every application section exports.
  *
  * React Router renders a boundary in place of the component that owns it and
  * keeps every route above it. A section that owns its boundary is therefore
- * reported inside the repository layout. The sidebar stays on screen, and the
+ * reported inside the application layout. The sidebar stays on screen, and the
  * reader navigates away with it.
  *
  * A route joins in with one line:

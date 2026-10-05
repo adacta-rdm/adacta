@@ -44,14 +44,9 @@ function render(path: string) {
 		<MemoryRouter initialEntries={[path]}>
 			<Routes>
 				<Route
-					path="/:repo/*"
+					path="/*"
 					element={
-						<AppLayout
-							repository="demo"
-							sidebarWidth={280}
-							buildings={buildings}
-							batchGroups={batchGroups}
-						>
+						<AppLayout sidebarWidth={280} buildings={buildings} batchGroups={batchGroups}>
 							<p>page</p>
 						</AppLayout>
 					}
@@ -63,39 +58,34 @@ function render(path: string) {
 
 describe("AppLayout", () => {
 	test("the top zone links every section on every page", () => {
-		for (const path of [
-			"/demo/catalog",
-			"/demo/inventory",
-			"/demo/samples",
-			"/demo/files/import",
-			"/demo/users",
-		]) {
+		for (const path of ["/catalog", "/inventory", "/samples", "/files/import", "/users"]) {
 			const markup = render(path);
 
-			expect(markup).toContain('href="/demo/catalog"');
-			expect(markup).toContain('href="/demo/inventory"');
-			expect(markup).toContain('href="/demo/samples"');
-			expect(markup).toContain('href="/demo/files/import"');
-			expect(markup).toContain('href="/demo/users"');
+			expect(markup).toContain(">Adacta<");
+			expect(markup).toContain('href="/catalog"');
+			expect(markup).toContain('href="/inventory"');
+			expect(markup).toContain('href="/samples"');
+			expect(markup).toContain('href="/files/import"');
+			expect(markup).toContain('href="/users"');
 		}
 	});
 
 	test("the middle zone shows the tree of the section in view", () => {
-		const inventory = render("/demo/inventory");
+		const inventory = render("/inventory");
 		expect(inventory).toContain("Inventory by location");
 		expect(inventory).not.toContain("Batches by composition");
 
-		const samples = render("/demo/samples");
+		const samples = render("/samples");
 		expect(samples).toContain("Batches by composition");
 		expect(samples).not.toContain("Inventory by location");
 
-		const catalog = render("/demo/catalog");
+		const catalog = render("/catalog");
 		expect(catalog).not.toContain("Inventory by location");
 		expect(catalog).not.toContain("Batches by composition");
 	});
 
 	test("a tree row is indented by padding, so no nested list carries a margin", () => {
-		const markup = render("/demo/inventory");
+		const markup = render("/inventory");
 		const lists = markup.match(/<ul[^>]*>/g) ?? [];
 
 		expect(lists.length).toBeGreaterThan(2);

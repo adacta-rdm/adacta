@@ -1,7 +1,7 @@
 /**
- * Application shell for a single repository.
+ * Application shell shared by every section.
  *
- * The sidebar is split into three zones. The top zone holds the repository
+ * The sidebar is split into three zones. The top zone holds the application
  * name and one link per section. It is the same on every page. The middle
  * zone shows the tree of the section in view. For example, a page in the
  * inventory section shows the Building -> Room -> Entry tree. A page in the
@@ -64,11 +64,9 @@ const LEVEL_2_ITEM = "block pl-9";
 
 function LocationTree({
 	buildings,
-	repo,
 	entrySlug,
 }: {
 	buildings: Building<Entry>[];
-	repo: string | undefined;
 	entrySlug: string | undefined;
 }) {
 	return (
@@ -95,7 +93,7 @@ function LocationTree({
 									{room.entries.map((entry) => (
 										<li key={entry.id}>
 											<SidebarItem
-												href={`/${repo}/inventory/${entry.slug}`}
+												href={`/inventory/${entry.slug}`}
 												current={entry.slug === entrySlug}
 												className={LEVEL_2_ITEM}
 											>
@@ -116,11 +114,9 @@ function LocationTree({
 
 function BatchTree({
 	groups,
-	repo,
 	batchSlug,
 }: {
 	groups: BatchGroup<Batch>[];
-	repo: string | undefined;
 	batchSlug: string | undefined;
 }) {
 	if (groups.length === 0) {
@@ -149,7 +145,7 @@ function BatchTree({
 									{support.batches.map((batch) => (
 										<li key={batch.id} role="treeitem">
 											<SidebarItem
-												href={`/${repo}/samples/${batch.slug}`}
+												href={`/samples/${batch.slug}`}
 												current={batch.slug === batchSlug}
 												className={LEVEL_2_ITEM}
 											>
@@ -168,17 +164,11 @@ function BatchTree({
 }
 
 export function AppLayout({
-	repository,
 	sidebarWidth,
 	buildings,
 	batchGroups,
 	children,
 }: {
-	/**
-	 * The slug of the repository in scope.
-	 */
-	repository: string;
-
 	/**
 	 * The width sent with this request. The first page drawn is already right.
 	 */
@@ -188,44 +178,43 @@ export function AppLayout({
 	children: ReactNode;
 }) {
 	const { pathname } = useLocation();
-	const { repo, entrySlug, batchSlug } = useParams();
+	const { entrySlug, batchSlug } = useParams();
 
-	const title = repository;
-	const section = sidebarSection(pathname, repository);
+	const title = "Adacta";
+	const section = sidebarSection(pathname);
 
 	return (
 		<SidebarLayout
 			sidebarWidth={sidebarWidth}
 			sidebar={
 				<Sidebar>
-					{/* Top zone: the same on every page of the repository. */}
+					{/* Top zone: the same on every application page. */}
 					<SidebarHeader>
 						<SidebarHeading>{title}</SidebarHeading>
 
 						{/*
-							The repository name says where the work happens. The links below
-							say what can be opened there. A line separates the two.
+							The application title and section links occupy separate rows.
 						*/}
 						<SidebarDivider className="-mx-4" />
 
 						<SidebarSection>
-							<SidebarItem href={`/${repo}/catalog`} current={section === "catalog"}>
+							<SidebarItem href={"/catalog"} current={section === "catalog"}>
 								<BookOpenIcon />
 								<SidebarLabel>Catalog</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href={`/${repo}/inventory`} current={section === "inventory"}>
+							<SidebarItem href={"/inventory"} current={section === "inventory"}>
 								<ArchiveBoxIcon />
 								<SidebarLabel>Inventory</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href={`/${repo}/samples`} current={section === "samples"}>
+							<SidebarItem href={"/samples"} current={section === "samples"}>
 								<BeakerIcon />
 								<SidebarLabel>Samples</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href={`/${repo}/files/import`} current={section === "files"}>
+							<SidebarItem href={"/files/import"} current={section === "files"}>
 								<ArrowUpTrayIcon />
 								<SidebarLabel>Import files</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href={`/${repo}/users`} current={section === "users"}>
+							<SidebarItem href={"/users"} current={section === "users"}>
 								<UserGroupIcon />
 								<SidebarLabel>Users</SidebarLabel>
 							</SidebarItem>
@@ -236,23 +225,20 @@ export function AppLayout({
 					<SidebarBody>
 						{section === "inventory" && (
 							<SidebarSection>
-								<SidebarItem href={`/${repo}/inventory`} current={!entrySlug}>
+								<SidebarItem href={"/inventory"} current={!entrySlug}>
 									<SidebarLabel>All entries</SidebarLabel>
 								</SidebarItem>
-								<LocationTree buildings={buildings} repo={repo} entrySlug={entrySlug} />
+								<LocationTree buildings={buildings} entrySlug={entrySlug} />
 							</SidebarSection>
 						)}
 
 						{section === "samples" && (
 							<SidebarSection>
-								<SidebarItem href={`/${repo}/samples`} current={pathname === `/${repo}/samples`}>
+								<SidebarItem href={"/samples"} current={pathname === "/samples"}>
 									<SidebarLabel>All samples</SidebarLabel>
 								</SidebarItem>
-								<BatchTree groups={batchGroups} repo={repo} batchSlug={batchSlug} />
-								<SidebarItem
-									href={`/${repo}/samples/new`}
-									current={pathname === `/${repo}/samples/new`}
-								>
+								<BatchTree groups={batchGroups} batchSlug={batchSlug} />
+								<SidebarItem href={"/samples/new"} current={pathname === "/samples/new"}>
 									<PlusIcon />
 									<SidebarLabel>Create batch</SidebarLabel>
 								</SidebarItem>
@@ -260,7 +246,7 @@ export function AppLayout({
 						)}
 					</SidebarBody>
 
-					{/* Bottom zone. The manual is not scoped to a repository, so it sits apart. */}
+					{/* Bottom zone: the user manual. */}
 					<SidebarFooter>
 						<SidebarSection>
 							<SidebarItem href="/docs" current={pathname.startsWith("/docs")}>

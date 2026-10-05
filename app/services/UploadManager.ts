@@ -1,9 +1,9 @@
 import { and, eq, isNull } from "drizzle-orm";
 
-import { RepoDB } from "~/app/services/RepoDB.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import type { NewEntity } from "~/drizzle/Schema.ts";
-import { Id } from "~/drizzle/schema/repo.Id.ts";
-import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
+import { Id } from "~/drizzle/schema/Id.ts";
+import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import { Service } from "~/lib/service-container/ServiceContainer.ts";
 import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
@@ -21,11 +21,11 @@ import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
  * records only how the files arrived. Any relationship between the files is
  * recorded separately during import.
  */
-@Service(StorageEngine, RepoDB)
+@Service(StorageEngine, ApplicationDatabase)
 export class UploadManager {
 	constructor(
 		private storage: StorageEngine,
-		private database: RepoDB,
+		private database: ApplicationDatabase,
 	) {}
 
 	/**
@@ -94,7 +94,7 @@ export class PendingUpload {
 
 	constructor(
 		private storage: StorageEngine,
-		private database: RepoDB,
+		private database: ApplicationDatabase,
 	) {}
 
 	/**

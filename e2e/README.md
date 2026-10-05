@@ -14,7 +14,7 @@ cover the detailed rules.
 The current journeys are:
 
 - `journeys/login.e2e.ts`: credential sign-in and rejected credentials.
-- `journeys/navigation.e2e.ts`: the repository entry point and main sections.
+- `journeys/navigation.e2e.ts`: the application entry point and main sections.
 - `journeys/samples.e2e.ts`: finding, opening, and creating sample batches.
 - `journeys/users.e2e.ts`: creating a record-only user.
 
@@ -36,7 +36,7 @@ bun x playwright install chromium
 ```
 
 The test server uses SQLite databases and file storage under `.adacta/e2e/`.
-It resets these directories and loads the committed seed before each server
+It resets these directories and loads the `demo` preset before each server
 start. Port 5273 must be free.
 
 Playwright starts the server for a normal run. During test development, an

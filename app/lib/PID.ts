@@ -32,7 +32,11 @@ export interface PIDGraphNode {
 	 */
 	parentId: string | null;
 
-	/** The number of inlets on a three-way valve. Other symbols keep the default of one. */
+	/**
+
+	 * The number of inlets on a three-way valve. Other symbols keep the default of one.
+
+	 */
 	inletCount: PIDInletCount;
 	orientation: PIDOrientation;
 	position: { x: number; y: number };
@@ -110,8 +114,8 @@ export type PIDEdgeKind = "pipe" | "jacketed" | "traced" | "electrical" | "capti
  * shows for each one.
  *
  * The PIDEdgeKind table stores these keys so that a connection can carry a
- * foreign key. RepoManager copies the keys into every repository database. A
- * new kind therefore needs no migration file.
+ * foreign key. The SQL baseline inserts the keys into the application database.
+ * A changed list therefore requires a new baseline and a database reset.
  */
 export const PID_EDGE_KINDS = {
 	pipe: {

@@ -367,16 +367,16 @@ list without this hierarchy remains flat. For example, the batch list is ordered
 
 ### Empty states
 
-An empty section and an empty repository require different information.
+An empty section and an empty instance require different information.
 
 - **Empty section:** Show one sentence in Muted Foreground. For example, use "No products yet."
   or "No batches have been recorded yet." The sentence reports the state without adding
   instructions that the page does not require.
-- **Empty repository:** The Inventory page is the first page shown for a repository. A new
+- **Empty instance:** The Inventory page is the first page after sign-in. A new
   research group may need an explanation when it contains no records. Show a bordered panel
   that explains rigs and standalone equipment. Provide one primary action and one text link.
 
-Use the explanatory panel only for the empty repository and the guided catalog creation page.
+Use the explanatory panel only for the empty instance and the guided catalog creation page.
 Other empty sections use one sentence.
 
 ### P&ID diagrams
@@ -449,4 +449,4 @@ sidebar.
   information that the title and page content cannot provide. For example, a batch page may
   explain what a batch represents.
 - Do not use an illustrated panel or a multistep guide for an ordinary empty section. Reserve
-  explanatory panels for the guided catalog creation page and the empty repository.
+  explanatory panels for the guided catalog creation page and the empty instance.

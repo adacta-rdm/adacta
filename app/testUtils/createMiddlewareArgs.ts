@@ -26,7 +26,7 @@ type MiddlewareArgsOptions<Params extends Record<string, string>> = {
 	request?: Request;
 
 	/**
-	 * Route parameters, for example `{ repo: "test" }`. Defaults to none.
+	 * Route parameters, for example `{ entrySlug: "test-rig" }`. Defaults to none.
 	 */
 	params?: Params;
 };

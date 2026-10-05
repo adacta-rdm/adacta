@@ -11,16 +11,16 @@ const platinumBatch = seedSampleBatch("pt-al2o3-2024a");
 
 const batchTree = (page: Page) => page.getByRole("tree", { name: "Batches by composition" });
 
-test("the samples section lists the seeded batches", async ({ page, repo }) => {
-	await page.goto(href("/:repo/samples", { repo }));
+test("the samples section lists the seeded batches", async ({ page }) => {
+	await page.goto(href("/samples"));
 
 	const table = page.getByRole("table");
 	await expect(table.getByRole("link", { name: nickelBatch.name, exact: true })).toBeVisible();
 	await expect(table.getByRole("link", { name: platinumBatch.name, exact: true })).toBeVisible();
 });
 
-test("a batch opens from the sample tree", async ({ page, repo }) => {
-	await page.goto(href("/:repo/samples", { repo }));
+test("a batch opens from the sample tree", async ({ page }) => {
+	await page.goto(href("/samples"));
 
 	const link = batchTree(page).getByRole("link", { name: nickelBatch.name, exact: true });
 	await followLink(page, link);
@@ -28,8 +28,8 @@ test("a batch opens from the sample tree", async ({ page, repo }) => {
 	await expect(page.getByRole("heading", { name: nickelBatch.name })).toBeVisible();
 });
 
-test("a sample added to a seeded batch appears in its table", async ({ page, repo }) => {
-	await page.goto(href("/:repo/samples", { repo }));
+test("a sample added to a seeded batch appears in its table", async ({ page }) => {
+	await page.goto(href("/samples"));
 	const link = batchTree(page).getByRole("link", { name: nickelBatch.name, exact: true });
 	const batchURL = await followLink(page, link);
 
@@ -41,17 +41,17 @@ test("a sample added to a seeded batch appears in its table", async ({ page, rep
 	await expect(page.getByRole("table").getByText(sampleName, { exact: true })).toBeVisible();
 });
 
-test("a new batch can be created and found", async ({ page, repo }, testInfo) => {
+test("a new batch can be created and found", async ({ page }, testInfo) => {
 	const name = `E2E Batch ${testInfo.workerIndex}-${randomUUID().slice(0, 8)}`;
 
-	await page.goto(href("/:repo/samples/new", { repo }));
+	await page.goto(href("/samples/new"));
 	await page.getByLabel("Batch name").fill(name);
 	await page.getByLabel("Preparation date").fill("2026-09-15");
 	await page.getByRole("button", { name: "Create batch" }).click();
 
 	await expect(page.getByRole("heading", { name })).toBeVisible();
-	await expect(page).toHaveURL((url) => url.pathname.startsWith(`/${repo}/samples/`));
+	await expect(page).toHaveURL((url) => url.pathname.startsWith("/samples/"));
 
-	await page.goto(href("/:repo/samples", { repo }));
+	await page.goto(href("/samples"));
 	await expect(page.getByRole("table").getByRole("link", { name, exact: true })).toBeVisible();
 });

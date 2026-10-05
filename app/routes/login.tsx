@@ -55,7 +55,7 @@ export default function Login() {
 				 * before signing in, and the application shell carries no name.
 				 */}
 				<Heading>Adacta</Heading>
-				<Text className="mt-1">Sign in to open a repository.</Text>
+				<Text className="mt-1">Sign in to open Adacta.</Text>
 
 				<Fieldset className="mt-8">
 					<Field>

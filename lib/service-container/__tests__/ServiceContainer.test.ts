@@ -381,6 +381,22 @@ describe("ServiceContainer", () => {
 			expect(factory).not.toHaveBeenCalled();
 		});
 
+		test("configures a factory service with a lazy scoped provider", () => {
+			const FactoryService = service()(() => ({ source: "default" }));
+			const provider = mock(() => ({ source: "configured" }));
+			const container = new ServiceContainer();
+			container.configure(FactoryService, provider);
+			const scope = container.clone();
+			expect(provider).not.toHaveBeenCalled();
+
+			const instance = scope.get(FactoryService);
+
+			expect(instance.source).toBe("configured");
+			expect(scope.get(FactoryService)).toBe(instance);
+			expect(provider).toHaveBeenCalledTimes(1);
+			expect(ServiceContainer.get(FactoryService).source).toBe("default");
+		});
+
 		test("a keyed replacement is scoped to the cloned container", () => {
 			const FactoryService = service()(() => ({ source: "real" }));
 			const root = new ServiceContainer();

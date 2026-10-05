@@ -23,7 +23,7 @@ describe("describeError", () => {
 
 	test("replaces the message React Router writes for itself", () => {
 		// React Router names the route and the URL. That is for a developer.
-		const generated = routeError(404, "Not Found", 'No route matches URL "/demo/nonsense"', true);
+		const generated = routeError(404, "Not Found", 'No route matches URL "/nonsense"', true);
 
 		expect(describeError(generated)).toEqual({
 			status: 404,

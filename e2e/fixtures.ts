@@ -7,18 +7,7 @@ import {
 } from "@playwright/test";
 import { href } from "react-router";
 
-import { SEED_REPO } from "./seed-data.ts";
-
-interface Fixtures {
-	/**
-	 * The slug of the seeded repository.
-	 */
-	repo: string;
-}
-
-export const test = base.extend<Fixtures>({
-	repo: SEED_REPO,
-});
+export const test = base;
 
 export { expect };
 

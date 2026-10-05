@@ -6,7 +6,7 @@
  * they need from that container. Environment overrides are passed as raw values.
  *
  * The setups build on each other. They add an environment, isolated
- * persistence, a migrated schema, a registered user, and a bound repository.
+ * persistence, a migrated schema, and a registered user.
  * Each step uses the same services the application uses. A test therefore
  * never restates what the application already does.
  */
@@ -16,11 +16,10 @@ import { join } from "node:path";
 import { Writable } from "node:stream";
 
 import { createLocalAppContainer } from "~/app/.server/appContainer.local.ts";
+import { migrateSqliteDatabase } from "~/app/.server/migrateSqliteDatabase.ts";
+import { sqliteDatabasePath } from "~/app/.server/sqliteDatabase.ts";
 import { BetterAuth } from "~/app/services/BetterAuth.ts";
-import { RepoAccess } from "~/app/services/RepoAccess.ts";
-import { RepoManager } from "~/app/services/RepoManager.ts";
 import { Security } from "~/app/services/Security.ts";
-import { SqliteDatabaseManager } from "~/app/services/SqliteDatabaseManager.ts";
 import { Env, type EnvSource } from "~/lib/env/Env.ts";
 import { LOG_LEVEL, Logger } from "~/lib/logger/Logger.ts";
 import { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
@@ -53,12 +52,14 @@ export function setupTestPersistenceEnvironment(env: EnvSource = {}): ServiceCon
 }
 
 /**
- * Create an environment with a migrated system database and no data in it.
+ * Creates an isolated application database with its schema and fixed lookup rows.
  */
-export function setupEmptyTestDatabaseEnvironment(env: EnvSource = {}): ServiceContainer {
+export async function setupEmptyTestDatabaseEnvironment(
+	env: EnvSource = {},
+): Promise<ServiceContainer> {
 	const container = setupTestPersistenceEnvironment(env);
 
-	container.get(SqliteDatabaseManager).migrateSystem();
+	migrateSqliteDatabase(sqliteDatabasePath(container.get(Env)));
 
 	return container;
 }
@@ -68,7 +69,7 @@ export function setupEmptyTestDatabaseEnvironment(env: EnvSource = {}): ServiceC
  * production authentication service. That user is set as the current identity.
  */
 export async function setupTestUserEnvironment(env: EnvSource = {}): Promise<ServiceContainer> {
-	const container = setupEmptyTestDatabaseEnvironment(env);
+	const container = await setupEmptyTestDatabaseEnvironment(env);
 
 	container.get(Security).setCurrentUserId(await signUpTestUser(container));
 
@@ -76,22 +77,10 @@ export async function setupTestUserEnvironment(env: EnvSource = {}): Promise<Ser
 }
 
 /**
- * Create a user environment with one repository and return a scope bound to it.
+ * Returns a request scope cloned from an isolated environment with one registered user.
  */
-export async function setupTestRepositoryEnvironment(
-	repository = "test",
-	env: EnvSource = {},
-): Promise<ServiceContainer> {
-	const container = await setupTestUserEnvironment(env);
-	const userId = container.get(Security).userId;
-	const repositories = container.get(RepoManager);
-
-	await repositories.createRepository(repository);
-	await repositories.grantAccess(userId, repository);
-
-	const scope = container.clone();
-	await scope.get(RepoAccess).selectRepository(repository);
-	return scope;
+export async function setupTestRequestScope(env: EnvSource = {}): Promise<ServiceContainer> {
+	return (await setupTestUserEnvironment(env)).clone();
 }
 
 type TestUserOverrides = { name?: string; email?: string; password?: string };

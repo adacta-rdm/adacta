@@ -38,7 +38,7 @@ describe("the seeded catalog", () => {
 	test("uses only kinds this system knows", async () => {
 		const used = new Set<string>();
 
-		for await (const file of new Glob("seed/repo/*/catalog/**/*.json").scan(".")) {
+		for await (const file of new Glob("seed/presets/*/catalog/**/*.json").scan(".")) {
 			const text = await Bun.file(file).text();
 
 			for (const match of text.matchAll(/"quantityKind"\s*:\s*"([^"]+)"/g)) {

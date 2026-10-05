@@ -5,21 +5,20 @@ import { eq } from "drizzle-orm";
 import { addSample } from "~/app/lib/addSample.ts";
 import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError.ts";
 import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError.ts";
-import type { BatchStatements } from "~/app/services/DatabaseManager.ts";
-import { RepoDB } from "~/app/services/RepoDB.ts";
+import { type BatchStatements, ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
-import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
+import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
 import type { Entity, NewEntity } from "~/drizzle/Schema.ts";
-import { Id } from "~/drizzle/schema/repo.Id.ts";
-import { Sample } from "~/drizzle/schema/repo.Sample.ts";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
+import { Id } from "~/drizzle/schema/Id.ts";
+import { Sample } from "~/drizzle/schema/Sample.ts";
+import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 
 const CREATION_TIME = new Date("2026-01-15T12:00:00.000Z");
 
 async function environment() {
-	const scope = await setupTestRepositoryEnvironment();
-	const db = scope.get(RepoDB);
+	const scope = await setupTestRequestScope();
+	const db = scope.get(ApplicationDatabase);
 	const userId = scope.get(Security).userId;
 	const batch = await insertBatch(db, userId, "first-batch");
 
@@ -27,7 +26,7 @@ async function environment() {
 }
 
 async function insertBatch(
-	db: RepoDB,
+	db: ApplicationDatabase,
 	userId: string,
 	slug: string,
 ): Promise<Entity<"SampleBatch">> {
@@ -63,7 +62,7 @@ function sampleValues(
 }
 
 async function insertSample(
-	db: RepoDB,
+	db: ApplicationDatabase,
 	values: Omit<NewEntity<"Sample">, "slug" | "id">,
 	slug: string,
 ): Promise<Entity<"Sample">> {
@@ -193,7 +192,7 @@ describe("addSample", () => {
 				const value: unknown = Reflect.get(target, property, target);
 				return typeof value === "function" ? value.bind(target) : value;
 			},
-		}) as RepoDB;
+		}) as ApplicationDatabase;
 
 		const result = await addSample(racingDb, sampleValues(batch.id, userId));
 

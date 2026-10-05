@@ -1,14 +1,14 @@
 import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 import { betterAuth } from "better-auth";
 
-import { SystemDB } from "~/app/services/SystemDB.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import {
 	Account,
 	authRelations,
 	Session,
 	User,
 	Verification,
-} from "~/drizzle/schema/system.BetterAuth.ts";
+} from "~/drizzle/schema/BetterAuth.ts";
 import { Env } from "~/lib/env/Env.ts";
 import { Logger } from "~/lib/logger/Logger.ts";
 import { service } from "~/lib/service-container/ServiceContainer.ts";
@@ -24,7 +24,7 @@ const DEVELOPMENT_SECRET = "adacta-development-secret-not-for-production";
 /**
  * The configured Better Auth server.
  *
- * The container builds it once per scope from the system database.
+ * The container builds it once per scope from the application database.
  *
  * Better Auth stores the passwords. The user table has no password column of
  * its own.
@@ -34,7 +34,7 @@ const DEVELOPMENT_SECRET = "adacta-development-secret-not-for-production";
  * header.
  */
 export const BetterAuth = service(
-	SystemDB,
+	ApplicationDatabase,
 	Logger,
 	Env,
 )((db, logger, env) => {

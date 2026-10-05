@@ -49,9 +49,9 @@ item that produced the value, where the item was installed, and which sample was
 
 ## Operating Context
 
-- A repository is the unit of ownership. Each repository has its own SQLite file. A separate
-  system database stores users, sessions, and the repository list. Access is granted to each
-  user for specific repositories.
+- The instance is the unit of ownership. Each research group runs one instance. Its SQLite file
+  holds users, sessions, and every record. Every signed-in user may do everything. Roles are
+  planned.
 - Work uses a catalog of equipment models, an inventory of physical items, sample batches,
   individual samples, and imported source files.
 - Equipment and samples can change during a campaign. Adacta records each change and preserves
@@ -61,8 +61,7 @@ item that produced the value, where the item was installed, and which sample was
 
 Future work must preserve the following confirmed constraints.
 
-- **Self-hosted for each research group.** Each group has one instance. The repository-specific
-  SQLite files support this deployment model.
+- **Self-hosted for each research group.** Each group has one instance with one SQLite file.
 - **Long-term records.** A record must remain interpretable after a campaign has ended. It must
   also remain interpretable when the original researchers or Adacta are unavailable. This
   requirement constrains storage formats and export functions.
@@ -78,8 +77,8 @@ are produced. The names for samples and batches were also reviewed, and `SampleB
 retained.
 
 **Catalog ownership.** A catalog record taken from a manufacturer's documents is owned outside
-the repository. The application therefore does not allow that record to be edited. A record
-entered in the application belongs to the repository and remains editable. The
+the instance. The application therefore does not allow that record to be edited. A record
+entered in the application belongs to the instance and remains editable. The
 `externallyOwned` flag records this distinction on `Manufacturer`, `ProductSeries`, and
 `Product`. Their child records follow the ownership of the parent record.
 
@@ -119,9 +118,9 @@ data model. Therefore, the first usable version includes this information.
 
 - `app/docs/` contains a 15-page user manual, including `introduction.md` and
   `concepts.md`. These documents define the product and its terminology.
-- `seed/repo/demo/` and `seed/repo/pilot/` contain committed development data.
-- `seed/repo/akd/` contains private development data. It is excluded from Git and restored
-  from the `private-seed` branch. The data includes 20 manufacturers, 43 products, 246
+- `seed/presets/demo/` and `seed/presets/pilot/` contain committed development data.
+- `seed/presets/akd/` contains private development data. It is excluded from Git and restored
+  from the `private/seed` branch. The data includes 20 manufacturers, 43 products, 246
   specifications, 39 channels, 6 sample batches, and 29 samples. The repository does not state
   what "akd" means. Documentation must not assign a meaning to it.
 - The akd data contains no inventory entries. Its empty Inventory page therefore reflects the
@@ -143,5 +142,5 @@ group currently depends on Adacta. Future work must not create any of these clai
    interface must support both activities.
 4. **Records remain readable without Adacta.** Storage and export formats must preserve the
    meaning of the data when the application is unavailable.
-5. **Each research group has one instance.** The repository is the unit of ownership,
+5. **Each research group has one instance.** The instance is the unit of ownership,
    isolation, and access.

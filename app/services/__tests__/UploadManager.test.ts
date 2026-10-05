@@ -2,21 +2,21 @@ import { describe, expect, test } from "bun:test";
 
 import { eq, inArray } from "drizzle-orm";
 
-import { RepoDB } from "~/app/services/RepoDB.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
 import {
 	OriginalFileNotFoundError,
 	UploadManager,
 	UploadNotFoundError,
 } from "~/app/services/UploadManager.ts";
-import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
-import { Id } from "~/drizzle/schema/repo.Id.ts";
-import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
+import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
+import { Id } from "~/drizzle/schema/Id.ts";
+import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
 import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
 
 describe("UploadManager", () => {
 	test("publishes the files of one upload under a shared upload id", async () => {
-		const scope = await setupTestRepositoryEnvironment();
+		const scope = await setupTestRequestScope();
 		const manager = scope.get(UploadManager);
 		const upload = manager.beginUpload();
 
@@ -68,7 +68,7 @@ describe("UploadManager", () => {
 	});
 
 	test("gives each committed file a row in Id", async () => {
-		const scope = await setupTestRepositoryEnvironment();
+		const scope = await setupTestRequestScope();
 		const manager = scope.get(UploadManager);
 		const upload = manager.beginUpload();
 
@@ -77,7 +77,7 @@ describe("UploadManager", () => {
 		await upload.commit(scope.get(Security).userId);
 
 		const rows = await scope
-			.get(RepoDB)
+			.get(ApplicationDatabase)
 			.select()
 			.from(Id)
 			.where(inArray(Id.id, [first, second]))
@@ -87,7 +87,7 @@ describe("UploadManager", () => {
 	});
 
 	test("writes no rows when the commit fails", async () => {
-		const scope = await setupTestRepositoryEnvironment();
+		const scope = await setupTestRequestScope();
 		const manager = scope.get(UploadManager);
 		const upload = manager.beginUpload();
 
@@ -102,7 +102,7 @@ describe("UploadManager", () => {
 
 		await expect(upload.commit(scope.get(Security).userId)).rejects.toThrow();
 
-		const db = scope.get(RepoDB);
+		const db = scope.get(ApplicationDatabase);
 		expect(
 			await db
 				.select()
@@ -114,7 +114,7 @@ describe("UploadManager", () => {
 	});
 
 	test("publishes nothing when one of the files fails to arrive", async () => {
-		const scope = await setupTestRepositoryEnvironment();
+		const scope = await setupTestRequestScope();
 		const manager = scope.get(UploadManager);
 		const storage = scope.get(StorageEngine);
 		const upload = manager.beginUpload();
@@ -140,7 +140,7 @@ describe("UploadManager", () => {
 	});
 
 	test("discard removes staged files and closes the upload", async () => {
-		const scope = await setupTestRepositoryEnvironment();
+		const scope = await setupTestRequestScope();
 		const manager = scope.get(UploadManager);
 		const storage = scope.get(StorageEngine);
 		const upload = manager.beginUpload();
@@ -158,7 +158,7 @@ describe("UploadManager", () => {
 	});
 
 	test("archiving one file leaves the others of its upload in place", async () => {
-		const scope = await setupTestRepositoryEnvironment();
+		const scope = await setupTestRequestScope();
 		const manager = scope.get(UploadManager);
 		const upload = manager.beginUpload();
 
@@ -169,7 +169,7 @@ describe("UploadManager", () => {
 		const [first, second] = await manager.filesOfUpload(uploadId);
 
 		await scope
-			.get(RepoDB)
+			.get(ApplicationDatabase)
 			.update(OriginalFile)
 			.set({ metadataArchivedAt: new Date() })
 			.where(eq(OriginalFile.id, first!.id))

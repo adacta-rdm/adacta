@@ -31,7 +31,7 @@ export function seedPath(...segments: string[]): string {
 
 /**
  * The subdirectories of a seed directory, in name order. Each one is an entity
- * that holds more than a single file. For example "repo/demo" is a repository
+ * that holds more than a single file. For example "presets/demo" is a preset
  * with its own inventory and samples.
  */
 export function subdirs(...segments: string[]): string[] {
@@ -48,7 +48,7 @@ export function subdirs(...segments: string[]): string[] {
 /**
  * Every JSON file in a seed directory, as full paths in name order.
  *
- * A missing directory holds no files. A repository that seeds no samples
+ * A missing directory holds no files. A preset that seeds no samples
  * therefore needs no empty "samples" directory.
  */
 export function jsonFiles(...segments: string[]): string[] {

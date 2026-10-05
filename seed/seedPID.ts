@@ -1,7 +1,7 @@
 /**
  * Loads the piping and instrumentation diagram of a rig from the seed tree.
  *
- * Each diagram is one file in "seed/repo/<repository>/pid/". The file is named
+ * Each diagram is one file in "seed/presets/<preset>/pid/". The file is named
  * after the inventory entry it describes. For example,
  * "methanation-test-stand.json" describes the entry seeded from
  * "inventory/methanation-test-stand.json".
@@ -16,16 +16,15 @@
  */
 import type { PIDEdgeKind, PIDInletCount, PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
 import { defaultEndArrow, isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
-import type { BatchStatement } from "~/app/services/DatabaseManager.ts";
-import { RepoDB } from "~/app/services/RepoDB.ts";
+import { type BatchStatement, ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
-import { PIDEdge } from "~/drizzle/schema/repo.PIDEdge.ts";
-import { PIDNode } from "~/drizzle/schema/repo.PIDNode.ts";
+import { PIDEdge } from "~/drizzle/schema/PIDEdge.ts";
+import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, keyOf, readJson } from "~/seed/files.ts";
 
 /**
- * One file in a repository's "pid/" directory has this shape.
+ * One file in a preset's "pid/" directory has this shape.
  */
 type SeedPID = {
 	nodes: SeedPIDNode[];
@@ -73,19 +72,19 @@ type SeedPIDEdge = {
 };
 
 /**
- * Add the diagrams from the seed tree to the bound repository.
+ * Add the diagrams from the seed tree to the database.
  * Returns the number of diagrams written.
  */
 export async function seedPID(
 	scope: ServiceContainer,
-	repository: string,
+	preset: string,
 	entryIds: Map<string, number>,
 ): Promise<number> {
-	const db = scope.get(RepoDB);
+	const db = scope.get(ApplicationDatabase);
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
 
-	const files = jsonFiles("repo", repository, "pid");
+	const files = jsonFiles("presets", preset, "pid");
 	if (files.length === 0) return 0;
 
 	for (const file of files) {
@@ -110,11 +109,11 @@ export async function seedPID(
 /**
  * Writes one diagram. The nodes and edges are inserted in one batch.
  *
- * A node id is composed of the entry id and the node key. Two repositories can
+ * A node id is composed of the entry id and the node key. Two entries can
  * therefore both seed a node named "reactor" without a collision.
  */
 async function writeDiagram(
-	db: RepoDB,
+	db: ApplicationDatabase,
 	diagram: SeedPID,
 	context: { entryId: number; creatorId: string; createdAt: Date; file: string },
 ): Promise<void> {

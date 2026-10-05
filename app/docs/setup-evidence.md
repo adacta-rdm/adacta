@@ -102,7 +102,7 @@ Warnings appear where the affected information is used:
 
 The last one matters most. Someone downloading a dataset needs to know that the setup record for that period is contested, and that person may never open the facility page.
 
-A repository-wide warning is reserved for conflicts that nobody has marked. An unmarked conflict means something went wrong that no one noticed, so it is shown at the top of the repository until it is resolved or marked as disputed. Conflicts that are already marked as disputed do not trigger this warning, because someone is already dealing with them.
+A application-wide warning is reserved for conflicts that nobody has marked. An unmarked conflict means something went wrong that no one noticed, so it is shown at the top of the application until it is resolved or marked as disputed. Conflicts that are already marked as disputed do not trigger this warning, because someone is already dealing with them.
 
 The warning names what is wrong rather than reporting a general fault:
 

@@ -19,14 +19,13 @@ import {
 	type NoteAttachmentData,
 	type NoteErrors,
 } from "~/app/lib/notes.ts";
-import type { BatchStatement } from "~/app/services/DatabaseManager.ts";
-import { RepoDB } from "~/app/services/RepoDB.ts";
+import { type BatchStatement, ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
 import { type PendingUpload, UploadManager } from "~/app/services/UploadManager.ts";
 import type { Entity } from "~/drizzle/Schema.ts";
-import { Note } from "~/drizzle/schema/repo.Note.ts";
-import { NoteAttachment } from "~/drizzle/schema/repo.NoteAttachment.ts";
-import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
+import { Note } from "~/drizzle/schema/Note.ts";
+import { NoteAttachment } from "~/drizzle/schema/NoteAttachment.ts";
+import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import { Service } from "~/lib/service-container/ServiceContainer.ts";
 import { isUniqueConstraintOn } from "~/lib/sqlite-errors/isUniqueConstraintOn.ts";
@@ -41,10 +40,10 @@ export interface NoteInput {
 	observedAt?: Date;
 }
 
-@Service(RepoDB, UploadManager, Security)
+@Service(ApplicationDatabase, UploadManager, Security)
 export class NoteManager {
 	constructor(
-		private db: RepoDB,
+		private db: ApplicationDatabase,
 		private sources: UploadManager,
 		private security: Security,
 	) {}
@@ -53,7 +52,7 @@ export class NoteManager {
 	 * Return the current notes about the given subjects.
 	 *
 	 * Creator ids remain plain ids here. The routes resolve their names through
-	 * the system database before passing the notes to the component.
+	 * the application database before passing the notes to the component.
 	 */
 	async about(
 		subjectIds: readonly number[],

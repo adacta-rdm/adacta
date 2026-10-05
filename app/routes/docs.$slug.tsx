@@ -8,7 +8,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 	return loadDoc(params.slug);
 }
 
-export default function DocPage({ loaderData }: Route.ComponentProps) {
+export default function DocsSlug({ loaderData }: Route.ComponentProps) {
 	const { content, frontmatter, sections } = loaderData;
 	return (
 		<DocsLayout title={frontmatter.title} tableOfContents={sections}>

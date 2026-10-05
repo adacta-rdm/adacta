@@ -215,7 +215,7 @@
       "kind": "card",
       "refersTo": "card-shell",
       "description": "The application content card. It is used above the lg breakpoint. At smaller widths, the content is placed directly on the page canvas.",
-      "html": "<div class=\"ds-card\"><h1 class=\"ds-card-title\">Inventory</h1><p class=\"ds-card-sub\">Custom rigs and standalone equipment in this repository.</p></div>",
+      "html": "<div class=\"ds-card\"><h1 class=\"ds-card-title\">Inventory</h1><p class=\"ds-card-sub\">Custom rigs and standalone equipment in this instance.</p></div>",
       "css": ".ds-card { background: var(--adacta-color-surface, #fff); border-radius: 8px; padding: 40px; box-shadow: 0 0 0 1px var(--adacta-color-border, oklch(0.92 0.004 286.32)), 0 1px 2px rgb(0 0 0 / 0.05); font-family: InterVariable, ui-sans-serif, system-ui, sans-serif; } .ds-card-title { margin: 0; font-size: 20px; line-height: 32px; font-weight: 600; color: var(--adacta-color-foreground, oklch(0.141 0.005 285.823)); } .ds-card-sub { margin: 4px 0 0; font-size: 14px; line-height: 24px; font-weight: 600; color: var(--adacta-color-foreground, oklch(0.141 0.005 285.823)); }"
     },
     {
@@ -334,7 +334,7 @@
       "Do not add a shadow to a component in the normal document flow.",
       "Do not add another typeface.",
       "Do not use color, heavier text, or an accent border to identify the current navigation item. Use the muted surface and darker icon.",
-      "Do not use an illustrated panel or a multistep guide for an ordinary empty section. Reserve explanatory panels for the guided catalog creation page and the empty repository.",
+      "Do not use an illustrated panel or a multistep guide for an ordinary empty section. Reserve explanatory panels for the guided catalog creation page and the empty instance.",
       "Do not edit files under vendor/. Copy the required component into app/."
     ]
   }

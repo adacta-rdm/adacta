@@ -148,7 +148,7 @@ Files can be dropped from several places in Adacta. The drop location provides u
 
 | Drop location               | Initial information                                                                        |
 | --------------------------- | ------------------------------------------------------------------------------------------ |
-| Repository-wide drop zone   | No station or item is assumed. Adacta first uses evidence from the source.                 |
+| Application-wide drop zone  | No station or item is assumed. Adacta first uses evidence from the source.                 |
 | Station page                | The station is a strong candidate, and its time-valid items can be used during resolution. |
 | Inventory-item page         | The item, its product, and its product channels become useful candidates.                  |
 | Sample or sample-batch page | The sample lifecycle association becomes a candidate.                                      |

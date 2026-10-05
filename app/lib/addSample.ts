@@ -3,10 +3,10 @@ import { eq } from "drizzle-orm";
 import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsError.ts";
 import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError.ts";
 import { slugify } from "~/app/lib/slugs.ts";
-import type { RepoDB } from "~/app/services/RepoDB.ts";
+import type { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import type { Entity, NewEntity } from "~/drizzle/Schema.ts";
-import { Id } from "~/drizzle/schema/repo.Id.ts";
-import { Sample } from "~/drizzle/schema/repo.Sample.ts";
+import { Id } from "~/drizzle/schema/Id.ts";
+import { Sample } from "~/drizzle/schema/Sample.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import { isUniqueConstraintOn } from "~/lib/sqlite-errors/isUniqueConstraintOn.ts";
 
@@ -26,7 +26,10 @@ const SLUG_ATTEMPTS = 5;
  * @throws EntityAlreadyExistsError if the batch already contains the name.
  * @throws SlugAllocationError if five generated slugs are already in use.
  */
-export async function addSample(db: RepoDB, values: SampleValues): Promise<Entity<"Sample">> {
+export async function addSample(
+	db: ApplicationDatabase,
+	values: SampleValues,
+): Promise<Entity<"Sample">> {
 	const base = slugify(values.name);
 	let slug = base;
 	for (let i = 0; i < SLUG_ATTEMPTS; i++) {

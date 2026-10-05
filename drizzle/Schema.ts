@@ -1,23 +1,21 @@
-import { CatalogSource } from "~/drizzle/schema/repo.CatalogSource.ts";
-import { Channel } from "~/drizzle/schema/repo.Channel.ts";
-import { Id } from "~/drizzle/schema/repo.Id.ts";
-import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
-import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
-import { Note } from "~/drizzle/schema/repo.Note.ts";
-import { NoteAttachment } from "~/drizzle/schema/repo.NoteAttachment.ts";
-import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
-import { PIDEdge } from "~/drizzle/schema/repo.PIDEdge.ts";
-import { PIDEdgeKind } from "~/drizzle/schema/repo.PIDEdgeKind.ts";
-import { PIDNode } from "~/drizzle/schema/repo.PIDNode.ts";
-import { Product } from "~/drizzle/schema/repo.Product.ts";
-import { ProductSeries } from "~/drizzle/schema/repo.ProductSeries.ts";
-import { ProductSpecification } from "~/drizzle/schema/repo.ProductSpecification.ts";
-import { QuantityKind } from "~/drizzle/schema/repo.QuantityKind.ts";
-import { Sample } from "~/drizzle/schema/repo.Sample.ts";
-import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
-import { Account, Session, User, Verification } from "~/drizzle/schema/system.BetterAuth.ts";
-import { Repository } from "~/drizzle/schema/system.Repository.ts";
-import { UserRepository } from "~/drizzle/schema/system.UserRepository.ts";
+import { Account, Session, User, Verification } from "~/drizzle/schema/BetterAuth.ts";
+import { CatalogSource } from "~/drizzle/schema/CatalogSource.ts";
+import { Channel } from "~/drizzle/schema/Channel.ts";
+import { Id } from "~/drizzle/schema/Id.ts";
+import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
+import { Note } from "~/drizzle/schema/Note.ts";
+import { NoteAttachment } from "~/drizzle/schema/NoteAttachment.ts";
+import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
+import { PIDEdge } from "~/drizzle/schema/PIDEdge.ts";
+import { PIDEdgeKind } from "~/drizzle/schema/PIDEdgeKind.ts";
+import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
+import { Product } from "~/drizzle/schema/Product.ts";
+import { ProductSeries } from "~/drizzle/schema/ProductSeries.ts";
+import { ProductSpecification } from "~/drizzle/schema/ProductSpecification.ts";
+import { QuantityKind } from "~/drizzle/schema/QuantityKind.ts";
+import { Sample } from "~/drizzle/schema/Sample.ts";
+import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 
 const Schema = {
 	Account,
@@ -36,12 +34,10 @@ const Schema = {
 	ProductSeries,
 	ProductSpecification,
 	QuantityKind,
-	Repository,
 	Sample,
 	SampleBatch,
 	Session,
 	User,
-	UserRepository,
 	Verification,
 } as const;
 
