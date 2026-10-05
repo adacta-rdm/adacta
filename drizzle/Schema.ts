@@ -3,6 +3,8 @@ import { Channel } from "~/drizzle/schema/repo.Channel.ts";
 import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/repo.InventoryEntry.ts";
 import { Manufacturer } from "~/drizzle/schema/repo.Manufacturer.ts";
+import { Note } from "~/drizzle/schema/repo.Note.ts";
+import { NoteAttachment } from "~/drizzle/schema/repo.NoteAttachment.ts";
 import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
 import { PIDEdge } from "~/drizzle/schema/repo.PIDEdge.ts";
 import { PIDEdgeKind } from "~/drizzle/schema/repo.PIDEdgeKind.ts";
@@ -24,6 +26,8 @@ const Schema = {
 	Id,
 	InventoryEntry,
 	Manufacturer,
+	Note,
+	NoteAttachment,
 	OriginalFile,
 	PIDEdge,
 	PIDEdgeKind,

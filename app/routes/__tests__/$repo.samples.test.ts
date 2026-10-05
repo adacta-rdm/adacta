@@ -16,20 +16,43 @@ import { RepoAccess } from "~/app/services/RepoAccess.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { RepoManager } from "~/app/services/RepoManager.ts";
 import { Security } from "~/app/services/Security.ts";
+import { type PendingUpload, UploadManager } from "~/app/services/UploadManager.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
 import { setupTestRepositoryEnvironment, signUpTestUser } from "~/app/testUtils/testUtils.ts";
 import { Id } from "~/drizzle/schema/repo.Id.ts";
+import { Note } from "~/drizzle/schema/repo.Note.ts";
+import { NoteAttachment } from "~/drizzle/schema/repo.NoteAttachment.ts";
+import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import { LOG_LEVEL, Logger } from "~/lib/logger/Logger.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
+import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
 
 /**
  * A signed-in scope working on the "demo" repository.
  */
 function environment() {
 	return setupTestRepositoryEnvironment("demo");
+}
+
+class TrackingUploadManager extends UploadManager {
+	pendingUpload: PendingUpload | undefined;
+	fileIds: number[] = [];
+
+	override beginUpload(): PendingUpload {
+		const upload = super.beginUpload();
+		const add = upload.add.bind(upload);
+		this.pendingUpload = upload;
+		upload.add = async (file) => {
+			const id = await add(file);
+			this.fileIds.push(id);
+			return id;
+		};
+
+		return upload;
+	}
 }
 
 function post(fields: Record<string, string>): Request {
@@ -94,11 +117,225 @@ async function submitBatch(
 	return batchAction(args);
 }
 
+async function submitBatchForm(scope: ServiceContainer, batchSlug: string, form: FormData) {
+	const [args] = createMiddlewareArgs(scope, {
+		request: new Request("http://localhost/demo/samples", { method: "POST", body: form }),
+		params: { repo: "demo", batchSlug },
+	});
+
+	return batchAction(args);
+}
+
 async function loadBatch(scope: ServiceContainer, batchSlug: string) {
 	const [args] = createMiddlewareArgs(scope, { params: { repo: "demo", batchSlug } });
 
 	return batchLoader(args);
 }
+
+describe("$repo.samples.$batchSlug loader notes", () => {
+	test("returns current text with the first author and edit details", async () => {
+		const scope = await environment();
+		const db = scope.get(RepoDB);
+		const firstAuthorId = scope.get(Security).userId;
+		const editorId = await signUpTestUser(scope, {
+			name: "Zoe Researcher",
+			email: "zoe.researcher@example.com",
+		});
+		await scope.get(RepoManager).grantAccess(editorId, "demo");
+		const batch = await insertBatchRecord(scope);
+		const original = await db
+			.insert(Note)
+			.values({
+				id: id53(),
+				noteSubjectId: batch.id,
+				body: "Powder is grey.",
+				observedAt: null,
+				supersedesId: null,
+				metadataCreatorId: firstAuthorId,
+				metadataCreationTimestamp: new Date("2026-01-15T13:00:00.000Z"),
+			})
+			.returning()
+			.get();
+		const edit = await db
+			.insert(Note)
+			.values({
+				id: id53(),
+				noteSubjectId: batch.id,
+				body: "Powder is light grey.",
+				observedAt: null,
+				supersedesId: original.id,
+				metadataCreatorId: editorId,
+				metadataCreationTimestamp: new Date("2026-01-16T14:00:00.000Z"),
+			})
+			.returning()
+			.get();
+
+		const { notes } = await loadBatch(scope, batch.slug);
+
+		expect(notes).toEqual([
+			{
+				id: edit.id,
+				versionIds: [edit.id, original.id],
+				body: "Powder is light grey.",
+				attachments: [],
+				author: expect.objectContaining({ id: firstAuthorId, name: "Test User" }),
+				writtenAt: original.metadataCreationTimestamp,
+				edit: {
+					author: expect.objectContaining({ id: editorId, name: "Zoe Researcher" }),
+					editedAt: edit.metadataCreationTimestamp,
+				},
+			},
+		]);
+	});
+
+	test("orders notes by their first row and leaves out a removed note", async () => {
+		const scope = await environment();
+		const db = scope.get(RepoDB);
+		const creatorId = scope.get(Security).userId;
+		const batch = await insertBatchRecord(scope);
+		await db
+			.insert(Note)
+			.values([
+				{
+					id: id53(),
+					noteSubjectId: batch.id,
+					body: "Later note",
+					observedAt: null,
+					supersedesId: null,
+					metadataCreatorId: creatorId,
+					metadataCreationTimestamp: new Date("2026-01-17T12:00:00.000Z"),
+				},
+				{
+					id: id53(),
+					noteSubjectId: batch.id,
+					body: "Earlier note",
+					observedAt: null,
+					supersedesId: null,
+					metadataCreatorId: creatorId,
+					metadataCreationTimestamp: new Date("2026-01-16T12:00:00.000Z"),
+				},
+				{
+					id: id53(),
+					noteSubjectId: batch.id,
+					body: "Removed note",
+					observedAt: null,
+					supersedesId: null,
+					metadataCreatorId: creatorId,
+					metadataCreationTimestamp: new Date("2026-01-15T12:00:00.000Z"),
+					metadataArchivedAt: new Date("2026-01-18T12:00:00.000Z"),
+				},
+			])
+			.run();
+
+		const { notes } = await loadBatch(scope, batch.slug);
+
+		expect(notes.map((note) => note.body)).toEqual(["Earlier note", "Later note"]);
+	});
+
+	test("returns a sample note with the sample name", async () => {
+		const scope = await environment();
+		const db = scope.get(RepoDB);
+		const creatorId = scope.get(Security).userId;
+		const batch = await insertBatchRecord(scope);
+		const sampleId = id53();
+		await db.insert(Id).values({ id: sampleId }).run();
+		const sample = await db
+			.insert(Sample)
+			.values({
+				id: sampleId,
+				batchId: batch.id,
+				slug: "03",
+				name: "#03",
+				preparedById: creatorId,
+				metadataCreatorId: creatorId,
+				metadataCreationTimestamp: new Date(),
+			})
+			.returning()
+			.get();
+		await db
+			.insert(Note)
+			.values({
+				id: id53(),
+				noteSubjectId: sample.id,
+				body: "The edge is chipped.",
+				metadataCreatorId: creatorId,
+				metadataCreationTimestamp: new Date(),
+			})
+			.run();
+
+		const { notes } = await loadBatch(scope, batch.slug);
+
+		expect(notes).toHaveLength(1);
+		expect(notes[0]).toMatchObject({ body: "The edge is chipped.", sampleName: "#03" });
+	});
+
+	test("shows that a note is about an archived sample", async () => {
+		const scope = await environment();
+		const slug = await createBatch(scope);
+		await submitBatch(scope, slug, { add: "", name: "#01" });
+		const sample = (await scope.get(RepoDB).select().from(Sample).get())!;
+		await submitBatch(scope, slug, {
+			addNote: "",
+			about: `sample:${sample.id}`,
+			body: "Cracked during drying.",
+		});
+		await scope
+			.get(RepoDB)
+			.update(Sample)
+			.set({ metadataArchivedAt: new Date() })
+			.where(eq(Sample.id, sample.id))
+			.run();
+
+		const { notes } = await loadBatch(scope, slug);
+
+		expect(notes).toEqual([expect.objectContaining({ sampleName: "#01", sampleArchived: true })]);
+	});
+
+	test("returns the files attached to the current note version", async () => {
+		const scope = await environment();
+		const db = scope.get(RepoDB);
+		const creatorId = scope.get(Security).userId;
+		const batch = await insertBatchRecord(scope);
+		const fileId = id53();
+		const noteId = id53();
+		await db.insert(Id).values({ id: fileId }).run();
+		await db
+			.insert(OriginalFile)
+			.values({
+				id: fileId,
+				uploadId: id53(),
+				originalName: "powder.jpg",
+				mediaType: "image/jpeg",
+				byteSize: 512,
+				metadataCreatorId: creatorId,
+				metadataCreationTimestamp: new Date(),
+			})
+			.run();
+		await db
+			.insert(Note)
+			.values({
+				id: noteId,
+				noteSubjectId: batch.id,
+				body: "Powder after drying.",
+				metadataCreatorId: creatorId,
+				metadataCreationTimestamp: new Date(),
+			})
+			.run();
+		await db.insert(NoteAttachment).values({ noteId, originalFileId: fileId, position: 0 }).run();
+
+		const { notes } = await loadBatch(scope, batch.slug);
+
+		expect(notes[0]?.attachments).toEqual([
+			{
+				id: fileId,
+				originalName: "powder.jpg",
+				mediaType: "image/jpeg",
+				byteSize: 512,
+				position: 0,
+			},
+		]);
+	});
+});
 
 describe("$repo.samples.new action", () => {
 	test("creates a batch and redirects to it", async () => {
@@ -214,6 +451,161 @@ describe("$repo.samples.new action", () => {
 });
 
 describe("$repo.samples.$batchSlug action", () => {
+	test("adds a note through its own form operation", async () => {
+		const scope = await environment();
+		const batch = await insertBatchRecord(scope);
+
+		const response = await submitBatch(scope, batch.slug, {
+			addNote: "",
+			body: "  The powder turned grey.  ",
+		});
+
+		expect(response).toBeInstanceOf(Response);
+		expect((await scope.get(RepoDB).select().from(Note).get())?.body).toBe(
+			"The powder turned grey.",
+		);
+	});
+
+	test("adds uploaded files to a note", async () => {
+		const scope = await environment();
+		const batch = await insertBatchRecord(scope);
+		const form = new FormData();
+		form.set("addNote", "");
+		form.set("body", "Two files");
+		form.append("files", new File(["first"], "first.txt", { type: "text/plain" }));
+		form.append("files", new File(["second"], "second.txt", { type: "text/plain" }));
+
+		const response = await submitBatchForm(scope, batch.slug, form);
+
+		expect(response).toBeInstanceOf(Response);
+		expect(await scope.get(RepoDB).select().from(OriginalFile).all()).toHaveLength(2);
+		expect(await scope.get(RepoDB).select().from(NoteAttachment).all()).toEqual([
+			{ noteId: expect.any(Number), originalFileId: expect.any(Number), position: 0 },
+			{ noteId: expect.any(Number), originalFileId: expect.any(Number), position: 1 },
+		]);
+	});
+
+	test("discards uploaded files when an empty note is refused", async () => {
+		const scope = await environment();
+		const storage = scope.get(StorageEngine);
+		const sources = scope.set(new TrackingUploadManager(storage, scope.get(RepoDB)));
+		const batch = await insertBatchRecord(scope);
+		const form = new FormData();
+		form.set("addNote", "");
+		form.set("body", "  ");
+		form.append("files", new File(["photo"], "powder.jpg", { type: "image/jpeg" }));
+
+		const response = await submitBatchForm(scope, batch.slug, form);
+		if (response instanceof Response) throw new Error("Expected action data.");
+
+		expect(response.data).toEqual({
+			noteErrors: { body: "A note cannot be empty. Attach the files again." },
+		});
+		expect(await scope.get(RepoDB).select().from(OriginalFile).all()).toEqual([]);
+		expect(await storage.exists(`uploads/${sources.pendingUpload!.id}/${sources.fileIds[0]}`)).toBe(
+			false,
+		);
+	});
+
+	test("answers 404 and discards files for a sample of another batch", async () => {
+		const scope = await environment();
+		const storage = scope.get(StorageEngine);
+		const sources = scope.set(new TrackingUploadManager(storage, scope.get(RepoDB)));
+		const slug = await createBatch(scope);
+		const otherSlug = await createBatch(scope, { name: "Other batch" });
+		await submitBatch(scope, otherSlug, { add: "", name: "#01" });
+		const otherSample = (await scope.get(RepoDB).select().from(Sample).get())!;
+		const form = new FormData();
+		form.set("addNote", "");
+		form.set("about", `sample:${otherSample.id}`);
+		form.set("body", "Wrong batch");
+		form.append("files", new File(["photo"], "powder.jpg", { type: "image/jpeg" }));
+
+		const response = await submitBatchForm(scope, slug, form).then(
+			() => undefined,
+			(thrown: unknown) => thrown,
+		);
+
+		expect((response as Response).status).toBe(404);
+		expect(await scope.get(RepoDB).select().from(Note).all()).toEqual([]);
+		expect(await storage.exists(`uploads/${sources.pendingUpload!.id}/${sources.fileIds[0]}`)).toBe(
+			false,
+		);
+	});
+
+	test.each([["rig"], ["sample:abc"], ["sample:"]])(
+		"answers 404 for the subject %p",
+		async (about) => {
+			const scope = await environment();
+			const batch = await insertBatchRecord(scope);
+
+			await expect(
+				submitBatch(scope, batch.slug, { addNote: "", about, body: "A note" }),
+			).rejects.toMatchObject({ status: 404 });
+			expect(await scope.get(RepoDB).select().from(Note).all()).toEqual([]);
+		},
+	);
+
+	test("a note about an archived sample cannot be edited or removed", async () => {
+		const scope = await environment();
+		const slug = await createBatch(scope);
+		await submitBatch(scope, slug, { add: "", name: "#01" });
+		const sample = (await scope.get(RepoDB).select().from(Sample).get())!;
+		await submitBatch(scope, slug, {
+			addNote: "",
+			about: `sample:${sample.id}`,
+			body: "Keep this note",
+		});
+		const note = (await scope.get(RepoDB).select().from(Note).get())!;
+		await scope
+			.get(RepoDB)
+			.update(Sample)
+			.set({ metadataArchivedAt: new Date() })
+			.where(eq(Sample.id, sample.id))
+			.run();
+
+		await expect(
+			submitBatch(scope, slug, { editNote: String(note.id), body: "Changed" }),
+		).rejects.toMatchObject({ status: 404 });
+		await expect(submitBatch(scope, slug, { archiveNote: String(note.id) })).rejects.toMatchObject({
+			status: 404,
+		});
+		expect(await scope.get(RepoDB).select().from(Note).all()).toEqual([note]);
+	});
+
+	test("returns note errors separately from sample errors", async () => {
+		const scope = await environment();
+		const batch = await insertBatchRecord(scope);
+
+		const response = await submitBatch(scope, batch.slug, { addNote: "", body: "  " });
+		if (response instanceof Response) throw new Error("Expected action data.");
+
+		expect(response.init?.status).toBe(400);
+		expect(response.data).toEqual({ noteErrors: { body: "A note cannot be empty." } });
+	});
+
+	test("edits and removes a note through their form operations", async () => {
+		const scope = await environment();
+		const batch = await insertBatchRecord(scope);
+		await submitBatch(scope, batch.slug, { addNote: "", body: "First version" });
+		const original = (await scope.get(RepoDB).select().from(Note).get())!;
+
+		await submitBatch(scope, batch.slug, {
+			editNote: String(original.id),
+			body: "Current version",
+		});
+		const current = (await scope.get(RepoDB).select().from(Note).all()).find(
+			(note) => note.supersedesId === original.id,
+		)!;
+		await submitBatch(scope, batch.slug, { archiveNote: String(current.id) });
+
+		expect(await scope.get(RepoDB).select().from(Note).all()).toHaveLength(2);
+		expect(
+			(await scope.get(RepoDB).select().from(Note).where(eq(Note.id, current.id)).get())
+				?.metadataArchivedAt,
+		).toBeInstanceOf(Date);
+	});
+
 	test("returns all add-form validation errors together", async () => {
 		const scope = await environment();
 		const batch = await insertBatchRecord(scope);
@@ -415,6 +807,29 @@ describe("$repo.samples.$batchSlug action", () => {
 		expect((await loadBatch(scope, slug)).samples).toEqual([]);
 	});
 
+	test("refuses to delete a sample that has notes", async () => {
+		const scope = await environment();
+		const slug = await createBatch(scope);
+		await submitBatch(scope, slug, { add: "", name: "#01" });
+		const sample = (await scope.get(RepoDB).select().from(Sample).get())!;
+		await submitBatch(scope, slug, {
+			addNote: "",
+			about: `sample:${sample.id}`,
+			body: "The sample has changed colour.",
+		});
+
+		const response = await submitBatch(scope, slug, { delete: String(sample.id) });
+		if (response instanceof Response) throw new Error("Expected action data.");
+
+		expect(response.init?.status).toBe(400);
+		expect(response.data).toEqual({
+			errors: {
+				form: "This sample has notes, so it cannot be deleted. Archive it instead.",
+			},
+		});
+		expect((await scope.get(RepoDB).select().from(Sample).get())?.id).toBe(sample.id);
+	});
+
 	test("answers 404 for a sample that is not there", async () => {
 		const scope = await environment();
 		const slug = await createBatch(scope);
@@ -462,6 +877,26 @@ describe("$repo.samples.$batchSlug archived batch", () => {
 		await expect(submitBatch(scope, batch.slug, { add: "", name: "#01" })).rejects.toMatchObject({
 			status: 404,
 		});
+	});
+
+	test("notes cannot be added, edited, or removed from an archived batch", async () => {
+		const scope = await environment();
+		const batch = await insertBatchRecord(scope);
+		await submitBatch(scope, batch.slug, { addNote: "", body: "A note" });
+		const note = (await scope.get(RepoDB).select().from(Note).get())!;
+		await archive(scope, batch.slug);
+
+		const changes: Record<string, string>[] = [
+			{ addNote: "", body: "Another note" },
+			{ editNote: String(note.id), body: "Changed" },
+			{ archiveNote: String(note.id) },
+		];
+
+		for (const fields of changes) {
+			expect(submitBatch(scope, batch.slug, fields)).rejects.toMatchObject({ status: 404 });
+		}
+
+		expect(await scope.get(RepoDB).select().from(Note).all()).toEqual([note]);
 	});
 });
 

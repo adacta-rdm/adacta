@@ -82,7 +82,7 @@ export class UploadManager {
 /**
  * Collects the files of one upload and records them together.
  */
-class PendingUpload {
+export class PendingUpload {
 	/**
 	 * Every file record created by this upload uses this identifier. The staging
 	 * directory is also named after it. For example, a file is staged at
@@ -90,7 +90,7 @@ class PendingUpload {
 	 */
 	readonly id = id53();
 	private readonly files: StagedFile[] = [];
-	private state: "open" | "failed" | "committed" = "open";
+	private state: "open" | "failed" | "committed" | "discarded" = "open";
 
 	constructor(
 		private storage: StorageEngine,
@@ -103,7 +103,7 @@ class PendingUpload {
 	 * its row in Id are written later by `commit()` with this identifier.
 	 *
 	 * The method returns after storage has read the complete file stream. A
-	 * storage failure ends the upload.
+	 * storage failure ends the upload and removes its staged files.
 	 */
 	async add(upload: FileUpload): Promise<number> {
 		this.assertOpen();
@@ -120,11 +120,20 @@ class PendingUpload {
 			});
 			return id;
 		} catch (error) {
-			// The garbage collector removes files that remain in the staging
-			// area. No original file record refers to them.
 			this.state = "failed";
+			await this.removeStagedFiles(path);
 			throw error;
 		}
+	}
+
+	/**
+	 * Removes every staged file and closes the upload.
+	 */
+	async discard(): Promise<void> {
+		this.assertOpen();
+		this.state = "discarded";
+
+		await this.removeStagedFiles();
 	}
 
 	/**
@@ -165,16 +174,25 @@ class PendingUpload {
 			return this.id;
 		} catch (error) {
 			this.state = "failed";
-			for (const file of movedFiles) {
-				await this.storage.remove(originalFilePath(file.id));
-			}
+			await Promise.allSettled(
+				movedFiles.map((file) => this.storage.remove(originalFilePath(file.id))),
+			);
+			await this.removeStagedFiles();
 			throw error;
 		}
+	}
+
+	private async removeStagedFiles(additionalPath?: string): Promise<void> {
+		const paths = this.files.map((file) => uploadPath(this.id, file.id));
+		if (additionalPath) paths.push(additionalPath);
+
+		await Promise.allSettled(paths.map((path) => this.storage.remove(path)));
 	}
 
 	private assertOpen(): void {
 		if (this.state === "failed") throw new Error("The upload has failed.");
 		if (this.state === "committed") throw new Error("The upload is complete.");
+		if (this.state === "discarded") throw new Error("The upload was discarded.");
 	}
 }
 

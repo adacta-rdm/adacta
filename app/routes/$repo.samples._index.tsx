@@ -235,7 +235,7 @@ async function editSamples(
 	let errors: SampleErrors | undefined;
 
 	if (deletedSampleId !== null) {
-		await deleteSubmittedSample(db, deletedSampleId);
+		errors = await deleteSubmittedSample(db, deletedSampleId);
 	} else if (values.has("add")) {
 		const [access, security, logger] = container.get(RepoAccess, Security, Logger);
 

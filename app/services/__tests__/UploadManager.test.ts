@@ -12,6 +12,7 @@ import {
 import { setupTestRepositoryEnvironment } from "~/app/testUtils/testUtils.ts";
 import { Id } from "~/drizzle/schema/repo.Id.ts";
 import { OriginalFile } from "~/drizzle/schema/repo.OriginalFile.ts";
+import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
 
 describe("UploadManager", () => {
 	test("publishes the files of one upload under a shared upload id", async () => {
@@ -115,7 +116,13 @@ describe("UploadManager", () => {
 	test("publishes nothing when one of the files fails to arrive", async () => {
 		const scope = await setupTestRepositoryEnvironment();
 		const manager = scope.get(UploadManager);
+		const storage = scope.get(StorageEngine);
 		const upload = manager.beginUpload();
+		const firstFileId = await upload.add({
+			originalName: "first.csv",
+			mediaType: "text/csv",
+			source: new Blob(["complete"]).stream(),
+		});
 
 		try {
 			await upload.add({
@@ -129,6 +136,25 @@ describe("UploadManager", () => {
 		}
 
 		await expect(manager.filesOfUpload(upload.id)).rejects.toBeInstanceOf(UploadNotFoundError);
+		expect(await storage.exists(`uploads/${upload.id}/${firstFileId}`)).toBe(false);
+	});
+
+	test("discard removes staged files and closes the upload", async () => {
+		const scope = await setupTestRepositoryEnvironment();
+		const manager = scope.get(UploadManager);
+		const storage = scope.get(StorageEngine);
+		const upload = manager.beginUpload();
+		const fileId = await upload.add({
+			originalName: "measurement.csv",
+			source: new Blob(["source contents"]).stream(),
+		});
+
+		expect(await storage.exists(`uploads/${upload.id}/${fileId}`)).toBe(true);
+
+		await upload.discard();
+
+		expect(await storage.exists(`uploads/${upload.id}/${fileId}`)).toBe(false);
+		await expect(upload.commit(scope.get(Security).userId)).rejects.toThrow("discarded");
 	});
 
 	test("archiving one file leaves the others of its upload in place", async () => {

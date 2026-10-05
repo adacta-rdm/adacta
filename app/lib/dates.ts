@@ -22,6 +22,20 @@ export function isCalendarDate(value: string): boolean {
 }
 
 /**
+ * Read a moment that states its time zone.
+ *
+ * For example, a value may end in `Z` or `+02:00`. A date and clock time
+ * without a zone does not identify one moment and is therefore rejected.
+ */
+export function parseZonedDateTime(value: string): Date | undefined {
+	if (!/(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return undefined;
+
+	const parsed = new Date(value);
+
+	return Number.isNaN(parsed.valueOf()) ? undefined : parsed;
+}
+
+/**
  * A calendar date written for a reader, as "Jan 15, 2025".
  *
  * The text is read as UTC, because a calendar date names one day everywhere.
@@ -43,6 +57,13 @@ export function formatTimestamp(value: Date): string {
 	return TIMESTAMP_FORMAT.format(value);
 }
 
+/**
+ * A moment in time written with both its calendar date and clock time.
+ */
+export function formatDateTime(value: Date): string {
+	return DATE_TIME_FORMAT.format(value);
+}
+
 // The formatters are built once. Building one is expensive, and these are
 // called for every row of a table.
 const CALENDAR_DATE_FORMAT = new Intl.DateTimeFormat("en", {
@@ -51,3 +72,8 @@ const CALENDAR_DATE_FORMAT = new Intl.DateTimeFormat("en", {
 });
 
 const TIMESTAMP_FORMAT = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
+
+const DATE_TIME_FORMAT = new Intl.DateTimeFormat("en", {
+	dateStyle: "medium",
+	timeStyle: "short",
+});

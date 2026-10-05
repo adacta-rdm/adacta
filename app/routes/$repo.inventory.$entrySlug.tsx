@@ -104,6 +104,7 @@ function RigTabs() {
 				</RigTab>
 				<RigTab to="pid">P&amp;ID</RigTab>
 				<RigTab to="data">Data</RigTab>
+				<RigTab to="notes">Notes</RigTab>
 			</div>
 		</nav>
 	);

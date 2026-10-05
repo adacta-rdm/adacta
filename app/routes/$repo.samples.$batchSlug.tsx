@@ -1,4 +1,5 @@
 import { ArchiveBoxIcon, BeakerIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
+import { FormDataParseError } from "@remix-run/form-data-parser";
 import { and, eq, isNull } from "drizzle-orm";
 import type { ReactNode } from "react";
 import { data, Link, redirect } from "react-router";
@@ -6,6 +7,8 @@ import { data, Link, redirect } from "react-router";
 import { services } from "~/app/.server/context.ts";
 import { formatBatchComposition } from "~/app/lib/batchComposition.ts";
 import { formatCalendarDate } from "~/app/lib/dates.ts";
+import { readNoteFormData } from "~/app/lib/noteFormData.ts";
+import { resolveNoteAuthors } from "~/app/lib/notes.ts";
 import { compareSampleNames } from "~/app/lib/sampleNames.ts";
 import {
 	addSubmittedSample,
@@ -13,14 +16,17 @@ import {
 	type SampleContext,
 	type SampleErrors,
 } from "~/app/lib/sampleSubmission.ts";
+import { NoteList } from "~/app/route-components/NoteList.tsx";
 import { SampleTable } from "~/app/route-components/SampleTable.tsx";
+import { NoteManager, NoteNotFoundError } from "~/app/services/NoteManager.ts";
 import { RepoAccess } from "~/app/services/RepoAccess.ts";
 import { RepoDB } from "~/app/services/RepoDB.ts";
 import { Security } from "~/app/services/Security.ts";
+import { UploadManager } from "~/app/services/UploadManager.ts";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/repo.SampleBatch.ts";
-import { FormValues } from "~/lib/form-values/FormValues.ts";
+import { parseId53 } from "~/lib/id53/parseId53.ts";
 import { Logger } from "~/lib/logger/Logger.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
@@ -47,6 +53,19 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	samples.sort((left, right) => compareSampleNames(left.name, right.name));
 
 	const users = new Map((await access.users()).map((user) => [user.id, user]));
+	// The page shows the notes about the batch and about each of its samples,
+	// archived ones included.
+	const notes = resolveNoteAuthors(
+		await container.get(NoteManager).about([batch.id, ...samples.map((sample) => sample.id)], {
+			samples: new Map(
+				samples.map((sample) => [
+					sample.id,
+					{ name: sample.name, archived: sample.metadataArchivedAt !== null },
+				]),
+			),
+		}),
+		users,
+	);
 
 	return {
 		// An archived batch keeps its page, so a link from the archived tab
@@ -62,12 +81,12 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			...sample,
 			preparedBy: users.get(sample.preparedById),
 		})),
+		notes,
 		users,
 	};
 }
 
 export async function action({ context, request, params }: Route.ActionArgs) {
-	const values = new FormValues(await request.formData());
 	const container = context.get(services);
 	const db = container.get(RepoDB);
 	const batch = await getBatch(db, params.batchSlug);
@@ -76,24 +95,116 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 		throw new Response(`Sample "${params.batchSlug}" not found.`, { status: 404 });
 	}
 
-	// The clicked submit button carries the operation and any target.
-	// Examples:
-	// { add: "", name: "#01", preparedById: "" }
-	// { delete: "17" }
-	const deletedSampleId = values.integer("delete", null);
-	let errors: SampleErrors | undefined;
+	let submitted: Awaited<ReturnType<typeof readNoteFormData>>;
 
-	if (deletedSampleId !== null) {
-		await deleteSubmittedSample(db, deletedSampleId);
-	} else if (values.has("add")) {
-		errors = await addSubmittedSample(await sampleContext(container, params.repo), batch, values);
-	} else {
-		errors = { form: "The sample action is not recognized." };
+	try {
+		submitted = await readNoteFormData(request, container.get(UploadManager));
+	} catch (error) {
+		if (error instanceof FormDataParseError) {
+			return data({ noteErrors: { form: "The note form could not be read." } }, { status: 400 });
+		}
+		if (error instanceof NoteNotFoundError) {
+			throw new Response("Note not found.", { status: 404 });
+		}
+		throw error;
 	}
 
-	if (errors) return data({ errors }, { status: 400 });
+	const { values, editedNoteId, archivedNoteId, pendingUpload, removedFileIds } = submitted;
+	const notes = container.get(NoteManager);
 
-	return redirect(`/${params.repo}/samples/${batch.slug}`, 303);
+	try {
+		// The clicked submit button carries the operation and any target.
+		// Examples:
+		// { add: "", name: "#01", preparedById: "" }
+		// { delete: "17" }
+		let noteErrors;
+
+		if (values.has("addNote")) {
+			const subjectId = await chosenSubject(db, batch.id, values.string("about", "batch"));
+
+			if (subjectId === undefined) {
+				await pendingUpload?.discard();
+				throw new Response("Note not found.", { status: 404 });
+			}
+
+			noteErrors = await notes.add(subjectId, { body: values.string("body") }, pendingUpload);
+		} else if (editedNoteId !== null) {
+			noteErrors = await notes.edit(
+				editedNoteId,
+				[batch.id, ...(await activeSampleIds(db, batch.id))],
+				{ body: values.string("body") },
+				pendingUpload,
+				removedFileIds,
+			);
+		} else if (archivedNoteId !== null) {
+			await notes.archive(archivedNoteId, [batch.id, ...(await activeSampleIds(db, batch.id))]);
+		} else {
+			const deletedSampleId = values.integer("delete", null);
+			let errors: SampleErrors | undefined;
+
+			if (deletedSampleId !== null) {
+				errors = await deleteSubmittedSample(db, deletedSampleId);
+			} else if (values.has("add")) {
+				errors = await addSubmittedSample(
+					await sampleContext(container, params.repo),
+					batch,
+					values,
+				);
+			} else {
+				errors = { form: "The sample action is not recognized." };
+			}
+
+			if (errors) return data({ errors }, { status: 400 });
+		}
+
+		if (noteErrors) {
+			return data({ noteErrors }, { status: 400 });
+		}
+
+		return redirect(`/${params.repo}/samples/${batch.slug}`, 303);
+	} catch (error) {
+		if (error instanceof NoteNotFoundError) {
+			throw new Response("Note not found.", { status: 404 });
+		}
+
+		throw error;
+	}
+}
+
+/**
+ * The IDs of the samples of a batch that are not archived. A note about such
+ * a sample can be added, edited, and removed. A note about an archived sample
+ * is only shown.
+ */
+async function activeSampleIds(db: RepoDB, batchId: number): Promise<number[]> {
+	const rows = await db
+		.select({ id: Sample.id })
+		.from(Sample)
+		.where(and(eq(Sample.batchId, batchId), isNull(Sample.metadataArchivedAt)))
+		.all();
+
+	return rows.map((row) => row.id);
+}
+
+/**
+ * Read the subject selected in the field `about`. For example, "batch" gives
+ * the ID of the batch. "sample:17" gives 17 when sample 17 belongs to the
+ * batch and is not archived. Any other value gives undefined.
+ */
+async function chosenSubject(
+	db: RepoDB,
+	batchId: number,
+	about: string,
+): Promise<number | undefined> {
+	if (about === "batch") return batchId;
+
+	const sampleId = about.startsWith("sample:")
+		? parseId53(about.slice("sample:".length))
+		: undefined;
+
+	if (sampleId === undefined) return undefined;
+
+	return (await activeSampleIds(db, batchId)).includes(sampleId) ? sampleId : undefined;
 }
 
 /**
@@ -120,8 +231,10 @@ export default function RepoSamplesBatchSlug({
 	loaderData,
 	params,
 }: Route.ComponentProps) {
-	const { batch, samples, users, archived } = loaderData;
+	const { batch, samples, notes, users, archived } = loaderData;
 	const composition = formatBatchComposition(batch);
+	const sampleErrors = actionData && "errors" in actionData ? actionData.errors : undefined;
+	const noteErrors = actionData && "noteErrors" in actionData ? actionData.noteErrors : undefined;
 
 	return (
 		<div className="space-y-8">
@@ -187,7 +300,30 @@ export default function RepoSamplesBatchSlug({
 					samples={samples}
 					preparers={[...users.values()]}
 					archived={archived}
-					errors={actionData?.errors}
+					errors={sampleErrors}
+				/>
+			</section>
+
+			<section className="overflow-hidden rounded-xl border border-border bg-surface">
+				<div className="px-5 pt-5 pb-4">
+					<Subheading>Notes</Subheading>
+				</div>
+
+				<NoteList
+					notes={notes}
+					pagePath={`/${params.repo}/samples/${batch.slug}`}
+					filePath={`/${params.repo}/files/originals`}
+					readOnly={archived}
+					errors={noteErrors}
+					aboutOptions={[
+						{ value: "batch", label: "This batch" },
+						...samples
+							.filter((sample) => sample.metadataArchivedAt === null)
+							.map((sample) => ({
+								value: `sample:${sample.id}`,
+								label: sample.name,
+							})),
+					]}
 				/>
 			</section>
 		</div>

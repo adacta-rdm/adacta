@@ -16,6 +16,7 @@ import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError.ts";
 import type { RepoDB } from "~/app/services/RepoDB.ts";
 import type { Entity } from "~/drizzle/Schema.ts";
 import { Id } from "~/drizzle/schema/repo.Id.ts";
+import { Note } from "~/drizzle/schema/repo.Note.ts";
 import { Sample } from "~/drizzle/schema/repo.Sample.ts";
 import type { FormValues } from "~/lib/form-values/FormValues.ts";
 import type { Logger } from "~/lib/logger/Logger.ts";
@@ -101,11 +102,25 @@ export async function addSubmittedSample(
 }
 
 /**
- * Delete one sample of the batch.
+ * Delete one sample of the batch. For a sample that has notes, the function
+ * returns a form error instead.
  *
  * @throws Response 404 when the sample is not there, or is archived.
  */
-export async function deleteSubmittedSample(db: RepoDB, sampleId: number): Promise<void> {
+export async function deleteSubmittedSample(
+	db: RepoDB,
+	sampleId: number,
+): Promise<SampleErrors | undefined> {
+	const note = await db
+		.select({ id: Note.id })
+		.from(Note)
+		.where(eq(Note.noteSubjectId, sampleId))
+		.get();
+
+	if (note) {
+		return { form: "This sample has notes, so it cannot be deleted. Archive it instead." };
+	}
+
 	const [deleted] = await db.batch([
 		db.delete(Sample).where(and(eq(Sample.id, sampleId), isNull(Sample.metadataArchivedAt))),
 		db
@@ -121,4 +136,6 @@ export async function deleteSubmittedSample(db: RepoDB, sampleId: number): Promi
 	if (deleted.changes === 0) {
 		throw new Response("Sample not found.", { status: 404 });
 	}
+
+	return undefined;
 }

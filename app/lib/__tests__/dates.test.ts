@@ -1,6 +1,26 @@
 import { describe, expect, test } from "bun:test";
 
-import { formatCalendarDate, formatTimestamp, isCalendarDate } from "~/app/lib/dates.ts";
+import {
+	formatCalendarDate,
+	formatTimestamp,
+	isCalendarDate,
+	parseZonedDateTime,
+} from "~/app/lib/dates.ts";
+
+describe("parseZonedDateTime", () => {
+	test("accepts a moment with Z or an offset", () => {
+		expect(parseZonedDateTime("2026-09-21T12:32:00.123Z")).toEqual(
+			new Date("2026-09-21T12:32:00.123Z"),
+		);
+		expect(parseZonedDateTime("2026-09-21T14:32:00.123+02:00")).toEqual(
+			new Date("2026-09-21T12:32:00.123Z"),
+		);
+	});
+
+	test("rejects a date and time without a zone", () => {
+		expect(parseZonedDateTime("2026-09-21T14:32:00")).toBeUndefined();
+	});
+});
 
 describe("isCalendarDate", () => {
 	test("accepts a date written as year-month-day", () => {

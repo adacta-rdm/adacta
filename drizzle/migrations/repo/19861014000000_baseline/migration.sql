@@ -59,6 +59,28 @@ CREATE TABLE `Manufacturer` (
 	`metadata_archived_at` integer
 );
 --> statement-breakpoint
+CREATE TABLE `Note` (
+	`note_id` integer PRIMARY KEY,
+	`note_subject_id` integer NOT NULL,
+	`body` text NOT NULL,
+	`observed_at` integer,
+	`supersedes_id` integer,
+	`metadata_creator_id` text NOT NULL,
+	`metadata_creation_timestamp` integer NOT NULL,
+	`metadata_archived_at` integer,
+	CONSTRAINT `fk_Note_note_subject_id_Id_id_fk` FOREIGN KEY (`note_subject_id`) REFERENCES `Id`(`id`),
+	CONSTRAINT `fk_Note_supersedes_id_Note_note_id_fk` FOREIGN KEY (`supersedes_id`) REFERENCES `Note`(`note_id`)
+);
+--> statement-breakpoint
+CREATE TABLE `NoteAttachment` (
+	`note_id` integer NOT NULL,
+	`original_file_id` integer NOT NULL,
+	`position` integer NOT NULL,
+	CONSTRAINT `NoteAttachment_pk` PRIMARY KEY(`note_id`, `original_file_id`),
+	CONSTRAINT `fk_NoteAttachment_note_id_Note_note_id_fk` FOREIGN KEY (`note_id`) REFERENCES `Note`(`note_id`),
+	CONSTRAINT `fk_NoteAttachment_original_file_id_OriginalFile_original_file_id_fk` FOREIGN KEY (`original_file_id`) REFERENCES `OriginalFile`(`original_file_id`)
+);
+--> statement-breakpoint
 CREATE TABLE `OriginalFile` (
 	`original_file_id` integer PRIMARY KEY,
 	`upload_id` integer NOT NULL,
@@ -206,6 +228,7 @@ CREATE TABLE `SampleBatch` (
 CREATE UNIQUE INDEX `Channel_key_role_unique` ON `Channel` (`product_id`,`key`,`role`);--> statement-breakpoint
 CREATE UNIQUE INDEX `InventoryEntry_slug_unique` ON `InventoryEntry` (`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Manufacturer_slug_unique` ON `Manufacturer` (`slug`);--> statement-breakpoint
+CREATE UNIQUE INDEX `Note_supersedes_id_unique` ON `Note` (`supersedes_id`);--> statement-breakpoint
 CREATE INDEX `PIDEdge_inventory_entry_idx` ON `PIDEdge` (`inventory_entry_id`);--> statement-breakpoint
 CREATE INDEX `PIDNode_inventory_entry_idx` ON `PIDNode` (`inventory_entry_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Product_slug_unique` ON `Product` (`manufacturer_id`,`slug`);--> statement-breakpoint
