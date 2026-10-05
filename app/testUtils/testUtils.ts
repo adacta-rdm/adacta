@@ -10,9 +10,10 @@
  * Each step uses the same services the application uses. A test therefore
  * never restates what the application already does.
  */
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { Writable } from "node:stream";
 
 import { createLocalAppContainer } from "~/app/.server/appContainer.local.ts";
 import { BetterAuth } from "~/app/services/BetterAuth.ts";
@@ -21,6 +22,7 @@ import { RepoManager } from "~/app/services/RepoManager.ts";
 import { Security } from "~/app/services/Security.ts";
 import { SqliteDatabaseManager } from "~/app/services/SqliteDatabaseManager.ts";
 import { Env, type EnvSource } from "~/lib/env/Env.ts";
+import { LOG_LEVEL, Logger } from "~/lib/logger/Logger.ts";
 import { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 export const TEST_USER = {
@@ -132,4 +134,31 @@ export async function signUpTestUser(
 	});
 
 	return user.id;
+}
+
+/**
+ * Return the names of every stored file, including staged files.
+ */
+export function storedFiles(scope: ServiceContainer): string[] {
+	const directory = scope.get(Env).string("ADACTA_STORAGE_DIR");
+
+	return readdirSync(directory, { recursive: true, withFileTypes: true })
+		.filter((entry) => entry.isFile())
+		.map((entry) => entry.name);
+}
+
+/**
+ * Capture error log lines from a request scope for assertions.
+ */
+export function captureTestLogs(scope: ServiceContainer): string[] {
+	const lines: string[] = [];
+	const stream = new Writable({
+		write(chunk, _encoding, done) {
+			lines.push(String(chunk).trimEnd());
+			done();
+		},
+	});
+	scope.set(new Logger({ level: LOG_LEVEL.ERROR, stream }));
+
+	return lines;
 }

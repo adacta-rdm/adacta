@@ -12,11 +12,11 @@ describe("import action", () => {
 		const request = multipartRequest(new FormData());
 		const [args] = createMiddlewareArgs(scope, { request, params: { repo: "demo" } });
 
-		const response = await action(args);
+		const result = await action(args);
 
-		if (response instanceof Response) throw new Error("Expected action data.");
-		expect(response.init?.status).toBe(400);
-		expect(response.data).toEqual({ error: "Select at least one file." });
+		if (result instanceof Response) throw new Error("Expected action data.");
+		expect(result.init?.status).toBe(400);
+		expect(result.data).toEqual({ error: "Select at least one file." });
 	});
 
 	test("stores every file in one multipart submission", async () => {
@@ -27,11 +27,11 @@ describe("import action", () => {
 		const request = multipartRequest(formData);
 		const [args] = createMiddlewareArgs(scope, { request, params: { repo: "demo" } });
 
-		const response = await action(args);
+		const result = await action(args);
 
-		if (!(response instanceof Response)) throw new Error("Expected a redirect.");
-		expect(response.status).toBe(303);
-		const location = response.headers.get("Location");
+		if (!(result instanceof Response)) throw new Error("Expected a redirect.");
+		expect(result.status).toBe(303);
+		const location = result.headers.get("Location");
 		expect(location).toMatch(/^\/demo\/files\/[0-9]+$/);
 		const files = await scope
 			.get(UploadManager)
@@ -54,11 +54,11 @@ describe("import action", () => {
 		const request = multipartRequest(formData);
 		const [args] = createMiddlewareArgs(scope, { request, params: { repo: "demo" } });
 
-		const response = await action(args);
+		const result = await action(args);
 
-		if (!(response instanceof Response)) throw new Error("Expected a redirect.");
-		expect(response.status).toBe(303);
-		const uploadId = parseId53(response.headers.get("Location")!.split("/").at(-1)!)!;
+		if (!(result instanceof Response)) throw new Error("Expected a redirect.");
+		expect(result.status).toBe(303);
+		const uploadId = parseId53(result.headers.get("Location")!.split("/").at(-1)!)!;
 		const files = await scope.get(UploadManager).filesOfUpload(uploadId);
 		expect(files[0]!.byteSize).toBe(bytes.byteLength);
 	});

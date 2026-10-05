@@ -27,13 +27,13 @@ describe("inventory entry loader", () => {
 	test("responds with 404 when no entry carries the slug", async () => {
 		const scope = await setupEntry();
 
-		const response = await loader(argsFor(scope, "no-such-stand")).then(
+		const result = await loader(argsFor(scope, "no-such-stand")).then(
 			() => undefined,
 			(thrown: unknown) => thrown,
 		);
 
-		expect(response).toBeInstanceOf(Response);
-		expect((response as Response).status).toBe(404);
+		expect(result).toBeInstanceOf(Response);
+		expect((result as Response).status).toBe(404);
 	});
 
 	test("ignores an archived entry", async () => {
@@ -41,12 +41,12 @@ describe("inventory entry loader", () => {
 
 		await scope.get(RepoDB).update(InventoryEntry).set({ metadataArchivedAt: new Date() }).run();
 
-		const response = await loader(argsFor(scope, "methanation-test-stand")).then(
+		const result = await loader(argsFor(scope, "methanation-test-stand")).then(
 			() => undefined,
 			(thrown: unknown) => thrown,
 		);
 
-		expect((response as Response).status).toBe(404);
+		expect((result as Response).status).toBe(404);
 	});
 });
 

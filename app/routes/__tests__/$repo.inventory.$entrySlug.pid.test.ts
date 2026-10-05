@@ -64,11 +64,11 @@ describe("P&ID route", () => {
 	test("saves a graph and reloads it", async () => {
 		const scope = await setupRig();
 
-		const response = await save(scope, graph);
+		const result = await save(scope, graph);
 
-		expect(response).toBeInstanceOf(Response);
-		expect((response as Response).status).toBe(303);
-		expect((response as Response).headers.get("Location")).toBe("/demo/inventory/ammonia-rig/pid");
+		expect(result).toBeInstanceOf(Response);
+		expect((result as Response).status).toBe(303);
+		expect((result as Response).headers.get("Location")).toBe("/demo/inventory/ammonia-rig/pid");
 		expect((await load(scope)).graph).toEqual(graph);
 	});
 
@@ -148,11 +148,11 @@ describe("P&ID route", () => {
 			edges: [{ ...graph.edges[0], target: "missing-node" }],
 		};
 
-		const response = await save(scope, invalidGraph);
+		const result = await save(scope, invalidGraph);
 
-		if (response instanceof Response) throw new Error("Expected action data.");
-		expect(response.init?.status).toBe(400);
-		expect(response.data).toEqual({ error: "The diagram contains invalid data." });
+		if (result instanceof Response) throw new Error("Expected action data.");
+		expect(result.init?.status).toBe(400);
+		expect(result.data).toEqual({ error: "The diagram contains invalid data." });
 	});
 
 	test("keeps both labels of an instrument", async () => {
@@ -195,20 +195,20 @@ describe("P&ID route", () => {
 		const scope = await setupRig();
 		const orphan = { ...graph.nodes[0], id: "orphan", parentId: "missing-node" };
 
-		const response = await save(scope, { nodes: [...graph.nodes, orphan], edges: [] });
+		const result = await save(scope, { nodes: [...graph.nodes, orphan], edges: [] });
 
-		if (response instanceof Response) throw new Error("Expected action data.");
-		expect(response.init?.status).toBe(400);
+		if (result instanceof Response) throw new Error("Expected action data.");
+		expect(result.init?.status).toBe(400);
 	});
 
 	test("rejects a symbol that sits inside itself", async () => {
 		const scope = await setupRig();
 		const self = { ...graph.nodes[0], parentId: graph.nodes[0].id };
 
-		const response = await save(scope, { nodes: [self], edges: [] });
+		const result = await save(scope, { nodes: [self], edges: [] });
 
-		if (response instanceof Response) throw new Error("Expected action data.");
-		expect(response.init?.status).toBe(400);
+		if (result instanceof Response) throw new Error("Expected action data.");
+		expect(result.init?.status).toBe(400);
 	});
 
 	test("keeps the kind of each connection", async () => {
@@ -270,11 +270,11 @@ describe("P&ID route", () => {
 		},
 	])("rejects $name", async ({ edge }) => {
 		const scope = await setupRig();
-		const response = await save(scope, { nodes: graph.nodes, edges: [edge] });
+		const result = await save(scope, { nodes: graph.nodes, edges: [edge] });
 
-		if (response instanceof Response) throw new Error("Expected action data.");
-		expect(response.init?.status).toBe(400);
-		expect(response.data).toEqual({ error: "The diagram contains invalid data." });
+		if (result instanceof Response) throw new Error("Expected action data.");
+		expect(result.init?.status).toBe(400);
+		expect(result.data).toEqual({ error: "The diagram contains invalid data." });
 	});
 
 	test("keeps what a pipe is made of and how large it is", async () => {
@@ -317,11 +317,11 @@ describe("P&ID route", () => {
 			edges: [{ ...graph.edges[0], length: { value: 3, unit: "furlong" } }],
 		};
 
-		const response = await save(scope, invalidGraph);
+		const result = await save(scope, invalidGraph);
 
-		if (response instanceof Response) throw new Error("Expected action data.");
-		expect(response.init?.status).toBe(400);
-		expect(response.data).toEqual({ error: "The diagram contains invalid data." });
+		if (result instanceof Response) throw new Error("Expected action data.");
+		expect(result.init?.status).toBe(400);
+		expect(result.data).toEqual({ error: "The diagram contains invalid data." });
 	});
 
 	test("rejects a connection of an unknown kind", async () => {
@@ -331,11 +331,11 @@ describe("P&ID route", () => {
 			edges: [{ ...graph.edges[0], kind: "dotted" }],
 		};
 
-		const response = await save(scope, invalidGraph);
+		const result = await save(scope, invalidGraph);
 
-		if (response instanceof Response) throw new Error("Expected action data.");
-		expect(response.init?.status).toBe(400);
-		expect(response.data).toEqual({ error: "The diagram contains invalid data." });
+		if (result instanceof Response) throw new Error("Expected action data.");
+		expect(result.init?.status).toBe(400);
+		expect(result.data).toEqual({ error: "The diagram contains invalid data." });
 	});
 
 	test("rejects properties outside the graph format", async () => {
@@ -345,11 +345,11 @@ describe("P&ID route", () => {
 			edges: [],
 		};
 
-		const response = await save(scope, invalidGraph);
+		const result = await save(scope, invalidGraph);
 
-		if (response instanceof Response) throw new Error("Expected action data.");
-		expect(response.init?.status).toBe(400);
-		expect(response.data).toEqual({ error: "The diagram contains invalid data." });
+		if (result instanceof Response) throw new Error("Expected action data.");
+		expect(result.init?.status).toBe(400);
+		expect(result.data).toEqual({ error: "The diagram contains invalid data." });
 	});
 
 	test("rejects an unsupported inlet count", async () => {
@@ -360,10 +360,10 @@ describe("P&ID route", () => {
 			edges: [],
 		};
 
-		const response = await save(scope, invalidGraph);
+		const result = await save(scope, invalidGraph);
 
-		if (response instanceof Response) throw new Error("Expected action data.");
-		expect(response.init?.status).toBe(400);
+		if (result instanceof Response) throw new Error("Expected action data.");
+		expect(result.init?.status).toBe(400);
 	});
 });
 

@@ -15,14 +15,14 @@ describe("original file download", () => {
 			params: { repo: "demo", fileId: String(fileId) },
 		});
 
-		const response = await loader(args);
+		const result = await loader(args);
 
-		expect(response.headers.get("Content-Type")).toBe("text/csv");
-		expect(response.headers.get("Content-Length")).toBe("11");
-		expect(response.headers.get("Content-Disposition")).toBe(
+		expect(result.headers.get("Content-Type")).toBe("text/csv");
+		expect(result.headers.get("Content-Length")).toBe("11");
+		expect(result.headers.get("Content-Disposition")).toBe(
 			"attachment; filename*=UTF-8''measurement%20%C3%A4.csv",
 		);
-		expect(await response.text()).toBe("a,b\n1,2\n3,4");
+		expect(await result.text()).toBe("a,b\n1,2\n3,4");
 	});
 
 	test("answers 404 for an unknown file", async () => {

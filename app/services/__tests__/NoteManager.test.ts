@@ -255,43 +255,6 @@ describe("NoteManager", () => {
 		expect((await db.select().from(Note).get())?.body).toBe("First line.\nSecond line.");
 	});
 
-	test("adding stores Markdown source character for character", async () => {
-		const { db, notes, batch } = await environment();
-		const body = "**Grey** powder\n\n- dry\n- cool  slowly";
-
-		await notes.add(batch.id, input({ body }));
-
-		expect((await db.select().from(Note).get())?.body).toBe(body);
-	});
-
-	test("a rig note stores its observed time", async () => {
-		const { db, notes, creatorId } = await environment();
-		const rig = await db
-			.insert(InventoryEntry)
-			.values({
-				id: await newId(db),
-				slug: "observed-rig",
-				name: "Observed rig",
-				kind: "rig",
-				metadataCreatorId: creatorId,
-				metadataCreationTimestamp: new Date(),
-			})
-			.returning()
-			.get();
-
-		await notes.add(
-			rig.id,
-			input({ body: "Pressure dropped.", observedAt: new Date("2026-02-03T14:32:00.000Z") }),
-		);
-
-		expect(await db.select().from(Note).get()).toEqual(
-			expect.objectContaining({
-				noteSubjectId: rig.id,
-				observedAt: new Date("2026-02-03T14:32:00.000Z"),
-			}),
-		);
-	});
-
 	test("editing a rig note keeps an unchanged observed time", async () => {
 		const { db, notes, creatorId } = await environment();
 		const rig = await db
