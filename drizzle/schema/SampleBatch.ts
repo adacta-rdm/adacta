@@ -1,5 +1,6 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
+import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
@@ -26,7 +27,9 @@ export const SampleBatch = sqliteTable(
 		/**
 		 * User credited with preparing the batch material.
 		 */
-		preparedById: text("prepared_by").notNull(),
+		preparedById: text("prepared_by")
+			.notNull()
+			.references(() => User.id, { onDelete: "restrict" }),
 
 		/**
 		 * The active component, for example "Pt" or "Ni".

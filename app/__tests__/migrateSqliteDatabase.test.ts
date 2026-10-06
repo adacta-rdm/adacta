@@ -7,7 +7,7 @@ import { sqliteDatabasePath } from "~/app/.server/sqliteDatabase.ts";
 import { PID_EDGE_KINDS } from "~/app/lib/PID.ts";
 import { QUANTITY_KINDS } from "~/app/lib/quantities.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
-import { setupTestPersistenceEnvironment } from "~/app/testUtils/testUtils.ts";
+import { setupTestPersistenceEnvironment, signUpTestUser } from "~/app/testUtils/testUtils.ts";
 import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { Channel } from "~/drizzle/schema/Channel.ts";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
@@ -70,7 +70,10 @@ describe("migrateSqliteDatabase", () => {
 			migrateSqliteDatabase(sqliteDatabasePath(container.get(Env)));
 
 			const db = container.get(ApplicationDatabase);
-			const metadata = { metadataCreatorId: "tester", metadataCreationTimestamp: new Date() };
+			const metadata = {
+				metadataCreatorId: await signUpTestUser(container),
+				metadataCreationTimestamp: new Date(),
+			};
 
 			const manufacturer = await db
 				.insert(Manufacturer)

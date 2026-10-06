@@ -1944,6 +1944,17 @@
 			"table": "CatalogSource"
 		},
 		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_CatalogSource_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "CatalogSource"
+		},
+		{
 			"columns": ["product_id"],
 			"tableTo": "Product",
 			"columnsTo": ["product_id"],
@@ -1966,6 +1977,17 @@
 			"table": "Channel"
 		},
 		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Channel_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Channel"
+		},
+		{
 			"columns": ["inventory_entry_id"],
 			"tableTo": "Id",
 			"columnsTo": ["id"],
@@ -1975,6 +1997,28 @@
 			"name": "fk_InventoryEntry_inventory_entry_id_Id_id_fk",
 			"entityType": "fks",
 			"table": "InventoryEntry"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_InventoryEntry_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "InventoryEntry"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Manufacturer_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Manufacturer"
 		},
 		{
 			"columns": ["note_subject_id"],
@@ -1995,6 +2039,17 @@
 			"onDelete": "NO ACTION",
 			"nameExplicit": false,
 			"name": "fk_Note_supersedes_id_Note_note_id_fk",
+			"entityType": "fks",
+			"table": "Note"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Note_metadata_creator_id_User_id_fk",
 			"entityType": "fks",
 			"table": "Note"
 		},
@@ -2028,6 +2083,17 @@
 			"onDelete": "NO ACTION",
 			"nameExplicit": false,
 			"name": "fk_OriginalFile_original_file_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "OriginalFile"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_OriginalFile_metadata_creator_id_User_id_fk",
 			"entityType": "fks",
 			"table": "OriginalFile"
 		},
@@ -2076,6 +2142,17 @@
 			"table": "PIDEdge"
 		},
 		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_PIDEdge_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "PIDEdge"
+		},
+		{
 			"columns": ["inventory_entry_id"],
 			"tableTo": "InventoryEntry",
 			"columnsTo": ["inventory_entry_id"],
@@ -2094,6 +2171,17 @@
 			"onDelete": "CASCADE",
 			"nameExplicit": false,
 			"name": "fk_PIDNode_parent_node_id_PIDNode_pid_node_id_fk",
+			"entityType": "fks",
+			"table": "PIDNode"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_PIDNode_metadata_creator_id_User_id_fk",
 			"entityType": "fks",
 			"table": "PIDNode"
 		},
@@ -2120,6 +2208,17 @@
 			"table": "Product"
 		},
 		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Product_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Product"
+		},
+		{
 			"columns": ["manufacturer_id"],
 			"tableTo": "Manufacturer",
 			"columnsTo": ["manufacturer_id"],
@@ -2131,6 +2230,17 @@
 			"table": "ProductSeries"
 		},
 		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_ProductSeries_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "ProductSeries"
+		},
+		{
 			"columns": ["product_id"],
 			"tableTo": "Product",
 			"columnsTo": ["product_id"],
@@ -2138,6 +2248,17 @@
 			"onDelete": "NO ACTION",
 			"nameExplicit": false,
 			"name": "fk_ProductSpecification_product_id_Product_product_id_fk",
+			"entityType": "fks",
+			"table": "ProductSpecification"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_ProductSpecification_metadata_creator_id_User_id_fk",
 			"entityType": "fks",
 			"table": "ProductSpecification"
 		},
@@ -2164,6 +2285,28 @@
 			"table": "Sample"
 		},
 		{
+			"columns": ["prepared_by"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Sample_prepared_by_User_id_fk",
+			"entityType": "fks",
+			"table": "Sample"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Sample_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Sample"
+		},
+		{
 			"columns": ["sample_batch_id"],
 			"tableTo": "Id",
 			"columnsTo": ["id"],
@@ -2171,6 +2314,28 @@
 			"onDelete": "NO ACTION",
 			"nameExplicit": false,
 			"name": "fk_SampleBatch_sample_batch_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "SampleBatch"
+		},
+		{
+			"columns": ["prepared_by"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_SampleBatch_prepared_by_User_id_fk",
+			"entityType": "fks",
+			"table": "SampleBatch"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_SampleBatch_metadata_creator_id_User_id_fk",
 			"entityType": "fks",
 			"table": "SampleBatch"
 		},

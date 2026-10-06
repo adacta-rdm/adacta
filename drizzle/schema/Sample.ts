@@ -1,5 +1,6 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
+import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
@@ -29,7 +30,9 @@ export const Sample = sqliteTable(
 		/**
 		 * User credited with preparing this physical sample.
 		 */
-		preparedById: text("prepared_by").notNull(),
+		preparedById: text("prepared_by")
+			.notNull()
+			.references(() => User.id, { onDelete: "restrict" }),
 
 		...metadata(),
 	},

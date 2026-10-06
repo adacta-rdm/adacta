@@ -1,5 +1,7 @@
 import { integer, text } from "drizzle-orm/sqlite-core";
 
+import { User } from "~/drizzle/schema/BetterAuth.ts";
+
 /**
  * Columns carried by every domain table.
  *
@@ -11,7 +13,9 @@ import { integer, text } from "drizzle-orm/sqlite-core";
  */
 export function metadata() {
 	return {
-		metadataCreatorId: text("metadata_creator_id").notNull(),
+		metadataCreatorId: text("metadata_creator_id")
+			.notNull()
+			.references(() => User.id, { onDelete: "restrict" }),
 		metadataCreationTimestamp: integer("metadata_creation_timestamp", {
 			mode: "timestamp",
 		}).notNull(),

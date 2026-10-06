@@ -60,7 +60,8 @@ CREATE TABLE `CatalogSource` (
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_CatalogSource_manufacturer_id_Manufacturer_manufacturer_id_fk` FOREIGN KEY (`manufacturer_id`) REFERENCES `Manufacturer`(`manufacturer_id`),
 	CONSTRAINT `fk_CatalogSource_product_series_id_ProductSeries_product_series_id_fk` FOREIGN KEY (`product_series_id`) REFERENCES `ProductSeries`(`product_series_id`),
-	CONSTRAINT `fk_CatalogSource_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`)
+	CONSTRAINT `fk_CatalogSource_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`),
+	CONSTRAINT `fk_CatalogSource_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE TABLE `Channel` (
@@ -75,7 +76,8 @@ CREATE TABLE `Channel` (
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_Channel_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`),
-	CONSTRAINT `fk_Channel_quantity_kind_id_QuantityKind_quantity_kind_id_fk` FOREIGN KEY (`quantity_kind_id`) REFERENCES `QuantityKind`(`quantity_kind_id`) ON UPDATE CASCADE
+	CONSTRAINT `fk_Channel_quantity_kind_id_QuantityKind_quantity_kind_id_fk` FOREIGN KEY (`quantity_kind_id`) REFERENCES `QuantityKind`(`quantity_kind_id`) ON UPDATE CASCADE,
+	CONSTRAINT `fk_Channel_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE TABLE `Id` (
@@ -93,7 +95,8 @@ CREATE TABLE `InventoryEntry` (
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
-	CONSTRAINT `fk_InventoryEntry_inventory_entry_id_Id_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `Id`(`id`)
+	CONSTRAINT `fk_InventoryEntry_inventory_entry_id_Id_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `Id`(`id`),
+	CONSTRAINT `fk_InventoryEntry_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE TABLE `Manufacturer` (
@@ -105,7 +108,8 @@ CREATE TABLE `Manufacturer` (
 	`logo_path` text,
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
-	`metadata_archived_at` integer
+	`metadata_archived_at` integer,
+	CONSTRAINT `fk_Manufacturer_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE TABLE `Note` (
@@ -118,7 +122,8 @@ CREATE TABLE `Note` (
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_Note_note_subject_id_Id_id_fk` FOREIGN KEY (`note_subject_id`) REFERENCES `Id`(`id`),
-	CONSTRAINT `fk_Note_supersedes_id_Note_note_id_fk` FOREIGN KEY (`supersedes_id`) REFERENCES `Note`(`note_id`)
+	CONSTRAINT `fk_Note_supersedes_id_Note_note_id_fk` FOREIGN KEY (`supersedes_id`) REFERENCES `Note`(`note_id`),
+	CONSTRAINT `fk_Note_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE TABLE `NoteAttachment` (
@@ -139,7 +144,8 @@ CREATE TABLE `OriginalFile` (
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
-	CONSTRAINT `fk_OriginalFile_original_file_id_Id_id_fk` FOREIGN KEY (`original_file_id`) REFERENCES `Id`(`id`)
+	CONSTRAINT `fk_OriginalFile_original_file_id_Id_id_fk` FOREIGN KEY (`original_file_id`) REFERENCES `Id`(`id`),
+	CONSTRAINT `fk_OriginalFile_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE TABLE `PIDEdge` (
@@ -168,6 +174,7 @@ CREATE TABLE `PIDEdge` (
 	CONSTRAINT `fk_PIDEdge_source_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`source_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_PIDEdge_target_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`target_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_PIDEdge_kind_PIDEdgeKind_pid_edge_kind_id_fk` FOREIGN KEY (`kind`) REFERENCES `PIDEdgeKind`(`pid_edge_kind_id`) ON UPDATE CASCADE,
+	CONSTRAINT `fk_PIDEdge_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT,
 	CONSTRAINT "PIDEdge_weight_check" CHECK("weight" between 1 and 3),
 	CONSTRAINT "PIDEdge_inner_diameter_check" CHECK(("inner_diameter_value" is null) = ("inner_diameter_unit" is null)),
 	CONSTRAINT "PIDEdge_outer_diameter_check" CHECK(("outer_diameter_value" is null) = ("outer_diameter_unit" is null)),
@@ -195,6 +202,7 @@ CREATE TABLE `PIDNode` (
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_PIDNode_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_PIDNode_parent_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`parent_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
+	CONSTRAINT `fk_PIDNode_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT,
 	CONSTRAINT "PIDNode_inlet_count_check" CHECK("inlet_count" between 1 and 2),
 	CONSTRAINT "PIDNode_orientation_check" CHECK("orientation" between 0 and 3)
 );
@@ -214,7 +222,8 @@ CREATE TABLE `Product` (
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_Product_manufacturer_id_Manufacturer_manufacturer_id_fk` FOREIGN KEY (`manufacturer_id`) REFERENCES `Manufacturer`(`manufacturer_id`),
-	CONSTRAINT `fk_Product_product_series_id_ProductSeries_product_series_id_fk` FOREIGN KEY (`product_series_id`) REFERENCES `ProductSeries`(`product_series_id`)
+	CONSTRAINT `fk_Product_product_series_id_ProductSeries_product_series_id_fk` FOREIGN KEY (`product_series_id`) REFERENCES `ProductSeries`(`product_series_id`),
+	CONSTRAINT `fk_Product_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE TABLE `ProductSeries` (
@@ -228,7 +237,8 @@ CREATE TABLE `ProductSeries` (
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
-	CONSTRAINT `fk_ProductSeries_manufacturer_id_Manufacturer_manufacturer_id_fk` FOREIGN KEY (`manufacturer_id`) REFERENCES `Manufacturer`(`manufacturer_id`)
+	CONSTRAINT `fk_ProductSeries_manufacturer_id_Manufacturer_manufacturer_id_fk` FOREIGN KEY (`manufacturer_id`) REFERENCES `Manufacturer`(`manufacturer_id`),
+	CONSTRAINT `fk_ProductSeries_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE TABLE `ProductSpecification` (
@@ -240,7 +250,8 @@ CREATE TABLE `ProductSpecification` (
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
-	CONSTRAINT `fk_ProductSpecification_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`)
+	CONSTRAINT `fk_ProductSpecification_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`),
+	CONSTRAINT `fk_ProductSpecification_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE TABLE `QuantityKind` (
@@ -257,7 +268,9 @@ CREATE TABLE `Sample` (
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_Sample_sample_id_Id_id_fk` FOREIGN KEY (`sample_id`) REFERENCES `Id`(`id`),
-	CONSTRAINT `fk_Sample_sample_batch_id_SampleBatch_sample_batch_id_fk` FOREIGN KEY (`sample_batch_id`) REFERENCES `SampleBatch`(`sample_batch_id`)
+	CONSTRAINT `fk_Sample_sample_batch_id_SampleBatch_sample_batch_id_fk` FOREIGN KEY (`sample_batch_id`) REFERENCES `SampleBatch`(`sample_batch_id`),
+	CONSTRAINT `fk_Sample_prepared_by_User_id_fk` FOREIGN KEY (`prepared_by`) REFERENCES `User`(`id`) ON DELETE RESTRICT,
+	CONSTRAINT `fk_Sample_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE TABLE `SampleBatch` (
@@ -271,7 +284,9 @@ CREATE TABLE `SampleBatch` (
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
-	CONSTRAINT `fk_SampleBatch_sample_batch_id_Id_id_fk` FOREIGN KEY (`sample_batch_id`) REFERENCES `Id`(`id`)
+	CONSTRAINT `fk_SampleBatch_sample_batch_id_Id_id_fk` FOREIGN KEY (`sample_batch_id`) REFERENCES `Id`(`id`),
+	CONSTRAINT `fk_SampleBatch_prepared_by_User_id_fk` FOREIGN KEY (`prepared_by`) REFERENCES `User`(`id`) ON DELETE RESTRICT,
+	CONSTRAINT `fk_SampleBatch_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `account_issuer_accountId_uidx` ON `Account` (`issuer`,`account_id`);--> statement-breakpoint
