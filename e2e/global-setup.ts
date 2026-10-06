@@ -1,26 +1,15 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
-import { chromium, expect, type FullConfig, type Page } from "@playwright/test";
+import { chromium, expect, type FullConfig } from "@playwright/test";
 
-import { seedInventoryEntry, seedSampleBatch, seedUser } from "./seed-data.ts";
+import { seedUser } from "./seed-data.ts";
 import { AUTH_STATE_PATH } from "./settings.ts";
 
 const user = seedUser("dev");
 
 /**
- * Visit one route and wait for its main heading. This compiles the server and
- * browser modules used by that route before a development test starts.
- */
-async function warmRoute(page: Page, path: string, heading: string): Promise<void> {
-	await page.goto(path, { waitUntil: "domcontentloaded", timeout: 90_000 });
-	await expect(page.getByRole("heading", { name: heading, exact: true, level: 1 })).toBeVisible();
-}
-
-/**
- * Create the authenticated browser state used by the normal journeys. A local
- * run also visits each tested route once because Vite compiles routes on first
- * use.
+ * Create the authenticated browser state used by the normal journeys.
  */
 export default async function globalSetup(config: FullConfig): Promise<void> {
 	const baseURL = config.projects[0]?.use.baseURL;
@@ -49,37 +38,6 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
 
 		mkdirSync(dirname(AUTH_STATE_PATH), { recursive: true });
 		await page.context().storageState({ path: AUTH_STATE_PATH });
-
-		if (process.env.CI) return;
-
-		for (const [path, heading] of [
-			["/inventory", "Inventory"],
-			["/samples", "Samples"],
-			["/samples/new", "Create sample batch"],
-			["/catalog", "Catalog"],
-			["/files/import", "Import files"],
-			["/users", "Users"],
-		] as const) {
-			await warmRoute(page, path, heading);
-		}
-
-		// Dynamic routes are opened through links because their identifiers belong
-		// to the application.
-		const inventoryEntry = seedInventoryEntry("ammonia-synthesis-rig");
-		await warmRoute(page, "/inventory", "Inventory");
-		await page
-			.getByRole("list", { name: "Inventory by location" })
-			.getByRole("link", { name: inventoryEntry.name })
-			.click();
-		await expect(page.getByRole("heading", { name: inventoryEntry.name })).toBeVisible();
-
-		const batch = seedSampleBatch("ni-al2o3-2024a");
-		await warmRoute(page, "/samples", "Samples");
-		await page
-			.getByRole("tree", { name: "Batches by composition" })
-			.getByRole("link", { name: batch.name, exact: true })
-			.click();
-		await expect(page.getByRole("heading", { name: batch.name })).toBeVisible();
 	} finally {
 		await browser.close();
 	}

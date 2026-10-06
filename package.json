@@ -12,11 +12,10 @@
 	},
 	"scripts": {
 		"dev": "bun run db:migrations:migrate && bun run generate && bun --bun react-router dev",
-		"dev:e2e": "sh e2e/server.sh dev",
 		"build": "bun run generate && bun --bun react-router build",
 		"build:tsrc": "bun lib/tsrc/cli.ts",
 		"start": "bun run db:migrations:migrate && bun server.ts",
-		"start:e2e": "sh e2e/server.sh start",
+		"start:e2e": "sh e2e/server.sh",
 		"db:migrations:refresh": "bun scripts/db.ts refresh",
 		"db:migrations:migrate": "bun scripts/db.ts migrate",
 		"db:reset": "bun scripts/db.ts reset",

@@ -37,13 +37,20 @@ bun x playwright install chromium
 
 The test server uses SQLite databases and file storage under `.adacta/e2e/`.
 It resets these directories and loads the `demo` preset before each server
-start. Port 5273 must be free.
+start. It then builds the application and starts the production server. Port
+5273 must be free.
 
-Playwright starts the server for a normal run. During test development, an
-already running server can keep Vite and its hot reload active:
+The suite runs against a production build, locally and in CI. The development
+server reloads every open page when it prepares a newly imported dependency for
+the browser. Such a reload can interrupt any step of a test. A build has no such
+step.
+
+Playwright starts the server for a normal run. During test development, a
+server started once can serve several runs. Restart it after a change to the
+application, because the build does not follow the source files:
 
 ```bash
-bun run dev:e2e
+bun run start:e2e
 PLAYWRIGHT_REUSE_SERVER=1 bun x playwright test
 ```
 
@@ -62,8 +69,6 @@ it, so that journey exercises the sign-in form itself.
    is not visible.
 4. Keep each test independent and limited to one task. Tests run in parallel
    against the same seeded databases.
-5. Add each newly visited route to `e2e/global-setup.ts` when the development
-   server benefits from precompiling it.
 
 Use locators based on role, label, or accessible name. An `input[name]` locator
 is acceptable for a generated form field that has no usable label. Avoid CSS
@@ -99,7 +104,5 @@ test for an intentional change, or delete the test when its user task no longer
 exists. Retries are disabled. A passing second run does not remove the first
 failure. Inspect the saved trace when timing may be involved.
 
-Local runs use the Vite development server. Global setup visits the routes used
-by the tests once, so individual tests do not wait for their first compilation.
-CI builds the application and starts its production server. It uploads the HTML
-report, traces, screenshots, and retained videos for seven days.
+CI uploads the HTML report, traces, screenshots, and retained videos for seven
+days.

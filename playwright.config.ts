@@ -35,11 +35,15 @@ export default defineConfig({
 
 	projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 
+	// The tests run against a production build, locally and in CI. The
+	// development server prepares a dependency for the browser when a page
+	// first imports it. It then reloads every open page. Such a reload can
+	// interrupt any step of a test. A build has no such step.
 	webServer: {
-		command: isCI ? "bun run start:e2e" : "bun run dev:e2e",
+		command: "bun run start:e2e",
 		url: E2E_BASE_URL,
 		reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === "1",
-		timeout: isCI ? 240_000 : 120_000,
+		timeout: 240_000,
 		stdout: "pipe",
 		stderr: "pipe",
 	},

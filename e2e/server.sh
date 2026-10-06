@@ -1,8 +1,6 @@
 #!/usr/bin/env sh
 set -eu
 
-mode="${1-}"
-
 # Every run uses separate databases and file storage. It can therefore reset
 # them without changing the development environment.
 export ADACTA_DB_DIR=".adacta/e2e/db"
@@ -15,18 +13,9 @@ unset NODE_ENV
 
 bun run db:setup demo
 
-case "$mode" in
-	dev)
-		exec bun --bun react-router dev --port 5273 --strictPort
-		;;
-	start)
-		NODE_ENV=production bun run build
-		export NODE_ENV=production
-		export PORT=5273
-		exec bun run start
-		;;
-	*)
-		printf 'Usage: %s <dev|start>\n' "$0" >&2
-		exit 2
-		;;
-esac
+# The tests run against a production build. See the comment on webServer in
+# playwright.config.ts.
+NODE_ENV=production bun run build
+export NODE_ENV=production
+export PORT=5273
+exec bun run start
