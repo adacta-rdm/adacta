@@ -9,6 +9,7 @@ import { Outlet, useLocation, useNavigate } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import { FileDropTarget } from "~/app/components/FileDropTarget.tsx";
+import { PageBreadcrumbs } from "~/app/components/PageBreadcrumbs.tsx";
 import { AppLayout } from "~/app/layout/AppLayout.tsx";
 import { appendUniqueFiles } from "~/app/lib/appendUniqueFiles.ts";
 import { groupBatchesByComposition } from "~/app/lib/batchComposition.ts";
@@ -109,6 +110,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
 				buildings={loaderData.buildings}
 				batchGroups={loaderData.batchGroups}
 			>
+				<PageBreadcrumbs />
 				<Outlet context={context} />
 			</AppLayout>
 		</FileDropTarget>

@@ -14,7 +14,7 @@ const user = seedUser("dev");
  */
 async function warmRoute(page: Page, path: string, heading: string): Promise<void> {
 	await page.goto(path, { waitUntil: "domcontentloaded", timeout: 90_000 });
-	await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
+	await expect(page.getByRole("heading", { name: heading, exact: true, level: 1 })).toBeVisible();
 }
 
 /**

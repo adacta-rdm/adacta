@@ -10,12 +10,17 @@ import { Link, Outlet } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import { ManufacturerLogo } from "~/app/components/ManufacturerLogo.tsx";
+import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
 
 import type { Route } from "./+types/catalog.$manufacturerSlug.ts";
+
+export const handle = {
+	breadcrumb: (loaderData) => loaderData?.manufacturer.name,
+} satisfies BreadcrumbHandle<Route.ComponentProps["loaderData"]>;
 
 export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 

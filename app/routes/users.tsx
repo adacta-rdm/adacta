@@ -1,6 +1,7 @@
 import { data, Form, redirect, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { UserManager, UserEmailAlreadyExistsError } from "~/app/services/UserManager.ts";
 import { Badge } from "~/catalyst-ui/badge.tsx";
 import { Description, ErrorMessage, Field, Fieldset, Label } from "~/catalyst-ui/fieldset.tsx";
@@ -10,6 +11,8 @@ import { Text } from "~/catalyst-ui/text.tsx";
 import { FormValues } from "~/lib/form-values/FormValues.ts";
 
 import type { Route } from "./+types/users.ts";
+
+export const handle = { breadcrumb: "Users" } satisfies BreadcrumbHandle;
 
 const EMAIL_ADDRESS = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

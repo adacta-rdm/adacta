@@ -10,6 +10,7 @@ import { NavLink, Outlet } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import { KindIcon } from "~/app/components/KindIcon.tsx";
+import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { formatLocation } from "~/app/lib/location.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { UserManager } from "~/app/services/UserManager.ts";
@@ -18,6 +19,10 @@ import { Text } from "~/catalyst-ui/text.tsx";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 
 import type { Route } from "./+types/inventory.$entrySlug.ts";
+
+export const handle = {
+	breadcrumb: (loaderData) => loaderData?.entry.name,
+} satisfies BreadcrumbHandle<Route.ComponentProps["loaderData"]>;
 
 export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 

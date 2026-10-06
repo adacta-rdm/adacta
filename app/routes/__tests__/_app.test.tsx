@@ -1,6 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
+import { renderToStaticMarkup } from "react-dom/server";
+import { createRoutesStub } from "react-router";
+
 import * as appRoute from "~/app/routes/_app.tsx";
+import * as batchPage from "~/app/routes/samples.$batchSlug._index.tsx";
+import * as batchLayout from "~/app/routes/samples.$batchSlug.tsx";
+import * as samplesRoute from "~/app/routes/samples.tsx";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
 import { createTestBatch, createTestRig } from "~/app/testUtils/testRecords.ts";
 import { testRoute } from "~/app/testUtils/testRoute.ts";
@@ -50,6 +56,59 @@ describe("_app", () => {
 			expect(result.data?.batchGroups[0]?.supports[0]?.batches.map((row) => row.slug)).toEqual([
 				batch.slug,
 			]);
+		});
+	});
+
+	describe("component", () => {
+		test("shows the breadcrumb trail above the batch page", async () => {
+			const scope = await setupTestRequestScope();
+			const batch = await createTestBatch(scope);
+			const appData = (await testRoute(scope, appRoute, {}).loader()).data!;
+			const params = { batchSlug: batch.slug };
+			const layoutData = (await testRoute(scope, batchLayout, params).loader()).data!;
+			const pageData = (await testRoute(scope, batchPage, params).loader()).data!;
+			const Stub = createRoutesStub([
+				{
+					id: "app",
+					Component: appRoute.default,
+					loader: () => appData,
+					children: [
+						{
+							path: "/samples",
+							Component: samplesRoute.default,
+							handle: samplesRoute.handle,
+							children: [
+								{
+									id: "batch",
+									path: ":batchSlug",
+									Component: batchLayout.default,
+									loader: () => layoutData,
+									handle: batchLayout.handle,
+									children: [
+										{
+											id: "page",
+											index: true,
+											Component: batchPage.default,
+											loader: () => pageData,
+										},
+									],
+								},
+							],
+						},
+					],
+				},
+			]);
+
+			const html = renderToStaticMarkup(
+				<Stub
+					initialEntries={[`/samples/${batch.slug}`]}
+					hydrationData={{ loaderData: { app: appData, batch: layoutData, page: pageData } }}
+				/>,
+			);
+
+			expect(html.match(/aria-label="Breadcrumb"/g)).toHaveLength(1);
+			expect(html).toMatch(/aria-label="Breadcrumb".*Samples<\/a>.*Pt batch<\/span>.*<h1/);
+			expect(html).toMatch(/<h1[^>]*>Pt batch<\/h1>/);
 		});
 	});
 });

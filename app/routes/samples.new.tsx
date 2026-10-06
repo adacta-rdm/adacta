@@ -1,6 +1,7 @@
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { SampleBatchFields } from "~/app/components/SampleBatchFields.tsx";
 import { readSampleBatchFields } from "~/app/lib/sampleBatchFields.ts";
 import { availableSlug } from "~/app/lib/slugs.ts";
@@ -16,6 +17,8 @@ import { FormValues } from "~/lib/form-values/FormValues.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 
 import type { Route } from "./+types/samples.new.ts";
+
+export const handle = { breadcrumb: "New batch" } satisfies BreadcrumbHandle;
 
 export function meta() {
 	return [{ title: "Create sample batch — Adacta" }];

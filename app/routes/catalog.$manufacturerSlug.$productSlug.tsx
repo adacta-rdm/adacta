@@ -10,6 +10,7 @@ import { and, asc, eq, isNull } from "drizzle-orm";
 import { Link } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { formatTimestamp } from "~/app/lib/dates.ts";
 import { quantityKindName } from "~/app/lib/quantities.ts";
 import { compareSpecifications } from "~/app/lib/specificationComparison.ts";
@@ -25,6 +26,10 @@ import { ProductSeries } from "~/drizzle/schema/ProductSeries.ts";
 import { ProductSpecification } from "~/drizzle/schema/ProductSpecification.ts";
 
 import type { Route } from "./+types/catalog.$manufacturerSlug.$productSlug.ts";
+
+export const handle = {
+	breadcrumb: (loaderData) => loaderData?.product.name,
+} satisfies BreadcrumbHandle<Route.ComponentProps["loaderData"]>;
 
 export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 

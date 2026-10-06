@@ -7,12 +7,12 @@ import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 
 import type { loader as appLoader } from "./_app.tsx";
 
+export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
+
 /**
  * The application layout loads inventory entries for the sidebar.
  * This page therefore reads the same data.
  */
-export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
-
 export default function InventoryIndex() {
 	const data = useRouteLoaderData<typeof appLoader>("routes/_app");
 

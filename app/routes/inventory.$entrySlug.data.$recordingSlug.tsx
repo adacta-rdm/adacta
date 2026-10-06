@@ -1,9 +1,14 @@
+import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { TimeSeriesChart } from "~/app/components/TimeSeriesChart.tsx";
 import { exampleRecording } from "~/app/examples/exampleRecordings.ts";
 import { Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 
-import type { Route } from "./+types/inventory.$entrySlug.data_.$recordingSlug.ts";
+import type { Route } from "./+types/inventory.$entrySlug.data.$recordingSlug.ts";
+
+export const handle = {
+	breadcrumb: (loaderData) => loaderData?.title,
+} satisfies BreadcrumbHandle<Route.ComponentProps["loaderData"]>;
 
 export function meta({ loaderData }: Route.MetaArgs) {
 	return [{ title: loaderData ? `${loaderData.title} — Adacta` : "Recorded data — Adacta" }];

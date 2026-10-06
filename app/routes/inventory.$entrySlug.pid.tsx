@@ -13,6 +13,7 @@ import {
 import { isPIDGraph } from "@/tsrc/app/lib/PID";
 import { services } from "~/app/.server/context.ts";
 import { PIDEditor } from "~/app/components/PIDEditor.tsx";
+import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import type { PIDGraph, PIDLength, PIDLengthUnit } from "~/app/lib/PID.ts";
 import { isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
 import { type BatchStatement, ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
@@ -26,6 +27,8 @@ import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 
 import type { Route } from "./+types/inventory.$entrySlug.pid.ts";
 import type { loader as entryLoader } from "./inventory.$entrySlug.tsx";
+
+export const handle = { breadcrumb: "P&ID" } satisfies BreadcrumbHandle;
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const db = context.get(services).get(ApplicationDatabase);

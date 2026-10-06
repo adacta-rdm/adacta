@@ -2,17 +2,17 @@ import { Outlet } from "react-router";
 
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 
-export const handle = { breadcrumb: "Samples" } satisfies BreadcrumbHandle;
+export const handle = { breadcrumb: "Inventory" } satisfies BreadcrumbHandle;
 
 export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
 export function meta() {
-	return [{ title: "Samples — Adacta" }];
+	return [{ title: "Inventory — Adacta" }];
 }
 
 /**
- * Provides the page content selected within the samples section.
+ * Provides the page content selected within the inventory section.
  */
-export default function Samples() {
+export default function Inventory() {
 	return <Outlet />;
 }

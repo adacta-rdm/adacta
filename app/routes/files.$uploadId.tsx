@@ -2,6 +2,7 @@ import { ArrowDownTrayIcon, DocumentTextIcon } from "@heroicons/react/20/solid";
 import { Link } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { UploadManager, UploadNotFoundError } from "~/app/services/UploadManager.ts";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
@@ -9,6 +10,8 @@ import { parseId53 } from "~/lib/id53/parseId53.ts";
 import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
 
 import type { Route } from "./+types/files.$uploadId.ts";
+
+export const handle = { breadcrumb: "Uploaded files" } satisfies BreadcrumbHandle;
 
 export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 

@@ -3,6 +3,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { data, redirect } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { parseZonedDateTime } from "~/app/lib/dates.ts";
 import { readNoteFormData } from "~/app/lib/noteFormData.ts";
 import { noteErrorsWithFileRetry, resolveNoteAuthors } from "~/app/lib/notes.ts";
@@ -15,6 +16,8 @@ import { Subheading } from "~/catalyst-ui/heading.tsx";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 
 import type { Route } from "./+types/inventory.$entrySlug.notes.ts";
+
+export const handle = { breadcrumb: "Notes" } satisfies BreadcrumbHandle;
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const container = context.get(services);

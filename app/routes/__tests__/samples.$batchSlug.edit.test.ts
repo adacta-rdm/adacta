@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
 
-import * as batchRoute from "~/app/routes/samples.$batchSlug.tsx";
-import * as editRoute from "~/app/routes/samples.$batchSlug_.edit.tsx";
+import * as batchRoute from "~/app/routes/samples.$batchSlug._index.tsx";
+import * as editRoute from "~/app/routes/samples.$batchSlug.edit.tsx";
 import { Security } from "~/app/services/Security.ts";
 import { createTestBatch } from "~/app/testUtils/testRecords.ts";
 import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
 
-describe("samples.$batchSlug_.edit", () => {
+describe("samples.$batchSlug.edit", () => {
 	describe("loader", () => {
 		test("returns the batch and the people who may prepare it", async () => {
 			const scope = await setupTestRequestScope();

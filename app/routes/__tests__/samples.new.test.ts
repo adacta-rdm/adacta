@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { eq } from "drizzle-orm";
 
-import * as batchRoute from "~/app/routes/samples.$batchSlug.tsx";
+import * as batchRoute from "~/app/routes/samples.$batchSlug._index.tsx";
 import * as indexRoute from "~/app/routes/samples._index.tsx";
 import * as newRoute from "~/app/routes/samples.new.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";

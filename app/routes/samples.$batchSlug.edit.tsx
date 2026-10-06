@@ -12,6 +12,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { SampleBatchFields } from "~/app/components/SampleBatchFields.tsx";
 import { readSampleBatchFields } from "~/app/lib/sampleBatchFields.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
@@ -21,7 +22,9 @@ import { Text } from "~/catalyst-ui/text.tsx";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { FormValues } from "~/lib/form-values/FormValues.ts";
 
-import type { Route } from "./+types/samples.$batchSlug_.edit.ts";
+import type { Route } from "./+types/samples.$batchSlug.edit.ts";
+
+export const handle = { breadcrumb: "Edit" } satisfies BreadcrumbHandle;
 
 export function meta() {
 	return [{ title: "Edit sample batch — Adacta" }];

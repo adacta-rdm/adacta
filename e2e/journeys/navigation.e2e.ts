@@ -1,11 +1,10 @@
 import { href } from "react-router";
 
 import { expect, expectURL, followLink, test } from "../fixtures.ts";
-import { SEED_PRESET_INFO, seedInventoryEntry } from "../seed-data.ts";
+import { seedInventoryEntry } from "../seed-data.ts";
 
-test("the inventory can be opened from the home page", async ({ page }) => {
+test("the home page opens the inventory", async ({ page }) => {
 	await page.goto("/");
-	await page.getByRole("link", { name: SEED_PRESET_INFO.name }).click();
 
 	await expectURL(page, "/inventory");
 	await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
@@ -42,6 +41,6 @@ test("the main application sections open", async ({ page }) => {
 	] as const) {
 		await page.goto(href(route));
 		await expectURL(page, route);
-		await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
+		await expect(page.getByRole("heading", { name: heading, exact: true, level: 1 })).toBeVisible();
 	}
 });

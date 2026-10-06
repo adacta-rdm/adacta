@@ -10,6 +10,7 @@ import {
 } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { UploadForm } from "~/app/components/UploadForm.tsx";
 import type { AppContext } from "~/app/routes/_app.tsx";
 import { Security } from "~/app/services/Security.ts";
@@ -18,6 +19,8 @@ import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 
 import type { Route } from "./+types/files.import.ts";
+
+export const handle = { breadcrumb: "Import files" } satisfies BreadcrumbHandle;
 
 export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
