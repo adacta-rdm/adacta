@@ -43,13 +43,15 @@ describe("P&ID clipboard", () => {
 		);
 
 		expect(pasted.nodes).toEqual([
-			{ ...fragment.nodes[0], id: "new-node-1", position: { x: 120, y: 70 } },
+			{ ...fragment.nodes[0], id: "new-node-1", symbolKey: null, position: { x: 120, y: 70 } },
 			{
 				...fragment.nodes[1],
 				id: "new-node-2",
+				symbolKey: null,
 				parentId: "new-node-1",
 			},
 		]);
+		expect(fragment.nodes.map((node) => node.symbolKey)).toEqual(["V-1", "TI-1"]);
 		expect(pasted.edges).toEqual([
 			{
 				...fragment.edges[0],
@@ -78,6 +80,9 @@ function fixture(): PIDGraph {
 			kind: "vertical-vessel",
 			label: "V-1",
 			secondaryLabel: null,
+			symbolKey: "V-1",
+			equipmentId: 42,
+			sampleId: null,
 			parentId: null,
 			inletCount: 1,
 			orientation: 0,
@@ -88,6 +93,9 @@ function fixture(): PIDGraph {
 			kind: "instrument",
 			label: "TI",
 			secondaryLabel: "1",
+			symbolKey: "TI-1",
+			equipmentId: null,
+			sampleId: 43,
 			parentId: "vessel",
 			inletCount: 1,
 			orientation: 1,
@@ -98,6 +106,9 @@ function fixture(): PIDGraph {
 			kind: "pump",
 			label: "P-1",
 			secondaryLabel: null,
+			symbolKey: null,
+			equipmentId: null,
+			sampleId: null,
 			parentId: null,
 			inletCount: 1,
 			orientation: 0,

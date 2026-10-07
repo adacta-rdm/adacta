@@ -104,15 +104,13 @@ export function AppLayout({
 								<SidebarLabel className={collapsed ? "sr-only" : undefined}>Samples</SidebarLabel>
 							</SidebarItem>
 							<SidebarItem
-								href={"/files/import"}
+								href={"/files"}
 								current={section === "files"}
-								title={collapsed ? "Import files" : undefined}
+								title={collapsed ? "Files" : undefined}
 								className={collapsed ? COLLAPSED_SIDEBAR_ITEM : undefined}
 							>
 								<ArrowUpTrayIcon />
-								<SidebarLabel className={collapsed ? "sr-only" : undefined}>
-									Import files
-								</SidebarLabel>
+								<SidebarLabel className={collapsed ? "sr-only" : undefined}>Files</SidebarLabel>
 							</SidebarItem>
 							<SidebarItem
 								href={"/users"}

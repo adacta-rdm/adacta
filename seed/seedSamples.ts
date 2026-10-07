@@ -18,7 +18,7 @@ import { Id } from "~/drizzle/schema/Id.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
-import { jsonFiles, readJson, seedPath } from "~/seed/files.ts";
+import { jsonFiles, keyOf, readJson, seedPath } from "~/seed/files.ts";
 
 /**
  * One file in a preset's "samples/" directory.
@@ -48,13 +48,14 @@ export async function seedSamples(
 	scope: ServiceContainer,
 	preset: string,
 	userIds: Map<string, string>,
-): Promise<{ batches: number; samples: number }> {
+): Promise<{ batches: number; samples: number; sampleIds: Map<string, number> }> {
 	const db = scope.get(ApplicationDatabase);
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
 
 	const files = jsonFiles(seedPath("presets", preset, "samples"));
 	let samples = 0;
+	const sampleIds = new Map<string, number>();
 
 	for (const file of files) {
 		const seed = readJson<SeedBatch>(file);
@@ -91,17 +92,18 @@ export async function seedSamples(
 		]);
 
 		for (const name of seed.samples) {
-			await addSample(db, {
+			const sample = await addSample(db, {
 				batchId,
 				name,
 				preparedById,
 				metadataCreatorId: creatorId,
 				metadataCreationTimestamp: createdAt,
 			});
+			sampleIds.set(`${keyOf(file)}/${name}`, sample.id);
 
 			samples += 1;
 		}
 	}
 
-	return { batches: files.length, samples };
+	return { batches: files.length, samples, sampleIds };
 }

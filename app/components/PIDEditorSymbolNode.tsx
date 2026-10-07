@@ -7,6 +7,7 @@ import type { PIDNode } from "~/app/lib/PIDEditorGraph.ts";
 export function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {
 	const ConnectableSymbol = getPIDSymbolComponents(data.kind).ConnectableSymbol;
 	const maximumSize = maximumSizeForPIDSymbol(data.kind, 56);
+	const marked = selected || data.linkedSelected === true;
 
 	// A note is its own text. Drawing the palette glyph as well would put a mark
 	// on the diagram that stands for nothing.
@@ -14,7 +15,7 @@ export function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {
 		return (
 			<div
 				className={
-					selected
+					marked
 						? "pid-symbol-selected max-w-48 rounded bg-surface/90 px-1 text-xs leading-normal text-foreground"
 						: "max-w-48 rounded bg-surface/90 px-1 text-xs leading-normal text-foreground"
 				}
@@ -28,7 +29,7 @@ export function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {
 		<div className="group/pid-node relative inline-flex items-center justify-center text-foreground">
 			<ConnectableSymbol
 				nodeId={id}
-				selected={selected}
+				selected={marked}
 				inletCount={data.inletCount}
 				orientation={data.orientation}
 				maximumSize={maximumSize}

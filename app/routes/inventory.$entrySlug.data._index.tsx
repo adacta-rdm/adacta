@@ -1,48 +1,213 @@
 import { ChartBarIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import { Link } from "react-router";
 
+import { services } from "~/app/.server/context.ts";
 import { TimeSeriesSparkline } from "~/app/components/TimeSeriesSparkline.tsx";
-import { exampleRecordings } from "~/app/examples/exampleRecordings.ts";
+import { datasetCharts } from "~/app/lib/datasetCharts.ts";
+import type { DatasetSummary } from "~/app/lib/datasetSummary.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
+import { Dataset } from "~/drizzle/schema/Dataset.ts";
+import { DatasetColumn } from "~/drizzle/schema/DatasetColumn.ts";
+import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
 
-export default function InventoryEntrySlugDataIndex() {
+import type { Route } from "./+types/inventory.$entrySlug.data._index.ts";
+
+export async function loader({ context, params }: Route.LoaderArgs) {
+	const db = context.get(services).get(ApplicationDatabase);
+	const rig = await db
+		.select({ id: InventoryEntry.id })
+		.from(InventoryEntry)
+		.where(
+			and(
+				eq(InventoryEntry.slug, params.entrySlug),
+				eq(InventoryEntry.kind, "rig"),
+				isNull(InventoryEntry.metadataArchivedAt),
+			),
+		)
+		.get();
+
+	if (!rig) {
+		throw new Response(`Rig "${params.entrySlug}" not found.`, { status: 404 });
+	}
+
+	const datasets = await db
+		.select({
+			id: Dataset.id,
+			csvName: OriginalFile.originalName,
+			rowCount: Dataset.rowCount,
+			operatorEmail: Dataset.operatorEmail,
+			startTime: Dataset.startTime,
+			importedAt: Dataset.metadataCreationTimestamp,
+			analysisSnapshot: Dataset.analysisSnapshot,
+		})
+		.from(Dataset)
+		.innerJoin(OriginalFile, eq(OriginalFile.id, Dataset.csvFileId))
+		.where(
+			and(
+				eq(Dataset.rigId, rig.id),
+				isNull(Dataset.metadataArchivedAt),
+				isNull(OriginalFile.metadataArchivedAt),
+			),
+		)
+		.orderBy(desc(Dataset.metadataCreationTimestamp))
+		.all();
+	const columns = datasets.length
+		? await db
+				.select()
+				.from(DatasetColumn)
+				.where(
+					inArray(
+						DatasetColumn.datasetId,
+						datasets.map(({ id }) => id),
+					),
+				)
+				.orderBy(asc(DatasetColumn.position))
+				.all()
+		: [];
+	const columnsByDataset = new Map<number, typeof columns>();
+	for (const column of columns) {
+		const datasetColumns = columnsByDataset.get(column.datasetId) ?? [];
+		datasetColumns.push(column);
+		columnsByDataset.set(column.datasetId, datasetColumns);
+	}
+
+	return {
+		datasets: datasets.map((dataset) => {
+			const datasetColumns = columnsByDataset.get(dataset.id) ?? [];
+			const analysis = dataset.analysisSnapshot
+				? (JSON.parse(dataset.analysisSnapshot) as DatasetSummary)
+				: null;
+			const rows = analysis
+				? analysis.overview.map((point) =>
+						datasetColumns.map((column) =>
+							column.parquetType === "TIMESTAMP"
+								? "time" in point
+									? point.time
+									: null
+								: column.axis === "numeric"
+									? "x" in point
+										? String(point.x)
+										: null
+									: (point.values[column.position]?.toString() ?? null),
+						),
+					)
+				: [];
+			const charts = analysis
+				? datasetCharts(
+						datasetColumns.map((column) => ({
+							id: String(column.id),
+							position: column.position,
+							displayName: column.name,
+							parquetType: column.parquetType,
+							axis: column.axis,
+							unit: column.unit,
+							inventoryEntryId: column.inventoryEntryId,
+							inventoryName: column.inventoryName,
+							channelKey: column.channelKey,
+							channelRole: column.channelRole,
+							quantityKindId: column.quantityKindId,
+							gasName: column.gasName,
+							pidNodeId: column.pidNodeId,
+						})),
+						[],
+						rows,
+					).flatMap((sample) => sample.sections.flatMap((section) => section.charts))
+				: [];
+			const temperatureColumnIds = new Set(
+				datasetColumns
+					.filter(
+						(column) =>
+							column.quantityKindId === "Temperature" ||
+							column.channelKey?.toLowerCase().includes("temperature") ||
+							column.name.toLowerCase().includes("temperature"),
+					)
+					.map((column) => String(column.id)),
+			);
+			const temperatureChart = charts.find((chart) =>
+				chart.series.some((series) => temperatureColumnIds.has(series.id ?? "")),
+			);
+
+			return {
+				id: dataset.id,
+				csvName: dataset.csvName,
+				rowCount: dataset.rowCount,
+				operatorEmail: dataset.operatorEmail,
+				startTime: dataset.startTime?.toISOString() ?? null,
+				importedAt: dataset.importedAt.toISOString(),
+				preview: temperatureChart
+					? {
+							...temperatureChart,
+							series: temperatureChart.series.map((series) => ({
+								...series,
+								data: series.data.map((point) =>
+									"time" in point ? { time: point.time.toISOString(), value: point.value } : point,
+								),
+							})),
+						}
+					: null,
+			};
+		}),
+	};
+}
+
+export default function InventoryEntrySlugDataIndex({ loaderData }: Route.ComponentProps) {
 	return (
 		<section>
 			<Subheading>Recorded data</Subheading>
-			<Text className="mt-2">Datasets recorded using this rig.</Text>
+			<Text className="mt-2">Datasets imported for this rig.</Text>
 
-			<ul className="mt-6 divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
-				{exampleRecordings.map((recording) => (
-					<li key={recording.slug}>
-						<Link
-							to={recording.slug}
-							className="grid items-center gap-4 p-4 hover:bg-surface-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus lg:grid-cols-[minmax(0,1fr)_auto]"
-						>
-							<span className="flex min-w-0 items-center gap-4">
-								<span className="grid size-10 shrink-0 place-items-center rounded-lg bg-surface-muted text-foreground-muted">
-									<ChartBarIcon className="size-5" />
-								</span>
-								<span className="min-w-0 flex-1">
-									<span className="block font-semibold text-foreground">{recording.title}</span>
-									<span className="mt-1 block text-sm text-foreground-muted">
-										{recording.summary}
+			{loaderData.datasets.length === 0 ? (
+				<p className="mt-6 text-sm text-foreground-muted">
+					No datasets have been imported for this rig.
+				</p>
+			) : (
+				<ul className="mt-6 divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
+					{loaderData.datasets.map((dataset) => (
+						<li key={dataset.id}>
+							<Link
+								to={`/files/datasets/${dataset.id}`}
+								className="grid items-center gap-4 p-4 hover:bg-surface-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus lg:grid-cols-[minmax(0,1fr)_auto]"
+							>
+								<span className="flex min-w-0 items-center gap-4">
+									<span className="grid size-10 shrink-0 place-items-center rounded-lg bg-surface-muted text-foreground-muted">
+										<ChartBarIcon className="size-5" />
+									</span>
+									<span className="min-w-0 flex-1">
+										<span className="block truncate font-semibold text-foreground">
+											{dataset.csvName}
+										</span>
+										<span className="mt-1 block text-sm text-foreground-muted">
+											{dataset.rowCount.toLocaleString()} rows
+											{dataset.operatorEmail ? ` · ${dataset.operatorEmail}` : ""}
+											{dataset.startTime ? ` · Starts ${formatDate(dataset.startTime)}` : ""}
+										</span>
 									</span>
 								</span>
-							</span>
-
-							<span className="flex min-w-0 items-center gap-3">
-								<span className="grid min-w-0 flex-1 grid-cols-2 gap-3 lg:w-96 lg:flex-none">
-									{recording.previews.map((preview) => (
-										<TimeSeriesSparkline key={preview.label} {...preview} />
-									))}
+								<span className="flex min-w-0 items-center gap-3">
+									<span className="min-w-0 flex-1 lg:w-48 lg:flex-none">
+										{dataset.preview ? <TimeSeriesSparkline {...dataset.preview} /> : null}
+									</span>
+									<span className="flex shrink-0 items-center gap-2 text-sm text-foreground-muted">
+										Imported {formatDate(dataset.importedAt)}
+										<ChevronRightIcon className="size-5" />
+									</span>
 								</span>
-								<ChevronRightIcon className="size-5 shrink-0 text-foreground-muted" />
-							</span>
-						</Link>
-					</li>
-				))}
-			</ul>
+							</Link>
+						</li>
+					))}
+				</ul>
+			)}
 		</section>
 	);
+}
+
+function formatDate(value: string) {
+	return new Intl.DateTimeFormat(undefined, {
+		dateStyle: "medium",
+		timeStyle: "short",
+	}).format(new Date(value));
 }

@@ -29,6 +29,18 @@
 			"entityType": "tables"
 		},
 		{
+			"name": "Dataset",
+			"entityType": "tables"
+		},
+		{
+			"name": "DatasetColumn",
+			"entityType": "tables"
+		},
+		{
+			"name": "DatasetSample",
+			"entityType": "tables"
+		},
+		{
 			"name": "Id",
 			"entityType": "tables"
 		},
@@ -644,6 +656,446 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
+			"name": "dataset_id",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "rig_id",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "upload_id",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "csv_file_id",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sidecar_file_id",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "operator_id",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "operator_email",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "row_count",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "start_time",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "end_time",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sidecar_snapshot",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "analysis_snapshot",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "data_path",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "Dataset"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": true,
+			"default": null,
+			"generated": null,
+			"name": "dataset_column_id",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "dataset_id",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "position",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "field_name",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "parquet_type",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "axis",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "symbol_key",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inventory_entry_id",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inventory_name",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "channel_id",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "channel_key",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "channel_role",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "quantity_kind_id",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "gas_name",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "unit",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "pid_node_id",
+			"entityType": "columns",
+			"table": "DatasetColumn"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "dataset_id",
+			"entityType": "columns",
+			"table": "DatasetSample"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "position",
+			"entityType": "columns",
+			"table": "DatasetSample"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sample_id",
+			"entityType": "columns",
+			"table": "DatasetSample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sample_name",
+			"entityType": "columns",
+			"table": "DatasetSample"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sample_batch_name",
+			"entityType": "columns",
+			"table": "DatasetSample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "symbol_key",
+			"entityType": "columns",
+			"table": "DatasetSample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "identifier",
+			"entityType": "columns",
+			"table": "DatasetSample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "pid_node_id",
+			"entityType": "columns",
+			"table": "DatasetSample"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "anchor_node_id",
+			"entityType": "columns",
+			"table": "DatasetSample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inlet_node_ids",
+			"entityType": "columns",
+			"table": "DatasetSample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "outlet_node_ids",
+			"entityType": "columns",
+			"table": "DatasetSample"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
 			"name": "id",
 			"entityType": "columns",
 			"table": "Id"
@@ -685,6 +1137,26 @@
 			"default": null,
 			"generated": null,
 			"name": "kind",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "product_id",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "serial_number",
 			"entityType": "columns",
 			"table": "InventoryEntry"
 		},
@@ -1285,6 +1757,36 @@
 			"default": null,
 			"generated": null,
 			"name": "label",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "symbol_key",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "equipment_entry_id",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sample_id",
 			"entityType": "columns",
 			"table": "PIDNode"
 		},
@@ -1988,6 +2490,127 @@
 			"table": "Channel"
 		},
 		{
+			"columns": ["dataset_id"],
+			"tableTo": "Id",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Dataset_dataset_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "Dataset"
+		},
+		{
+			"columns": ["rig_id"],
+			"tableTo": "InventoryEntry",
+			"columnsTo": ["inventory_entry_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Dataset_rig_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "Dataset"
+		},
+		{
+			"columns": ["csv_file_id"],
+			"tableTo": "OriginalFile",
+			"columnsTo": ["original_file_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Dataset_csv_file_id_OriginalFile_original_file_id_fk",
+			"entityType": "fks",
+			"table": "Dataset"
+		},
+		{
+			"columns": ["sidecar_file_id"],
+			"tableTo": "OriginalFile",
+			"columnsTo": ["original_file_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Dataset_sidecar_file_id_OriginalFile_original_file_id_fk",
+			"entityType": "fks",
+			"table": "Dataset"
+		},
+		{
+			"columns": ["operator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Dataset_operator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Dataset"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Dataset_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Dataset"
+		},
+		{
+			"columns": ["dataset_id"],
+			"tableTo": "Dataset",
+			"columnsTo": ["dataset_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_DatasetColumn_dataset_id_Dataset_dataset_id_fk",
+			"entityType": "fks",
+			"table": "DatasetColumn"
+		},
+		{
+			"columns": ["inventory_entry_id"],
+			"tableTo": "InventoryEntry",
+			"columnsTo": ["inventory_entry_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_DatasetColumn_inventory_entry_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "DatasetColumn"
+		},
+		{
+			"columns": ["channel_id"],
+			"tableTo": "Channel",
+			"columnsTo": ["channel_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_DatasetColumn_channel_id_Channel_channel_id_fk",
+			"entityType": "fks",
+			"table": "DatasetColumn"
+		},
+		{
+			"columns": ["dataset_id"],
+			"tableTo": "Dataset",
+			"columnsTo": ["dataset_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_DatasetSample_dataset_id_Dataset_dataset_id_fk",
+			"entityType": "fks",
+			"table": "DatasetSample"
+		},
+		{
+			"columns": ["sample_id"],
+			"tableTo": "Sample",
+			"columnsTo": ["sample_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_DatasetSample_sample_id_Sample_sample_id_fk",
+			"entityType": "fks",
+			"table": "DatasetSample"
+		},
+		{
 			"columns": ["inventory_entry_id"],
 			"tableTo": "Id",
 			"columnsTo": ["id"],
@@ -1995,6 +2618,17 @@
 			"onDelete": "NO ACTION",
 			"nameExplicit": false,
 			"name": "fk_InventoryEntry_inventory_entry_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "InventoryEntry"
+		},
+		{
+			"columns": ["product_id"],
+			"tableTo": "Product",
+			"columnsTo": ["product_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "SET NULL",
+			"nameExplicit": false,
+			"name": "fk_InventoryEntry_product_id_Product_product_id_fk",
 			"entityType": "fks",
 			"table": "InventoryEntry"
 		},
@@ -2171,6 +2805,28 @@
 			"onDelete": "CASCADE",
 			"nameExplicit": false,
 			"name": "fk_PIDNode_inventory_entry_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "PIDNode"
+		},
+		{
+			"columns": ["equipment_entry_id"],
+			"tableTo": "InventoryEntry",
+			"columnsTo": ["inventory_entry_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "SET NULL",
+			"nameExplicit": false,
+			"name": "fk_PIDNode_equipment_entry_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "PIDNode"
+		},
+		{
+			"columns": ["sample_id"],
+			"tableTo": "Sample",
+			"columnsTo": ["sample_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "SET NULL",
+			"nameExplicit": false,
+			"name": "fk_PIDNode_sample_id_Sample_sample_id_fk",
 			"entityType": "fks",
 			"table": "PIDNode"
 		},
@@ -2411,6 +3067,20 @@
 			"entityType": "pks"
 		},
 		{
+			"columns": ["dataset_id"],
+			"nameExplicit": false,
+			"name": "Dataset_pk",
+			"table": "Dataset",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["dataset_column_id"],
+			"nameExplicit": false,
+			"name": "DatasetColumn_pk",
+			"table": "DatasetColumn",
+			"entityType": "pks"
+		},
+		{
 			"columns": ["id"],
 			"nameExplicit": false,
 			"name": "Id_pk",
@@ -2593,6 +3263,124 @@
 		{
 			"columns": [
 				{
+					"value": "csv_file_id",
+					"isExpression": false
+				},
+				{
+					"value": "sidecar_file_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "Dataset_source_pair_unique",
+			"entityType": "indexes",
+			"table": "Dataset"
+		},
+		{
+			"columns": [
+				{
+					"value": "rig_id",
+					"isExpression": false
+				},
+				{
+					"value": "metadata_archived_at",
+					"isExpression": false
+				},
+				{
+					"value": "metadata_creation_timestamp",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "Dataset_rig_archive_created_idx",
+			"entityType": "indexes",
+			"table": "Dataset"
+		},
+		{
+			"columns": [
+				{
+					"value": "upload_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "Dataset_upload_idx",
+			"entityType": "indexes",
+			"table": "Dataset"
+		},
+		{
+			"columns": [
+				{
+					"value": "dataset_id",
+					"isExpression": false
+				},
+				{
+					"value": "position",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "DatasetColumn_dataset_position_unique",
+			"entityType": "indexes",
+			"table": "DatasetColumn"
+		},
+		{
+			"columns": [
+				{
+					"value": "inventory_entry_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "DatasetColumn_inventory_entry_idx",
+			"entityType": "indexes",
+			"table": "DatasetColumn"
+		},
+		{
+			"columns": [
+				{
+					"value": "dataset_id",
+					"isExpression": false
+				},
+				{
+					"value": "position",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "DatasetSample_dataset_position_unique",
+			"entityType": "indexes",
+			"table": "DatasetSample"
+		},
+		{
+			"columns": [
+				{
+					"value": "sample_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "DatasetSample_sample_idx",
+			"entityType": "indexes",
+			"table": "DatasetSample"
+		},
+		{
+			"columns": [
+				{
 					"value": "slug",
 					"isExpression": false
 				}
@@ -2601,6 +3389,20 @@
 			"where": null,
 			"origin": "manual",
 			"name": "InventoryEntry_slug_unique",
+			"entityType": "indexes",
+			"table": "InventoryEntry"
+		},
+		{
+			"columns": [
+				{
+					"value": "serial_number",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "InventoryEntry_serial_number_unique",
 			"entityType": "indexes",
 			"table": "InventoryEntry"
 		},
@@ -2657,6 +3459,24 @@
 			"where": null,
 			"origin": "manual",
 			"name": "PIDNode_inventory_entry_idx",
+			"entityType": "indexes",
+			"table": "PIDNode"
+		},
+		{
+			"columns": [
+				{
+					"value": "inventory_entry_id",
+					"isExpression": false
+				},
+				{
+					"value": "symbol_key",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "PIDNode_inventory_entry_symbol_key_unique",
 			"entityType": "indexes",
 			"table": "PIDNode"
 		},

@@ -10,6 +10,9 @@ export interface PIDGraphNode {
 	id: string;
 	kind: PIDSymbolKind;
 	label: string;
+	symbolKey?: string | null;
+	equipmentId?: number | null;
+	sampleId?: number | null;
 
 	/**
 	 * A second line of text, used by the symbols that carry two.

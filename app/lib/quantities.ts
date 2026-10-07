@@ -30,6 +30,11 @@ export const QUANTITY_KINDS = {
 		dimension: { kg: 1 },
 	},
 
+	MoleFraction: {
+		name: "Mole fraction",
+		dimension: {},
+	},
+
 	Power: {
 		name: "Power",
 		dimension: { m: 2, kg: 1, s: -3 },

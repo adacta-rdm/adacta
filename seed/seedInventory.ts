@@ -29,6 +29,8 @@ import { jsonFiles, keyOf, readJson, seedPath } from "~/seed/files.ts";
 type SeedInventoryEntry = {
 	name: string;
 	kind: "rig" | "equipment";
+	product?: string;
+	serialNumber?: string;
 	location?: {
 		buildingIdentifier: string;
 		roomIdentifier: string;
@@ -47,6 +49,7 @@ type SeedInventoryEntry = {
 export async function seedInventory(
 	scope: ServiceContainer,
 	preset: string,
+	productIds: ReadonlyMap<string, number> = new Map(),
 ): Promise<Map<string, number>> {
 	const db = scope.get(ApplicationDatabase);
 	const creatorId = scope.get(Security).userId;
@@ -61,15 +64,23 @@ export async function seedInventory(
 	// that reduce to the same slug push the second one to a numbered variant.
 	const takenSlugs: string[] = [];
 
-	const rows = entries.map((entry) => {
+	const rows = entries.map((entry, index) => {
 		const slug = availableSlug(entry.name, takenSlugs);
 		takenSlugs.push(slug);
+		const productId = entry.product === undefined ? null : productIds.get(entry.product);
+		if (entry.product !== undefined && productId === undefined) {
+			throw new Error(
+				`Inventory entry ${files[index]} names no catalog product "${entry.product}".`,
+			);
+		}
 
 		return {
 			id: id53(),
 			slug,
 			name: entry.name,
 			kind: entry.kind,
+			productId,
+			serialNumber: entry.serialNumber ?? null,
 			locationBuildingIdentifier: entry.location?.buildingIdentifier ?? null,
 			locationRoomIdentifier: entry.location?.roomIdentifier ?? null,
 			locationLabel: entry.location?.label ?? null,

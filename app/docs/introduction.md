@@ -45,7 +45,7 @@ Table 1 summarizes the principal objects currently used throughout the interface
 
 {% quick-link title="Adacta workflow" icon="presets" href="/docs/workflow" description="The order the pieces are normally set up in, from catalog entry to a mapped data resource." /%}
 
-{% quick-link title="Importing files" icon="installation" href="/docs/importing-files" description="How to get measurement files into a facility and map them to the right time period." /%}
+{% quick-link title="Importing files" icon="installation" href="/docs/importing-files" description="How to import data files and map them to the right facility configuration." /%}
 
 {% quick-link title="Troubleshooting" icon="warning" href="/docs/troubleshooting" description="What to check when a resource will not map or a facility state does not cover the measurement." /%}
 

@@ -1,6 +1,9 @@
 import { Account, Session, User, Verification } from "~/drizzle/schema/BetterAuth.ts";
 import { CatalogSource } from "~/drizzle/schema/CatalogSource.ts";
 import { Channel } from "~/drizzle/schema/Channel.ts";
+import { Dataset } from "~/drizzle/schema/Dataset.ts";
+import { DatasetColumn } from "~/drizzle/schema/DatasetColumn.ts";
+import { DatasetSample } from "~/drizzle/schema/DatasetSample.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
@@ -24,6 +27,9 @@ const Schema = {
 	Id,
 	InventoryEntry,
 	Manufacturer,
+	DatasetColumn,
+	Dataset,
+	DatasetSample,
 	Note,
 	NoteAttachment,
 	OriginalFile,

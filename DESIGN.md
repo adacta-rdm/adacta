@@ -158,9 +158,9 @@ light value, while `.impeccable/design.json` also records the dark value.
 
 ### Data series
 
-- **Series One** (`oklch(0.588 0.158 241.966)`) and **Series Two**
-  (`oklch(0.646 0.222 41.116)`): Used to distinguish series in time-series charts. They are
-  not used for application controls.
+- **Data series:** Charts use eight light-theme colors adapted from the Okabe-Ito categorical
+  palette. A measurement and its setpoint share a color. The setpoint has a dashed line.
+  Colors repeat after eight channels.
 
 ### Status
 

@@ -29,7 +29,7 @@ export const OriginalFile = sqliteTable("OriginalFile", {
 	 *
 	 * This column has no corresponding upload table and is not a foreign key. It
 	 * records only that files were submitted together. For example, a table of
-	 * measurements and its sidecar file may share an upload id.
+	 * dataset and its sidecar file may share an upload id.
 	 */
 	uploadId: integer("upload_id").notNull(),
 

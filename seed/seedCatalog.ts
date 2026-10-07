@@ -119,6 +119,7 @@ export type CatalogCounts = {
 	products: number;
 	specifications: number;
 	channels: number;
+	productIds: Map<string, number>;
 };
 
 /**
@@ -142,6 +143,7 @@ export async function seedCatalog(
 		products: 0,
 		specifications: 0,
 		channels: 0,
+		productIds: new Map(),
 	};
 
 	const manufacturerSlugs: string[] = [];
@@ -270,6 +272,7 @@ export async function seedCatalog(
 				.get();
 
 			counts.products += 1;
+			counts.productIds.set(`${manufacturerKey}/${key}`, productId);
 
 			// What the product says itself comes first. A reader of a family then
 			// meets the lines that differ before the lines that agree.

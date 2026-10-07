@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter, Route, Routes } from "react-router";
 
 import { AppLayout } from "../AppLayout.tsx";
+import { maxRightSidebarWidth } from "../SidebarLayout.tsx";
 import type { LeftSidebar, RightSidebar } from "../routeSidebar.ts";
 
 const InventoryPanel = () => <p>Inventory by location</p>;
@@ -38,14 +39,21 @@ function render(
 
 describe("AppLayout", () => {
 	test("the top zone links every section on every page", () => {
-		for (const path of ["/catalog", "/inventory", "/samples", "/files/import", "/users"]) {
+		for (const path of [
+			"/catalog",
+			"/inventory",
+			"/samples",
+			"/files",
+			"/files/import",
+			"/users",
+		]) {
 			const markup = render(path);
 
 			expect(markup).toContain(">Adacta<");
 			expect(markup).toContain('href="/catalog"');
 			expect(markup).toContain('href="/inventory"');
 			expect(markup).toContain('href="/samples"');
-			expect(markup).toContain('href="/files/import"');
+			expect(markup).toContain('href="/files"');
 			expect(markup).toContain('href="/users"');
 		}
 	});
@@ -85,6 +93,35 @@ describe("AppLayout", () => {
 		expect(markup).toContain('aria-label="Details"');
 		expect(markup).toContain('aria-label="Resize Details"');
 		expect(markup).toContain('aria-label="Open Details"');
-		expect(markup).toContain("--right-sidebar-width:320px");
+		expect(markup).toContain("--right-sidebar-width:min(320px");
+	});
+
+	test("uses a route panel's wider editor width", () => {
+		const markup = render("/inventory", false, {
+			id: "sidecar",
+			title: "Dataset sidecar",
+			defaultOpen: true,
+			defaultWidth: 480,
+			component: () => <p>Editor</p>,
+		});
+
+		expect(markup).toContain("--right-sidebar-width:min(480px");
+	});
+
+	test("shows the narrow sidebar strip when a route panel starts closed", () => {
+		const markup = render("/inventory/test-stand/pid", false, {
+			id: "sidecar",
+			title: "Dataset sidecar",
+			defaultOpen: false,
+			component: () => <p>Editor</p>,
+		});
+
+		expect(markup).toContain("--right-sidebar-width:48px");
+		expect(markup).toContain('aria-label="Expand Dataset sidecar"');
+	});
+
+	test("the right sidebar can occupy 90% of the space beside navigation", () => {
+		expect(maxRightSidebarWidth(1440, 280)).toBe(1044);
+		expect(maxRightSidebarWidth(1440, 72)).toBe(1231);
 	});
 });

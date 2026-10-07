@@ -6,7 +6,9 @@ import { addSample } from "~/app/lib/addSample.ts";
 import { deleteSubmittedSample } from "~/app/lib/sampleSubmission.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
+import { createTestDataset } from "~/app/testUtils/testRecords.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
+import { DatasetSample } from "~/drizzle/schema/DatasetSample.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { Sample } from "~/drizzle/schema/Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
@@ -37,10 +39,33 @@ async function setupSample() {
 		metadataCreatorId: userId,
 		metadataCreationTimestamp: new Date(),
 	});
-	return { db, sample };
+	return { scope, db, sample };
 }
 
 describe("deleteSubmittedSample", () => {
+	test("keeps a sample referenced by a dataset and directs the user to archive it", async () => {
+		const { scope, db, sample } = await setupSample();
+		const { datasetId } = await createTestDataset(scope);
+		await db
+			.insert(DatasetSample)
+			.values({
+				datasetId,
+				position: 0,
+				sampleId: sample.id,
+				sampleName: sample.name,
+				symbolKey: "sample-node",
+				identifier: String(sample.id),
+				pidNodeId: "sample-node",
+				inletNodeIds: [],
+				outletNodeIds: [],
+			})
+			.run();
+		expect(await deleteSubmittedSample(db, sample.id)).toEqual({
+			form: "This sample is referenced by a dataset, so it cannot be deleted. Archive it instead.",
+		});
+		expect(await db.select().from(Sample).where(eq(Sample.id, sample.id)).get()).toBeDefined();
+		expect(await db.select().from(Id).where(eq(Id.id, sample.id)).get()).toEqual({ id: sample.id });
+	});
 	test("removes the sample and its ID row", async () => {
 		const { db, sample } = await setupSample();
 

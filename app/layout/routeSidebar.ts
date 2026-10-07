@@ -5,6 +5,7 @@ export type RightSidebar = {
 	id: string;
 	title: string;
 	defaultOpen: boolean;
+	defaultWidth?: number;
 	component: ComponentType;
 };
 

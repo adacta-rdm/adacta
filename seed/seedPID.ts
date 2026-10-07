@@ -1,5 +1,5 @@
 /**
- * Loads the piping and instrumentation diagram of a rig from the seed tree.
+ * Loads the piping and instrumentation diagram of a rig from a directory.
  *
  * Each diagram is one file in "seed/presets/<preset>/pid/". The file is named
  * after the inventory entry it describes. For example,
@@ -15,6 +15,8 @@
  * A diagram belongs to a rig. A file named after an entry of another kind is
  * an error, because the application draws a P&ID only for a rig.
  */
+import { eq } from "drizzle-orm";
+
 import type {
 	PIDEdgeKind,
 	PIDGraph,
@@ -23,9 +25,11 @@ import type {
 	PIDSymbolKind,
 } from "~/app/lib/PID.ts";
 import { defaultEndArrow, isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { PIDManager } from "~/app/services/PIDManager.ts";
+import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
-import { jsonFiles, keyOf, readJson, seedPath } from "~/seed/files.ts";
+import { jsonFiles, keyOf, readJson } from "~/seed/files.ts";
 
 /**
  * One file in a preset's "pid/" directory has this shape.
@@ -39,6 +43,13 @@ type SeedPIDNode = {
 	key: string;
 	kind: PIDSymbolKind;
 	label: string;
+	symbolKey?: string;
+
+	/**
+	 * The filename key of the equipment inventory item represented by this symbol.
+	 */
+	equipment?: string;
+	sample?: string;
 
 	/**
 	 * The second line of text an instrument carries. Every other symbol omits
@@ -81,11 +92,22 @@ type SeedPIDEdge = {
  */
 export async function seedPID(
 	scope: ServiceContainer,
-	preset: string,
-	entryIds: Map<string, number>,
+	directory: string,
+	entryIds: ReadonlyMap<string, number>,
+	sampleIds: ReadonlyMap<string, number> = new Map(),
 ): Promise<number> {
-	const files = jsonFiles(seedPath("presets", preset, "pid"));
+	const db = scope.get(ApplicationDatabase);
+	const files = jsonFiles(directory);
 	if (files.length === 0) return 0;
+	const equipment = await db
+		.select({ id: InventoryEntry.id })
+		.from(InventoryEntry)
+		.where(eq(InventoryEntry.kind, "equipment"))
+		.all();
+
+	// Only equipment files may be linked to symbols. A rig file identifies a diagram.
+	const equipmentIds = new Set(equipment.map((item) => item.id));
+	const equipmentEntries = new Map([...entryIds].filter(([, id]) => equipmentIds.has(id)));
 
 	for (const file of files) {
 		const entryKey = keyOf(file);
@@ -95,7 +117,12 @@ export async function seedPID(
 			throw new Error(`No inventory entry named "${entryKey}.json" for the diagram in ${file}.`);
 		}
 
-		const graph = graphOf(readJson<SeedPID>(file), entryId, file);
+		const graph = graphOf(readJson<SeedPID>(file), {
+			entryId,
+			file,
+			equipmentEntries,
+			sampleIds,
+		});
 		await scope.get(PIDManager).replace(entryId, graph);
 	}
 
@@ -108,7 +135,16 @@ export async function seedPID(
  * A node id is composed of the entry id and the node key. Two entries can
  * therefore both seed a node named "reactor" without a collision.
  */
-function graphOf(diagram: SeedPID, entryId: number, file: string): PIDGraph {
+function graphOf(
+	diagram: SeedPID,
+	context: {
+		entryId: number;
+		file: string;
+		equipmentEntries: ReadonlyMap<string, number>;
+		sampleIds: ReadonlyMap<string, number>;
+	},
+): PIDGraph {
+	const { entryId, file, equipmentEntries, sampleIds } = context;
 	const nodeIds = new Map(
 		diagram.nodes.map((node) => [node.key, `pid-node-${entryId}-${node.key}`]),
 	);
@@ -119,6 +155,14 @@ function graphOf(diagram: SeedPID, entryId: number, file: string): PIDGraph {
 	for (const node of diagram.nodes) {
 		if (node.parent !== undefined && !nodeIds.has(node.parent)) {
 			throw new Error(`Symbol "${node.key}" in ${file} sits inside no symbol "${node.parent}".`);
+		}
+		if (node.equipment !== undefined && !equipmentEntries.has(node.equipment)) {
+			throw new Error(
+				`Symbol "${node.key}" in ${file} names no equipment inventory file "${node.equipment}.json".`,
+			);
+		}
+		if (node.sample !== undefined && !sampleIds.has(node.sample)) {
+			throw new Error(`Symbol "${node.key}" in ${file} names no sample "${node.sample}".`);
 		}
 	}
 
@@ -141,6 +185,9 @@ function graphOf(diagram: SeedPID, entryId: number, file: string): PIDGraph {
 			id: nodeIds.get(node.key)!,
 			kind: node.kind,
 			label: node.label,
+			symbolKey: node.symbolKey ?? node.key,
+			equipmentId: node.equipment === undefined ? null : equipmentEntries.get(node.equipment)!,
+			sampleId: node.sample === undefined ? null : sampleIds.get(node.sample)!,
 			secondaryLabel: node.secondaryLabel ?? null,
 			parentId: node.parent === undefined ? null : nodeIds.get(node.parent)!,
 			inletCount: node.inletCount ?? 1,

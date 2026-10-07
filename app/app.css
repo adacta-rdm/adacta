@@ -176,7 +176,7 @@ body {
 
 .pid-symbol-selected {
 	border-radius: 2px;
-	outline: 1px solid var(--adacta-color-accent);
+	outline: 2px solid var(--adacta-color-accent);
 	outline-offset: 3px;
 }
 

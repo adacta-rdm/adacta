@@ -43,10 +43,16 @@ export function copyPIDSubgraph(
 	const nodes = graph.nodes
 		.filter((node) => includedNodeIds.has(node.id))
 		.map((node) => {
-			if (node.parentId === null || includedNodeIds.has(node.parentId)) return node;
+			const normalized = {
+				...node,
+				symbolKey: node.symbolKey ?? null,
+				equipmentId: node.equipmentId ?? null,
+				sampleId: node.sampleId ?? null,
+			};
+			if (node.parentId === null || includedNodeIds.has(node.parentId)) return normalized;
 
 			return {
-				...node,
+				...normalized,
 				parentId: null,
 				position: detachedRootPositions.get(node.id) ?? node.position,
 			};
@@ -58,7 +64,10 @@ export function copyPIDSubgraph(
 	return clonePIDGraph({ nodes, edges });
 }
 
-/** Creates a new graph fragment with fresh identifiers and an offset for its roots. */
+/**
+ * Create a graph fragment with fresh identifiers and an offset for its roots.
+ * Clear symbol keys so copies can be saved alongside the original symbols.
+ */
 export function instantiatePIDClipboard(
 	fragment: PIDClipboardFragment,
 	createId: (kind: ClipboardIdKind) => string,
@@ -71,6 +80,7 @@ export function instantiatePIDClipboard(
 		nodes: graph.nodes.map((node) => ({
 			...node,
 			id: nodeIds.get(node.id)!,
+			symbolKey: null,
 			parentId: node.parentId === null ? null : nodeIds.get(node.parentId)!,
 			position:
 				node.parentId === null

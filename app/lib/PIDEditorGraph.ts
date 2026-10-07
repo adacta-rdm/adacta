@@ -12,9 +12,18 @@ import { defaultEndArrow } from "~/app/lib/PIDEdgeArrows.ts";
 export type PIDNodeData = {
 	kind: PIDSymbolKind;
 	label: string;
+	symbolKey?: string | null;
+	/**
+	 * A sidecar reference marks the symbol without changing editor selection.
+	 */
+	linkedSelected?: boolean;
+	equipmentId?: number | null;
+	sampleId?: number | null;
 	secondaryLabel: string | null;
 
-	/** Whether this symbol sits inside another and should not draw its own caption. */
+	/**
+	 * Whether this symbol sits inside another and omits its own caption.
+	 */
 	contained: boolean;
 	inletCount: PIDInletCount;
 	orientation: PIDOrientation;
@@ -72,6 +81,9 @@ export function editorNodes(value: PIDGraph): PIDNode[] {
 		data: {
 			kind: node.kind,
 			label: node.label,
+			symbolKey: node.symbolKey ?? null,
+			equipmentId: node.equipmentId ?? null,
+			sampleId: node.sampleId ?? null,
 			secondaryLabel: node.secondaryLabel,
 			contained: node.parentId !== null,
 			inletCount: node.inletCount,
@@ -162,6 +174,9 @@ export function pidGraph(nodes: PIDNode[], edges: PIDEdge[]): PIDGraph {
 			id: node.id,
 			kind: node.data.kind,
 			label: node.data.label,
+			symbolKey: node.data.symbolKey ?? null,
+			equipmentId: node.data.equipmentId ?? null,
+			sampleId: node.data.sampleId ?? null,
 			secondaryLabel: node.data.secondaryLabel,
 			parentId: node.parentId ?? null,
 			inletCount: node.data.inletCount,

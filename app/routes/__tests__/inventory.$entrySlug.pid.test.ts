@@ -1,10 +1,16 @@
 import { describe, expect, test } from "bun:test";
 
 import type { PIDGraph, PIDGraphNode } from "~/app/lib/PID.ts";
+import { copyPIDSubgraph, instantiatePIDClipboard } from "~/app/lib/PIDClipboard.ts";
 import { action, loader } from "~/app/routes/inventory.$entrySlug.pid.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
+import {
+	createTestManufacturer,
+	createTestProduct,
+	createTestRig,
+} from "~/app/testUtils/testRecords.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
@@ -55,10 +61,146 @@ const graph: PIDGraph = {
 };
 
 describe("P&ID route", () => {
+	test("saves a keyed symbol and its pasted copy in the same rig", async () => {
+		const scope = await setupRig();
+		const original: PIDGraph = {
+			nodes: [{ ...graph.nodes[0]!, symbolKey: "FEED" }],
+			edges: [],
+		};
+		const pasted = instantiatePIDClipboard(
+			copyPIDSubgraph(original, ["feed-bottle"])!,
+			() => "pasted-node",
+			{ x: 20, y: 20 },
+		);
+		const result = await save(scope, { nodes: [...original.nodes, ...pasted.nodes], edges: [] });
+		expect(result).toBeInstanceOf(Response);
+		expect((result as Response).status).toBe(303);
+		expect(
+			(await load(scope)).graph.nodes.map((node) => ({
+				id: node.id,
+				symbolKey: node.symbolKey ?? null,
+			})),
+		).toEqual([
+			{ id: "feed-bottle", symbolKey: "FEED" },
+			{ id: "pasted-node", symbolKey: null },
+		]);
+	});
+
+	test("shows the equipment linked to a diagram node", async () => {
+		const scope = await setupTestRequestScope();
+		const rig = await createTestRig(scope);
+		const equipment = await createTestRig(scope, { name: "Pressure sensor", kind: "equipment" });
+		await scope
+			.get(ApplicationDatabase)
+			.insert(PIDNode)
+			.values({
+				id: `pid-node-${rig.id}-sensor`,
+				inventoryEntryId: rig.id,
+				kind: "instrument",
+				label: "Sensor",
+				symbolKey: "sensor",
+				equipmentEntryId: equipment.id,
+				sampleId: null,
+				secondaryLabel: null,
+				parentNodeId: null,
+				drawingOrder: 0,
+				inletCount: 1,
+				orientation: 0,
+				positionX: 0,
+				positionY: 0,
+				metadataCreatorId: scope.get(Security).userId,
+				metadataCreationTimestamp: new Date(),
+			})
+			.run();
+
+		const [args] = createMiddlewareArgs(scope, { params: { entrySlug: rig.slug } });
+		const result = await loader(args);
+		expect(result.graph.nodes[0]?.equipmentId).toBe(equipment.id);
+	});
+
 	test("starts with an empty graph", async () => {
 		const scope = await setupRig();
 
 		expect((await load(scope)).graph).toEqual({ nodes: [], edges: [] });
+	});
+
+	test("identifies linked diagram symbols omitted from the generated sidecar", async () => {
+		const scope = await setupRig();
+		const manufacturer = await createTestManufacturer(scope);
+		const product = await createTestProduct(scope, manufacturer);
+		const unclassified = await createTestRig(scope, {
+			name: "Unclassified sensor",
+			kind: "equipment",
+		});
+		const withoutChannels = await createTestRig(scope, {
+			name: "Sensor without channels",
+			kind: "equipment",
+			productId: product.id,
+		});
+		await save(scope, {
+			nodes: [
+				{
+					...graph.nodes[0],
+					id: "missing-key",
+					label: "Unkeyed sensor",
+					equipmentId: unclassified.id,
+				},
+				{
+					...graph.nodes[0],
+					id: "missing-product",
+					label: "Unclassified sensor",
+					symbolKey: "UNCLASSIFIED",
+					equipmentId: unclassified.id,
+				},
+				{
+					...graph.nodes[0],
+					id: "missing-channels",
+					label: "Sensor without channels",
+					symbolKey: "NO_CHANNELS",
+					equipmentId: withoutChannels.id,
+				},
+			],
+			edges: [],
+		});
+
+		const result = await load(scope);
+
+		expect(result.sidecarOmissions).toEqual([
+			{ nodeId: "missing-key", label: "Unkeyed sensor", reason: "missing-symbol-key" },
+			{ nodeId: "missing-product", label: "Unclassified sensor", reason: "missing-product" },
+			{ nodeId: "missing-channels", label: "Sensor without channels", reason: "missing-channels" },
+		]);
+		expect(result.initialToml).not.toContain("UNCLASSIFIED");
+		expect(result.initialToml).not.toContain("NO_CHANNELS");
+	});
+
+	test("ignores symbol keys on diagram-only nodes when generating the sidecar", async () => {
+		const scope = await setupRig();
+		const result = await save(scope, {
+			nodes: [
+				{
+					...graph.nodes[0],
+					id: "feed-junction",
+					kind: "junction",
+					label: "Feed junction",
+					symbolKey: "feed-junction",
+				},
+				{
+					...graph.nodes[0],
+					id: "sample-position",
+					kind: "sample",
+					label: "Sample position",
+					symbolKey: "sample-position",
+				},
+			],
+			edges: [],
+		});
+		expect(result).toBeInstanceOf(Response);
+
+		const sidecar = await load(scope);
+		expect(sidecar.sidecarOmissions).toEqual([]);
+		expect(sidecar.initialToml).not.toContain("feed-junction");
+		expect(sidecar.initialToml).not.toContain("sample-position");
 	});
 
 	test("saves a graph and reloads it", async () => {

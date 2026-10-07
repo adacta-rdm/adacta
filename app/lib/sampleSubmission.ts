@@ -15,6 +15,7 @@ import { EntityAlreadyExistsError } from "~/app/lib/error/EntityAlreadyExistsErr
 import { SlugAllocationError } from "~/app/lib/error/SlugAllocationError.ts";
 import type { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import type { Entity } from "~/drizzle/Schema.ts";
+import { DatasetSample } from "~/drizzle/schema/DatasetSample.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { Note } from "~/drizzle/schema/Note.ts";
 import { Sample } from "~/drizzle/schema/Sample.ts";
@@ -102,8 +103,8 @@ export async function addSubmittedSample(
 }
 
 /**
- * Delete one sample of the batch. For a sample that has notes, the function
- * returns a form error instead.
+ * Delete one sample of the batch. Notes and dataset references produce a form
+ * error because their sample must remain available.
  *
  * @throws Response 404 when the sample is not there, or is archived.
  */
@@ -119,6 +120,16 @@ export async function deleteSubmittedSample(
 
 	if (note) {
 		return { form: "This sample has notes, so it cannot be deleted. Archive it instead." };
+	}
+	const datasetSample = await db
+		.select({ datasetId: DatasetSample.datasetId })
+		.from(DatasetSample)
+		.where(eq(DatasetSample.sampleId, sampleId))
+		.get();
+	if (datasetSample) {
+		return {
+			form: "This sample is referenced by a dataset, so it cannot be deleted. Archive it instead.",
+		};
 	}
 
 	const [deleted] = await db.batch([

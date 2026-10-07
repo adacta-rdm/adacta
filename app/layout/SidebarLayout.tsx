@@ -1,7 +1,10 @@
 import * as Headless from "@headlessui/react";
 import { ChevronLeftIcon, ChevronRightIcon, RectangleGroupIcon } from "@heroicons/react/20/solid";
 import {
+	createContext,
 	useRef,
+	useEffect,
+	useContext,
 	useState,
 	type CSSProperties,
 	type KeyboardEvent,
@@ -27,7 +30,25 @@ const COLLAPSED_SIDEBAR_WIDTH = 72;
 const COLLAPSED_RIGHT_SIDEBAR_WIDTH = 48;
 const DEFAULT_RIGHT_SIDEBAR_WIDTH = 320;
 const MIN_RIGHT_SIDEBAR_WIDTH = 240;
-const MAX_RIGHT_SIDEBAR_WIDTH = 480;
+const MAX_RIGHT_SIDEBAR_RATIO = 0.9;
+
+const RightSidebarControlsContext = createContext<{
+	isOpen: boolean;
+	open: () => void;
+} | null>(null);
+
+export function useRightSidebarControls() {
+	const controls = useContext(RightSidebarControlsContext);
+	if (!controls) throw new Error("Right sidebar controls are unavailable.");
+	return controls;
+}
+
+export function maxRightSidebarWidth(viewportWidth: number, leftSidebarWidth: number) {
+	return Math.max(
+		MIN_RIGHT_SIDEBAR_WIDTH,
+		Math.floor((viewportWidth - leftSidebarWidth) * MAX_RIGHT_SIDEBAR_RATIO),
+	);
+}
 
 function OpenMenuIcon() {
 	return (
@@ -77,8 +98,9 @@ function MobileRightSidebar({
 	open,
 	close,
 	title,
+	wide,
 	children,
-}: PropsWithChildren<{ open: boolean; close: () => void; title: string }>) {
+}: PropsWithChildren<{ open: boolean; close: () => void; title: string; wide: boolean }>) {
 	return (
 		<Headless.Dialog open={open} onClose={close} className="lg:hidden">
 			<Headless.DialogBackdrop
@@ -87,7 +109,7 @@ function MobileRightSidebar({
 			/>
 			<Headless.DialogPanel
 				transition
-				className="fixed inset-y-0 right-0 z-40 w-full max-w-80 p-2 transition duration-300 ease-out data-closed:translate-x-full"
+				className={`fixed inset-y-0 right-0 z-40 w-full p-2 transition duration-300 ease-out data-closed:translate-x-full ${wide ? "max-w-xl" : "max-w-80"}`}
 			>
 				<div className="flex h-full flex-col rounded-lg bg-surface shadow-xs ring-1 ring-border">
 					<div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -135,16 +157,34 @@ export function SidebarLayout({
 	const [showMobileRightSidebar, setShowMobileRightSidebar] = useState(false);
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(initialSidebarCollapsed);
 	const [sidebarWidth, setSidebarWidth] = useState(initialSidebarWidth);
+	const [viewportWidth, setViewportWidth] = useState(0);
 	const [rightState, setRightState] = useState<RightSidebarState>(() => ({
 		id: rightSidebar?.id,
 		open: rightSidebar?.defaultOpen ?? false,
-		width: DEFAULT_RIGHT_SIDEBAR_WIDTH,
+		width: rightSidebar?.defaultWidth ?? DEFAULT_RIGHT_SIDEBAR_WIDTH,
 	}));
 	const sidebarWidthRef = useRef(initialSidebarWidth);
-	const rightWidthRef = useRef(DEFAULT_RIGHT_SIDEBAR_WIDTH);
+	const rightWidthRef = useRef(rightSidebar?.defaultWidth ?? DEFAULT_RIGHT_SIDEBAR_WIDTH);
 	const leftResizeStartRef = useRef<ResizeStart | null>(null);
 	const rightResizeStartRef = useRef<ResizeStart | null>(null);
 	const layoutRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		setRightState({
+			id: rightSidebar?.id,
+			open: rightSidebar?.defaultOpen ?? false,
+			width: rightSidebar?.defaultWidth ?? DEFAULT_RIGHT_SIDEBAR_WIDTH,
+		});
+		setShowMobileRightSidebar(false);
+	}, [rightSidebar?.id]);
+
+	useEffect(() => {
+		const layout = layoutRef.current;
+		if (!layout) return;
+		const observer = new ResizeObserver(() => setViewportWidth(layout.clientWidth));
+		observer.observe(layout);
+		return () => observer.disconnect();
+	}, []);
 
 	const activeRightState =
 		rightSidebar && rightState.id === rightSidebar.id
@@ -152,7 +192,7 @@ export function SidebarLayout({
 			: {
 					id: rightSidebar?.id,
 					open: rightSidebar?.defaultOpen ?? false,
-					width: DEFAULT_RIGHT_SIDEBAR_WIDTH,
+					width: rightSidebar?.defaultWidth ?? DEFAULT_RIGHT_SIDEBAR_WIDTH,
 				};
 	const rightOpen = rightSidebar ? activeRightState.open : false;
 
@@ -235,7 +275,9 @@ export function SidebarLayout({
 	};
 
 	const applyRightSidebarWidth = (width: number) => {
-		const nextWidth = Math.min(MAX_RIGHT_SIDEBAR_WIDTH, Math.max(MIN_RIGHT_SIDEBAR_WIDTH, width));
+		const leftWidth = sidebarCollapsed ? COLLAPSED_SIDEBAR_WIDTH : sidebarWidthRef.current;
+		const maxWidth = maxRightSidebarWidth(layoutRef.current?.clientWidth ?? 0, leftWidth);
+		const nextWidth = Math.min(maxWidth, Math.max(MIN_RIGHT_SIDEBAR_WIDTH, width));
 		rightWidthRef.current = nextWidth;
 		layoutRef.current?.style.setProperty("--right-sidebar-width", `${nextWidth}px`);
 		return nextWidth;
@@ -250,12 +292,18 @@ export function SidebarLayout({
 		setRightState({ ...activeRightState, open });
 	};
 
+	const openRightSidebar = () => {
+		if (!rightSidebar) return;
+		if (window.matchMedia("(min-width: 1024px)").matches) setRightOpen(true);
+		else setShowMobileRightSidebar(true);
+	};
+
 	const beginRightResize = (event: PointerEvent<HTMLDivElement>) => {
 		if (event.button !== 0) return;
 
 		event.preventDefault();
 		event.currentTarget.setPointerCapture(event.pointerId);
-		rightWidthRef.current = activeRightState.width;
+		rightWidthRef.current = Math.min(activeRightState.width, rightSidebarMaxWidth);
 		rightResizeStartRef.current = {
 			pointerId: event.pointerId,
 			pointerX: event.clientX,
@@ -284,16 +332,16 @@ export function SidebarLayout({
 
 		switch (event.key) {
 			case "ArrowLeft":
-				nextWidth = activeRightState.width + KEYBOARD_RESIZE_STEP;
+				nextWidth = effectiveRightSidebarWidth + KEYBOARD_RESIZE_STEP;
 				break;
 			case "ArrowRight":
-				nextWidth = activeRightState.width - KEYBOARD_RESIZE_STEP;
+				nextWidth = effectiveRightSidebarWidth - KEYBOARD_RESIZE_STEP;
 				break;
 			case "Home":
 				nextWidth = MIN_RIGHT_SIDEBAR_WIDTH;
 				break;
 			case "End":
-				nextWidth = MAX_RIGHT_SIDEBAR_WIDTH;
+				nextWidth = rightSidebarMaxWidth;
 				break;
 			default:
 				return;
@@ -304,14 +352,19 @@ export function SidebarLayout({
 	};
 
 	const effectiveSidebarWidth = sidebarCollapsed ? COLLAPSED_SIDEBAR_WIDTH : sidebarWidth;
+	const rightSidebarMaxWidth = viewportWidth
+		? maxRightSidebarWidth(viewportWidth, effectiveSidebarWidth)
+		: 480;
 	const effectiveRightSidebarWidth = rightSidebar
 		? rightOpen
-			? activeRightState.width
+			? Math.min(activeRightState.width, rightSidebarMaxWidth)
 			: COLLAPSED_RIGHT_SIDEBAR_WIDTH
 		: 0;
 	const layoutStyle = {
 		"--sidebar-width": `${effectiveSidebarWidth}px`,
-		"--right-sidebar-width": `${effectiveRightSidebarWidth}px`,
+		"--right-sidebar-width": rightOpen
+			? `min(${effectiveRightSidebarWidth}px, max(${MIN_RIGHT_SIDEBAR_WIDTH}px, calc(90vw - ${effectiveSidebarWidth * MAX_RIGHT_SIDEBAR_RATIO}px)))`
+			: `${effectiveRightSidebarWidth}px`,
 	} as CSSProperties;
 	const RightSidebarContent = rightSidebar?.component;
 
@@ -391,8 +444,8 @@ export function SidebarLayout({
 									aria-label={`Resize ${rightSidebar.title}`}
 									aria-orientation="vertical"
 									aria-valuemin={MIN_RIGHT_SIDEBAR_WIDTH}
-									aria-valuemax={MAX_RIGHT_SIDEBAR_WIDTH}
-									aria-valuenow={activeRightState.width}
+									aria-valuemax={rightSidebarMaxWidth}
+									aria-valuenow={effectiveRightSidebarWidth}
 									tabIndex={0}
 									className="group absolute inset-y-0 -left-1 z-10 w-2 cursor-col-resize touch-none focus:outline-none"
 									onPointerDown={beginRightResize}
@@ -421,6 +474,10 @@ export function SidebarLayout({
 						open={showMobileRightSidebar}
 						close={() => setShowMobileRightSidebar(false)}
 						title={rightSidebar.title}
+						wide={
+							(rightSidebar.defaultWidth ?? DEFAULT_RIGHT_SIDEBAR_WIDTH) >
+							DEFAULT_RIGHT_SIDEBAR_WIDTH
+						}
 					>
 						<RightSidebarContent />
 					</MobileRightSidebar>
@@ -446,11 +503,15 @@ export function SidebarLayout({
 				) : null}
 			</header>
 
-			<main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-[calc(var(--right-sidebar-width)+0.5rem)] lg:pl-(--sidebar-width)">
-				<div className="grow p-6 lg:rounded-lg lg:bg-surface lg:p-10 lg:shadow-xs lg:ring-1 lg:ring-border">
-					<div className="app-reading-column mx-auto max-w-6xl">{children}</div>
-				</div>
-			</main>
+			<RightSidebarControlsContext.Provider
+				value={{ isOpen: rightOpen || showMobileRightSidebar, open: openRightSidebar }}
+			>
+				<main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2 lg:pr-(--right-sidebar-width) lg:pl-(--sidebar-width)">
+					<div className="grow p-6 lg:rounded-lg lg:bg-surface lg:p-10 lg:shadow-xs lg:ring-1 lg:ring-border">
+						<div className="app-reading-column mx-auto max-w-6xl">{children}</div>
+					</div>
+				</main>
+			</RightSidebarControlsContext.Provider>
 		</div>
 	);
 }

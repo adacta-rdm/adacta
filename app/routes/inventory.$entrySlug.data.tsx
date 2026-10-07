@@ -5,7 +5,7 @@ import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 export const handle = { breadcrumb: "Data" } satisfies BreadcrumbHandle;
 
 /**
- * Provides the list of recordings of a rig and the page of one recording.
+ * Provides the list of imported datasets for a rig.
  */
 export default function InventoryEntrySlugData() {
 	return <Outlet />;

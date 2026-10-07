@@ -1,11 +1,50 @@
 import { describe, expect, test } from "bun:test";
 
 import { loader } from "~/app/routes/files.$uploadId.tsx";
+import * as uploadRoute from "~/app/routes/files.$uploadId.tsx";
+import { Security } from "~/app/services/Security.ts";
+import { UploadManager } from "~/app/services/UploadManager.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
-import { createTestUpload } from "~/app/testUtils/testRecords.ts";
+import { createTestDataset, createTestUpload } from "~/app/testUtils/testRecords.ts";
+import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
 
 describe("uploaded files loader", () => {
+	test("offers dataset import for one CSV and one TOML sidecar", async () => {
+		const scope = await setupTestRequestScope();
+		const upload = scope.get(UploadManager).beginUpload();
+		await upload.add({
+			originalName: "flow.csv",
+			mediaType: "text/csv",
+			source: new Blob(["a,b"]).stream(),
+		});
+		await upload.add({
+			originalName: "flow.toml",
+			mediaType: "application/toml",
+			source: new Blob(["a=1"]).stream(),
+		});
+		const uploadId = await upload.commit(scope.get(Security).userId);
+		const route = testRoute(scope, uploadRoute, { uploadId: String(uploadId) });
+
+		const result = await route.loader();
+
+		expect(result.data?.canImportDatasets).toBe(true);
+		expect(result.data?.datasetImports).toEqual([]);
+	});
+
+	test("identifies an imported dataset by its source file", async () => {
+		const scope = await setupTestRequestScope();
+		const { datasetId, uploadId, rig } = await createTestDataset(scope);
+		const route = testRoute(scope, uploadRoute, { uploadId: String(uploadId) });
+
+		const result = await route.loader();
+
+		expect(result.data?.canImportDatasets).toBe(false);
+		expect(result.data?.datasetImports).toEqual([
+			{ id: datasetId, csvName: "flow.csv", rowCount: 1, rigName: rig.name },
+		]);
+	});
+
 	test("returns the metadata of every file the upload delivered", async () => {
 		const scope = await setupTestRequestScope();
 		const { uploadId } = await createTestUpload(scope);

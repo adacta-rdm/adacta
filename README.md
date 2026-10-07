@@ -53,6 +53,10 @@ original-files/<file id>            original file bytes
 The database records each original file after every file in its upload has
 moved out of staging. An incomplete upload therefore has no file records.
 
+An upload containing one CSV and one TOML sidecar opens a dataset review.
+The review shows how columns map to a selected rig's P&ID. Import stores the
+original files, a Parquet dataset, and a summary used by the trend charts.
+
 Catalog logos and product photographs are original files too. The seed records
 them through `UploadManager` and stores their file IDs on catalog records.
 Catalog pages retrieve them from `/files/originals/<file id>` after sign-in.
