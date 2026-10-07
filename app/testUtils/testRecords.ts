@@ -1,6 +1,11 @@
 import { desc, eq } from "drizzle-orm";
+import { ByteWriter, parquetWriteRows } from "hyparquet-writer";
 
 import { addSample } from "~/app/lib/addSample.ts";
+import {
+	stringifyMeasurementSidecar,
+	type MeasurementSidecar,
+} from "~/app/lib/measurementSidecar.ts";
 import { slugify } from "~/app/lib/slugs.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { NoteManager } from "~/app/services/NoteManager.ts";
@@ -11,6 +16,8 @@ import { Channel } from "~/drizzle/schema/Channel.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
+import { MeasurementColumn } from "~/drizzle/schema/MeasurementColumn.ts";
+import { MeasurementDataset } from "~/drizzle/schema/MeasurementDataset.ts";
 import { Note } from "~/drizzle/schema/Note.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
 import { ProductSeries } from "~/drizzle/schema/ProductSeries.ts";
@@ -18,6 +25,7 @@ import { ProductSpecification } from "~/drizzle/schema/ProductSpecification.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
+import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
 
 const CREATION_TIME = new Date("2026-01-15T12:00:00.000Z");
 
@@ -268,4 +276,101 @@ export async function createTestUpload(scope: ServiceContainer) {
 	const uploadId = await upload.commit(scope.get(Security).userId);
 
 	return { uploadId, fileId };
+}
+
+/**
+ * Create one measurement dataset with source files and a Parquet row.
+ */
+export async function createTestMeasurementDataset(scope: ServiceContainer) {
+	const db = scope.get(ApplicationDatabase);
+	const userId = scope.get(Security).userId;
+	const rig = await createTestRig(scope);
+	const sidecar: MeasurementSidecar = {
+		file_structure: {
+			column_delimiter: "comma",
+			decimal_separator: ".",
+			header_rows: 1,
+			data_row: 2,
+			file_encoding: "UTF-8",
+		},
+		experiment: { operator_email: "test.user@example.com", samples: [] },
+		columns: [
+			{ name: "Time", axis: "time", format: "%Y-%m-%dT%H:%M:%SZ", timezone: "UTC" },
+			{
+				name: "Flow",
+				symbol_key: "F1",
+				item: { id: rig.id },
+				channel: "flow",
+				role: "measurement",
+				unit: "ml/min",
+			},
+		],
+	};
+	const upload = scope.get(UploadManager).beginUpload();
+	const csvFileId = await upload.add({
+		originalName: "flow.csv",
+		mediaType: "text/csv",
+		source: new Blob(["Time,Flow\n2026-08-20T09:00:00Z,1.5\n"]).stream(),
+	});
+	const sidecarFileId = await upload.add({
+		originalName: "flow.toml",
+		mediaType: "application/toml",
+		source: new Blob([stringifyMeasurementSidecar(sidecar)]).stream(),
+	});
+	const uploadId = await upload.commit(userId);
+
+	const writer = new ByteWriter();
+	await parquetWriteRows({
+		writer,
+		rows: [{ time: new Date("2026-08-20T09:00:00Z"), flow: 1.5 }],
+		columns: [
+			{ name: "time", type: "TIMESTAMP" },
+			{ name: "flow", type: "DOUBLE" },
+		],
+	});
+	const datasetId = id53();
+	const dataPath = `datasets/${datasetId}.parquet`;
+	await scope.get(StorageEngine).write(dataPath, new Blob([writer.getBytes()]).stream());
+
+	await db.batch([
+		db.insert(Id).values({ id: datasetId }),
+		db.insert(MeasurementDataset).values({
+			id: datasetId,
+			rigId: rig.id,
+			uploadId,
+			csvFileId,
+			sidecarFileId,
+			operatorId: userId,
+			operatorEmail: "test.user@example.com",
+			rowCount: 1,
+			startTime: new Date("2026-08-20T09:00:00Z"),
+			endTime: new Date("2026-08-20T09:00:00Z"),
+			sidecarSnapshot: JSON.stringify(sidecar),
+			dataPath,
+			metadataCreatorId: userId,
+			metadataCreationTimestamp: CREATION_TIME,
+		}),
+		db.insert(MeasurementColumn).values([
+			{
+				datasetId,
+				position: 0,
+				name: "Time",
+				fieldName: "time",
+				parquetType: "TIMESTAMP",
+				axis: "time",
+				sourceColumn: "Time",
+			},
+			{
+				datasetId,
+				position: 1,
+				name: "Flow",
+				fieldName: "flow",
+				parquetType: "DOUBLE",
+				unit: "ml/min",
+				sourceColumn: "Flow",
+			},
+		]),
+	]);
+
+	return { datasetId, uploadId, rig, dataPath };
 }
