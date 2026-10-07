@@ -14,17 +14,13 @@ import {
 	ArrowUpTrayIcon,
 	BeakerIcon,
 	BookOpenIcon,
-	BuildingOffice2Icon,
-	PlusIcon,
 	UserGroupIcon,
 } from "@heroicons/react/20/solid";
 import type { ReactNode } from "react";
-import { useLocation, useParams } from "react-router";
+import { useLocation } from "react-router";
 
-import { KindIcon, type InventoryKind } from "~/app/components/KindIcon.tsx";
 import { SidebarLayout } from "~/app/layout/SidebarLayout.tsx";
-import type { BatchGroup } from "~/app/lib/batchComposition.ts";
-import type { Building, Located } from "~/app/lib/location.ts";
+import type { LeftSidebar, RightSidebar } from "~/app/layout/routeSidebar.ts";
 import { sidebarSection } from "~/app/lib/sidebarSection.ts";
 import { Navbar, NavbarSection, NavbarSpacer } from "~/catalyst-ui/navbar.tsx";
 import {
@@ -38,225 +34,121 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from "~/catalyst-ui/sidebar.tsx";
-import type { Entity } from "~/drizzle/Schema.ts";
 
-/**
- * What the sidebar tree is built from: a named, placed entry with a kind.
- */
-type Entry = Located & { id: number; slug: string; kind: InventoryKind };
-
-type Batch = Pick<Entity<"SampleBatch">, "id" | "slug" | "name" | "activeMaterial" | "support">;
-
-/*
-	A tree row is as wide as the sidebar. Its depth is padding inside the row.
-	The marker for the current item sits a fixed distance left of its row, so
-	it stays at the edge of the sidebar at every depth. A nested list with a
-	margin would carry the marker inward with it.
-
-	The guide line of a nested list is drawn where the margin used to be.
-*/
-const GROUP_ROW = "flex items-center gap-2 px-2 py-1";
-const NESTED_LIST = "relative before:absolute before:inset-y-0 before:w-px before:bg-border";
-const LEVEL_1_LIST = `${NESTED_LIST} before:left-4`;
-const LEVEL_1_ROW = "pl-6";
-const LEVEL_2_LIST = `${NESTED_LIST} before:left-8`;
-const LEVEL_2_ITEM = "block pl-9";
-
-function LocationTree({
-	buildings,
-	entrySlug,
-}: {
-	buildings: Building<Entry>[];
-	entrySlug: string | undefined;
-}) {
-	return (
-		<ul aria-label="Inventory by location" className="space-y-2">
-			{buildings.map((building) => (
-				<li key={building.identifier ?? "unassigned-building"}>
-					<div className={`${GROUP_ROW} text-sm font-semibold text-foreground`}>
-						<BuildingOffice2Icon className="size-4 shrink-0 text-foreground-muted" />
-						<span className="truncate">
-							{building.identifier ? `Building ${building.identifier}` : "Unassigned"}
-						</span>
-					</div>
-
-					<ul className={LEVEL_1_LIST}>
-						{building.rooms.map((room) => (
-							<li key={room.identifier ?? "unassigned-room"}>
-								<div
-									className={`${GROUP_ROW} ${LEVEL_1_ROW} text-xs font-medium text-foreground-muted`}
-								>
-									{room.identifier ? `Room ${room.identifier}` : "Unassigned"}
-								</div>
-
-								<ul className={LEVEL_2_LIST}>
-									{room.entries.map((entry) => (
-										<li key={entry.id}>
-											<SidebarItem
-												href={`/inventory/${entry.slug}`}
-												current={entry.slug === entrySlug}
-												className={LEVEL_2_ITEM}
-											>
-												<KindIcon kind={entry.kind} />
-												<SidebarLabel>{entry.name}</SidebarLabel>
-											</SidebarItem>
-										</li>
-									))}
-								</ul>
-							</li>
-						))}
-					</ul>
-				</li>
-			))}
-		</ul>
-	);
-}
-
-function BatchTree({
-	groups,
-	batchSlug,
-}: {
-	groups: BatchGroup<Batch>[];
-	batchSlug: string | undefined;
-}) {
-	if (groups.length === 0) {
-		return <p className="px-2 py-2 text-sm text-foreground-muted">No batches found.</p>;
-	}
-
-	return (
-		<ul role="tree" aria-label="Batches by composition" className="space-y-2">
-			{groups.map((material) => (
-				<li key={material.name ?? "unassigned-material"} role="treeitem" aria-expanded="true">
-					<div className={`${GROUP_ROW} text-sm font-semibold text-foreground`}>
-						<BeakerIcon className="size-4 shrink-0 text-foreground-muted" />
-						<span className="truncate">{material.name ?? "No active material"}</span>
-					</div>
-
-					<ul role="group" className={LEVEL_1_LIST}>
-						{material.supports.map((support) => (
-							<li key={support.name ?? "unassigned-support"} role="treeitem" aria-expanded="true">
-								<div
-									className={`${GROUP_ROW} ${LEVEL_1_ROW} text-xs font-medium text-foreground-muted`}
-								>
-									{support.name ?? "No support"}
-								</div>
-
-								<ul role="group" className={LEVEL_2_LIST}>
-									{support.batches.map((batch) => (
-										<li key={batch.id} role="treeitem">
-											<SidebarItem
-												href={`/samples/${batch.slug}`}
-												current={batch.slug === batchSlug}
-												className={LEVEL_2_ITEM}
-											>
-												<SidebarLabel>{batch.name}</SidebarLabel>
-											</SidebarItem>
-										</li>
-									))}
-								</ul>
-							</li>
-						))}
-					</ul>
-				</li>
-			))}
-		</ul>
-	);
-}
+const COLLAPSED_SIDEBAR_ITEM = "[&>a]:justify-center [&>a]:gap-0";
 
 export function AppLayout({
 	sidebarWidth,
-	buildings,
-	batchGroups,
+	sidebarCollapsed,
+	leftSidebar,
+	rightSidebar,
 	children,
 }: {
 	/**
 	 * The width sent with this request. The first page drawn is already right.
 	 */
 	sidebarWidth: number;
-	buildings: Building<Entry>[];
-	batchGroups: BatchGroup<Batch>[];
+	sidebarCollapsed: boolean;
+	leftSidebar?: LeftSidebar;
+	rightSidebar?: RightSidebar;
 	children: ReactNode;
 }) {
 	const { pathname } = useLocation();
-	const { entrySlug, batchSlug } = useParams();
 
 	const title = "Adacta";
 	const section = sidebarSection(pathname);
+	const LeftSidebarContent = leftSidebar;
 
 	return (
 		<SidebarLayout
 			sidebarWidth={sidebarWidth}
-			sidebar={
+			sidebarCollapsed={sidebarCollapsed}
+			rightSidebar={rightSidebar}
+			sidebar={(collapsed) => (
 				<Sidebar>
 					{/* Top zone: the same on every application page. */}
-					<SidebarHeader>
-						<SidebarHeading>{title}</SidebarHeading>
+					<SidebarHeader className={collapsed ? "items-center px-3 pt-14" : undefined}>
+						{!collapsed ? <SidebarHeading className="pr-8">{title}</SidebarHeading> : null}
 
 						{/*
 							The application title and section links occupy separate rows.
 						*/}
-						<SidebarDivider className="-mx-4" />
+						{!collapsed ? <SidebarDivider className="-mx-4" /> : null}
 
-						<SidebarSection>
-							<SidebarItem href={"/catalog"} current={section === "catalog"}>
+						<SidebarSection className={collapsed ? "w-full" : undefined}>
+							<SidebarItem
+								href={"/catalog"}
+								current={section === "catalog"}
+								title={collapsed ? "Catalog" : undefined}
+								className={collapsed ? COLLAPSED_SIDEBAR_ITEM : undefined}
+							>
 								<BookOpenIcon />
-								<SidebarLabel>Catalog</SidebarLabel>
+								<SidebarLabel className={collapsed ? "sr-only" : undefined}>Catalog</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href={"/inventory"} current={section === "inventory"}>
+							<SidebarItem
+								href={"/inventory"}
+								current={section === "inventory"}
+								title={collapsed ? "Inventory" : undefined}
+								className={collapsed ? COLLAPSED_SIDEBAR_ITEM : undefined}
+							>
 								<ArchiveBoxIcon />
-								<SidebarLabel>Inventory</SidebarLabel>
+								<SidebarLabel className={collapsed ? "sr-only" : undefined}>Inventory</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href={"/samples"} current={section === "samples"}>
+							<SidebarItem
+								href={"/samples"}
+								current={section === "samples"}
+								title={collapsed ? "Samples" : undefined}
+								className={collapsed ? COLLAPSED_SIDEBAR_ITEM : undefined}
+							>
 								<BeakerIcon />
-								<SidebarLabel>Samples</SidebarLabel>
+								<SidebarLabel className={collapsed ? "sr-only" : undefined}>Samples</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href={"/files/import"} current={section === "files"}>
+							<SidebarItem
+								href={"/files/import"}
+								current={section === "files"}
+								title={collapsed ? "Import files" : undefined}
+								className={collapsed ? COLLAPSED_SIDEBAR_ITEM : undefined}
+							>
 								<ArrowUpTrayIcon />
-								<SidebarLabel>Import files</SidebarLabel>
+								<SidebarLabel className={collapsed ? "sr-only" : undefined}>
+									Import files
+								</SidebarLabel>
 							</SidebarItem>
-							<SidebarItem href={"/users"} current={section === "users"}>
+							<SidebarItem
+								href={"/users"}
+								current={section === "users"}
+								title={collapsed ? "Users" : undefined}
+								className={collapsed ? COLLAPSED_SIDEBAR_ITEM : undefined}
+							>
 								<UserGroupIcon />
-								<SidebarLabel>Users</SidebarLabel>
+								<SidebarLabel className={collapsed ? "sr-only" : undefined}>Users</SidebarLabel>
 							</SidebarItem>
 						</SidebarSection>
 					</SidebarHeader>
 
 					{/* Middle zone: the tree of the section in view. */}
-					<SidebarBody>
-						{section === "inventory" && (
-							<SidebarSection>
-								<SidebarItem href={"/inventory"} current={!entrySlug}>
-									<SidebarLabel>All entries</SidebarLabel>
-								</SidebarItem>
-								<LocationTree buildings={buildings} entrySlug={entrySlug} />
-							</SidebarSection>
-						)}
-
-						{section === "samples" && (
-							<SidebarSection>
-								<SidebarItem href={"/samples"} current={pathname === "/samples"}>
-									<SidebarLabel>All samples</SidebarLabel>
-								</SidebarItem>
-								<BatchTree groups={batchGroups} batchSlug={batchSlug} />
-								<SidebarItem href={"/samples/new"} current={pathname === "/samples/new"}>
-									<PlusIcon />
-									<SidebarLabel>Create batch</SidebarLabel>
-								</SidebarItem>
-							</SidebarSection>
-						)}
+					<SidebarBody className={collapsed ? "hidden" : undefined}>
+						{LeftSidebarContent && <LeftSidebarContent />}
 					</SidebarBody>
 
 					{/* Bottom zone: the user manual. */}
-					<SidebarFooter>
+					<SidebarFooter className={collapsed ? "px-3" : undefined}>
 						<SidebarSection>
-							<SidebarItem href="/docs" current={pathname.startsWith("/docs")}>
+							<SidebarItem
+								href="/docs"
+								current={pathname.startsWith("/docs")}
+								title={collapsed ? "User manual" : undefined}
+								className={collapsed ? COLLAPSED_SIDEBAR_ITEM : undefined}
+							>
 								<AcademicCapIcon />
-								<SidebarLabel>User manual</SidebarLabel>
+								<SidebarLabel className={collapsed ? "sr-only" : undefined}>
+									User manual
+								</SidebarLabel>
 							</SidebarItem>
 						</SidebarSection>
 					</SidebarFooter>
 				</Sidebar>
-			}
+			)}
 			navbar={
 				<Navbar>
 					<NavbarSection>{title}</NavbarSection>

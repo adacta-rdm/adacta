@@ -218,13 +218,24 @@ font size.
 
 ## Layout
 
-The application has a fixed sidebar and a content area. The user can resize the sidebar with
-a drag handle. The handle is a `separator` and provides `aria-valuemin`,
-`aria-valuemax`, and `aria-valuenow`. It also supports keyboard input. The
-`--sidebar-width` custom property stores the selected width.
+The application has a fixed navigation sidebar and a content area. The user can resize the
+sidebar with a drag handle or collapse it to a 72px navigation rail. The rail keeps the primary
+section icons and the user manual available. It hides the application name and contextual tree.
+Icon labels remain available to assistive technology and as tooltips. The expanded width and
+collapsed state persist between requests.
 
-Below the `lg` breakpoint, the sidebar becomes a slide-over and a compact navigation bar is
-shown. The content then uses the page canvas directly with 24px padding. At the `lg`
+Routes may provide a contextual sidebar on the right. It occupies the sunken shell surface,
+can be resized or collapsed, and leaves the elevated content card between the two sidebars.
+The deepest matched route that provides a panel takes precedence. Child routes inherit a panel
+from their parent.
+
+Each resize handle is a `separator` and provides `aria-valuemin`, `aria-valuemax`, and
+`aria-valuenow`. Both handles support keyboard input. The `--sidebar-width` and
+`--right-sidebar-width` custom properties store the effective desktop widths.
+
+Below the `lg` breakpoint, the navigation sidebar becomes a slide-over and a compact navigation
+bar is shown. A route with contextual content adds a labeled action that opens the right sidebar
+as a modal drawer. The content then uses the page canvas directly with 24px padding. At the `lg`
 breakpoint and above, the content uses a card with 40px padding. The card has an 8px gap from
 the top and right edges of the viewport.
 

@@ -5,6 +5,7 @@ import {
 	DEFAULT_SIDEBAR_WIDTH,
 	MAX_SIDEBAR_WIDTH,
 	MIN_SIDEBAR_WIDTH,
+	sidebarCollapsedFromCookie,
 	sidebarWidthFromCookie,
 } from "~/app/lib/sidebarWidth.ts";
 
@@ -16,6 +17,14 @@ describe("clampSidebarWidth", () => {
 	test("pulls a width outside the bounds back to them", () => {
 		expect(clampSidebarWidth(0)).toBe(MIN_SIDEBAR_WIDTH);
 		expect(clampSidebarWidth(10_000)).toBe(MAX_SIDEBAR_WIDTH);
+	});
+});
+
+describe("sidebarCollapsedFromCookie", () => {
+	test("reads the collapsed state", () => {
+		expect(sidebarCollapsedFromCookie("adacta.sidebar.collapsed=true")).toBe(true);
+		expect(sidebarCollapsedFromCookie("session=abc; adacta.sidebar.collapsed=false")).toBe(false);
+		expect(sidebarCollapsedFromCookie(null)).toBe(false);
 	});
 });
 

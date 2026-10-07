@@ -11,6 +11,7 @@ export const MIN_SIDEBAR_WIDTH = 224;
 export const MAX_SIDEBAR_WIDTH = 480;
 
 export const SIDEBAR_WIDTH_COOKIE = "adacta.sidebar.width";
+export const SIDEBAR_COLLAPSED_COOKIE = "adacta.sidebar.collapsed";
 
 /**
  * Hold a width inside the bounds the layout allows.
@@ -26,12 +27,20 @@ export function clampSidebarWidth(width: number): number {
  * by the default. A value outside the bounds is held to them.
  */
 export function sidebarWidthFromCookie(header: string | null): number {
-	const value = header
-		?.split(";")
-		.map((cookie) => cookie.trim().split("=", 2))
-		.find(([name]) => name === SIDEBAR_WIDTH_COOKIE)?.[1];
+	const value = cookieValue(header, SIDEBAR_WIDTH_COOKIE);
 
 	const width = Number(value);
 
 	return Number.isFinite(width) && value ? clampSidebarWidth(width) : DEFAULT_SIDEBAR_WIDTH;
+}
+
+export function sidebarCollapsedFromCookie(header: string | null): boolean {
+	return cookieValue(header, SIDEBAR_COLLAPSED_COOKIE) === "true";
+}
+
+function cookieValue(header: string | null, name: string): string | undefined {
+	return header
+		?.split(";")
+		.map((cookie) => cookie.trim().split("=", 2))
+		.find(([cookieName]) => cookieName === name)?.[1];
 }
