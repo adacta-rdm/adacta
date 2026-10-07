@@ -17,6 +17,7 @@ import { UserManager } from "~/app/services/UserManager.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Product } from "~/drizzle/schema/Product.ts";
 
 import type { Route } from "./+types/inventory.$entrySlug.ts";
 
@@ -49,6 +50,14 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	if (!row) {
 		throw new Response(`Inventory entry "${params.entrySlug}" not found.`, { status: 404 });
 	}
+	const product =
+		row.productId === null
+			? undefined
+			: await db
+					.select({ name: Product.name, productNumber: Product.productNumber })
+					.from(Product)
+					.where(eq(Product.id, row.productId))
+					.get();
 
 	// A record may refer to a deleted user. Its name is then unavailable.
 	const creator = (await access.users()).find((user) => user.id === row.metadataCreatorId);
@@ -58,6 +67,8 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			slug: row.slug,
 			name: row.name,
 			kind: row.kind,
+			serialNumber: row.serialNumber,
+			product,
 			location: {
 				building: row.locationBuildingIdentifier,
 				room: row.locationRoomIdentifier,
@@ -83,6 +94,14 @@ export default function InventoryEntrySlug({ loaderData }: Route.ComponentProps)
 					<KindIcon kind={entry.kind} className="size-4" />
 					{isRig ? "Rig" : "Equipment"}
 				</p>
+				{entry.serialNumber ? (
+					<p className="mt-2 text-sm text-foreground-muted">Serial number: {entry.serialNumber}</p>
+				) : null}
+				{entry.product ? (
+					<p className="mt-2 text-sm text-foreground-muted">
+						Product: {entry.product.name} ({entry.product.productNumber})
+					</p>
+				) : null}
 
 				{location ? (
 					<p className="mt-2 text-sm text-foreground-muted">Location: {location}</p>

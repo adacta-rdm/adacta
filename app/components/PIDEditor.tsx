@@ -169,18 +169,50 @@ const nodeOrigin: NodeOrigin = [0.5, 0.5];
  * The reported graph omits selection and other temporary canvas state. For
  * example, selecting a symbol does not become part of a saved diagram.
  */
-export function PIDEditor({ value, readOnly = false, onChange, actions }: PIDEditorProps) {
+export function PIDEditor({
+	value,
+	readOnly = false,
+	onChange,
+	onSymbolClick,
+	selectedSymbolKey,
+	actions,
+	equipment = [],
+	samples = [],
+}: PIDEditorProps) {
 	return (
 		<ReactFlowProvider>
-			<PIDEditorContents value={value} readOnly={readOnly} onChange={onChange} actions={actions} />
+			<PIDEditorContents
+				value={value}
+				readOnly={readOnly}
+				onChange={onChange}
+				onSymbolClick={onSymbolClick}
+				selectedSymbolKey={selectedSymbolKey}
+				actions={actions}
+				equipment={equipment}
+				samples={samples}
+			/>
 		</ReactFlowProvider>
 	);
+}
+
+export interface PIDEquipmentOption {
+	id: number;
+	name: string;
+	productName: string | null;
+}
+
+export interface PIDSampleOption {
+	id: number;
+	name: string;
+	batchName: string;
 }
 
 export interface PIDEditorProps {
 	value: PIDGraph;
 	readOnly?: boolean;
 	onChange?: (value: PIDGraph) => void;
+	onSymbolClick?: (key: string | null) => void;
+	selectedSymbolKey?: string | null;
 
 	/**
 	 * Controls shown at the right of the tool bar, such as saving the diagram.
@@ -190,13 +222,19 @@ export interface PIDEditorProps {
 	 * be out of reach for as long as it did.
 	 */
 	actions?: ReactNode;
+	equipment?: PIDEquipmentOption[];
+	samples?: PIDSampleOption[];
 }
 
 function PIDEditorContents({
 	value,
 	readOnly,
 	onChange,
+	onSymbolClick,
+	selectedSymbolKey,
 	actions,
+	equipment = [],
+	samples = [],
 }: PIDEditorProps & { readOnly: boolean }) {
 	const [nodes, setNodes] = useNodesState<PIDNode>(editorNodes(value));
 	const [edges, setEdges] = useEdgesState<PIDEdge>(editorEdges(value));
@@ -353,7 +391,10 @@ function PIDEditorContents({
 			helperNodeRoles.get(node.id) === "target" ? "pid-symbol-helper-target" : "",
 		].filter(Boolean);
 
-		return classes.length === 0 ? node : { ...node, className: classes.join(" ") };
+		const highlighted = readOnly && selectedSymbolKey && node.data.symbolKey === selectedSymbolKey;
+		return classes.length === 0 && !highlighted
+			? node
+			: { ...node, className: classes.join(" "), selected: highlighted || node.selected };
 	});
 	const displayedEdges = edges;
 	const canUndo = history.past.length > 0;
@@ -628,6 +669,9 @@ function PIDEditorContents({
 					data: {
 						kind,
 						label: symbol.label,
+						symbolKey: null,
+						equipmentId: null,
+						sampleId: null,
 						secondaryLabel: null,
 						contained: false,
 						inletCount: 1,
@@ -764,6 +808,17 @@ function PIDEditorContents({
 		});
 	}
 
+	function updateSelectedNode(update: Partial<PIDNode["data"]>) {
+		if (!selectedNode) return;
+		performEdit(() => {
+			changeCurrentNodes((current) =>
+				current.map((node) =>
+					node.id === selectedNode.id ? { ...node, data: { ...node.data, ...update } } : node,
+				),
+			);
+		});
+	}
+
 	function setSelectedNodeTag(secondaryLabel: string) {
 		if (!selectedNode) return;
 
@@ -878,7 +933,9 @@ function PIDEditorContents({
 		return best?.id;
 	}
 
-	/** Returns a node's stored centre in canvas coordinates. */
+	/**
+	 * Return a node's stored center in canvas coordinates.
+	 */
 	function nodeCanvasCenter(node: PIDNode): XYPosition | undefined {
 		if (node.parentId === undefined) return node.position;
 
@@ -1366,6 +1423,7 @@ function PIDEditorContents({
 						onNodesChange={readOnly ? undefined : changeNodes}
 						onEdgesChange={readOnly ? undefined : changeEdges}
 						onConnect={readOnly ? undefined : connect}
+						onNodeClick={(_event, node) => onSymbolClick?.(node.data.symbolKey ?? null)}
 						onNodeDragStart={(_event, node, dragged) => startNodeDrag(node, dragged)}
 						onNodeDrag={(_event, node, dragged) => dragNode(node, dragged)}
 						onNodeDragStop={(_event, node, dragged) => dropNode(node, dragged)}
@@ -1482,6 +1540,68 @@ function PIDEditorContents({
 											className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground focus:border-focus focus:outline-none"
 										/>
 									</label>
+
+									<label className="block">
+										<span className="text-xs font-medium text-foreground-muted">
+											Diagram symbol key
+										</span>
+										<input
+											value={selectedNode.data.symbolKey ?? ""}
+											placeholder="e.g. Thermocouple_Inlet"
+											onFocus={beginHistoryGroup}
+											onBlur={finishHistoryGroup}
+											onChange={(event) =>
+												updateSelectedNode({ symbolKey: event.target.value || null })
+											}
+											className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground focus:border-focus focus:outline-none"
+										/>
+										<span className="mt-1 block text-[0.6875rem] text-foreground-muted">
+											Stable and unique within this rig.
+										</span>
+									</label>
+
+									{selectedNode.data.kind === "sample" ? (
+										<label className="block">
+											<span className="text-xs font-medium text-foreground-muted">Sample</span>
+											<select
+												value={selectedNode.data.sampleId ?? ""}
+												onChange={(event) =>
+													updateSelectedNode({
+														sampleId: event.target.value ? Number(event.target.value) : null,
+													})
+												}
+												className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground"
+											>
+												<option value="">No sample</option>
+												{samples.map((sample) => (
+													<option key={sample.id} value={sample.id}>
+														{sample.batchName} — {sample.name}
+													</option>
+												))}
+											</select>
+										</label>
+									) : (
+										<label className="block">
+											<span className="text-xs font-medium text-foreground-muted">Equipment</span>
+											<select
+												value={selectedNode.data.equipmentId ?? ""}
+												onChange={(event) =>
+													updateSelectedNode({
+														equipmentId: event.target.value ? Number(event.target.value) : null,
+													})
+												}
+												className="mt-1 block w-full rounded-md border border-border bg-surface px-2.5 py-2 text-sm text-foreground"
+											>
+												<option value="">No equipment</option>
+												{equipment.map((item) => (
+													<option key={item.id} value={item.id}>
+														{item.name}
+														{item.productName ? ` — ${item.productName}` : " — no product"}
+													</option>
+												))}
+											</select>
+										</label>
+									)}
 
 									{selectedNode.data.kind === "instrument" ? (
 										<>
@@ -1954,7 +2074,9 @@ function createHelperLineSession(
 	};
 }
 
-/** Returns the measured center of one symbol. */
+/**
+ * Return the measured center of one symbol.
+ */
 function helperAnchors(node: InternalNode<PIDNode>): PIDHelperAnchor[] {
 	const width = node.measured.width;
 	const height = node.measured.height;

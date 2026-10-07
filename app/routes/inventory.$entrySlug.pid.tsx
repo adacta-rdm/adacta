@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { useCallback, useState } from "react";
 import {
 	data,
@@ -13,17 +13,24 @@ import {
 import { isPIDGraph } from "@/tsrc/app/lib/PID";
 import { services } from "~/app/.server/context.ts";
 import { PIDEditor } from "~/app/components/PIDEditor.tsx";
+import { PIDSidecarPanel } from "~/app/components/PIDSidecarPanel.tsx";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import type { PIDGraph, PIDLength, PIDLengthUnit } from "~/app/lib/PID.ts";
 import { isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
 import { type BatchStatement, ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
+import { pidSidecarSkeleton } from "~/app/services/PIDSidecar.ts";
+import { loadSidecarEditorNodes } from "~/app/services/PIDSidecarEditorData.ts";
 import { Security } from "~/app/services/Security.ts";
 import { Button } from "~/catalyst-ui/button.tsx";
 import { Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
+import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { PIDEdge } from "~/drizzle/schema/PIDEdge.ts";
 import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
+import { Product } from "~/drizzle/schema/Product.ts";
+import { Sample } from "~/drizzle/schema/Sample.ts";
+import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 
 import type { Route } from "./+types/inventory.$entrySlug.pid.ts";
 import type { loader as entryLoader } from "./inventory.$entrySlug.tsx";
@@ -38,11 +45,14 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		throw new Response(`Rig "${params.entrySlug}" not found.`, { status: 404 });
 	}
 
-	const nodes = await db
+	const nodeRows = await db
 		.select({
 			id: PIDNode.id,
 			kind: PIDNode.kind,
 			label: PIDNode.label,
+			symbolKey: PIDNode.symbolKey,
+			equipmentId: PIDNode.equipmentEntryId,
+			sampleId: PIDNode.sampleId,
 			secondaryLabel: PIDNode.secondaryLabel,
 			parentId: PIDNode.parentNodeId,
 			inletCount: PIDNode.inletCount,
@@ -56,6 +66,12 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		.where(eq(PIDNode.inventoryEntryId, entry.id))
 		.orderBy(asc(PIDNode.drawingOrder))
 		.all();
+	const nodes = nodeRows.map(({ symbolKey, equipmentId, sampleId, ...node }) => ({
+		...node,
+		...(symbolKey === null ? {} : { symbolKey }),
+		...(equipmentId === null ? {} : { equipmentId }),
+		...(sampleId === null ? {} : { sampleId }),
+	}));
 
 	// A length is stored as a value and a unit in two columns. The graph carries
 	// it as one object, so the rows are reshaped below.
@@ -80,12 +96,37 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		sourceHandle: edge.sourceHandle,
 		targetHandle: edge.targetHandle,
 	}));
+	const equipment = await db
+		.select({ id: InventoryEntry.id, name: InventoryEntry.name, productName: Product.name })
+		.from(InventoryEntry)
+		.leftJoin(Product, eq(Product.id, InventoryEntry.productId))
+		.where(and(eq(InventoryEntry.kind, "equipment"), isNull(InventoryEntry.metadataArchivedAt)))
+		.orderBy(asc(InventoryEntry.name))
+		.all();
+	const samples = await db
+		.select({ id: Sample.id, name: Sample.name, batchName: SampleBatch.name })
+		.from(Sample)
+		.innerJoin(SampleBatch, eq(SampleBatch.id, Sample.batchId))
+		.where(and(isNull(Sample.metadataArchivedAt), isNull(SampleBatch.metadataArchivedAt)))
+		.orderBy(asc(SampleBatch.name), asc(Sample.name))
+		.all();
+	const user = await db
+		.select({ email: User.email })
+		.from(User)
+		.where(eq(User.id, context.get(services).get(Security).userId))
+		.get();
+	if (!user) throw new Response("User not found.", { status: 404 });
+	const sidecar = await pidSidecarSkeleton(db, entry.id, user.email);
+	const graph = { nodes, edges } as PIDGraph;
 
 	return {
-		graph: {
-			nodes,
-			edges,
-		} satisfies PIDGraph,
+		graph,
+		equipment,
+		samples,
+		initialToml: sidecar.initialToml,
+		sidecarWarnings: sidecar.warnings,
+		sidecarNodes: await loadSidecarEditorNodes(db, graph),
+		rigSlug: params.entrySlug,
 	};
 }
 
@@ -102,6 +143,70 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 
 	if (!graph) {
 		return data({ error: "The diagram contains invalid data." }, { status: 400 });
+	}
+	const symbolKeys = graph.nodes.flatMap((node) => (node.symbolKey ? [node.symbolKey] : []));
+	if (
+		graph.nodes.some(
+			(node) =>
+				node.symbolKey !== undefined &&
+				node.symbolKey !== null &&
+				(!node.symbolKey.trim() || node.symbolKey !== node.symbolKey.trim()),
+		)
+	) {
+		return data(
+			{ error: "Diagram symbol keys must be nonempty and have no leading or trailing spaces." },
+			{ status: 400 },
+		);
+	}
+	if (new Set(symbolKeys).size !== symbolKeys.length) {
+		return data({ error: "Diagram symbol keys must be unique within a rig." }, { status: 400 });
+	}
+	if (
+		graph.nodes.some((node) =>
+			node.kind === "sample" ? node.equipmentId != null : node.sampleId != null,
+		)
+	) {
+		return data(
+			{ error: "Link samples to sample symbols and equipment to other symbols." },
+			{ status: 400 },
+		);
+	}
+	const equipmentIds = [
+		...new Set(graph.nodes.flatMap((node) => (node.equipmentId == null ? [] : [node.equipmentId]))),
+	];
+	if (equipmentIds.length) {
+		const available = await db
+			.select({ id: InventoryEntry.id })
+			.from(InventoryEntry)
+			.where(
+				and(
+					inArray(InventoryEntry.id, equipmentIds),
+					eq(InventoryEntry.kind, "equipment"),
+					isNull(InventoryEntry.metadataArchivedAt),
+				),
+			)
+			.all();
+		if (available.length !== equipmentIds.length)
+			return data({ error: "The diagram refers to unavailable equipment." }, { status: 400 });
+	}
+	const sampleIds = [
+		...new Set(graph.nodes.flatMap((node) => (node.sampleId == null ? [] : [node.sampleId]))),
+	];
+	if (sampleIds.length) {
+		const available = await db
+			.select({ id: Sample.id })
+			.from(Sample)
+			.innerJoin(SampleBatch, eq(SampleBatch.id, Sample.batchId))
+			.where(
+				and(
+					inArray(Sample.id, sampleIds),
+					isNull(Sample.metadataArchivedAt),
+					isNull(SampleBatch.metadataArchivedAt),
+				),
+			)
+			.all();
+		if (available.length !== sampleIds.length)
+			return data({ error: "The diagram refers to unavailable samples." }, { status: 400 });
 	}
 
 	const createdAt = new Date();
@@ -122,6 +227,9 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 					inventoryEntryId: entry.id,
 					kind: node.kind,
 					label: node.label,
+					symbolKey: node.symbolKey,
+					equipmentEntryId: node.equipmentId ?? null,
+					sampleId: node.sampleId ?? null,
 					secondaryLabel: node.secondaryLabel,
 					parentNodeId: node.parentId,
 					drawingOrder,
@@ -178,6 +286,8 @@ export default function InventoryEntrySlugPid({ loaderData, actionData }: Route.
 	const editing = searchParams.has("edit");
 	const saving = navigation.state === "submitting";
 	const [serializedGraph, setSerializedGraph] = useState(() => JSON.stringify(loaderData.graph));
+	const [selectedSymbolKey, setSelectedSymbolKey] = useState<string | null>(null);
+	const [symbolFocus, setSymbolFocus] = useState<{ key: string; request: number } | null>(null);
 
 	const recordGraph = useCallback((graph: PIDGraph) => {
 		setSerializedGraph(JSON.stringify(graph));
@@ -227,12 +337,33 @@ export default function InventoryEntrySlugPid({ loaderData, actionData }: Route.
 				</p>
 			) : null}
 
-			<PIDEditor
-				value={loaderData.graph}
-				readOnly={!editing}
-				onChange={editing ? recordGraph : undefined}
-				actions={actions}
-			/>
+			<div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,30rem)]">
+				<div className="min-w-0">
+					<PIDEditor
+						value={loaderData.graph}
+						equipment={loaderData.equipment}
+						samples={loaderData.samples}
+						readOnly={!editing}
+						onChange={editing ? recordGraph : undefined}
+						selectedSymbolKey={selectedSymbolKey}
+						onSymbolClick={(key) => {
+							setSelectedSymbolKey(key);
+							if (key) setSymbolFocus((current) => ({ key, request: (current?.request ?? 0) + 1 }));
+						}}
+						actions={actions}
+					/>
+				</div>
+				<div className="min-w-0">
+					<PIDSidecarPanel
+						fileName={`${loaderData.rigSlug}-sidecar.toml`}
+						initialToml={loaderData.initialToml}
+						warnings={loaderData.sidecarWarnings}
+						nodes={loaderData.sidecarNodes}
+						symbolFocus={symbolFocus}
+						onSymbolSelectionChange={setSelectedSymbolKey}
+					/>
+				</div>
+			</div>
 		</section>
 	);
 }
