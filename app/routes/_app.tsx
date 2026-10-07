@@ -2,7 +2,7 @@
  * Every application section shares the navigation shell.
  */
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Outlet, useLocation, useMatches, useNavigate } from "react-router";
 
 import { FileDropTarget } from "~/app/components/FileDropTarget.tsx";
@@ -28,17 +28,24 @@ export function loader({ request }: Route.LoaderArgs) {
 }
 
 export type AppContext = {
+	dropContext?: DropContext;
+	setDropContext: (context: DropContext | undefined) => void;
 	selectedFiles: File[];
 	addSelectedFiles: (files: File[]) => void;
 	removeSelectedFile: (file: File) => void;
 	clearSelectedFiles: () => void;
 };
 
+export type DropContext =
+	| { kind: "inventory-entry"; slug: string; label: string }
+	| { kind: "sample-batch"; slug: string; label: string };
+
 export default function App({ loaderData }: Route.ComponentProps) {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const matches = useMatches();
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+	const [dropContext, setDropContext] = useState<DropContext>();
 
 	function addSelectedFiles(files: File[]) {
 		setSelectedFiles((current) => appendUniqueFiles(current, files));
@@ -48,19 +55,43 @@ export default function App({ loaderData }: Route.ComponentProps) {
 		setSelectedFiles((current) => current.filter((candidate) => candidate !== file));
 	}
 
-	function clearSelectedFiles() {
-		setSelectedFiles([]);
-	}
+	const clearSelectedFiles = useCallback(() => {
+		setSelectedFiles((current) => (current.length === 0 ? current : []));
+		setDropContext((current) => (current === undefined ? current : undefined));
+	}, []);
 
 	// Add files dropped in the application to the selection and open the import page.
-	function addDroppedFiles(files: File[]) {
+	function addDroppedFiles(files: File[], target: EventTarget | null) {
 		addSelectedFiles(files);
+		const targetContext = readDropTargetContext(target);
+		const entryMatch = matches.find((match) => match.id === "routes/inventory.$entrySlug");
+		const entry = (
+			entryMatch?.loaderData as { entry?: { slug: string; name: string; kind: string } } | undefined
+		)?.entry;
+		const batchMatch = matches.find((match) => match.id === "routes/samples.$batchSlug");
+		const batch = batchMatch?.loaderData as { name?: string } | undefined;
+		const batchSlug = batchMatch?.params.batchSlug;
+		const context: DropContext | undefined =
+			targetContext ??
+			(entry?.kind === "rig"
+				? { kind: "inventory-entry", slug: entry.slug, label: entry.name }
+				: batch && typeof batchSlug === "string"
+					? { kind: "sample-batch", slug: batchSlug, label: batch.name ?? batchSlug }
+					: undefined);
+		if (context) setDropContext(context);
 
 		const importPath = "/files/import";
-		if (location.pathname !== importPath) void navigate(importPath);
+		if (location.pathname !== importPath) {
+			const search = context
+				? `?contextKind=${encodeURIComponent(context.kind)}&contextSlug=${encodeURIComponent(context.slug)}&contextLabel=${encodeURIComponent(context.label)}`
+				: "";
+			void navigate(`${importPath}${search}`);
+		}
 	}
 
 	const context: AppContext = {
+		dropContext,
+		setDropContext,
 		selectedFiles,
 		addSelectedFiles,
 		removeSelectedFile,
@@ -80,4 +111,15 @@ export default function App({ loaderData }: Route.ComponentProps) {
 			</AppLayout>
 		</FileDropTarget>
 	);
+}
+
+function readDropTargetContext(target: EventTarget | null): DropContext | undefined {
+	if (!(target instanceof Element)) return undefined;
+	const dropTarget = target.closest<HTMLElement>("[data-drop-context-kind]");
+	const kind = dropTarget?.dataset.dropContextKind;
+	const slug = dropTarget?.dataset.dropContextSlug;
+	const label = dropTarget?.dataset.dropContextLabel;
+	if (!slug || !label) return undefined;
+	if (kind === "inventory-entry" || kind === "sample-batch") return { kind, slug, label };
+	return undefined;
 }

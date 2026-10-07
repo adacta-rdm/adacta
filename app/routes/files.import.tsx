@@ -1,4 +1,5 @@
 import { FormDataParseError, parseFormData } from "@remix-run/form-data-parser";
+import { and, eq, isNull } from "drizzle-orm";
 import { useEffect, type SubmitEvent } from "react";
 import {
 	data,
@@ -6,17 +7,21 @@ import {
 	useLocation,
 	useNavigation,
 	useOutletContext,
+	useSearchParams,
 	useSubmit,
 } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { UploadForm } from "~/app/components/UploadForm.tsx";
-import type { AppContext } from "~/app/routes/_app.tsx";
+import type { AppContext, DropContext } from "~/app/routes/_app.tsx";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
+import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 
 import type { Route } from "./+types/files.import.ts";
 
@@ -26,6 +31,37 @@ export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/Se
 
 export function meta() {
 	return [{ title: "Import files — Adacta" }];
+}
+
+export async function loader({ context, request }: Route.LoaderArgs) {
+	const search = new URL(request.url).searchParams;
+	if (search.get("contextKind") !== "inventory-entry") return { suggestion: null };
+	const slug = search.get("contextSlug");
+	if (!slug) return { suggestion: null };
+	const db = context.get(services).get(ApplicationDatabase);
+	const rig = await db
+		.select({ id: InventoryEntry.id, slug: InventoryEntry.slug, name: InventoryEntry.name })
+		.from(InventoryEntry)
+		.where(
+			and(
+				eq(InventoryEntry.slug, slug),
+				eq(InventoryEntry.kind, "rig"),
+				isNull(InventoryEntry.metadataArchivedAt),
+			),
+		)
+		.get();
+	if (!rig) return { suggestion: null };
+	const symbols = await db
+		.select({ key: PIDNode.symbolKey })
+		.from(PIDNode)
+		.where(and(eq(PIDNode.inventoryEntryId, rig.id), isNull(PIDNode.metadataArchivedAt)))
+		.all();
+	return {
+		suggestion: {
+			...rig,
+			symbolKeys: symbols.flatMap((node) => (node.key ? [node.key] : [])),
+		},
+	};
 }
 
 /**
@@ -78,21 +114,43 @@ export async function action({ request, context }: Route.ActionArgs) {
 	}
 
 	const uploadId = await pending!.commit(context.get(services).get(Security).userId);
-
-	return redirect(`/files/${uploadId}`, 303);
+	const contextKind = formData.get("contextKind");
+	const contextSlug = formData.get("contextSlug");
+	const contextLabel = formData.get("contextLabel");
+	const query = new URLSearchParams();
+	if (
+		(contextKind === "inventory-entry" || contextKind === "sample-batch") &&
+		typeof contextSlug === "string" &&
+		typeof contextLabel === "string"
+	) {
+		query.set("contextKind", contextKind);
+		query.set("contextSlug", contextSlug);
+		query.set("contextLabel", contextLabel);
+	}
+	const uploadedFiles = await context.get(services).get(UploadManager).filesOfUpload(uploadId);
+	const csvFiles = uploadedFiles.filter((file) => /\.csv$/i.test(file.originalName));
+	const tomlFiles = uploadedFiles.filter((file) => /\.toml$/i.test(file.originalName));
+	const hasSidecarBundle =
+		uploadedFiles.length === 2 && csvFiles.length === 1 && tomlFiles.length === 1;
+	const destination = hasSidecarBundle
+		? `/files/${uploadId}/measurements/import`
+		: `/files/${uploadId}`;
+	return redirect(`${destination}${query.size ? `?${query}` : ""}`, 303);
 }
 
-export default function FilesImport({ actionData }: Route.ComponentProps) {
+export default function FilesImport({ actionData, loaderData }: Route.ComponentProps) {
 	const location = useLocation();
 	const navigation = useNavigation();
 	const submit = useSubmit();
-	const { selectedFiles, addSelectedFiles, removeSelectedFile, clearSelectedFiles } =
+	const { dropContext, selectedFiles, addSelectedFiles, removeSelectedFile, clearSelectedFiles } =
 		useOutletContext<AppContext>();
+	const [searchParams] = useSearchParams();
+	const context = dropContext ?? readDropContext(searchParams);
 
 	useEffect(() => {
 		const completedUpload =
 			navigation.state === "loading" &&
-			navigation.formAction === location.pathname &&
+			navigation.formAction?.split("?")[0] === location.pathname &&
 			navigation.formData?.has("files") === true &&
 			navigation.location.pathname !== location.pathname;
 
@@ -109,6 +167,11 @@ export default function FilesImport({ actionData }: Route.ComponentProps) {
 			formData.append("files", file);
 			formData.append("lastModified", String(file.lastModified));
 		}
+		if (context) {
+			formData.append("contextKind", context.kind);
+			formData.append("contextSlug", context.slug);
+			formData.append("contextLabel", context.label);
+		}
 
 		void submit(formData, { method: "post", encType: "multipart/form-data" });
 	}
@@ -122,9 +185,21 @@ export default function FilesImport({ actionData }: Route.ComponentProps) {
 			<Text className="mt-2">
 				Add the original files for this upload. A raw text preview is generated in the browser.
 			</Text>
+			{context ? (
+				<div className="mt-4 rounded-lg border border-border bg-surface-muted p-4">
+					<p className="text-sm font-semibold text-foreground">Starting context</p>
+					<p className="mt-1 text-sm text-foreground-muted">
+						{context.kind === "inventory-entry" ? "Inventory item" : "Sample batch"}:{" "}
+						{context.label}
+					</p>
+				</div>
+			) : null}
 
 			<UploadForm
+				action={`${location.pathname}${location.search}`}
 				files={selectedFiles}
+				suggestion={loaderData.suggestion ?? undefined}
+				measurementMode={selectedFiles.some((file) => /\.(csv|toml)$/i.test(file.name))}
 				isUploading={isUploading}
 				uploadError={uploadError}
 				onAddFiles={addSelectedFiles}
@@ -134,4 +209,13 @@ export default function FilesImport({ actionData }: Route.ComponentProps) {
 			/>
 		</>
 	);
+}
+
+function readDropContext(params: URLSearchParams): DropContext | undefined {
+	const kind = params.get("contextKind");
+	const slug = params.get("contextSlug");
+	const label = params.get("contextLabel");
+	if (!slug || !label) return undefined;
+	if (kind === "inventory-entry" || kind === "sample-batch") return { kind, slug, label };
+	return undefined;
 }

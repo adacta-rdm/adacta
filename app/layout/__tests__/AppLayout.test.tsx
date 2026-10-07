@@ -38,14 +38,21 @@ function render(
 
 describe("AppLayout", () => {
 	test("the top zone links every section on every page", () => {
-		for (const path of ["/catalog", "/inventory", "/samples", "/files/import", "/users"]) {
+		for (const path of [
+			"/catalog",
+			"/inventory",
+			"/samples",
+			"/files",
+			"/files/import",
+			"/users",
+		]) {
 			const markup = render(path);
 
 			expect(markup).toContain(">Adacta<");
 			expect(markup).toContain('href="/catalog"');
 			expect(markup).toContain('href="/inventory"');
 			expect(markup).toContain('href="/samples"');
-			expect(markup).toContain('href="/files/import"');
+			expect(markup).toContain('href="/files"');
 			expect(markup).toContain('href="/users"');
 		}
 	});

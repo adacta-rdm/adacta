@@ -5,7 +5,7 @@ export function FileDropTarget({
 	onDropFiles,
 }: {
 	children: ReactNode;
-	onDropFiles: (files: File[]) => void;
+	onDropFiles: (files: File[], target: EventTarget | null) => void;
 }) {
 	const dragDepth = useRef(0);
 	const [isDraggingFiles, setIsDraggingFiles] = useState(false);
@@ -44,7 +44,7 @@ export function FileDropTarget({
 		setIsDraggingFiles(false);
 
 		const files = [...event.dataTransfer.files];
-		if (files.length > 0) onDropFiles(files);
+		if (files.length > 0) onDropFiles(files, event.target);
 	}
 
 	return (
