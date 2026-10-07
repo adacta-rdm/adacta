@@ -1,0 +1,130 @@
+{
+	"nodes": [
+		{
+			"key": "n2-bottle",
+			"kind": "gas-bottle",
+			"label": "N2 Gas Bottle",
+			"symbolKey": "Gas_Bottle_N2",
+			"equipment": "n2-gas-bottle",
+			"orientation": 1,
+			"position": { "x": 80, "y": 120 }
+		},
+		{
+			"key": "n2-mfc",
+			"kind": "instrument",
+			"label": "FIRC",
+			"symbolKey": "FIRC_101",
+			"equipment": "n2-mfc",
+			"secondaryLabel": "101",
+			"orientation": 0,
+			"position": { "x": 250, "y": 120 }
+		},
+		{
+			"key": "h2-bottle",
+			"kind": "gas-bottle",
+			"label": "H2 Gas Bottle",
+			"symbolKey": "Gas_Bottle_H2",
+			"equipment": "h2-gas-bottle",
+			"orientation": 1,
+			"position": { "x": 80, "y": 350 }
+		},
+		{
+			"key": "h2-mfc",
+			"kind": "instrument",
+			"label": "FIRC",
+			"symbolKey": "FIRC_102",
+			"equipment": "h2-mfc",
+			"secondaryLabel": "102",
+			"orientation": 0,
+			"position": { "x": 250, "y": 350 }
+		},
+		{
+			"key": "feed-junction",
+			"kind": "junction",
+			"label": "Feed junction",
+			"orientation": 0,
+			"position": { "x": 430, "y": 235 }
+		},
+		{
+			"key": "furnace",
+			"kind": "furnace",
+			"label": "Furnace",
+			"symbolKey": "Furnace",
+			"equipment": "furnace",
+			"orientation": 0,
+			"position": { "x": 580, "y": 235 }
+		},
+		{
+			"key": "catalyst-sample",
+			"kind": "sample",
+			"label": "Pt/Al2O3 #01",
+			"symbolKey": "sample",
+			"sample": "pt-al2o3/#01",
+			"parent": "furnace",
+			"orientation": 0,
+			"position": { "x": 28, "y": 28 }
+		},
+		{
+			"key": "ftir",
+			"kind": "instrument",
+			"label": "FTIR",
+			"symbolKey": "FTIR_Outlet",
+			"equipment": "ftir-spectrum",
+			"secondaryLabel": "Outlet",
+			"orientation": 0,
+			"position": { "x": 760, "y": 235 }
+		}
+	],
+	"edges": [
+		{
+			"key": "n2-bottle-to-mfc",
+			"kind": "pipe",
+			"source": "n2-bottle",
+			"target": "n2-mfc",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "n2-mfc-to-junction",
+			"kind": "pipe",
+			"source": "n2-mfc",
+			"target": "feed-junction",
+			"sourceHandle": "outlet",
+			"targetHandle": "branch-inlet"
+		},
+		{
+			"key": "h2-bottle-to-mfc",
+			"kind": "pipe",
+			"source": "h2-bottle",
+			"target": "h2-mfc",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "h2-mfc-to-junction",
+			"kind": "pipe",
+			"source": "h2-mfc",
+			"target": "feed-junction",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "junction-to-furnace",
+			"kind": "pipe",
+			"weight": 2,
+			"source": "feed-junction",
+			"target": "furnace",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "furnace-to-ftir",
+			"kind": "pipe",
+			"weight": 2,
+			"source": "furnace",
+			"target": "ftir",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		}
+	]
+}

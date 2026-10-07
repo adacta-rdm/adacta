@@ -9,7 +9,8 @@ const entries = Object.entries(QUANTITY_KINDS);
 describe("QUANTITY_KINDS", () => {
 	test("every kind says how it is built out of the base quantities", () => {
 		for (const [name, kind] of entries) {
-			expect(Object.keys(kind.dimension).length, name).toBeGreaterThan(0);
+			if (name === "MoleFraction") expect(kind.dimension).toEqual({});
+			else expect(Object.keys(kind.dimension).length, name).toBeGreaterThan(0);
 		}
 	});
 

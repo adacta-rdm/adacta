@@ -1,0 +1,25 @@
+{
+	"name": "EL-FLOW Select F-201CV",
+	"productNumber": "F-201CV-100-RGD-33-V",
+	"tags": ["MFC"],
+	"subtitle": "Low-flow thermal mass flow controller configured for 100 mlₙ/min H₂",
+	"description": "This EL-FLOW Select F-201CV is configured for hydrogen with a full-scale flow of 100 mlₙ/min. The controller combines a thermal mass-flow sensor, integrated control valve, and digital electronics for low gas-flow applications.",
+	"specifications": [
+		{
+			"name": "Configured full-scale flow",
+			"value": "100 mlₙ/min"
+		},
+		{
+			"name": "Calibration gas",
+			"value": "H₂"
+		},
+		{
+			"name": "Model nominal air range",
+			"value": "0.8–100 mlₙ/min"
+		},
+		{
+			"name": "Operating pressure",
+			"value": "Vacuum to 64 bar"
+		}
+	]
+}

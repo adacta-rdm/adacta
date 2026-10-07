@@ -1,0 +1,25 @@
+{
+	"name": "EL-FLOW Select F-201CV",
+	"productNumber": "F-201CV-200-RGD-33-K",
+	"tags": ["MFC"],
+	"subtitle": "Low-flow thermal mass flow controller configured for 200 mlₙ/min N₂",
+	"description": "This EL-FLOW Select F-201CV is configured for nitrogen with a full-scale flow of 200 mlₙ/min. The controller combines a thermal mass-flow sensor, integrated control valve, and digital electronics for low gas-flow applications.",
+	"specifications": [
+		{
+			"name": "Configured full-scale flow",
+			"value": "200 mlₙ/min"
+		},
+		{
+			"name": "Calibration gas",
+			"value": "N₂"
+		},
+		{
+			"name": "Model nominal air range",
+			"value": "1.6–200 mlₙ/min"
+		},
+		{
+			"name": "Operating pressure",
+			"value": "Vacuum to 64 bar"
+		}
+	]
+}

@@ -1,0 +1,17 @@
+{
+	"name": "Feature Test Mass Flow Controller",
+	"productNumber": "FT-MFC-100",
+	"subtitle": "Mass flow controller fixture",
+	"channels": [
+		{
+			"key": "flow",
+			"role": "measurement",
+			"quantityKind": "VolumeFlowRate"
+		},
+		{
+			"key": "flow",
+			"role": "setpoint",
+			"quantityKind": "VolumeFlowRate"
+		}
+	]
+}

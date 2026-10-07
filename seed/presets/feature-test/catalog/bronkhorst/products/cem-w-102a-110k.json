@@ -1,0 +1,28 @@
+{
+	"name": "CEM W-102A",
+	"productNumber": "W-102A-110K",
+	"tags": ["CEM", "CaptionedCircle"],
+	"subtitle": "Controlled evaporation and mixing system",
+	"specifications": [
+		{
+			"name": "Maximum heating temperature",
+			"value": "200 °C"
+		},
+		{
+			"name": "Pressure rating",
+			"value": "PN 100"
+		},
+		{
+			"name": "Typical liquid flow",
+			"value": "Up to 30 g/h H₂O"
+		},
+		{
+			"name": "Typical carrier-gas flow",
+			"value": "50 ml/min to 4 l/min"
+		},
+		{
+			"name": "Heater power",
+			"value": "150 W nominal"
+		}
+	]
+}

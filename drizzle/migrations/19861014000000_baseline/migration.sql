@@ -309,6 +309,7 @@ CREATE UNIQUE INDEX `SampleBatch_slug_unique` ON `SampleBatch` (`slug`);
 --> statement-breakpoint
 INSERT INTO `QuantityKind` (`quantity_kind_id`) VALUES
 ('Mass'),
+('MoleFraction'),
 ('Power'),
 ('Pressure'),
 ('Temperature'),

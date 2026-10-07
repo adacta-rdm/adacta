@@ -42,7 +42,7 @@ describe("db command", () => {
 		expect(readFileSync(path)).toEqual(before);
 		if (args[1] === "missing-preset") {
 			expect(result.stderr.toString()).toContain('Unknown preset "missing-preset"');
-			expect(result.stderr.toString()).toContain("Available presets: demo, pilot");
+			expect(result.stderr.toString()).toContain("Available presets: demo, feature-test, pilot");
 		} else {
 			expect(result.stderr.toString()).toMatch(/preset name/);
 		}

@@ -35,6 +35,9 @@ type SeedPIDNode = {
 	key: string;
 	kind: PIDSymbolKind;
 	label: string;
+	symbolKey?: string;
+	equipment?: string;
+	sample?: string;
 
 	/**
 	 * The second line of text an instrument carries. Every other symbol omits
@@ -79,6 +82,7 @@ export async function seedPID(
 	scope: ServiceContainer,
 	preset: string,
 	entryIds: Map<string, number>,
+	sampleIds: ReadonlyMap<string, number> = new Map(),
 ): Promise<number> {
 	const db = scope.get(ApplicationDatabase);
 	const creatorId = scope.get(Security).userId;
@@ -100,6 +104,8 @@ export async function seedPID(
 			creatorId,
 			createdAt,
 			file,
+			entryIds,
+			sampleIds,
 		});
 	}
 
@@ -115,9 +121,16 @@ export async function seedPID(
 async function writeDiagram(
 	db: ApplicationDatabase,
 	diagram: SeedPID,
-	context: { entryId: number; creatorId: string; createdAt: Date; file: string },
+	context: {
+		entryId: number;
+		creatorId: string;
+		createdAt: Date;
+		file: string;
+		entryIds: ReadonlyMap<string, number>;
+		sampleIds: ReadonlyMap<string, number>;
+	},
 ): Promise<void> {
-	const { entryId, creatorId, createdAt, file } = context;
+	const { entryId, creatorId, createdAt, file, entryIds, sampleIds } = context;
 
 	const nodeIds = new Map(
 		diagram.nodes.map((node) => [node.key, `pid-node-${entryId}-${node.key}`]),
@@ -129,6 +142,12 @@ async function writeDiagram(
 	for (const node of diagram.nodes) {
 		if (node.parent !== undefined && !nodeIds.has(node.parent)) {
 			throw new Error(`Symbol "${node.key}" in ${file} sits inside no symbol "${node.parent}".`);
+		}
+		if (node.equipment !== undefined && !entryIds.has(node.equipment)) {
+			throw new Error(`Symbol "${node.key}" in ${file} names no equipment "${node.equipment}".`);
+		}
+		if (node.sample !== undefined && !sampleIds.has(node.sample)) {
+			throw new Error(`Symbol "${node.key}" in ${file} names no sample "${node.sample}".`);
 		}
 	}
 
@@ -155,6 +174,9 @@ async function writeDiagram(
 					inventoryEntryId: entryId,
 					kind: node.kind,
 					label: node.label,
+					symbolKey: node.symbolKey ?? node.key,
+					equipmentEntryId: node.equipment === undefined ? null : entryIds.get(node.equipment)!,
+					sampleId: node.sample === undefined ? null : sampleIds.get(node.sample)!,
 					secondaryLabel: node.secondaryLabel ?? null,
 					parentNodeId: node.parent === undefined ? null : nodeIds.get(node.parent)!,
 					drawingOrder,

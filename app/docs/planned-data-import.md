@@ -99,32 +99,37 @@ A sidecar may describe:
 - station, sample, or sample-batch identifiers; and
 - other information required by a format-specific importer.
 
-The following example is illustrative; the sidecar format has not yet been specified:
+Measurement CSV imports use a TOML sidecar. It defines the CSV structure and describes each column in source order:
 
-```yaml
-data: run.csv
+```toml
+[file_structure]
+column_delimiter = ","
+decimal_separator = "."
+header_rows = 1
+data_row = 2
+file_encoding = "UTF-8"
 
-columns:
-  timestamp:
-    axis: time
-    unit: s
+[experiment]
+operator_email = "operator@example.org"
+samples = []
 
-  FT101_PV:
-    item:
-      namespace: labview
-      value: FT-101
-    channel: flow
-    role: measurement
-    unit: ml/min
+[[columns]]
+name = "Recorded at"
+axis = "time"
+format = "%Y-%m-%dT%H:%M:%SZ"
+timezone = "UTC"
 
-  FT101_SP:
-    item:
-      namespace: labview
-      value: FT-101
-    channel: flow
-    role: setpoint
-    unit: ml/min
+[[columns]]
+name = "FT101_PV"
+symbol_key = "FT101"
+channel = "flow"
+role = "measurement"
+unit = "ml/min"
+[columns.item]
+serial_number = "FT-101"
 ```
+
+The full format and import behavior are documented in [Importing data](/docs/importing-data).
 
 When no sidecar is supplied, the UI builds the same kind of portable description behind the scenes. It begins with facts discovered by the importer and asks the user only for missing or ambiguous information. After the description is complete, the user can download it as a sidecar so that future files from the same acquisition system require less work.
 

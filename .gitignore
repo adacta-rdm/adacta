@@ -3,6 +3,7 @@
 # Local environment and secrets
 .env
 /env/
+/AGENTS.md
 
 # Editor and OS files
 .idea

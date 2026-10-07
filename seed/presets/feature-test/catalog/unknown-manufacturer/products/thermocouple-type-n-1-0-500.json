@@ -1,0 +1,12 @@
+{
+	"name": "Thermocouple Type N",
+	"productNumber": "Typ N 1,0 * 500",
+	"tags": ["Thermocouple"],
+	"subtitle": "Type N thermocouple, 1.0 mm and 500 mm",
+	"specifications": [
+		{
+			"name": "Type",
+			"value": "N"
+		}
+	]
+}

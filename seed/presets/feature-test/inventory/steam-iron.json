@@ -1,0 +1,8 @@
+{
+	"name": "Steam Iron",
+	"kind": "rig",
+	"location": {
+		"buildingIdentifier": "11.23",
+		"roomIdentifier": "225"
+	}
+}

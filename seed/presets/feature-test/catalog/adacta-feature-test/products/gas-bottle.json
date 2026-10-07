@@ -1,0 +1,12 @@
+{
+	"name": "Feature Test Gas Bottle",
+	"productNumber": "FT-GB-50",
+	"subtitle": "Compressed-gas bottle fixture",
+	"channels": [
+		{
+			"key": "pressure",
+			"role": "measurement",
+			"quantityKind": "Pressure"
+		}
+	]
+}

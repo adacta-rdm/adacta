@@ -1,0 +1,77 @@
+{
+	"name": "LIQUI-FLOW L13",
+	"productNumber": "L13-RGD-11-K-10S",
+	"tags": ["MFM"],
+	"subtitle": "Thermal liquid mass flow meter configured for 5 g/h H₂O",
+	"description": "This LIQUI-FLOW L13 is configured for water with a full-scale mass flow of 5 g/h. It measures low liquid flows with a thermal through-flow sensor and provides digital and analog output without an integrated control valve.",
+	"specifications": [
+		{
+			"name": "Configured full-scale flow",
+			"value": "5 g/h"
+		},
+		{
+			"name": "Calibration liquid",
+			"value": "H₂O"
+		},
+		{
+			"name": "Model flow range",
+			"value": "0.25–100 g/h (H₂O basis)"
+		},
+		{
+			"name": "Measurement principle",
+			"value": "Thermal through-flow"
+		},
+		{
+			"name": "Accuracy",
+			"value": "±1% FS based on sensor maximum"
+		},
+		{
+			"name": "Repeatability",
+			"value": "<0.2% FS (typical for H₂O)"
+		},
+		{
+			"name": "Maximum pressure",
+			"value": "100 bar(g)"
+		},
+		{
+			"name": "Fluid temperature",
+			"value": "5–50 °C"
+		},
+		{
+			"name": "Ingress protection",
+			"value": "IP40"
+		},
+		{
+			"name": "Power supply",
+			"value": "15–24 V DC"
+		},
+		{
+			"name": "Communication",
+			"value": "RS-232 standard; optional fieldbus"
+		}
+	],
+	"source": {
+		"url": "https://www.bronkhorst.com/getmedia/a486581e-b8ff-4641-8a84-c4f8762c6aac/liqui-flow-l10-l20.pdf",
+		"retrievedAt": "2026-08-26T09:14:15Z",
+		"title": "LIQUI-FLOW and micro-FLOW technical specifications"
+	},
+	"channels": [
+		{
+			"key": "flow",
+			"role": "measurement",
+			"quantityKind": "VolumeFlowRate",
+			"description": "The flow the controller measures through itself."
+		},
+		{
+			"key": "flow",
+			"role": "setpoint",
+			"quantityKind": "VolumeFlowRate",
+			"description": "The flow requested from the controller."
+		},
+		{
+			"key": "valve-output",
+			"role": "state",
+			"description": "How far the control valve is opened, as a fraction of its range."
+		}
+	]
+}

@@ -19,8 +19,9 @@ bun run dev
 ```
 
 Open <http://localhost:5173> and sign in as `dev@adacta.test` with the password
-`password`. Setup loads the `demo` preset. Run `bun run db:setup pilot` to load
-`pilot` instead.
+`password`. Setup loads the `demo` preset. Run `bun run db:setup pilot` for the
+pilot inventory or `bun run db:setup feature-test` for the measurement import
+fixtures. Each setup command deletes the current local database.
 
 `bun run dev` and `bun run start` apply pending SQL migrations before starting
 the server. A regenerated baseline requires a database reset. Run
@@ -49,6 +50,10 @@ The server assigns each file an identifier and stores its bytes under
 
 The database records each original file after every file in its upload has
 moved out of staging. An incomplete upload therefore has no file records.
+
+An upload containing one CSV and one TOML sidecar opens a measurement review.
+The review shows how columns map to a selected rig's P&ID. Import stores the
+original files, a Parquet dataset, and a summary used by the trend charts.
 
 Set `ADACTA_STORAGE_DIR` to store the files in another directory.
 

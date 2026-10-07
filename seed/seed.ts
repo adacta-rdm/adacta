@@ -64,10 +64,10 @@ export async function seedDatabase(container: ServiceContainer, preset = "demo")
 	const scope = container.clone();
 	scope.get(Security).setCurrentUserId(creatorId);
 
-	const entryIds = await seedInventory(scope, preset);
-	const diagrams = await seedPID(scope, preset, entryIds);
-	const { batches, samples } = await seedSamples(scope, preset, userIds);
 	const catalog = await seedCatalog(scope, seedPath("presets", preset, "catalog"));
+	const entryIds = await seedInventory(scope, preset, catalog.productIds);
+	const { batches, samples, sampleIds } = await seedSamples(scope, preset, userIds);
+	const diagrams = await seedPID(scope, preset, entryIds, sampleIds);
 
 	console.log(
 		`seeded ${preset} (${name}): ${entryIds.size} inventory entries, ${diagrams} diagrams, ` +

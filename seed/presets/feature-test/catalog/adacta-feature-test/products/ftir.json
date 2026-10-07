@@ -1,0 +1,212 @@
+{
+	"name": "Aurelia FTIR 2030",
+	"productNumber": "AUR-FTIR-2030",
+	"subtitle": "Fourier-transform infrared spectrometer fixture",
+	"channels": [
+		{
+			"key": "NO (350,3000) 191C (1of2)",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "NO (10000) 191C (2of2)",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "NO2 (150) 191C (1of2)",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "NO2 (2000) 191C (2of2)",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "N2O (100,200,300) 191C (1of2)",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "N2O (2000) 191C (2of2)",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "NH3 (300) 191C (1of3)",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "NH3 (10000) 191C (2of3)",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "NH3 (80000) 191C (3of3)",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "HNCO (400) 191C",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "H2O% (25) 191C",
+			"role": "measurement"
+		},
+		{
+			"key": "CO2% (20) 191C",
+			"role": "measurement"
+		},
+		{
+			"key": "CO (500) 191C (1of3)",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "CO% (1) 191C (2of3)",
+			"role": "measurement"
+		},
+		{
+			"key": "CO% (10) 191C (3of3)",
+			"role": "measurement"
+		},
+		{
+			"key": "CH4 (250) 191C (1of2)",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "CH4 (3000) 191C (2of2)",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "Propylene (200,1000) 191C",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "Diesel C1 (4500) 191C",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "Ethylene (100,3000) 191C",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "Formaldehyde (70,500) 191C",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "Ethane (1000) 191C",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "Acetylene (1000) 191C",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "MeOH (1000) 191C",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "Formic Acid (100) 191C",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "SO2 (300) 191C",
+			"role": "measurement",
+			"quantityKind": "MoleFraction"
+		},
+		{
+			"key": "Temp (C)",
+			"role": "measurement",
+			"quantityKind": "Temperature"
+		},
+		{
+			"key": "Pressure (Atm)",
+			"role": "measurement",
+			"quantityKind": "Pressure"
+		},
+		{
+			"key": "NO autorange",
+			"role": "status"
+		},
+		{
+			"key": "NO2 autorange",
+			"role": "status"
+		},
+		{
+			"key": "N2O autorange",
+			"role": "status"
+		},
+		{
+			"key": "NH3 autorange",
+			"role": "status"
+		},
+		{
+			"key": "CO autorange",
+			"role": "status"
+		},
+		{
+			"key": "CH4 autorange",
+			"role": "status"
+		},
+		{
+			"key": "Igram DC",
+			"role": "measurement"
+		},
+		{
+			"key": "Igram PP",
+			"role": "measurement"
+		},
+		{
+			"key": "phase Angle",
+			"role": "measurement"
+		},
+		{
+			"key": "laser PP",
+			"role": "measurement"
+		},
+		{
+			"key": "laser DC",
+			"role": "measurement"
+		},
+		{
+			"key": "Bad Scan counter",
+			"role": "status"
+		},
+		{
+			"key": "Centerburst Location",
+			"role": "measurement"
+		},
+		{
+			"key": "Linearizer Check",
+			"role": "status"
+		},
+		{
+			"key": "SNR 2500",
+			"role": "measurement"
+		},
+		{
+			"key": "sBeam @ 2500",
+			"role": "measurement"
+		},
+		{
+			"key": "spectrum",
+			"role": "measurement",
+			"description": "Scalar spectrum fixture value used by measurement-import test data."
+		}
+	]
+}

@@ -1,0 +1,17 @@
+{
+	"name": "Feature Test Furnace",
+	"productNumber": "FT-FURNACE-1000",
+	"subtitle": "Laboratory furnace fixture",
+	"channels": [
+		{
+			"key": "temperature",
+			"role": "measurement",
+			"quantityKind": "Temperature"
+		},
+		{
+			"key": "temperature",
+			"role": "setpoint",
+			"quantityKind": "Temperature"
+		}
+	]
+}

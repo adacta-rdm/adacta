@@ -1,0 +1,16 @@
+{
+	"name": "HTM Furnace",
+	"productNumber": "HTM Furnace",
+	"tags": ["Furnace"],
+	"subtitle": "Furnace with unknown model",
+	"specifications": [
+		{
+			"name": "Maximum temperature",
+			"value": "1000 °C"
+		},
+		{
+			"name": "Power rating",
+			"value": "0.533 kVA"
+		}
+	]
+}

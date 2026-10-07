@@ -1,0 +1,750 @@
+{
+	"nodes": [
+		{
+			"key": "manual-cem-inlet",
+			"kind": "manual-valve",
+			"label": "CEM inlet valve",
+			"orientation": 0,
+			"position": {
+				"x": 795,
+				"y": 543
+			}
+		},
+		{
+			"key": "valve-n2",
+			"kind": "control-valve",
+			"label": "Valve N2",
+			"equipment": "steam-iron-valve-n2",
+			"orientation": 0,
+			"position": {
+				"x": 795,
+				"y": 460
+			},
+			"symbolKey": "valve-n2"
+		},
+		{
+			"key": "h2-supply",
+			"kind": "gas-bottle",
+			"label": "H_2",
+			"orientation": 0,
+			"position": {
+				"x": 45,
+				"y": 1015
+			}
+		},
+		{
+			"key": "n2-supply",
+			"kind": "gas-bottle",
+			"label": "N_2",
+			"orientation": 0,
+			"position": {
+				"x": 120,
+				"y": 1015
+			}
+		},
+		{
+			"key": "manual-h2-supply",
+			"kind": "manual-valve",
+			"label": "H2 supply valve",
+			"orientation": 0,
+			"position": {
+				"x": 465,
+				"y": 355
+			}
+		},
+		{
+			"key": "manual-n2-supply",
+			"kind": "manual-valve",
+			"label": "N2 supply valve",
+			"orientation": 0,
+			"position": {
+				"x": 465,
+				"y": 460
+			}
+		},
+		{
+			"key": "manual-cem-mfc-supply",
+			"kind": "manual-valve",
+			"label": "CEM MFC supply valve",
+			"orientation": 0,
+			"position": {
+				"x": 465,
+				"y": 543
+			}
+		},
+		{
+			"key": "manual-n2-dilution-supply",
+			"kind": "manual-valve",
+			"label": "N2 dilution supply valve",
+			"orientation": 0,
+			"position": {
+				"x": 465,
+				"y": 760
+			}
+		},
+		{
+			"key": "manual-h2o-to-lfc",
+			"kind": "manual-valve",
+			"label": "manual-h2o-to-lfc",
+			"orientation": 0,
+			"position": {
+				"x": 465,
+				"y": 655
+			}
+		},
+		{
+			"key": "mfc-h2",
+			"kind": "instrument",
+			"label": "MFC",
+			"equipment": "steam-iron-mfc-h2",
+			"secondaryLabel": "H2",
+			"orientation": 0,
+			"position": {
+				"x": 615,
+				"y": 355
+			},
+			"symbolKey": "mfc-h2"
+		},
+		{
+			"key": "mfc-n2",
+			"kind": "instrument",
+			"label": "MFC",
+			"equipment": "steam-iron-mfc-n2",
+			"secondaryLabel": "N2",
+			"orientation": 0,
+			"position": {
+				"x": 615,
+				"y": 460
+			},
+			"symbolKey": "mfc-n2"
+		},
+		{
+			"key": "cem-mfc",
+			"kind": "instrument",
+			"label": "MFC",
+			"equipment": "steam-iron-cem-mfc",
+			"secondaryLabel": "CEM",
+			"orientation": 0,
+			"position": {
+				"x": 615,
+				"y": 565
+			},
+			"symbolKey": "cem-mfc"
+		},
+		{
+			"key": "cem-lfc",
+			"kind": "instrument",
+			"label": "LFC",
+			"equipment": "steam-iron-cem-lfc",
+			"secondaryLabel": "CEM",
+			"orientation": 0,
+			"position": {
+				"x": 615,
+				"y": 655
+			},
+			"symbolKey": "cem-lfc"
+		},
+		{
+			"key": "mfc-n2-dilution",
+			"kind": "instrument",
+			"label": "MFC",
+			"secondaryLabel": "N2 Dilution",
+			"orientation": 0,
+			"position": {
+				"x": 615,
+				"y": 760
+			}
+		},
+		{
+			"key": "n2-branch-splitter",
+			"kind": "junction",
+			"label": "n2-branch-splitter",
+			"orientation": 0,
+			"position": {
+				"x": 120,
+				"y": 470
+			}
+		},
+		{
+			"key": "cem",
+			"kind": "instrument",
+			"label": "CEM",
+			"equipment": "steam-iron-cem",
+			"orientation": 0,
+			"position": {
+				"x": 990,
+				"y": 625
+			},
+			"symbolKey": "cem"
+		},
+		{
+			"key": "cem-mix-splitter",
+			"kind": "junction",
+			"label": "cem-mix-splitter",
+			"orientation": 3,
+			"position": {
+				"x": 888,
+				"y": 625
+			}
+		},
+		{
+			"key": "valve-h2",
+			"kind": "control-valve",
+			"label": "Valve H2",
+			"equipment": "steam-iron-valve-h2",
+			"orientation": 0,
+			"position": {
+				"x": 795,
+				"y": 355
+			},
+			"symbolKey": "valve-h2"
+		},
+		{
+			"key": "valve-cem",
+			"kind": "three-way-valve",
+			"label": "Valve CEM",
+			"inletCount": 1,
+			"orientation": 3,
+			"position": {
+				"x": 1650,
+				"y": 625
+			}
+		},
+		{
+			"key": "process-inlet-splitter",
+			"kind": "junction",
+			"label": "process-inlet-splitter",
+			"orientation": 3,
+			"position": {
+				"x": 1368,
+				"y": 355
+			}
+		},
+		{
+			"key": "analysis-control-valve",
+			"kind": "control-valve",
+			"label": "Analysis control valve",
+			"orientation": 0,
+			"position": {
+				"x": 795,
+				"y": 760
+			}
+		},
+		{
+			"key": "hsense",
+			"kind": "instrument",
+			"label": "HSense",
+			"equipment": "steam-iron-hsense",
+			"orientation": 0,
+			"position": {
+				"x": 990,
+				"y": 760
+			},
+			"symbolKey": "hsense"
+		},
+		{
+			"key": "condenser",
+			"kind": "heat-exchanger",
+			"label": "Condenser",
+			"orientation": 0,
+			"position": {
+				"x": 1305,
+				"y": 901
+			}
+		},
+		{
+			"key": "ftir",
+			"kind": "instrument",
+			"label": "FTIR",
+			"orientation": 0,
+			"position": {
+				"x": 1575,
+				"y": 760
+			}
+		},
+		{
+			"key": "analysis-splitter",
+			"kind": "junction",
+			"label": "analysis-splitter",
+			"orientation": 3,
+			"position": {
+				"x": 1143,
+				"y": 760
+			}
+		},
+		{
+			"key": "exhaust",
+			"kind": "covered-gas-vent",
+			"label": "Exhaust",
+			"orientation": 0,
+			"position": {
+				"x": 2565,
+				"y": 106
+			}
+		},
+		{
+			"key": "condenser-label",
+			"kind": "junction",
+			"label": "Condensor",
+			"orientation": 0,
+			"position": {
+				"x": 1368,
+				"y": 829
+			}
+		},
+		{
+			"key": "furnace",
+			"kind": "furnace",
+			"label": "Furnace",
+			"equipment": "steam-iron-furnace",
+			"orientation": 0,
+			"position": {
+				"x": 1890,
+				"y": 543
+			},
+			"symbolKey": "furnace"
+		},
+		{
+			"key": "outlet-valve-furnace",
+			"kind": "three-way-valve",
+			"label": "Furnace outlet valve",
+			"inletCount": 2,
+			"orientation": 1,
+			"position": {
+				"x": 2145,
+				"y": 610
+			}
+		},
+		{
+			"key": "outlet-valve-analysis",
+			"kind": "three-way-valve",
+			"label": "Analysis outlet valve",
+			"inletCount": 2,
+			"orientation": 1,
+			"position": {
+				"x": 2265,
+				"y": 670
+			}
+		},
+		{
+			"key": "exhaust-splitter",
+			"kind": "junction",
+			"label": "exhaust-splitter",
+			"orientation": 3,
+			"position": {
+				"x": 2538,
+				"y": 901
+			}
+		},
+		{
+			"key": "thermocouple-inlet",
+			"kind": "instrument",
+			"label": "TC N",
+			"equipment": "steam-iron-thermocouple-inlet",
+			"secondaryLabel": "3ZAV",
+			"orientation": 0,
+			"position": {
+				"x": 1650,
+				"y": 355
+			},
+			"symbolKey": "thermocouple-inlet"
+		},
+		{
+			"key": "thermocouple-inlet-anchor",
+			"kind": "junction",
+			"label": "",
+			"parent": "furnace",
+			"orientation": 0,
+			"position": {
+				"x": 600,
+				"y": 100
+			}
+		},
+		{
+			"key": "thermocouple-outlet",
+			"kind": "instrument",
+			"label": "TC N",
+			"equipment": "steam-iron-thermocouple-outlet",
+			"secondaryLabel": "999D",
+			"orientation": 0,
+			"position": {
+				"x": 1785,
+				"y": 265
+			},
+			"symbolKey": "thermocouple-outlet"
+		},
+		{
+			"key": "thermocouple-outlet-anchor",
+			"kind": "junction",
+			"label": "",
+			"parent": "furnace",
+			"orientation": 0,
+			"position": {
+				"x": 675,
+				"y": 106
+			}
+		},
+		{
+			"key": "h2o-tank",
+			"kind": "vertical-vessel",
+			"label": "H₂O supply",
+			"orientation": 0,
+			"position": {
+				"x": 210,
+				"y": 1010
+			}
+		},
+		{
+			"key": "n2-line-junction-1",
+			"kind": "junction",
+			"label": "Junction",
+			"orientation": 0,
+			"position": {
+				"x": 120,
+				"y": 940
+			}
+		},
+		{
+			"key": "n2-line-junction-2",
+			"kind": "junction",
+			"label": "Junction",
+			"orientation": 0,
+			"position": {
+				"x": 120,
+				"y": 770
+			}
+		},
+		{
+			"key": "n2-line-junction-3",
+			"kind": "junction",
+			"label": "Junction",
+			"orientation": 0,
+			"position": {
+				"x": 120,
+				"y": 550
+			}
+		}
+	],
+	"edges": [
+		{
+			"key": "h2-supply-to-h2-valve",
+			"kind": "pipe",
+			"source": "h2-supply",
+			"target": "manual-h2-supply",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "h2-valve-to-mfc-h2",
+			"kind": "pipe",
+			"source": "manual-h2-supply",
+			"target": "mfc-h2",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "n2-valve-to-mfc-n2",
+			"kind": "pipe",
+			"source": "manual-n2-supply",
+			"target": "mfc-n2",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "cem-mfc-valve-to-cem-mfc",
+			"kind": "pipe",
+			"source": "manual-cem-mfc-supply",
+			"target": "cem-mfc",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "n2-dilution-valve-to-mfc",
+			"kind": "pipe",
+			"source": "manual-n2-dilution-supply",
+			"target": "mfc-n2-dilution",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "h2o-label-to-h2o-valve",
+			"kind": "pipe",
+			"source": "h2o-tank",
+			"target": "manual-h2o-to-lfc",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "h2o-valve-to-cem-lfc",
+			"kind": "pipe",
+			"source": "manual-h2o-to-lfc",
+			"target": "cem-lfc",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "cem-mfc-to-cem-inlet-valve",
+			"kind": "pipe",
+			"source": "cem-mfc",
+			"target": "manual-cem-inlet",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "cem-inlet-valve-to-cem-mix",
+			"kind": "pipe",
+			"source": "manual-cem-inlet",
+			"target": "cem-mix-splitter",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "cem-mix-to-cem",
+			"kind": "pipe",
+			"source": "cem-mix-splitter",
+			"target": "cem",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "cem-lfc-to-cem-mix",
+			"kind": "pipe",
+			"source": "cem-lfc",
+			"target": "cem-mix-splitter",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "mfc-n2-to-n2-furnace-valve",
+			"kind": "pipe",
+			"source": "mfc-n2",
+			"target": "valve-n2",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "mfc-h2-to-h2-furnace-valve",
+			"kind": "pipe",
+			"source": "mfc-h2",
+			"target": "valve-h2",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "cem-to-process-inlet-splitter",
+			"kind": "jacketed",
+			"source": "cem",
+			"target": "process-inlet-splitter",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "process-inlet-to-furnace-valve",
+			"kind": "jacketed",
+			"source": "process-inlet-splitter",
+			"target": "valve-cem",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "h2-valve-to-process-inlet",
+			"kind": "jacketed",
+			"source": "valve-h2",
+			"target": "process-inlet-splitter",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "n2-valve-to-process-inlet",
+			"kind": "jacketed",
+			"source": "valve-n2",
+			"target": "process-inlet-splitter",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "mfc-dilution-to-analysis-valve",
+			"kind": "pipe",
+			"source": "mfc-n2-dilution",
+			"target": "analysis-control-valve",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "analysis-valve-to-hsense",
+			"kind": "pipe",
+			"source": "analysis-control-valve",
+			"target": "hsense",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "hsense-to-analysis-splitter",
+			"kind": "jacketed",
+			"source": "hsense",
+			"target": "analysis-splitter",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "analysis-splitter-to-condenser",
+			"kind": "jacketed",
+			"source": "analysis-splitter",
+			"target": "condenser",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "analysis-splitter-to-ftir",
+			"kind": "jacketed",
+			"source": "analysis-splitter",
+			"target": "ftir",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "furnace-valve-to-furnace",
+			"kind": "pipe",
+			"source": "valve-cem",
+			"target": "furnace",
+			"sourceHandle": "outlet-right",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "furnace-valve-to-outlet-furnace-valve",
+			"kind": "pipe",
+			"source": "valve-cem",
+			"target": "outlet-valve-furnace",
+			"sourceHandle": "outlet-right",
+			"targetHandle": "outlet-right"
+		},
+		{
+			"key": "furnace-to-outlet-furnace-valve",
+			"kind": "jacketed",
+			"source": "furnace",
+			"target": "outlet-valve-furnace",
+			"sourceHandle": "outlet",
+			"targetHandle": "outlet-right"
+		},
+		{
+			"key": "outlet-furnace-to-outlet-analysis-valve",
+			"kind": "jacketed",
+			"source": "outlet-valve-furnace",
+			"target": "outlet-valve-analysis",
+			"sourceHandle": "inlet",
+			"targetHandle": "outlet-right"
+		},
+		{
+			"key": "ftir-to-outlet-analysis-valve",
+			"kind": "pipe",
+			"source": "ftir",
+			"target": "outlet-valve-analysis",
+			"sourceHandle": "outlet",
+			"targetHandle": "outlet-right"
+		},
+		{
+			"key": "outlet-analysis-to-exhaust-splitter",
+			"kind": "pipe",
+			"source": "outlet-valve-analysis",
+			"target": "exhaust-splitter",
+			"sourceHandle": "inlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "condenser-to-exhaust-splitter",
+			"kind": "pipe",
+			"source": "condenser",
+			"target": "exhaust-splitter",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "exhaust-splitter-to-exhaust",
+			"kind": "pipe",
+			"source": "exhaust-splitter",
+			"target": "exhaust",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "thermocouple-inlet-to-furnace-anchor",
+			"kind": "caption",
+			"source": "thermocouple-inlet-anchor",
+			"target": "thermocouple-inlet",
+			"sourceHandle": "outlet",
+			"targetHandle": "leader"
+		},
+		{
+			"key": "thermocouple-outlet-to-furnace-anchor",
+			"kind": "caption",
+			"source": "thermocouple-outlet-anchor",
+			"target": "thermocouple-outlet",
+			"sourceHandle": "outlet",
+			"targetHandle": "leader"
+		},
+		{
+			"key": "n2-supply-to-line-junction-1",
+			"kind": "pipe",
+			"source": "n2-supply",
+			"target": "n2-line-junction-1",
+			"sourceHandle": "outlet",
+			"targetHandle": "branch"
+		},
+		{
+			"key": "n2-line-junction-1-to-junction-2",
+			"kind": "pipe",
+			"source": "n2-line-junction-1",
+			"target": "n2-line-junction-2",
+			"sourceHandle": "branch-inlet",
+			"targetHandle": "branch"
+		},
+		{
+			"key": "n2-line-junction-2-to-junction-3",
+			"kind": "pipe",
+			"source": "n2-line-junction-2",
+			"target": "n2-line-junction-3",
+			"sourceHandle": "branch-inlet",
+			"targetHandle": "branch"
+		},
+		{
+			"key": "n2-line-junction-3-to-n2-branch",
+			"kind": "pipe",
+			"source": "n2-line-junction-3",
+			"target": "n2-branch-splitter",
+			"sourceHandle": "branch-inlet",
+			"targetHandle": "branch"
+		},
+		{
+			"key": "n2-branch-to-n2-valve",
+			"kind": "pipe",
+			"source": "n2-branch-splitter",
+			"target": "manual-n2-supply",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "n2-line-junction-3-to-cem-mfc-valve",
+			"kind": "pipe",
+			"source": "n2-line-junction-3",
+			"target": "manual-cem-mfc-supply",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "n2-line-junction-2-to-dilution-valve",
+			"kind": "pipe",
+			"source": "n2-line-junction-2",
+			"target": "manual-n2-dilution-supply",
+			"sourceHandle": "outlet",
+			"targetHandle": "inlet"
+		},
+		{
+			"key": "h2o-tank-to-n2-line",
+			"kind": "pipe",
+			"source": "h2o-tank",
+			"target": "n2-line-junction-1",
+			"sourceHandle": "outlet",
+			"targetHandle": "outlet"
+		}
+	]
+}

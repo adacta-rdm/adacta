@@ -1,0 +1,9 @@
+{
+	"name": "Test-Stand",
+	"kind": "rig",
+	"location": {
+		"buildingIdentifier": "FT",
+		"roomIdentifier": "001",
+		"label": "Feature test bench"
+	}
+}

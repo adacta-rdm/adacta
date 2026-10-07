@@ -1,0 +1,40 @@
+{
+	"name": "Valve Type 6027",
+	"productNumber": "244804",
+	"tags": ["Valve"],
+	"subtitle": "Direct-acting 2/2-way plunger valve",
+	"specifications": [
+		{
+			"name": "Circuit function",
+			"value": "Normally closed"
+		},
+		{
+			"name": "Orifice",
+			"value": "3 mm"
+		},
+		{
+			"name": "Pressure range",
+			"value": "0-40 bar"
+		},
+		{
+			"name": "Body material",
+			"value": "Stainless steel"
+		},
+		{
+			"name": "Process connection",
+			"value": "G 1/4 inner thread"
+		},
+		{
+			"name": "Voltage",
+			"value": "24 V"
+		},
+		{
+			"name": "Seal material",
+			"value": "PTFE"
+		},
+		{
+			"name": "Temperature range",
+			"value": "-10 to +140 °C"
+		}
+	]
+}

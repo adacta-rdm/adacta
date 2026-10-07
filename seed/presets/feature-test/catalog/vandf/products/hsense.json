@@ -1,0 +1,32 @@
+{
+	"name": "HSense",
+	"productNumber": "HSense",
+	"tags": ["GasAnalyzer"],
+	"subtitle": "Online gas analyzer for hydrogen and helium",
+	"specifications": [
+		{
+			"name": "Technology",
+			"value": "SF-MS (electron impact ionization)"
+		},
+		{
+			"name": "Measured gases",
+			"value": "Hydrogen (H2) and helium (He)"
+		},
+		{
+			"name": "Mass range",
+			"value": "2-4 amu"
+		},
+		{
+			"name": "Response time",
+			"value": "T90 < 3 s"
+		},
+		{
+			"name": "Gas consumption",
+			"value": "2.5 l/min"
+		},
+		{
+			"name": "Power consumption",
+			"value": "600 W; 230 V/50 Hz or 115 V/60 Hz"
+		}
+	]
+}

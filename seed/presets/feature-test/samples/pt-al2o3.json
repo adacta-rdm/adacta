@@ -1,0 +1,8 @@
+{
+	"name": "Pt/Al2O3 feature test batch",
+	"preparationDate": "2026-09-01",
+	"preparedBy": "dev",
+	"activeMaterial": "Pt",
+	"support": "Al2O3",
+	"samples": ["#01", "#02"]
+}

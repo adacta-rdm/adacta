@@ -1,0 +1,17 @@
+{
+	"name": "EL-FLOW Select F-201CV",
+	"productNumber": "F-201CV-1K0-RGD-33-K",
+	"tags": ["MFC"],
+	"subtitle": "Thermal mass flow controller in the 1K0 nominal flow configuration",
+	"description": "This EL-FLOW Select F-201CV uses the 1K0 model range. Bronkhorst specifies a nominal air range up to 1000 mlₙ/min for this configuration; the exact calibration medium and full-scale setting of the seeded instrument are not recorded.",
+	"specifications": [
+		{
+			"name": "Model nominal air range",
+			"value": "8–1000 mlₙ/min"
+		},
+		{
+			"name": "Operating pressure",
+			"value": "Vacuum to 64 bar"
+		}
+	]
+}

@@ -1,0 +1,17 @@
+{
+	"name": "Bronkhorst",
+	"website": "https://www.bronkhorst.com",
+	"description": "Bronkhorst designs and manufactures instruments and subsystems for low-flow measurement and control of gases, liquids, and vapors. The company was founded in the Netherlands in 1981 and is headquartered in Ruurlo.",
+	"sources": [
+		{
+			"url": "https://www.bronkhorst.com/about-bronkhorst/",
+			"retrievedAt": "2026-08-26T09:27:00Z",
+			"title": "Bronkhorst, the low-flow specialists"
+		},
+		{
+			"url": "https://www.bronkhorst.com/media/54fhhyls/logo_brhq_rgb_bluered.png",
+			"retrievedAt": "2026-08-26T09:27:00Z",
+			"title": "Bronkhorst official logo"
+		}
+	]
+}
