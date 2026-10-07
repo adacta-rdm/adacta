@@ -105,10 +105,11 @@ CREATE TABLE `Manufacturer` (
 	`name` text NOT NULL,
 	`website` text,
 	`description` text,
-	`logo_path` text,
+	`logo_file_id` integer,
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
+	CONSTRAINT `fk_Manufacturer_logo_file_id_OriginalFile_original_file_id_fk` FOREIGN KEY (`logo_file_id`) REFERENCES `OriginalFile`(`original_file_id`),
 	CONSTRAINT `fk_Manufacturer_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
@@ -216,13 +217,14 @@ CREATE TABLE `Product` (
 	`product_number` text NOT NULL,
 	`subtitle` text NOT NULL,
 	`description` text,
-	`image_path` text,
+	`image_file_id` integer,
 	`series_position` integer,
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_Product_manufacturer_id_Manufacturer_manufacturer_id_fk` FOREIGN KEY (`manufacturer_id`) REFERENCES `Manufacturer`(`manufacturer_id`),
 	CONSTRAINT `fk_Product_product_series_id_ProductSeries_product_series_id_fk` FOREIGN KEY (`product_series_id`) REFERENCES `ProductSeries`(`product_series_id`),
+	CONSTRAINT `fk_Product_image_file_id_OriginalFile_original_file_id_fk` FOREIGN KEY (`image_file_id`) REFERENCES `OriginalFile`(`original_file_id`),
 	CONSTRAINT `fk_Product_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint

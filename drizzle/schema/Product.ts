@@ -1,6 +1,7 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
+import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
 import { ProductSeries } from "~/drizzle/schema/ProductSeries.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
@@ -45,10 +46,9 @@ export const Product = sqliteTable(
 		description: text("description"),
 
 		/**
-		 * Where the product photograph is served from, for example
-		 * "/catalog/bronkhorst/el-flow-select.webp".
+		 * The original file containing the product photograph.
 		 */
-		imagePath: text("image_path"),
+		imageFileId: integer("image_file_id").references(() => OriginalFile.id),
 
 		/**
 		 * Where this product sits among the others of its series, counted from

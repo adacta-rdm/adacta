@@ -23,9 +23,6 @@ scratch
 .deployed
 @
 
-# Catalog images, copied out of seed/catalog by the seed
-/public/catalog/
-
 # Seed presets are opt-in.
 /seed/presets/*
 !/seed/presets/demo/

@@ -18,7 +18,7 @@ import { Id } from "~/drizzle/schema/Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
-import { jsonFiles, keyOf, readJson } from "~/seed/files.ts";
+import { jsonFiles, keyOf, readJson, seedPath } from "~/seed/files.ts";
 
 /**
  * One file in a preset's "inventory/" directory.
@@ -52,7 +52,7 @@ export async function seedInventory(
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
 
-	const files = jsonFiles("presets", preset, "inventory");
+	const files = jsonFiles(seedPath("presets", preset, "inventory"));
 	if (files.length === 0) return new Map();
 
 	const entries = files.map((file) => readJson<SeedInventoryEntry>(file));

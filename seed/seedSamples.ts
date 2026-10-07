@@ -18,7 +18,7 @@ import { Id } from "~/drizzle/schema/Id.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
-import { jsonFiles, readJson } from "~/seed/files.ts";
+import { jsonFiles, readJson, seedPath } from "~/seed/files.ts";
 
 /**
  * One file in a preset's "samples/" directory.
@@ -53,7 +53,7 @@ export async function seedSamples(
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
 
-	const files = jsonFiles("presets", preset, "samples");
+	const files = jsonFiles(seedPath("presets", preset, "samples"));
 	let samples = 0;
 
 	for (const file of files) {

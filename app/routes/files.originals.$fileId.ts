@@ -19,6 +19,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 
 		return new Response(await file.read(), {
 			headers: {
+				"Cache-Control": "private, max-age=31536000, immutable",
 				"Content-Disposition": contentDisposition(file.originalName),
 				"Content-Length": String(file.byteSize),
 				"Content-Type": file.mediaType ?? "application/octet-stream",

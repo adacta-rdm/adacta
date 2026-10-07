@@ -20,17 +20,16 @@
  * members by it. Slugs are not written by hand either. They are generated the
  * way the application generates them.
  *
- * Images are copied into a preset-specific directory under
- * "public/catalog/" and served from there. The database stores the address
- * they are served from.
+ * Referenced images enter storage through UploadManager. The catalog stores
+ * their original-file IDs. Images from one manufacturer share one upload.
  */
-import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, extname, join, normalize } from "node:path";
 
 import { isQuantityKind } from "~/app/lib/quantities.ts";
 import { availableSlug } from "~/app/lib/slugs.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
+import { UploadManager } from "~/app/services/UploadManager.ts";
 import { CatalogSource } from "~/drizzle/schema/CatalogSource.ts";
 import { Channel } from "~/drizzle/schema/Channel.ts";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
@@ -38,7 +37,7 @@ import { Product } from "~/drizzle/schema/Product.ts";
 import { ProductSeries } from "~/drizzle/schema/ProductSeries.ts";
 import { ProductSpecification } from "~/drizzle/schema/ProductSpecification.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
-import { jsonFiles, keyOf, readJson, seedPath, subdirs } from "~/seed/files.ts";
+import { jsonFiles, keyOf, readJson, subdirs } from "~/seed/files.ts";
 
 /**
  * Where a catalog record was read from. A manufacturer cites several; a series
@@ -122,15 +121,14 @@ export type CatalogCounts = {
 };
 
 /**
- * Where images are copied to. The address they are served from is this path
- * without "public".
+ * Add the catalog in a directory to the database. For example, the catalog of
+ * the demo preset is in "presets/demo/catalog/". A missing directory adds
+ * nothing.
  */
-const PUBLIC_CATALOG = join(process.cwd(), "public", "catalog");
-
-/**
- * Add the catalog from the seed tree to the database.
- */
-export async function seedCatalog(scope: ServiceContainer, preset: string): Promise<CatalogCounts> {
+export async function seedCatalog(
+	scope: ServiceContainer,
+	catalogDirectory: string,
+): Promise<CatalogCounts> {
 	const db = scope.get(ApplicationDatabase);
 	const metadata = {
 		metadataCreatorId: scope.get(Security).userId,
@@ -147,11 +145,31 @@ export async function seedCatalog(scope: ServiceContainer, preset: string): Prom
 
 	const manufacturerSlugs: string[] = [];
 
-	for (const manufacturerKey of subdirs("presets", preset, "catalog")) {
-		const directory = seedPath("presets", preset, "catalog", manufacturerKey);
-		const seed = readJson<SeedManufacturer>(join(directory, "manufacturer.json"));
+	for (const manufacturerKey of subdirs(catalogDirectory)) {
+		const directory = join(catalogDirectory, manufacturerKey);
+		const manufacturerFile = join(directory, "manufacturer.json");
+		const seed = readJson<SeedManufacturer>(manufacturerFile);
 
-		publishImages(preset, manufacturerKey, directory);
+		// Read image references before inserting records with file foreign keys.
+		const products = new Map<string, SeedProduct>();
+		const images = new Map<string, string>();
+		if (seed.logo) images.set(normalize(seed.logo), manufacturerFile);
+
+		for (const file of jsonFiles(join(directory, "products"))) {
+			const product = readJson<SeedProduct>(file);
+			products.set(keyOf(file), product);
+			if (product.image) images.set(normalize(product.image), file);
+		}
+
+		const seriesSeeds = new Map<string, SeedSeries>();
+		for (const file of jsonFiles(join(directory, "series"))) {
+			const series = readJson<SeedSeries>(file);
+			seriesSeeds.set(file, series);
+			if (series.shared?.image) images.set(normalize(series.shared.image), file);
+		}
+
+		const imageIds = await storeImages(scope, directory, images);
+		const imageId = (image: string | undefined) => (image ? imageIds.get(normalize(image))! : null);
 
 		const slug = availableSlug(seed.name, manufacturerSlugs);
 		manufacturerSlugs.push(slug);
@@ -163,7 +181,7 @@ export async function seedCatalog(scope: ServiceContainer, preset: string): Prom
 				name: seed.name,
 				website: seed.website ?? null,
 				description: seed.description ?? null,
-				logoPath: servedPath(preset, manufacturerKey, seed.logo),
+				logoFileId: imageId(seed.logo),
 				...metadata,
 			})
 			.returning({ id: Manufacturer.id })
@@ -175,18 +193,12 @@ export async function seedCatalog(scope: ServiceContainer, preset: string): Prom
 			await insertSource(db, { manufacturerId }, source, metadata);
 		}
 
-		const products = new Map<string, SeedProduct>();
-		for (const file of jsonFiles("presets", preset, "catalog", manufacturerKey, "products")) {
-			products.set(keyOf(file), readJson<SeedProduct>(file));
-		}
-
 		// A series claims its members, so a product learns its family from the
 		// series rather than naming one that may not exist.
 		const familyOf = new Map<string, { id: number; seed: SeedSeries; position: number }>();
 		const seriesSlugs: string[] = [];
 
-		for (const file of jsonFiles("presets", preset, "catalog", manufacturerKey, "series")) {
-			const series = readJson<SeedSeries>(file);
+		for (const [file, series] of seriesSeeds) {
 			const seriesSlug = availableSlug(series.name, seriesSlugs);
 			seriesSlugs.push(seriesSlug);
 
@@ -250,7 +262,7 @@ export async function seedCatalog(scope: ServiceContainer, preset: string): Prom
 					productNumber: own.productNumber,
 					subtitle,
 					description: own.description ?? shared.description ?? null,
-					imagePath: servedPath(preset, manufacturerKey, own.image ?? shared.image),
+					imageFileId: imageId(own.image ?? shared.image),
 					...metadata,
 				})
 				.returning({ id: Product.id })
@@ -332,33 +344,58 @@ async function insertSource(
 }
 
 /**
- * Copy the images of one manufacturer into "public/catalog/". The directory is
- * cleared before copying so old images do not remain after a database reset.
+ * The media type of a catalog image, by file extension. The seed refuses any
+ * other extension rather than guess. For example, "photo.bmp" stops the seed.
  */
-function publishImages(preset: string, manufacturerKey: string, directory: string): void {
-	const target = join(PUBLIC_CATALOG, preset, manufacturerKey);
-
-	rmSync(target, { recursive: true, force: true });
-
-	const images = join(directory, "images");
-	if (!existsSync(images)) return;
-
-	mkdirSync(target, { recursive: true });
-
-	for (const image of readdirSync(images)) {
-		cpSync(join(images, image), join(target, image));
-	}
-}
+const IMAGE_MEDIA_TYPES: Record<string, string> = {
+	".png": "image/png",
+	".jpg": "image/jpeg",
+	".jpeg": "image/jpeg",
+	".webp": "image/webp",
+	".gif": "image/gif",
+	".svg": "image/svg+xml",
+};
 
 /**
- * The address an image is served from, for example
- * "/catalog/demo/bronkhorst/manufacturer-logo.png". A record without an image
- * stores nothing.
+ * Store the images of one manufacturer as one upload and return their file
+ * IDs by path. The references map each path to the seed file that names it.
+ *
+ * Every path is checked before the first file is staged. A missing file or an
+ * unsupported extension therefore leaves no upload behind.
  */
-function servedPath(
-	preset: string,
-	manufacturerKey: string,
-	image: string | undefined,
-): string | null {
-	return image ? `/catalog/${preset}/${manufacturerKey}/${basename(image)}` : null;
+async function storeImages(
+	scope: ServiceContainer,
+	directory: string,
+	references: ReadonlyMap<string, string>,
+): Promise<Map<string, number>> {
+	const images = [];
+
+	for (const [path, record] of references) {
+		const mediaType = IMAGE_MEDIA_TYPES[extname(path).toLowerCase()];
+		if (!mediaType) {
+			throw new Error(`Unsupported catalog image extension: "${path}" referenced by ${record}.`);
+		}
+
+		const file = Bun.file(join(directory, path));
+		if (!(await file.exists())) {
+			throw new Error(`Catalog image "${path}" referenced by ${record} does not exist.`);
+		}
+
+		images.push({ path, file, mediaType });
+	}
+
+	const ids = new Map<string, number>();
+
+	// An upload must contain a file. A manufacturer without images gets none.
+	if (images.length === 0) return ids;
+
+	const upload = scope.get(UploadManager).beginUpload();
+	for (const { path, file, mediaType } of images) {
+		const id = await upload.add({ originalName: basename(path), mediaType, source: file.stream() });
+		ids.set(path, id);
+	}
+
+	await upload.commit(scope.get(Security).userId);
+
+	return ids;
 }

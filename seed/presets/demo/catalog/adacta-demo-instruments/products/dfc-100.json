@@ -2,6 +2,7 @@
 	"name": "Demo Flow Controller",
 	"productNumber": "DFC-100",
 	"subtitle": "Mass flow controller used in development",
+	"image": "images/dfc-100.webp",
 	"channels": [
 		{
 			"key": "flow",

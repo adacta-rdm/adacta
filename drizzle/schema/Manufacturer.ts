@@ -1,5 +1,6 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
+import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
@@ -26,11 +27,9 @@ export const Manufacturer = sqliteTable(
 		description: text("description"),
 
 		/**
-		 * Where the logo is served from, for example
-		 * "/catalog/bronkhorst/manufacturer-logo.png". Two of thirteen
-		 * manufacturers have one.
+		 * The original file containing the manufacturer's logo.
 		 */
-		logoPath: text("logo_path"),
+		logoFileId: integer("logo_file_id").references(() => OriginalFile.id),
 
 		...metadata(),
 	},

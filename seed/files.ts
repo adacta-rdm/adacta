@@ -30,13 +30,11 @@ export function seedPath(...segments: string[]): string {
 }
 
 /**
- * The subdirectories of a seed directory, in name order. Each one is an entity
+ * The subdirectories of a directory, in name order. Each one is an entity
  * that holds more than a single file. For example "presets/demo" is a preset
  * with its own inventory and samples.
  */
-export function subdirs(...segments: string[]): string[] {
-	const directory = seedPath(...segments);
-
+export function subdirs(directory: string): string[] {
 	if (!existsSync(directory)) return [];
 
 	return readdirSync(directory, { withFileTypes: true })
@@ -46,14 +44,12 @@ export function subdirs(...segments: string[]): string[] {
 }
 
 /**
- * Every JSON file in a seed directory, as full paths in name order.
+ * Every JSON file in a directory, as full paths in name order.
  *
  * A missing directory holds no files. A preset that seeds no samples
  * therefore needs no empty "samples" directory.
  */
-export function jsonFiles(...segments: string[]): string[] {
-	const directory = seedPath(...segments);
-
+export function jsonFiles(directory: string): string[] {
 	if (!existsSync(directory)) return [];
 
 	return readdirSync(directory)

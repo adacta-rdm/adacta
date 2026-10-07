@@ -18,6 +18,7 @@ describe("original file download", () => {
 		const result = await loader(args);
 
 		expect(result.headers.get("Content-Type")).toBe("text/csv");
+		expect(result.headers.get("Cache-Control")).toBe("private, max-age=31536000, immutable");
 		expect(result.headers.get("Content-Length")).toBe("11");
 		expect(result.headers.get("Content-Disposition")).toBe(
 			"attachment; filename*=UTF-8''measurement%20%C3%A4.csv",

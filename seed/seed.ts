@@ -44,7 +44,7 @@ type SeedPreset = {
  * Setup calls this before deleting the current database.
  */
 export function assertPresetExists(preset: string): void {
-	const available = subdirs("presets");
+	const available = subdirs(seedPath("presets"));
 
 	if (!available.includes(preset)) {
 		throw new Error(`Unknown preset "${preset}". Available presets: ${available.join(", ")}.`);
@@ -67,7 +67,7 @@ export async function seedDatabase(container: ServiceContainer, preset = "demo")
 	const entryIds = await seedInventory(scope, preset);
 	const diagrams = await seedPID(scope, preset, entryIds);
 	const { batches, samples } = await seedSamples(scope, preset, userIds);
-	const catalog = await seedCatalog(scope, preset);
+	const catalog = await seedCatalog(scope, seedPath("presets", preset, "catalog"));
 
 	console.log(
 		`seeded ${preset} (${name}): ${entryIds.size} inventory entries, ${diagrams} diagrams, ` +
@@ -86,7 +86,7 @@ export async function seedDatabase(container: ServiceContainer, preset = "demo")
 async function seedUsers(app: ServiceContainer): Promise<Map<string, string>> {
 	const auth = app.get(BetterAuth);
 
-	const files = jsonFiles("users");
+	const files = jsonFiles(seedPath("users"));
 	if (files.length === 0) throw new Error("No user files in seed/users/.");
 
 	const idsByKey = new Map<string, string>();

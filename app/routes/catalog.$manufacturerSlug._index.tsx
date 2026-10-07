@@ -10,7 +10,7 @@
  * Products in no series are shown as cards, because each one stands alone.
  */
 import { and, asc, eq, isNull } from "drizzle-orm";
-import { Link } from "react-router";
+import { Link, href } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import { compareSpecifications, type Specification } from "~/app/lib/specificationComparison.ts";
@@ -31,7 +31,7 @@ type CatalogProduct = {
 	name: string;
 	productNumber: string;
 	subtitle: string;
-	imagePath: string | null;
+	imageFileId: number | null;
 	specifications: Specification[];
 };
 
@@ -90,7 +90,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		name: product.name,
 		productNumber: product.productNumber,
 		subtitle: product.subtitle,
-		imagePath: product.imagePath,
+		imageFileId: product.imageFileId,
 		specifications: specifications.get(product.id) ?? [],
 	});
 
@@ -101,7 +101,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			subtitle: series.subtitle,
 			description: series.description,
 			website: series.website,
-			imagePath: rows.find((p) => p.seriesId === series.id)?.imagePath ?? null,
+			imageFileId: rows.find((product) => product.seriesId === series.id)?.imageFileId ?? null,
 			products: rows.filter((product) => product.seriesId === series.id).map(describe),
 		})),
 		standalone: rows.filter((product) => product.seriesId === null).map(describe),
@@ -154,9 +154,9 @@ function SeriesTable({ family, manufacturer }: { family: Family; manufacturer: s
 	return (
 		<section className="overflow-hidden rounded-xl border border-border bg-surface">
 			<div className="flex flex-col gap-5 p-5 sm:flex-row">
-				{family.imagePath && (
+				{family.imageFileId !== null && (
 					<img
-						src={family.imagePath}
+						src={href("/files/originals/:fileId", { fileId: String(family.imageFileId) })}
 						alt=""
 						className="h-20 w-20 shrink-0 self-start rounded-lg border border-border bg-surface object-contain p-1.5"
 					/>
@@ -254,9 +254,11 @@ function ProductGrid({
 						<tr key={product.slug}>
 							<td className="py-1.5 pl-3">
 								<div className="flex size-8 items-center justify-center rounded bg-surface-muted">
-									{product.imagePath && (
+									{product.imageFileId !== null && (
 										<img
-											src={product.imagePath}
+											src={href("/files/originals/:fileId", {
+												fileId: String(product.imageFileId),
+											})}
 											alt=""
 											className="max-h-full max-w-full object-contain p-0.5"
 										/>

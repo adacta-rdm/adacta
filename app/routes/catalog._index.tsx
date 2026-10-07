@@ -2,7 +2,7 @@ import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import { eq, isNull } from "drizzle-orm";
 import { useEffect } from "react";
-import { Link, Form, useSubmit, useNavigation } from "react-router";
+import { Link, Form, href, useSubmit, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
@@ -30,7 +30,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 			name: Product.name,
 			productNumber: Product.productNumber,
 			subtitle: Product.subtitle,
-			imagePath: Product.imagePath,
+			imageFileId: Product.imageFileId,
 			manufacturerSlug: Manufacturer.slug,
 			manufacturerName: Manufacturer.name,
 			seriesName: ProductSeries.name,
@@ -192,9 +192,11 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 									<tr key={`${product.manufacturerSlug}/${product.slug}`}>
 										<td className="py-1.5 pl-3">
 											<div className="flex size-8 items-center justify-center rounded bg-surface-muted">
-												{product.imagePath && (
+												{product.imageFileId !== null && (
 													<img
-														src={product.imagePath}
+														src={href("/files/originals/:fileId", {
+															fileId: String(product.imageFileId),
+														})}
 														alt=""
 														className="max-h-full max-w-full object-contain p-0.5"
 													/>

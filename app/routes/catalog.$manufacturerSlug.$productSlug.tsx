@@ -7,7 +7,7 @@
  */
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
 import { and, asc, eq, isNull } from "drizzle-orm";
-import { Link } from "react-router";
+import { Link, href } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
@@ -116,7 +116,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			productNumber: row.product.productNumber,
 			subtitle: row.product.subtitle,
 			description: row.product.description,
-			imagePath: row.product.imagePath,
+			imageFileId: row.product.imageFileId,
 		},
 		series: row.series && { slug: row.series.slug, name: row.series.name },
 		specifications: specifications.map((specification) => ({
@@ -155,9 +155,9 @@ export default function CatalogManufacturerSlugProductSlug({
 
 				<div className="mt-4 flex flex-col gap-6 sm:flex-row">
 					<div className="flex h-48 w-48 shrink-0 items-center justify-center rounded-xl border border-border bg-surface">
-						{product.imagePath ? (
+						{product.imageFileId !== null ? (
 							<img
-								src={product.imagePath}
+								src={href("/files/originals/:fileId", { fileId: String(product.imageFileId) })}
 								alt=""
 								className="max-h-full max-w-full object-contain p-4"
 							/>

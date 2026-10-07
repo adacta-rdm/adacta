@@ -21,7 +21,7 @@ import { Security } from "~/app/services/Security.ts";
 import { PIDEdge } from "~/drizzle/schema/PIDEdge.ts";
 import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
-import { jsonFiles, keyOf, readJson } from "~/seed/files.ts";
+import { jsonFiles, keyOf, readJson, seedPath } from "~/seed/files.ts";
 
 /**
  * One file in a preset's "pid/" directory has this shape.
@@ -84,7 +84,7 @@ export async function seedPID(
 	const creatorId = scope.get(Security).userId;
 	const createdAt = new Date();
 
-	const files = jsonFiles("presets", preset, "pid");
+	const files = jsonFiles(seedPath("presets", preset, "pid"));
 	if (files.length === 0) return 0;
 
 	for (const file of files) {

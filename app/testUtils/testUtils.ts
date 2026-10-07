@@ -10,7 +10,7 @@
  * Each step uses the same services the application uses. A test therefore
  * never restates what the application already does.
  */
-import { mkdtempSync, readdirSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Writable } from "node:stream";
@@ -130,6 +130,7 @@ export async function signUpTestUser(
  */
 export function storedFiles(scope: ServiceContainer): string[] {
 	const directory = scope.get(Env).string("ADACTA_STORAGE_DIR");
+	if (!existsSync(directory)) return [];
 
 	return readdirSync(directory, { recursive: true, withFileTypes: true })
 		.filter((entry) => entry.isFile())

@@ -52,6 +52,11 @@ moved out of staging. An incomplete upload therefore has no file records.
 
 Set `ADACTA_STORAGE_DIR` to store the files in another directory.
 
+Catalog logos and product photographs are original files too. The seed records
+them through `UploadManager` and stores their file IDs on catalog records.
+Catalog pages retrieve them from `/files/originals/<file id>` after sign-in.
+See [`seed/README.md`](seed/README.md) for the image paths and supported formats.
+
 ## Commands
 
 | Command                         | What it does                                                          |

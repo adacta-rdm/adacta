@@ -7,14 +7,133 @@ import { NoteManager } from "~/app/services/NoteManager.ts";
 import { Security } from "~/app/services/Security.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
 import type { Entity, NewEntity } from "~/drizzle/Schema.ts";
+import { Channel } from "~/drizzle/schema/Channel.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
 import { Note } from "~/drizzle/schema/Note.ts";
+import { Product } from "~/drizzle/schema/Product.ts";
+import { ProductSeries } from "~/drizzle/schema/ProductSeries.ts";
+import { ProductSpecification } from "~/drizzle/schema/ProductSpecification.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 const CREATION_TIME = new Date("2026-01-15T12:00:00.000Z");
+
+/**
+ * Create a catalog manufacturer with a slug taken from its name.
+ */
+export async function createTestManufacturer(
+	scope: ServiceContainer,
+	overrides: Partial<NewEntity<"Manufacturer">> = {},
+): Promise<Entity<"Manufacturer">> {
+	const name = overrides.name ?? "Bronkhorst";
+
+	return await scope
+		.get(ApplicationDatabase)
+		.insert(Manufacturer)
+		.values({
+			name,
+			slug: slugify(name),
+			metadataCreatorId: scope.get(Security).userId,
+			metadataCreationTimestamp: CREATION_TIME,
+			...overrides,
+		})
+		.returning()
+		.get();
+}
+
+/**
+ * Create a product series of a manufacturer with a slug taken from its name.
+ */
+export async function createTestSeries(
+	scope: ServiceContainer,
+	manufacturer: Entity<"Manufacturer">,
+	overrides: Partial<NewEntity<"ProductSeries">> = {},
+): Promise<Entity<"ProductSeries">> {
+	const name = overrides.name ?? "EL-FLOW Select";
+
+	return await scope
+		.get(ApplicationDatabase)
+		.insert(ProductSeries)
+		.values({
+			manufacturerId: manufacturer.id,
+			name,
+			slug: slugify(name),
+			metadataCreatorId: scope.get(Security).userId,
+			metadataCreationTimestamp: CREATION_TIME,
+			...overrides,
+		})
+		.returning()
+		.get();
+}
+
+/**
+ * Create a product of a manufacturer with a slug taken from its product
+ * number. The specifications are stored in the order given.
+ */
+export async function createTestProduct(
+	scope: ServiceContainer,
+	manufacturer: Entity<"Manufacturer">,
+	overrides: Partial<NewEntity<"Product">> = {},
+	specifications: { name: string; value: string }[] = [],
+): Promise<Entity<"Product">> {
+	const db = scope.get(ApplicationDatabase);
+	const metadata = {
+		metadataCreatorId: scope.get(Security).userId,
+		metadataCreationTimestamp: CREATION_TIME,
+	};
+	const productNumber = overrides.productNumber ?? "F-201CV-020";
+
+	const product = await db
+		.insert(Product)
+		.values({
+			manufacturerId: manufacturer.id,
+			name: "Controller",
+			productNumber,
+			slug: slugify(productNumber),
+			subtitle: "A controller",
+			...metadata,
+			...overrides,
+		})
+		.returning()
+		.get();
+
+	for (const [position, specification] of specifications.entries()) {
+		await db
+			.insert(ProductSpecification)
+			.values({ productId: product.id, position, ...specification, ...metadata })
+			.run();
+	}
+
+	return product;
+}
+
+/**
+ * Create a channel of a product. The channel defaults to a flow measurement.
+ */
+export async function createTestChannel(
+	scope: ServiceContainer,
+	product: Entity<"Product">,
+	overrides: Partial<NewEntity<"Channel">> = {},
+): Promise<Entity<"Channel">> {
+	return await scope
+		.get(ApplicationDatabase)
+		.insert(Channel)
+		.values({
+			productId: product.id,
+			position: 0,
+			key: "flow",
+			role: "measurement",
+			quantityKindId: "VolumeFlowRate",
+			metadataCreatorId: scope.get(Security).userId,
+			metadataCreationTimestamp: CREATION_TIME,
+			...overrides,
+		})
+		.returning()
+		.get();
+}
 
 /**
  * Create an inventory entry of any kind with its ID. The kind defaults to "rig".

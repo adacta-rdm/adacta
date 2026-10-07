@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <title>Adacta Demo Instruments</title>
+  <rect width="120" height="120" rx="20" fill="#1e293b"/>
+  <path d="M25 90 60 25 95 90M40 65h40" fill="none" stroke="#f8fafc" stroke-width="9" stroke-linejoin="round"/>
+  <circle cx="60" cy="83" r="7" fill="#38bdf8"/>
+</svg>

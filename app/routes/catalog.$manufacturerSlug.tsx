@@ -6,7 +6,7 @@
  */
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
 import { and, count, countDistinct, eq, isNull } from "drizzle-orm";
-import { Link, Outlet } from "react-router";
+import { Link, Outlet, href } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import { ManufacturerLogo } from "~/app/components/ManufacturerLogo.tsx";
@@ -54,7 +54,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			slug: manufacturer.slug,
 			name: manufacturer.name,
 			website: manufacturer.website,
-			logoPath: manufacturer.logoPath,
+			logoFileId: manufacturer.logoFileId,
 		},
 		totals: totals ?? { products: 0, series: 0 },
 	};
@@ -76,7 +76,11 @@ export default function CatalogManufacturerSlug({ loaderData }: Route.ComponentP
 				<header className="mt-4 flex flex-col gap-5 border-b border-border pb-6 sm:flex-row sm:items-start">
 					<ManufacturerLogo
 						name={manufacturer.name}
-						logoPath={manufacturer.logoPath}
+						logoUrl={
+							manufacturer.logoFileId === null
+								? null
+								: href("/files/originals/:fileId", { fileId: String(manufacturer.logoFileId) })
+						}
 						className="size-24"
 					/>
 
