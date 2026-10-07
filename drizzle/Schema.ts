@@ -4,6 +4,9 @@ import { Channel } from "~/drizzle/schema/Channel.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
+import { MeasurementColumn } from "~/drizzle/schema/MeasurementColumn.ts";
+import { MeasurementDataset } from "~/drizzle/schema/MeasurementDataset.ts";
+import { MeasurementSample } from "~/drizzle/schema/MeasurementSample.ts";
 import { Note } from "~/drizzle/schema/Note.ts";
 import { NoteAttachment } from "~/drizzle/schema/NoteAttachment.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
@@ -24,6 +27,9 @@ const Schema = {
 	Id,
 	InventoryEntry,
 	Manufacturer,
+	MeasurementColumn,
+	MeasurementDataset,
+	MeasurementSample,
 	Note,
 	NoteAttachment,
 	OriginalFile,

@@ -1,6 +1,7 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 import { Id } from "~/drizzle/schema/Id.ts";
+import { Product } from "~/drizzle/schema/Product.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
@@ -33,6 +34,16 @@ export const InventoryEntry = sqliteTable(
 		kind: text("kind", { enum: ["rig", "equipment"] }).notNull(),
 
 		/**
+		 * Catalog description of this physical item. Rigs have no product.
+		 */
+		productId: integer("product_id").references(() => Product.id, { onDelete: "set null" }),
+
+		/**
+		 * Additional identifier accepted by measurement sidecars.
+		 */
+		serialNumber: text("serial_number"),
+
+		/**
 		 * Where the entry stands. The identifiers are organization-specific. They are
 		 * text: building and room labels are often alphanumeric, for example "B3".
 		 */
@@ -42,5 +53,8 @@ export const InventoryEntry = sqliteTable(
 
 		...metadata(),
 	},
-	(table) => [uniqueIndex("InventoryEntry_slug_unique").on(table.slug)],
+	(table) => [
+		uniqueIndex("InventoryEntry_slug_unique").on(table.slug),
+		uniqueIndex("InventoryEntry_serial_number_unique").on(table.serialNumber),
+	],
 );

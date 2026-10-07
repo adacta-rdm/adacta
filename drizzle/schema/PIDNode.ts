@@ -6,11 +6,13 @@ import {
 	real,
 	sqliteTable,
 	text,
+	uniqueIndex,
 	type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
 import type { PIDInletCount, PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Sample } from "~/drizzle/schema/Sample.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
@@ -27,6 +29,23 @@ export const PIDNode = sqliteTable(
 
 		kind: text("kind").$type<PIDSymbolKind>().notNull(),
 		label: text("label").notNull(),
+
+		/**
+		 * Stable identifier used by portable measurement sidecars.
+		 */
+		symbolKey: text("symbol_key"),
+
+		/**
+		 * Physical equipment represented by this symbol, when applicable.
+		 */
+		equipmentEntryId: integer("equipment_entry_id").references(() => InventoryEntry.id, {
+			onDelete: "set null",
+		}),
+
+		/**
+		 * Sample represented by this symbol, when applicable.
+		 */
+		sampleId: integer("sample_id").references(() => Sample.id, { onDelete: "set null" }),
 
 		/**
 		 * A second line of text, for a symbol that carries two. An instrument
@@ -56,6 +75,10 @@ export const PIDNode = sqliteTable(
 	},
 	(table) => [
 		index("PIDNode_inventory_entry_idx").on(table.inventoryEntryId),
+		uniqueIndex("PIDNode_inventory_entry_symbol_key_unique").on(
+			table.inventoryEntryId,
+			table.symbolKey,
+		),
 		check("PIDNode_inlet_count_check", sql`${table.inletCount} between 1 and 2`),
 		check("PIDNode_orientation_check", sql`${table.orientation} between 0 and 3`),
 	],

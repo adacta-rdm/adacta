@@ -1,0 +1,3545 @@
+{
+	"version": "7",
+	"dialect": "sqlite",
+	"id": "048374a1-28c6-4c7b-8aa9-f2b96aeeb1e9",
+	"prevIds": ["00000000-0000-0000-0000-000000000001"],
+	"ddl": [
+		{
+			"name": "Account",
+			"entityType": "tables"
+		},
+		{
+			"name": "Session",
+			"entityType": "tables"
+		},
+		{
+			"name": "User",
+			"entityType": "tables"
+		},
+		{
+			"name": "Verification",
+			"entityType": "tables"
+		},
+		{
+			"name": "CatalogSource",
+			"entityType": "tables"
+		},
+		{
+			"name": "Channel",
+			"entityType": "tables"
+		},
+		{
+			"name": "Id",
+			"entityType": "tables"
+		},
+		{
+			"name": "InventoryEntry",
+			"entityType": "tables"
+		},
+		{
+			"name": "Manufacturer",
+			"entityType": "tables"
+		},
+		{
+			"name": "MeasurementColumn",
+			"entityType": "tables"
+		},
+		{
+			"name": "MeasurementDataset",
+			"entityType": "tables"
+		},
+		{
+			"name": "MeasurementSample",
+			"entityType": "tables"
+		},
+		{
+			"name": "Note",
+			"entityType": "tables"
+		},
+		{
+			"name": "NoteAttachment",
+			"entityType": "tables"
+		},
+		{
+			"name": "OriginalFile",
+			"entityType": "tables"
+		},
+		{
+			"name": "PIDEdge",
+			"entityType": "tables"
+		},
+		{
+			"name": "PIDEdgeKind",
+			"entityType": "tables"
+		},
+		{
+			"name": "PIDNode",
+			"entityType": "tables"
+		},
+		{
+			"name": "Product",
+			"entityType": "tables"
+		},
+		{
+			"name": "ProductSeries",
+			"entityType": "tables"
+		},
+		{
+			"name": "ProductSpecification",
+			"entityType": "tables"
+		},
+		{
+			"name": "QuantityKind",
+			"entityType": "tables"
+		},
+		{
+			"name": "Sample",
+			"entityType": "tables"
+		},
+		{
+			"name": "SampleBatch",
+			"entityType": "tables"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "issuer",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "account_id",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "provider_id",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "access_token",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "refresh_token",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id_token",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "access_token_expires_at",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "refresh_token_expires_at",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "scope",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "password",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "Account"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "Session"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "expires_at",
+			"entityType": "columns",
+			"table": "Session"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "token",
+			"entityType": "columns",
+			"table": "Session"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "Session"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "Session"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "ip_address",
+			"entityType": "columns",
+			"table": "Session"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "user_agent",
+			"entityType": "columns",
+			"table": "Session"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"table": "Session"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "User"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "User"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "email",
+			"entityType": "columns",
+			"table": "User"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "false",
+			"generated": null,
+			"name": "email_verified",
+			"entityType": "columns",
+			"table": "User"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "image",
+			"entityType": "columns",
+			"table": "User"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "User"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "User"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "Verification"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "identifier",
+			"entityType": "columns",
+			"table": "Verification"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "value",
+			"entityType": "columns",
+			"table": "Verification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "expires_at",
+			"entityType": "columns",
+			"table": "Verification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "Verification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "Verification"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": true,
+			"default": null,
+			"generated": null,
+			"name": "catalog_source_id",
+			"entityType": "columns",
+			"table": "CatalogSource"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "manufacturer_id",
+			"entityType": "columns",
+			"table": "CatalogSource"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "product_series_id",
+			"entityType": "columns",
+			"table": "CatalogSource"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "product_id",
+			"entityType": "columns",
+			"table": "CatalogSource"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "url",
+			"entityType": "columns",
+			"table": "CatalogSource"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "title",
+			"entityType": "columns",
+			"table": "CatalogSource"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "retrieved_at",
+			"entityType": "columns",
+			"table": "CatalogSource"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "CatalogSource"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "CatalogSource"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "CatalogSource"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": true,
+			"default": null,
+			"generated": null,
+			"name": "channel_id",
+			"entityType": "columns",
+			"table": "Channel"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "product_id",
+			"entityType": "columns",
+			"table": "Channel"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "position",
+			"entityType": "columns",
+			"table": "Channel"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "key",
+			"entityType": "columns",
+			"table": "Channel"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "role",
+			"entityType": "columns",
+			"table": "Channel"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "quantity_kind_id",
+			"entityType": "columns",
+			"table": "Channel"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "description",
+			"entityType": "columns",
+			"table": "Channel"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "Channel"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "Channel"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "Channel"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "Id"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inventory_entry_id",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "slug",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "kind",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "product_id",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "serial_number",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "location_building_identifier",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "location_room_identifier",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "location_label",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "InventoryEntry"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": true,
+			"default": null,
+			"generated": null,
+			"name": "manufacturer_id",
+			"entityType": "columns",
+			"table": "Manufacturer"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "slug",
+			"entityType": "columns",
+			"table": "Manufacturer"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "Manufacturer"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "website",
+			"entityType": "columns",
+			"table": "Manufacturer"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "description",
+			"entityType": "columns",
+			"table": "Manufacturer"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "logo_path",
+			"entityType": "columns",
+			"table": "Manufacturer"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "Manufacturer"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "Manufacturer"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "Manufacturer"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": true,
+			"default": null,
+			"generated": null,
+			"name": "measurement_column_id",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "measurement_dataset_id",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "position",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "field_name",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "parquet_type",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "axis",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "symbol_key",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inventory_entry_id",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inventory_name",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "channel_id",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "channel_key",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "channel_role",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "quantity_kind_id",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "gas_name",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "unit",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "pid_node_id",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "source_column",
+			"entityType": "columns",
+			"table": "MeasurementColumn"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "measurement_dataset_id",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "rig_id",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "upload_id",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "csv_file_id",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sidecar_file_id",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "operator_id",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "operator_email",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "row_count",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "start_time",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "end_time",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sidecar_snapshot",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "analysis_snapshot",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "data_path",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "MeasurementDataset"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "measurement_dataset_id",
+			"entityType": "columns",
+			"table": "MeasurementSample"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "position",
+			"entityType": "columns",
+			"table": "MeasurementSample"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sample_id",
+			"entityType": "columns",
+			"table": "MeasurementSample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sample_name",
+			"entityType": "columns",
+			"table": "MeasurementSample"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sample_batch_name",
+			"entityType": "columns",
+			"table": "MeasurementSample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "symbol_key",
+			"entityType": "columns",
+			"table": "MeasurementSample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "identifier",
+			"entityType": "columns",
+			"table": "MeasurementSample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "pid_node_id",
+			"entityType": "columns",
+			"table": "MeasurementSample"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "anchor_node_id",
+			"entityType": "columns",
+			"table": "MeasurementSample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inlet_node_ids",
+			"entityType": "columns",
+			"table": "MeasurementSample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "outlet_node_ids",
+			"entityType": "columns",
+			"table": "MeasurementSample"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "note_id",
+			"entityType": "columns",
+			"table": "Note"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "note_subject_id",
+			"entityType": "columns",
+			"table": "Note"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "body",
+			"entityType": "columns",
+			"table": "Note"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "observed_at",
+			"entityType": "columns",
+			"table": "Note"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "supersedes_id",
+			"entityType": "columns",
+			"table": "Note"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "Note"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "Note"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "Note"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "note_id",
+			"entityType": "columns",
+			"table": "NoteAttachment"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "original_file_id",
+			"entityType": "columns",
+			"table": "NoteAttachment"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "position",
+			"entityType": "columns",
+			"table": "NoteAttachment"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "original_file_id",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "upload_id",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "original_name",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "media_type",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "byte_size",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "OriginalFile"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "pid_edge_id",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inventory_entry_id",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "source_node_id",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "target_node_id",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "kind",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "weight",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "end_arrow",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "arrow_positions",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "material",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "real",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inner_diameter_value",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inner_diameter_unit",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "real",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "outer_diameter_value",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "outer_diameter_unit",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "real",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "length_value",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "length_unit",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "source_handle",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "target_handle",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "drawing_order",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "PIDEdge"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "pid_edge_kind_id",
+			"entityType": "columns",
+			"table": "PIDEdgeKind"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "pid_node_id",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inventory_entry_id",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "kind",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "label",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "symbol_key",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "equipment_entry_id",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sample_id",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "secondary_label",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "parent_node_id",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "drawing_order",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "inlet_count",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "orientation",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "real",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "position_x",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "real",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "position_y",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "PIDNode"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": true,
+			"default": null,
+			"generated": null,
+			"name": "product_id",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "manufacturer_id",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "product_series_id",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "slug",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "product_number",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "subtitle",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "description",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "image_path",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "series_position",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": true,
+			"default": null,
+			"generated": null,
+			"name": "product_series_id",
+			"entityType": "columns",
+			"table": "ProductSeries"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "manufacturer_id",
+			"entityType": "columns",
+			"table": "ProductSeries"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "slug",
+			"entityType": "columns",
+			"table": "ProductSeries"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "ProductSeries"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "subtitle",
+			"entityType": "columns",
+			"table": "ProductSeries"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "description",
+			"entityType": "columns",
+			"table": "ProductSeries"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "website",
+			"entityType": "columns",
+			"table": "ProductSeries"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "ProductSeries"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "ProductSeries"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "ProductSeries"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": true,
+			"default": null,
+			"generated": null,
+			"name": "product_specification_id",
+			"entityType": "columns",
+			"table": "ProductSpecification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "product_id",
+			"entityType": "columns",
+			"table": "ProductSpecification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "position",
+			"entityType": "columns",
+			"table": "ProductSpecification"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "ProductSpecification"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "value",
+			"entityType": "columns",
+			"table": "ProductSpecification"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "ProductSpecification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "ProductSpecification"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "ProductSpecification"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "quantity_kind_id",
+			"entityType": "columns",
+			"table": "QuantityKind"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sample_id",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sample_batch_id",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "slug",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "prepared_by",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "Sample"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "sample_batch_id",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "slug",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "preparation_date",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "prepared_by",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "active_material",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "support",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "SampleBatch"
+		},
+		{
+			"columns": ["user_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_Account_user_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Account"
+		},
+		{
+			"columns": ["user_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_Session_user_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Session"
+		},
+		{
+			"columns": ["manufacturer_id"],
+			"tableTo": "Manufacturer",
+			"columnsTo": ["manufacturer_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_CatalogSource_manufacturer_id_Manufacturer_manufacturer_id_fk",
+			"entityType": "fks",
+			"table": "CatalogSource"
+		},
+		{
+			"columns": ["product_series_id"],
+			"tableTo": "ProductSeries",
+			"columnsTo": ["product_series_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_CatalogSource_product_series_id_ProductSeries_product_series_id_fk",
+			"entityType": "fks",
+			"table": "CatalogSource"
+		},
+		{
+			"columns": ["product_id"],
+			"tableTo": "Product",
+			"columnsTo": ["product_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_CatalogSource_product_id_Product_product_id_fk",
+			"entityType": "fks",
+			"table": "CatalogSource"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_CatalogSource_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "CatalogSource"
+		},
+		{
+			"columns": ["product_id"],
+			"tableTo": "Product",
+			"columnsTo": ["product_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Channel_product_id_Product_product_id_fk",
+			"entityType": "fks",
+			"table": "Channel"
+		},
+		{
+			"columns": ["quantity_kind_id"],
+			"tableTo": "QuantityKind",
+			"columnsTo": ["quantity_kind_id"],
+			"onUpdate": "CASCADE",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Channel_quantity_kind_id_QuantityKind_quantity_kind_id_fk",
+			"entityType": "fks",
+			"table": "Channel"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Channel_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Channel"
+		},
+		{
+			"columns": ["inventory_entry_id"],
+			"tableTo": "Id",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_InventoryEntry_inventory_entry_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "InventoryEntry"
+		},
+		{
+			"columns": ["product_id"],
+			"tableTo": "Product",
+			"columnsTo": ["product_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "SET NULL",
+			"nameExplicit": false,
+			"name": "fk_InventoryEntry_product_id_Product_product_id_fk",
+			"entityType": "fks",
+			"table": "InventoryEntry"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_InventoryEntry_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "InventoryEntry"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Manufacturer_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Manufacturer"
+		},
+		{
+			"columns": ["measurement_dataset_id"],
+			"tableTo": "MeasurementDataset",
+			"columnsTo": ["measurement_dataset_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_MeasurementColumn_measurement_dataset_id_MeasurementDataset_measurement_dataset_id_fk",
+			"entityType": "fks",
+			"table": "MeasurementColumn"
+		},
+		{
+			"columns": ["inventory_entry_id"],
+			"tableTo": "InventoryEntry",
+			"columnsTo": ["inventory_entry_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_MeasurementColumn_inventory_entry_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "MeasurementColumn"
+		},
+		{
+			"columns": ["channel_id"],
+			"tableTo": "Channel",
+			"columnsTo": ["channel_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_MeasurementColumn_channel_id_Channel_channel_id_fk",
+			"entityType": "fks",
+			"table": "MeasurementColumn"
+		},
+		{
+			"columns": ["measurement_dataset_id"],
+			"tableTo": "Id",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_MeasurementDataset_measurement_dataset_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "MeasurementDataset"
+		},
+		{
+			"columns": ["rig_id"],
+			"tableTo": "InventoryEntry",
+			"columnsTo": ["inventory_entry_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_MeasurementDataset_rig_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "MeasurementDataset"
+		},
+		{
+			"columns": ["csv_file_id"],
+			"tableTo": "OriginalFile",
+			"columnsTo": ["original_file_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_MeasurementDataset_csv_file_id_OriginalFile_original_file_id_fk",
+			"entityType": "fks",
+			"table": "MeasurementDataset"
+		},
+		{
+			"columns": ["sidecar_file_id"],
+			"tableTo": "OriginalFile",
+			"columnsTo": ["original_file_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_MeasurementDataset_sidecar_file_id_OriginalFile_original_file_id_fk",
+			"entityType": "fks",
+			"table": "MeasurementDataset"
+		},
+		{
+			"columns": ["operator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_MeasurementDataset_operator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "MeasurementDataset"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_MeasurementDataset_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "MeasurementDataset"
+		},
+		{
+			"columns": ["measurement_dataset_id"],
+			"tableTo": "MeasurementDataset",
+			"columnsTo": ["measurement_dataset_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_MeasurementSample_measurement_dataset_id_MeasurementDataset_measurement_dataset_id_fk",
+			"entityType": "fks",
+			"table": "MeasurementSample"
+		},
+		{
+			"columns": ["sample_id"],
+			"tableTo": "Sample",
+			"columnsTo": ["sample_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_MeasurementSample_sample_id_Sample_sample_id_fk",
+			"entityType": "fks",
+			"table": "MeasurementSample"
+		},
+		{
+			"columns": ["note_subject_id"],
+			"tableTo": "Id",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Note_note_subject_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "Note"
+		},
+		{
+			"columns": ["supersedes_id"],
+			"tableTo": "Note",
+			"columnsTo": ["note_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Note_supersedes_id_Note_note_id_fk",
+			"entityType": "fks",
+			"table": "Note"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Note_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Note"
+		},
+		{
+			"columns": ["note_id"],
+			"tableTo": "Note",
+			"columnsTo": ["note_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_NoteAttachment_note_id_Note_note_id_fk",
+			"entityType": "fks",
+			"table": "NoteAttachment"
+		},
+		{
+			"columns": ["original_file_id"],
+			"tableTo": "OriginalFile",
+			"columnsTo": ["original_file_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_NoteAttachment_original_file_id_OriginalFile_original_file_id_fk",
+			"entityType": "fks",
+			"table": "NoteAttachment"
+		},
+		{
+			"columns": ["original_file_id"],
+			"tableTo": "Id",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_OriginalFile_original_file_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "OriginalFile"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_OriginalFile_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "OriginalFile"
+		},
+		{
+			"columns": ["inventory_entry_id"],
+			"tableTo": "InventoryEntry",
+			"columnsTo": ["inventory_entry_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_PIDEdge_inventory_entry_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "PIDEdge"
+		},
+		{
+			"columns": ["source_node_id"],
+			"tableTo": "PIDNode",
+			"columnsTo": ["pid_node_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_PIDEdge_source_node_id_PIDNode_pid_node_id_fk",
+			"entityType": "fks",
+			"table": "PIDEdge"
+		},
+		{
+			"columns": ["target_node_id"],
+			"tableTo": "PIDNode",
+			"columnsTo": ["pid_node_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_PIDEdge_target_node_id_PIDNode_pid_node_id_fk",
+			"entityType": "fks",
+			"table": "PIDEdge"
+		},
+		{
+			"columns": ["kind"],
+			"tableTo": "PIDEdgeKind",
+			"columnsTo": ["pid_edge_kind_id"],
+			"onUpdate": "CASCADE",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_PIDEdge_kind_PIDEdgeKind_pid_edge_kind_id_fk",
+			"entityType": "fks",
+			"table": "PIDEdge"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_PIDEdge_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "PIDEdge"
+		},
+		{
+			"columns": ["inventory_entry_id"],
+			"tableTo": "InventoryEntry",
+			"columnsTo": ["inventory_entry_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_PIDNode_inventory_entry_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "PIDNode"
+		},
+		{
+			"columns": ["equipment_entry_id"],
+			"tableTo": "InventoryEntry",
+			"columnsTo": ["inventory_entry_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "SET NULL",
+			"nameExplicit": false,
+			"name": "fk_PIDNode_equipment_entry_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "PIDNode"
+		},
+		{
+			"columns": ["sample_id"],
+			"tableTo": "Sample",
+			"columnsTo": ["sample_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "SET NULL",
+			"nameExplicit": false,
+			"name": "fk_PIDNode_sample_id_Sample_sample_id_fk",
+			"entityType": "fks",
+			"table": "PIDNode"
+		},
+		{
+			"columns": ["parent_node_id"],
+			"tableTo": "PIDNode",
+			"columnsTo": ["pid_node_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_PIDNode_parent_node_id_PIDNode_pid_node_id_fk",
+			"entityType": "fks",
+			"table": "PIDNode"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_PIDNode_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "PIDNode"
+		},
+		{
+			"columns": ["manufacturer_id"],
+			"tableTo": "Manufacturer",
+			"columnsTo": ["manufacturer_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Product_manufacturer_id_Manufacturer_manufacturer_id_fk",
+			"entityType": "fks",
+			"table": "Product"
+		},
+		{
+			"columns": ["product_series_id"],
+			"tableTo": "ProductSeries",
+			"columnsTo": ["product_series_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Product_product_series_id_ProductSeries_product_series_id_fk",
+			"entityType": "fks",
+			"table": "Product"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Product_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Product"
+		},
+		{
+			"columns": ["manufacturer_id"],
+			"tableTo": "Manufacturer",
+			"columnsTo": ["manufacturer_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_ProductSeries_manufacturer_id_Manufacturer_manufacturer_id_fk",
+			"entityType": "fks",
+			"table": "ProductSeries"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_ProductSeries_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "ProductSeries"
+		},
+		{
+			"columns": ["product_id"],
+			"tableTo": "Product",
+			"columnsTo": ["product_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_ProductSpecification_product_id_Product_product_id_fk",
+			"entityType": "fks",
+			"table": "ProductSpecification"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_ProductSpecification_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "ProductSpecification"
+		},
+		{
+			"columns": ["sample_id"],
+			"tableTo": "Id",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Sample_sample_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "Sample"
+		},
+		{
+			"columns": ["sample_batch_id"],
+			"tableTo": "SampleBatch",
+			"columnsTo": ["sample_batch_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_Sample_sample_batch_id_SampleBatch_sample_batch_id_fk",
+			"entityType": "fks",
+			"table": "Sample"
+		},
+		{
+			"columns": ["prepared_by"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Sample_prepared_by_User_id_fk",
+			"entityType": "fks",
+			"table": "Sample"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_Sample_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "Sample"
+		},
+		{
+			"columns": ["sample_batch_id"],
+			"tableTo": "Id",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_SampleBatch_sample_batch_id_Id_id_fk",
+			"entityType": "fks",
+			"table": "SampleBatch"
+		},
+		{
+			"columns": ["prepared_by"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_SampleBatch_prepared_by_User_id_fk",
+			"entityType": "fks",
+			"table": "SampleBatch"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_SampleBatch_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "SampleBatch"
+		},
+		{
+			"columns": ["note_id", "original_file_id"],
+			"nameExplicit": false,
+			"name": "NoteAttachment_pk",
+			"entityType": "pks",
+			"table": "NoteAttachment"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "Account_pk",
+			"table": "Account",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "Session_pk",
+			"table": "Session",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "User_pk",
+			"table": "User",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "Verification_pk",
+			"table": "Verification",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["catalog_source_id"],
+			"nameExplicit": false,
+			"name": "CatalogSource_pk",
+			"table": "CatalogSource",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["channel_id"],
+			"nameExplicit": false,
+			"name": "Channel_pk",
+			"table": "Channel",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "Id_pk",
+			"table": "Id",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["inventory_entry_id"],
+			"nameExplicit": false,
+			"name": "InventoryEntry_pk",
+			"table": "InventoryEntry",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["manufacturer_id"],
+			"nameExplicit": false,
+			"name": "Manufacturer_pk",
+			"table": "Manufacturer",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["measurement_column_id"],
+			"nameExplicit": false,
+			"name": "MeasurementColumn_pk",
+			"table": "MeasurementColumn",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["measurement_dataset_id"],
+			"nameExplicit": false,
+			"name": "MeasurementDataset_pk",
+			"table": "MeasurementDataset",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["note_id"],
+			"nameExplicit": false,
+			"name": "Note_pk",
+			"table": "Note",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["original_file_id"],
+			"nameExplicit": false,
+			"name": "OriginalFile_pk",
+			"table": "OriginalFile",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["pid_edge_id"],
+			"nameExplicit": false,
+			"name": "PIDEdge_pk",
+			"table": "PIDEdge",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["pid_edge_kind_id"],
+			"nameExplicit": false,
+			"name": "PIDEdgeKind_pk",
+			"table": "PIDEdgeKind",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["pid_node_id"],
+			"nameExplicit": false,
+			"name": "PIDNode_pk",
+			"table": "PIDNode",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["product_id"],
+			"nameExplicit": false,
+			"name": "Product_pk",
+			"table": "Product",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["product_series_id"],
+			"nameExplicit": false,
+			"name": "ProductSeries_pk",
+			"table": "ProductSeries",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["product_specification_id"],
+			"nameExplicit": false,
+			"name": "ProductSpecification_pk",
+			"table": "ProductSpecification",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["quantity_kind_id"],
+			"nameExplicit": false,
+			"name": "QuantityKind_pk",
+			"table": "QuantityKind",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["sample_id"],
+			"nameExplicit": false,
+			"name": "Sample_pk",
+			"table": "Sample",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["sample_batch_id"],
+			"nameExplicit": false,
+			"name": "SampleBatch_pk",
+			"table": "SampleBatch",
+			"entityType": "pks"
+		},
+		{
+			"columns": [
+				{
+					"value": "issuer",
+					"isExpression": false
+				},
+				{
+					"value": "account_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "account_issuer_accountId_uidx",
+			"entityType": "indexes",
+			"table": "Account"
+		},
+		{
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "account_userId_idx",
+			"entityType": "indexes",
+			"table": "Account"
+		},
+		{
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "session_userId_idx",
+			"entityType": "indexes",
+			"table": "Session"
+		},
+		{
+			"columns": [
+				{
+					"value": "identifier",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "verification_identifier_idx",
+			"entityType": "indexes",
+			"table": "Verification"
+		},
+		{
+			"columns": [
+				{
+					"value": "product_id",
+					"isExpression": false
+				},
+				{
+					"value": "key",
+					"isExpression": false
+				},
+				{
+					"value": "role",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "Channel_key_role_unique",
+			"entityType": "indexes",
+			"table": "Channel"
+		},
+		{
+			"columns": [
+				{
+					"value": "slug",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "InventoryEntry_slug_unique",
+			"entityType": "indexes",
+			"table": "InventoryEntry"
+		},
+		{
+			"columns": [
+				{
+					"value": "serial_number",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "InventoryEntry_serial_number_unique",
+			"entityType": "indexes",
+			"table": "InventoryEntry"
+		},
+		{
+			"columns": [
+				{
+					"value": "slug",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "Manufacturer_slug_unique",
+			"entityType": "indexes",
+			"table": "Manufacturer"
+		},
+		{
+			"columns": [
+				{
+					"value": "measurement_dataset_id",
+					"isExpression": false
+				},
+				{
+					"value": "position",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "MeasurementColumn_dataset_position_unique",
+			"entityType": "indexes",
+			"table": "MeasurementColumn"
+		},
+		{
+			"columns": [
+				{
+					"value": "csv_file_id",
+					"isExpression": false
+				},
+				{
+					"value": "sidecar_file_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "MeasurementDataset_source_pair_unique",
+			"entityType": "indexes",
+			"table": "MeasurementDataset"
+		},
+		{
+			"columns": [
+				{
+					"value": "measurement_dataset_id",
+					"isExpression": false
+				},
+				{
+					"value": "position",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "MeasurementSample_dataset_position_unique",
+			"entityType": "indexes",
+			"table": "MeasurementSample"
+		},
+		{
+			"columns": [
+				{
+					"value": "supersedes_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "Note_supersedes_id_unique",
+			"entityType": "indexes",
+			"table": "Note"
+		},
+		{
+			"columns": [
+				{
+					"value": "inventory_entry_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "PIDEdge_inventory_entry_idx",
+			"entityType": "indexes",
+			"table": "PIDEdge"
+		},
+		{
+			"columns": [
+				{
+					"value": "inventory_entry_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "PIDNode_inventory_entry_idx",
+			"entityType": "indexes",
+			"table": "PIDNode"
+		},
+		{
+			"columns": [
+				{
+					"value": "inventory_entry_id",
+					"isExpression": false
+				},
+				{
+					"value": "symbol_key",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "PIDNode_inventory_entry_symbol_key_unique",
+			"entityType": "indexes",
+			"table": "PIDNode"
+		},
+		{
+			"columns": [
+				{
+					"value": "manufacturer_id",
+					"isExpression": false
+				},
+				{
+					"value": "slug",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "Product_slug_unique",
+			"entityType": "indexes",
+			"table": "Product"
+		},
+		{
+			"columns": [
+				{
+					"value": "manufacturer_id",
+					"isExpression": false
+				},
+				{
+					"value": "slug",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "ProductSeries_slug_unique",
+			"entityType": "indexes",
+			"table": "ProductSeries"
+		},
+		{
+			"columns": [
+				{
+					"value": "sample_batch_id",
+					"isExpression": false
+				},
+				{
+					"value": "name",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "Sample_batch_name_unique",
+			"entityType": "indexes",
+			"table": "Sample"
+		},
+		{
+			"columns": [
+				{
+					"value": "sample_batch_id",
+					"isExpression": false
+				},
+				{
+					"value": "slug",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "Sample_batch_slug_unique",
+			"entityType": "indexes",
+			"table": "Sample"
+		},
+		{
+			"columns": [
+				{
+					"value": "slug",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "SampleBatch_slug_unique",
+			"entityType": "indexes",
+			"table": "SampleBatch"
+		},
+		{
+			"columns": ["token"],
+			"nameExplicit": false,
+			"name": "Session_token_unique",
+			"entityType": "uniques",
+			"table": "Session"
+		},
+		{
+			"columns": ["email"],
+			"nameExplicit": false,
+			"name": "User_email_unique",
+			"entityType": "uniques",
+			"table": "User"
+		},
+		{
+			"value": "\"weight\" between 1 and 3",
+			"name": "PIDEdge_weight_check",
+			"entityType": "checks",
+			"table": "PIDEdge"
+		},
+		{
+			"value": "(\"inner_diameter_value\" is null) = (\"inner_diameter_unit\" is null)",
+			"name": "PIDEdge_inner_diameter_check",
+			"entityType": "checks",
+			"table": "PIDEdge"
+		},
+		{
+			"value": "(\"outer_diameter_value\" is null) = (\"outer_diameter_unit\" is null)",
+			"name": "PIDEdge_outer_diameter_check",
+			"entityType": "checks",
+			"table": "PIDEdge"
+		},
+		{
+			"value": "(\"length_value\" is null) = (\"length_unit\" is null)",
+			"name": "PIDEdge_length_check",
+			"entityType": "checks",
+			"table": "PIDEdge"
+		},
+		{
+			"value": "\"inlet_count\" between 1 and 2",
+			"name": "PIDNode_inlet_count_check",
+			"entityType": "checks",
+			"table": "PIDNode"
+		},
+		{
+			"value": "\"orientation\" between 0 and 3",
+			"name": "PIDNode_orientation_check",
+			"entityType": "checks",
+			"table": "PIDNode"
+		}
+	],
+	"renames": []
+}
