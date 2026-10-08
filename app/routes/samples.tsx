@@ -12,8 +12,7 @@ import {
 	SIDEBAR_TREE_LEVEL_2_LIST,
 	SIDEBAR_TREE_ROW,
 } from "~/app/layout/sidebarTreeStyles.ts";
-import type { BatchGroup } from "~/app/lib/batchComposition.ts";
-import { groupBatchesByComposition } from "~/app/lib/batchComposition.ts";
+import { type BatchGroup, groupBatchesByComposition } from "~/app/lib/batchComposition.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { SidebarItem, SidebarLabel, SidebarSection } from "~/catalyst-ui/sidebar.tsx";
 import type { Entity } from "~/drizzle/Schema.ts";
