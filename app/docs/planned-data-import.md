@@ -125,8 +125,7 @@ symbol_key = "FT101"
 channel = "flow"
 role = "measurement"
 unit = "ml/min"
-[columns.item]
-serial_number = "FT-101"
+item.serial_number = "FT-101"
 ```
 
 The full format and import behavior are documented in [Importing data](/docs/importing-data).

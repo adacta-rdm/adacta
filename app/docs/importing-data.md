@@ -80,8 +80,7 @@ symbol_key = "MFC_1"
 channel = "flow"
 role = "measurement"
 unit = "ml/min"
-[columns.item]
-slug = "mfc-01"
+item.slug = "mfc-01"
 
 [[columns]]
 name = "MFC 1 requested flow"
@@ -89,8 +88,7 @@ symbol_key = "MFC_1"
 channel = "flow"
 role = "setpoint"
 unit = "ml/min"
-[columns.item]
-slug = "mfc-01"
+item.slug = "mfc-01"
 
 [[columns]]
 name = "Reactor temperature"
@@ -98,8 +96,7 @@ symbol_key = "Thermocouple_1"
 channel = "temperature"
 role = "measurement"
 unit = "°C"
-[columns.item]
-slug = "tc-01"
+item.slug = "tc-01"
 ```
 
 Drop the CSV and TOML file together. Adacta stores both originals and opens the measurement review when the upload contains exactly one CSV and one TOML file. The CSV preview shows whether the sidecar matches the header and row structure. Validation problems keep the originals available and appear in the review. A drop on a rig preselects that rig when its P&ID can resolve the sidecar symbols.

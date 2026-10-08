@@ -61,6 +61,35 @@ describe("P&ID route", () => {
 		expect((await load(scope)).graph).toEqual({ nodes: [], edges: [] });
 	});
 
+	test("ignores symbol keys on diagram-only nodes when generating the sidecar", async () => {
+		const scope = await setupRig();
+		const result = await save(scope, {
+			nodes: [
+				{
+					...graph.nodes[0],
+					id: "feed-junction",
+					kind: "junction",
+					label: "Feed junction",
+					symbolKey: "feed-junction",
+				},
+				{
+					...graph.nodes[0],
+					id: "sample-position",
+					kind: "sample",
+					label: "Sample position",
+					symbolKey: "sample-position",
+				},
+			],
+			edges: [],
+		});
+		expect(result).toBeInstanceOf(Response);
+
+		const sidecar = await load(scope);
+		expect(sidecar.sidecarWarnings).toEqual([]);
+		expect(sidecar.initialToml).not.toContain("feed-junction");
+		expect(sidecar.initialToml).not.toContain("sample-position");
+	});
+
 	test("saves a graph and reloads it", async () => {
 		const scope = await setupRig();
 

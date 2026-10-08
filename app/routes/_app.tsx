@@ -2,10 +2,11 @@
  * Every application section shares the navigation shell.
  */
 
-import { useCallback, useState } from "react";
-import { Outlet, useLocation, useMatches, useNavigate } from "react-router";
+import { useCallback, useEffect, useState } from "react";
+import { Outlet, useBlocker, useLocation, useMatches, useNavigate } from "react-router";
 
 import { FileDropTarget } from "~/app/components/FileDropTarget.tsx";
+import { PIDWorkspaceProvider } from "~/app/components/PIDWorkspaceContext.tsx";
 import { PageBreadcrumbs } from "~/app/components/PageBreadcrumbs.tsx";
 import { AppLayout } from "~/app/layout/AppLayout.tsx";
 import { leftSidebarFromMatches, rightSidebarFromMatches } from "~/app/layout/routeSidebar.ts";
@@ -44,8 +45,31 @@ export default function App({ loaderData }: Route.ComponentProps) {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const matches = useMatches();
+	const pidMatch = matches.find((match) => match.id === "routes/inventory.$entrySlug.pid");
+	const pidRigSlug = pidMatch?.params.entrySlug;
+	const pidInitialToml = (pidMatch?.loaderData as { initialToml?: string } | undefined)
+		?.initialToml;
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 	const [dropContext, setDropContext] = useState<DropContext>();
+	const [unsavedSidecar, setUnsavedSidecar] = useState(false);
+	const blocker = useBlocker(
+		({ currentLocation, nextLocation }) =>
+			unsavedSidecar && currentLocation.pathname !== nextLocation.pathname,
+	);
+
+	useEffect(() => {
+		if (blocker.state !== "blocked") return;
+		if (window.confirm("These TOML changes have not been exported. Leave this page?"))
+			blocker.proceed();
+		else blocker.reset();
+	}, [blocker]);
+
+	useEffect(() => {
+		if (!unsavedSidecar) return;
+		const beforeUnload = (event: BeforeUnloadEvent) => event.preventDefault();
+		window.addEventListener("beforeunload", beforeUnload);
+		return () => window.removeEventListener("beforeunload", beforeUnload);
+	}, [unsavedSidecar]);
 
 	function addSelectedFiles(files: File[]) {
 		setSelectedFiles((current) => appendUniqueFiles(current, files));
@@ -99,17 +123,23 @@ export default function App({ loaderData }: Route.ComponentProps) {
 	};
 
 	return (
-		<FileDropTarget onDropFiles={addDroppedFiles}>
-			<AppLayout
-				sidebarCollapsed={loaderData.sidebarCollapsed}
-				sidebarWidth={loaderData.sidebarWidth}
-				leftSidebar={leftSidebarFromMatches(matches)}
-				rightSidebar={rightSidebarFromMatches(matches)}
-			>
-				<PageBreadcrumbs />
-				<Outlet context={context} />
-			</AppLayout>
-		</FileDropTarget>
+		<PIDWorkspaceProvider
+			trigSlug={pidRigSlug}
+			initialToml={pidInitialToml}
+			onUnsavedChange={setUnsavedSidecar}
+		>
+			<FileDropTarget onDropFiles={addDroppedFiles}>
+				<AppLayout
+					sidebarCollapsed={loaderData.sidebarCollapsed}
+					sidebarWidth={loaderData.sidebarWidth}
+					leftSidebar={leftSidebarFromMatches(matches)}
+					rightSidebar={rightSidebarFromMatches(matches)}
+				>
+					<PageBreadcrumbs />
+					<Outlet context={context} />
+				</AppLayout>
+			</FileDropTarget>
+		</PIDWorkspaceProvider>
 	);
 }
 

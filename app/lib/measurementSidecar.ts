@@ -2,6 +2,7 @@ import { parse as parseToml } from "smol-toml";
 
 import type { FileProbe } from "~/app/lib/FileProbe.ts";
 import { CsvRecordParser, MeasurementCsvError } from "~/app/lib/measurementCsv.ts";
+import { parseMeasurementTimestamp } from "~/app/lib/measurementTimestamp.ts";
 
 export { parseDelimitedRows } from "~/app/lib/measurementCsv.ts";
 
@@ -183,7 +184,9 @@ export function delimiterCharacter(value: string): string {
 
 export interface CsvSidecarPreview {
 	columns: string[];
+	header?: string[];
 	rows: string[][];
+	timestamp?: { source: string; format: string; timezone: string; interpreted?: string };
 	issues: SidecarIssue[];
 	truncated: boolean;
 }
@@ -250,18 +253,52 @@ export async function readCsvSidecarPreview(
 	const dataRows = rows
 		.slice(sidecar.file_structure.data_row - 1)
 		.map((row) => normalizeSkippedSourceRow(row, sidecar.columns));
-	for (const [index, row] of dataRows.entries()) {
+	const previewRows = dataRows.slice(0, SIDECAR_PREVIEW_ROWS);
+	const timeIndex = sidecar.columns.findIndex(
+		(column) => "axis" in column && column.axis === "time",
+	);
+	const dateIndex = sidecar.columns.findIndex(
+		(column) => "axis" in column && column.axis === "date",
+	);
+	const timeColumn = sidecar.columns[timeIndex];
+	const dateColumn = sidecar.columns[dateIndex];
+	let timestamp: CsvSidecarPreview["timestamp"];
+	for (const [index, row] of previewRows.entries()) {
 		if (row.length !== expectedNames.length) {
 			issues.push({
 				path: `data_row.${sidecar.file_structure.data_row + index}`,
 				message: `Expected ${expectedNames.length} columns but found ${row.length}.`,
 			});
 		}
+		if (!timeColumn || !("axis" in timeColumn) || timeColumn.axis !== "time") continue;
+		const raw =
+			dateIndex >= 0 ? `${row[dateIndex] ?? ""} ${row[timeIndex] ?? ""}` : (row[timeIndex] ?? "");
+		const format =
+			dateColumn && "axis" in dateColumn && dateColumn.axis === "date"
+				? `${dateColumn.format} ${timeColumn.format}`
+				: timeColumn.format;
+		const parsed = parseMeasurementTimestamp(raw, format, timeColumn.timezone);
+		if (index === 0)
+			timestamp = {
+				source: raw,
+				format,
+				timezone: timeColumn.timezone,
+				...(parsed ? { interpreted: parsed.toISOString() } : {}),
+			};
+		if (!parsed)
+			issues.push({
+				path: `data_row.${sidecar.file_structure.data_row + index}.timestamp`,
+				message: `Row ${sidecar.file_structure.data_row + index}: invalid or ambiguous timestamp for the sidecar format and timezone.`,
+			});
 	}
 
 	return {
 		columns: expectedNames,
-		rows: dataRows.slice(0, SIDECAR_PREVIEW_ROWS),
+		...(sidecar.file_structure.header_rows > 0
+			? { header: rows[sidecar.file_structure.header_rows - 1] }
+			: {}),
+		rows: previewRows,
+		...(timestamp ? { timestamp } : {}),
 		issues,
 		truncated: truncated || dataRows.length >= SIDECAR_PREVIEW_ROWS,
 	};
@@ -349,10 +386,9 @@ export function stringifyMeasurementSidecar(sidecar: MeasurementSidecar): string
 				`role = ${quoted(column.role)}`,
 				`unit = ${quoted(column.unit)}`,
 			);
-			lines.push("[columns.item]");
-			if ("id" in column.item) lines.push(`id = ${column.item.id}`);
-			else if ("slug" in column.item) lines.push(`slug = ${quoted(column.item.slug)}`);
-			else lines.push(`serial_number = ${quoted(column.item.serial_number)}`);
+			if ("id" in column.item) lines.push(`item.id = ${column.item.id}`);
+			else if ("slug" in column.item) lines.push(`item.slug = ${quoted(column.item.slug)}`);
+			else lines.push(`item.serial_number = ${quoted(column.item.serial_number)}`);
 		}
 	}
 	return `${lines.join("\n")}\n`;

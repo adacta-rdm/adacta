@@ -19,6 +19,20 @@ const timezones = [
 	...(typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : []),
 ];
 
+const combinedFormats = [
+	{ label: "%Y-%m-%dT%H:%M:%S", detail: "ISO date and time" },
+	{ label: "%Y-%m-%dT%H:%M:%S.%L", detail: "ISO date and time with milliseconds" },
+	{ label: "%Y-%m-%d %H:%M:%S", detail: "Date and time separated by a space" },
+];
+const dateFormats = [
+	{ label: "%Y-%m-%d", detail: "ISO date" },
+	{ label: "%d.%m.%Y", detail: "Day, month, year" },
+];
+const timeFormats = [
+	{ label: "%H:%M:%S", detail: "Time to the second" },
+	{ label: "%H:%M:%S.%L", detail: "Time with milliseconds" },
+];
+
 export function analyzeTomlSidecar(source: string, nodes: SidecarEditorNode[]) {
 	const fields: Field[] = [];
 	const references: SidecarReference[] = [];
@@ -44,7 +58,7 @@ export function analyzeTomlSidecar(source: string, nodes: SidecarEditorNode[]) {
 							: header[2]!;
 			tables.push({ from: offset, path: table });
 		} else {
-			const assignment = line.match(/^(\s*)([\w]+)(\s*=\s*)(.*)$/);
+			const assignment = line.match(/^(\s*)([\w.]+)(\s*=\s*)(.*)$/);
 			if (assignment) {
 				const key = assignment[2]!;
 				const from = offset + assignment[1]!.length;
@@ -163,7 +177,7 @@ export function analyzeTomlSidecar(source: string, nodes: SidecarEditorNode[]) {
 		if (value) return { kind: "value" as const, path: value.path, range: value.value };
 		const start = source.lastIndexOf("\n", position - 1) + 1;
 		const line = source.slice(start, position);
-		if (/^\s*[\w]*$/.test(line)) {
+		if (/^\s*[\w.]*$/.test(line)) {
 			const parent = tables.filter((candidate) => candidate.from < position).at(-1)?.path ?? "";
 			const key = line.trim();
 			return {
@@ -174,33 +188,44 @@ export function analyzeTomlSidecar(source: string, nodes: SidecarEditorNode[]) {
 		}
 		return null;
 	}
+	function rangeForPath(path: string): [number, number] | undefined {
+		const field = fields.find((candidate) => candidate.path === path);
+		if (field) return field.value[1] > field.value[0] ? field.value : field.key;
+		const table = tables.find((candidate) => candidate.path === path);
+		return table ? [table.from, table.from] : undefined;
+	}
 	function suggestions(position: number) {
 		const context = contextAt(position);
 		if (!context) return null;
 		if (context.kind === "key") {
 			const parent = context.path.split(".").slice(0, -1).join(".");
 			const current = context.path.split(".").at(-1) ?? "";
+			const dottedItem =
+				/^columns\.\d+\.item$/.test(parent) &&
+				source.slice(context.range[0], context.range[1]).startsWith("item.");
 			const used = new Set(
 				fields
-					.filter(
-						(field) =>
-							field.path.startsWith(`${parent}.`) &&
-							field.path.split(".").length === parent.split(".").length + 1,
-					)
-					.map((field) => field.path.split(".").at(-1)),
+					.filter((field) => field.path.startsWith(`${parent}.`))
+					.map((field) => field.path.slice(parent.length + 1)),
 			);
 			const existing = source.slice(context.range[1]).trimStart().startsWith("=");
 			const options = allowedTomlKeys(parent)
 				.filter((key) => key === current || !used.has(key))
-				.map((label) => ({ label, apply: existing ? label : `${label} = `, type: "property" }));
+				.map((key) => {
+					const label = dottedItem ? `item.${key}` : key;
+					return { label, apply: existing ? label : `${label} = `, type: "property" };
+				});
 			return options.length ? { from: context.range[0], to: context.range[1], options } : null;
 		}
 		const key = context.path.split(".").at(-1);
 		const sample = context.path.startsWith("experiment.samples.");
-		const symbolPath = context.path.replace(/\.[^.]+$/, ".symbol_key");
+		const symbolPath = context.path.replace(/(?:\.item)?\.[^.]+$/, ".symbol_key");
 		const symbol = references.find((reference) => reference.path === symbolPath)?.key;
 		const relevant = symbol ? nodes.filter((node) => node.symbolKey === symbol) : nodes;
 		const values: { label: string; apply: string; type: string }[] = [];
+		let completionFrom = context.range[0];
+		let completionTo = context.range[1];
+		let filter: boolean | undefined;
 		const add = (value: string | number) =>
 			values.push({
 				label: String(value),
@@ -230,15 +255,59 @@ export function analyzeTomlSidecar(source: string, nodes: SidecarEditorNode[]) {
 		else if (key === "role")
 			relevant.forEach((node) => node.equipment?.channels.forEach((channel) => add(channel.role)));
 		else if (key === "axis") ["time", "date"].forEach(add);
-		else if (key === "timezone") timezones.forEach(add);
-		else if (key === "format") TIMESTAMP_FORMAT_TOKENS.forEach((token) => add(token.label));
-		else if (key === "skip") values.push({ label: "true", apply: "true", type: "constant" });
+		else if (key === "timezone") {
+			const raw = source.slice(context.range[0], context.range[1]);
+			const quote = raw[0] === '"' || raw[0] === "'" ? raw[0] : null;
+			if (quote) {
+				completionFrom++;
+				if (raw.endsWith(quote)) completionTo--;
+			}
+			const typed = source.slice(completionFrom, position).toLowerCase();
+			const prefix = typed === "todo" ? "" : typed;
+			filter = typed === "todo" ? false : undefined;
+			for (const timezone of timezones.filter((value) => value.toLowerCase().startsWith(prefix)))
+				values.push({
+					label: timezone,
+					apply: quote ? timezone : JSON.stringify(timezone),
+					type: "constant",
+				});
+		} else if (key === "format") {
+			filter = false;
+			const columnPath = context.path.match(/^(columns\.\d+)\.format$/)?.[1];
+			const axisField = fields.find((field) => field.path === `${columnPath}.axis`);
+			const axis = axisField
+				? source.slice(axisField.value[0], axisField.value[1]).replace(/^["']|["']$/g, "")
+				: "";
+			const hasDateColumn = fields.some(
+				(field) =>
+					/^columns\.\d+\.axis$/.test(field.path) &&
+					/^['"]date['"]$/.test(source.slice(field.value[0], field.value[1])),
+			);
+			const formats =
+				axis === "date"
+					? dateFormats
+					: axis === "time" && hasDateColumn
+						? timeFormats
+						: combinedFormats;
+			for (const format of formats)
+				values.push({ ...format, apply: JSON.stringify(format.label), type: "constant" });
+			TIMESTAMP_FORMAT_TOKENS.filter((token) => axis !== "date" || token.axis === "date")
+				.filter((token) => axis !== "time" || !hasDateColumn || token.axis === "time")
+				.forEach((token) => add(token.label));
+		} else if (key === "skip") values.push({ label: "true", apply: "true", type: "constant" });
 		else if (key === "decimal_separator") [".", ","].forEach(add);
 		else if (key === "column_delimiter") [",", ";", "tab"].forEach(add);
 		else if (key === "file_encoding") add("UTF-8");
-		return values.length ? { from: context.range[0], to: context.range[1], options: values } : null;
+		return values.length
+			? {
+					from: completionFrom,
+					to: completionTo,
+					options: values,
+					filter,
+				}
+			: null;
 	}
-	return { issues, todos, references, contextAt, suggestions };
+	return { issues, todos, references, contextAt, rangeForPath, suggestions };
 }
 
 function allowedTomlKeys(parent: string): string[] {
@@ -248,6 +317,19 @@ function allowedTomlKeys(parent: string): string[] {
 	if (/^experiment\.samples\.\d+$/.test(parent)) return ["symbol_key", "id", "slug"];
 	if (/^columns\.\d+\.item$/.test(parent)) return ["id", "slug", "serial_number"];
 	if (/^columns\.\d+$/.test(parent))
-		return ["name", "axis", "format", "timezone", "skip", "symbol_key", "channel", "role", "unit"];
+		return [
+			"name",
+			"axis",
+			"format",
+			"timezone",
+			"skip",
+			"symbol_key",
+			"channel",
+			"role",
+			"unit",
+			"item.id",
+			"item.slug",
+			"item.serial_number",
+		];
 	return [];
 }

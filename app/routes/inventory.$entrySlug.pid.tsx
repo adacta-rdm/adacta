@@ -14,7 +14,9 @@ import { isPIDGraph } from "@/tsrc/app/lib/PID";
 import { services } from "~/app/.server/context.ts";
 import { PIDEditor } from "~/app/components/PIDEditor.tsx";
 import { PIDSidecarPanel } from "~/app/components/PIDSidecarPanel.tsx";
+import { usePIDWorkspace } from "~/app/components/PIDWorkspaceContext.tsx";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
+import type { RightSidebarHandle } from "~/app/layout/routeSidebar.ts";
 import type { PIDGraph, PIDLength, PIDLengthUnit } from "~/app/lib/PID.ts";
 import { isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
 import { type BatchStatement, ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
@@ -35,7 +37,39 @@ import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import type { Route } from "./+types/inventory.$entrySlug.pid.ts";
 import type { loader as entryLoader } from "./inventory.$entrySlug.tsx";
 
-export const handle = { breadcrumb: "P&ID" } satisfies BreadcrumbHandle;
+export const handle = {
+	breadcrumb: "P&ID",
+	rightSidebar: {
+		id: "pid-measurement-sidecar",
+		title: "Measurement sidecar",
+		defaultOpen: true,
+		defaultWidth: 480,
+		component: MeasurementSidecarSidebar,
+	},
+} satisfies BreadcrumbHandle & RightSidebarHandle;
+
+function MeasurementSidecarSidebar() {
+	const loaderData = useRouteLoaderData<typeof loader>("routes/inventory.$entrySlug.pid");
+	const { symbolFocus, setSelectedSymbolKey, drafts, setDraft, csvFile, setCsvFile } =
+		usePIDWorkspace();
+	if (!loaderData) return null;
+
+	return (
+		<PIDSidecarPanel
+			fileName={`${loaderData.rigSlug}-sidecar.toml`}
+			rigSlug={loaderData.rigSlug}
+			initialToml={loaderData.initialToml}
+			draft={drafts[loaderData.rigSlug]}
+			setDraft={setDraft}
+			csvFile={csvFile}
+			setCsvFile={setCsvFile}
+			warnings={loaderData.sidecarWarnings}
+			nodes={loaderData.sidecarNodes}
+			symbolFocus={symbolFocus}
+			onSymbolSelectionChange={setSelectedSymbolKey}
+		/>
+	);
+}
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const db = context.get(services).get(ApplicationDatabase);
@@ -286,8 +320,7 @@ export default function InventoryEntrySlugPid({ loaderData, actionData }: Route.
 	const editing = searchParams.has("edit");
 	const saving = navigation.state === "submitting";
 	const [serializedGraph, setSerializedGraph] = useState(() => JSON.stringify(loaderData.graph));
-	const [selectedSymbolKey, setSelectedSymbolKey] = useState<string | null>(null);
-	const [symbolFocus, setSymbolFocus] = useState<{ key: string; request: number } | null>(null);
+	const { selectedSymbolKey, focusSymbol } = usePIDWorkspace();
 
 	const recordGraph = useCallback((graph: PIDGraph) => {
 		setSerializedGraph(JSON.stringify(graph));
@@ -337,32 +370,17 @@ export default function InventoryEntrySlugPid({ loaderData, actionData }: Route.
 				</p>
 			) : null}
 
-			<div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,30rem)]">
-				<div className="min-w-0">
-					<PIDEditor
-						value={loaderData.graph}
-						equipment={loaderData.equipment}
-						samples={loaderData.samples}
-						readOnly={!editing}
-						onChange={editing ? recordGraph : undefined}
-						selectedSymbolKey={selectedSymbolKey}
-						onSymbolClick={(key) => {
-							setSelectedSymbolKey(key);
-							if (key) setSymbolFocus((current) => ({ key, request: (current?.request ?? 0) + 1 }));
-						}}
-						actions={actions}
-					/>
-				</div>
-				<div className="min-w-0">
-					<PIDSidecarPanel
-						fileName={`${loaderData.rigSlug}-sidecar.toml`}
-						initialToml={loaderData.initialToml}
-						warnings={loaderData.sidecarWarnings}
-						nodes={loaderData.sidecarNodes}
-						symbolFocus={symbolFocus}
-						onSymbolSelectionChange={setSelectedSymbolKey}
-					/>
-				</div>
+			<div className="mt-6 min-w-0">
+				<PIDEditor
+					value={loaderData.graph}
+					equipment={loaderData.equipment}
+					samples={loaderData.samples}
+					readOnly={!editing}
+					onChange={editing ? recordGraph : undefined}
+					selectedSymbolKey={selectedSymbolKey}
+					onSymbolClick={focusSymbol}
+					actions={actions}
+				/>
 			</div>
 		</section>
 	);

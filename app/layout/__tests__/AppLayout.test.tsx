@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter, Route, Routes } from "react-router";
 
 import { AppLayout } from "../AppLayout.tsx";
+import { maxRightSidebarWidth } from "../SidebarLayout.tsx";
 import type { LeftSidebar, RightSidebar } from "../routeSidebar.ts";
 
 const InventoryPanel = () => <p>Inventory by location</p>;
@@ -92,6 +93,23 @@ describe("AppLayout", () => {
 		expect(markup).toContain('aria-label="Details"');
 		expect(markup).toContain('aria-label="Resize Details"');
 		expect(markup).toContain('aria-label="Open Details"');
-		expect(markup).toContain("--right-sidebar-width:320px");
+		expect(markup).toContain("--right-sidebar-width:min(320px");
+	});
+
+	test("uses a route panel's wider editor width", () => {
+		const markup = render("/inventory", false, {
+			id: "sidecar",
+			title: "Measurement sidecar",
+			defaultOpen: true,
+			defaultWidth: 480,
+			component: () => <p>Editor</p>,
+		});
+
+		expect(markup).toContain("--right-sidebar-width:min(480px");
+	});
+
+	test("the right sidebar can occupy 90% of the space beside navigation", () => {
+		expect(maxRightSidebarWidth(1440, 280)).toBe(1044);
+		expect(maxRightSidebarWidth(1440, 72)).toBe(1231);
 	});
 });

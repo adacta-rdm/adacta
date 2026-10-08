@@ -57,26 +57,16 @@ export async function pidSidecarSkeleton(
 	const warnings = new Map<string, PIDSidecarWarning>();
 	for (const row of rows) {
 		if (row.kind === "sample") {
-			if (row.sampleId === null || row.symbolKey === null) {
+			if (row.sampleId === null) continue;
+			if (row.symbolKey === null) {
 				warnings.set(row.nodeId, {
 					nodeId: row.nodeId,
-					message:
-						row.sampleId === null
-							? `${row.label} has no linked sample.`
-							: `${row.label} is linked to a sample but has no diagram symbol key.`,
+					message: `${row.label} is linked to a sample but has no diagram symbol key.`,
 				});
 			} else samples.push({ symbol_key: row.symbolKey, id: row.sampleId });
 			continue;
 		}
-		if (row.equipmentId === null) {
-			if (row.symbolKey !== null) {
-				warnings.set(row.nodeId, {
-					nodeId: row.nodeId,
-					message: `${row.label} has a diagram symbol key but no linked equipment.`,
-				});
-			}
-			continue;
-		}
+		if (row.equipmentId === null) continue;
 		if (row.symbolKey === null) {
 			warnings.set(row.nodeId, {
 				nodeId: row.nodeId,

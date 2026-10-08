@@ -11,7 +11,7 @@ import type { SidecarEditorNode } from "~/app/lib/sidecarEditor.ts";
 import { analyzeTomlSidecar } from "~/app/lib/sidecarTomlEditor.ts";
 
 export type SidecarTomlEditorHandle = {
-	focusAt: (offset: number, end?: number) => void;
+	focusAt: (offset: number, end?: number, highlightLine?: boolean) => void;
 	selectionRange: () => { from: number; to: number };
 };
 
@@ -23,18 +23,26 @@ export const SidecarTomlEditor = forwardRef<
 		selectedSymbolKey: string | null;
 		onChange: (value: string) => void;
 		onSelectSymbol: (key: string | null) => void;
+		onJumpClear: () => void;
+		jumpMarkerActive: boolean;
 	}
->(function SidecarTomlEditor({ value, nodes, selectedSymbolKey, onChange, onSelectSymbol }, ref) {
+>(function SidecarTomlEditor(
+	{ value, nodes, selectedSymbolKey, onChange, onSelectSymbol, onJumpClear, jumpMarkerActive },
+	ref,
+) {
 	const container = useRef<HTMLDivElement>(null);
 	const view = useRef<EditorView>(null);
-	const callbacks = useRef({ onChange, onSelectSymbol });
+	const callbacks = useRef({ onChange, onSelectSymbol, onJumpClear });
 	const linkedNodes = useRef(nodes);
 	const highlight = useRef(new Compartment());
+	const jumpHighlight = useRef(new Compartment());
+	const jumpActive = useRef(false);
+	const jumpSelection = useRef<{ from: number; to: number } | null>(null);
 	const initialValue = useRef(value);
 
 	useEffect(() => {
-		callbacks.current = { onChange, onSelectSymbol };
-	}, [onChange, onSelectSymbol]);
+		callbacks.current = { onChange, onSelectSymbol, onJumpClear };
+	}, [onChange, onSelectSymbol, onJumpClear]);
 
 	useEffect(() => {
 		linkedNodes.current = nodes;
@@ -43,14 +51,44 @@ export const SidecarTomlEditor = forwardRef<
 	useImperativeHandle(
 		ref,
 		() => ({
-			focusAt(offset, end = offset) {
+			focusAt(offset, end = offset, highlightLine = false) {
 				const editor = view.current;
 				if (!editor) return;
 				const length = editor.state.doc.length;
 				const from = Math.min(Math.max(offset, 0), length);
 				const to = Math.min(Math.max(end, from), length);
-				editor.dispatch({ selection: { anchor: from, head: to }, scrollIntoView: true });
+				if (!highlightLine && jumpActive.current) {
+					jumpActive.current = false;
+					jumpSelection.current = null;
+					editor.dispatch({
+						effects: jumpHighlight.current.reconfigure(EditorView.decorations.of(Decoration.none)),
+					});
+				}
+				const jumpEffects = highlightLine
+					? [
+							jumpHighlight.current.reconfigure(
+								EditorView.decorations.of(
+									Decoration.set([
+										Decoration.line({ class: "cm-sidecar-jump" }).range(
+											editor.state.doc.lineAt(from).from,
+										),
+									]),
+								),
+							),
+							EditorView.scrollIntoView(from, { y: "center" }),
+						]
+					: [];
+				if (highlightLine) {
+					jumpActive.current = true;
+					jumpSelection.current = { from, to };
+				}
+				editor.dispatch({
+					selection: { anchor: from, head: to },
+					scrollIntoView: !highlightLine,
+					effects: jumpEffects,
+				});
 				editor.focus();
+				if (highlightLine) editor.dom.scrollIntoView({ block: "center", inline: "nearest" });
 			},
 			selectionRange() {
 				const selection = view.current?.state.selection.main;
@@ -99,6 +137,10 @@ export const SidecarTomlEditor = forwardRef<
 							outline: "1px solid var(--color-accent)",
 							borderRadius: "2px",
 						},
+						".cm-sidecar-jump, .cm-sidecar-jump.cm-activeLine": {
+							backgroundColor: "var(--color-info-surface)",
+							boxShadow: "inset 3px 0 var(--color-accent)",
+						},
 						"&.cm-focused": { outline: "2px solid var(--color-focus)", outlineOffset: "-2px" },
 					}),
 					linter(
@@ -121,14 +163,25 @@ export const SidecarTomlEditor = forwardRef<
 									linkedNodes.current,
 								).suggestions(context.pos);
 								return result && result.options.length
-									? { ...result, filter: !context.explicit }
+									? { ...result, filter: result.filter ?? !context.explicit }
 									: null;
 							},
 						],
 					}),
 					highlight.current.of([]),
+					jumpHighlight.current.of([]),
 					EditorView.updateListener.of((update) => {
 						if (update.docChanged) callbacks.current.onChange(update.state.doc.toString());
+						if (update.selectionSet && jumpActive.current) {
+							const selection = update.state.selection.main;
+							const target = jumpSelection.current;
+							if (target && selection.from === target.from && selection.to === target.to) {
+								jumpSelection.current = null;
+							} else if (!target) {
+								jumpActive.current = false;
+								callbacks.current.onJumpClear();
+							}
+						}
 						if (update.selectionSet || update.docChanged) {
 							const model = analyzeTomlSidecar(update.state.doc.toString(), linkedNodes.current);
 							const offset = update.state.selection.main.head;
@@ -156,8 +209,27 @@ export const SidecarTomlEditor = forwardRef<
 
 	useEffect(() => {
 		const editor = view.current;
-		if (!editor || editor.state.doc.toString() === value) return;
-		editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: value } });
+		if (!editor) return;
+		if (!jumpMarkerActive && jumpActive.current) {
+			jumpActive.current = false;
+			jumpSelection.current = null;
+			editor.dispatch({
+				effects: jumpHighlight.current.reconfigure(EditorView.decorations.of(Decoration.none)),
+			});
+		}
+	}, [jumpMarkerActive]);
+
+	useEffect(() => {
+		const editor = view.current;
+		if (!editor) return;
+		if (editor.state.doc.toString() !== value)
+			editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: value } });
+		if (!jumpActive.current) return;
+		jumpActive.current = false;
+		jumpSelection.current = null;
+		editor.dispatch({
+			effects: jumpHighlight.current.reconfigure(EditorView.decorations.of(Decoration.none)),
+		});
 	}, [value]);
 
 	useEffect(() => {
