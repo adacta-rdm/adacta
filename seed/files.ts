@@ -9,10 +9,12 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
 /**
- * The seed tree sits beside this file. Paths are resolved against the module.
- * The seed therefore runs from any working directory.
+ * The seed tree is the directory "seed" in the working directory. Package
+ * scripts such as `bun run db:setup` run in the project root, so the seed finds
+ * it there. A bundled copy of the seed code finds it the same way, although the
+ * bundle lives elsewhere.
  */
-const SEED = import.meta.dir;
+const SEED = join(process.cwd(), "seed");
 
 /**
  * The key of a seed file, which is its name without the extension. For example

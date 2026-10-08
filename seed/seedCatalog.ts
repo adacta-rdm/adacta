@@ -23,6 +23,7 @@
  * Referenced images enter storage through UploadManager. The catalog stores
  * their original-file IDs. Images from one manufacturer share one upload.
  */
+import { existsSync, openAsBlob } from "node:fs";
 import { basename, extname, join, normalize } from "node:path";
 
 import { isQuantityKind } from "~/app/lib/quantities.ts";
@@ -376,8 +377,8 @@ async function storeImages(
 			throw new Error(`Unsupported catalog image extension: "${path}" referenced by ${record}.`);
 		}
 
-		const file = Bun.file(join(directory, path));
-		if (!(await file.exists())) {
+		const file = join(directory, path);
+		if (!existsSync(file)) {
 			throw new Error(`Catalog image "${path}" referenced by ${record} does not exist.`);
 		}
 
@@ -391,7 +392,10 @@ async function storeImages(
 
 	const upload = scope.get(UploadManager).beginUpload();
 	for (const { path, file, mediaType } of images) {
-		const id = await upload.add({ originalName: basename(path), mediaType, source: file.stream() });
+		// openAsBlob reads the file only while the stream is consumed. Bun and
+		// Node both provide it, so the seed runs under both.
+		const source = (await openAsBlob(file)).stream();
+		const id = await upload.add({ originalName: basename(path), mediaType, source });
 		ids.set(path, id);
 	}
 
