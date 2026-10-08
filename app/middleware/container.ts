@@ -3,15 +3,10 @@ import { createAppContainer } from "~/app/.server/appContainer.ts";
 import { services } from "~/app/.server/context.ts";
 
 /**
- * Gives a request its service container.
- * An entry point may provide one before this middleware runs.
- * Otherwise this middleware creates a local container.
+ * Gives every request its own service container. Services resolved during a
+ * request are therefore not shared with the next request.
  */
 export const container: Route.MiddlewareFunction = ({ context }, next) => {
-	try {
-		context.get(services);
-	} catch {
-		context.set(services, createAppContainer());
-	}
+	context.set(services, createAppContainer());
 	return next();
 };
