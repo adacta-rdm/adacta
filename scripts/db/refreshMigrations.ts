@@ -5,6 +5,9 @@
  *
  * The existing history is deleted before generation. A failed refresh can be
  * rerun or the previous files can be restored with Git.
+ *
+ * Paths are resolved from the working directory, which package scripts set
+ * to the project root.
  */
 import { mkdirSync, renameSync, rmSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
@@ -18,13 +21,12 @@ import { QuantityKind } from "~/drizzle/schema/QuantityKind.ts";
 
 const BASELINE_DIRECTORY = "19861014000000_baseline";
 const SNAPSHOT_ID = "00000000-0000-0000-0000-000000000001";
-const PROJECT_ROOT = dirname(dirname(import.meta.dir));
 
 /**
  * Replaces the migration history with one baseline from an empty database.
  */
 export async function refreshMigrations(): Promise<void> {
-	const outputDirectory = join(PROJECT_ROOT, "drizzle", "migrations");
+	const outputDirectory = join(process.cwd(), "drizzle", "migrations");
 	rmSync(outputDirectory, { recursive: true, force: true });
 	mkdirSync(outputDirectory, { recursive: true });
 
@@ -62,13 +64,12 @@ export async function refreshMigrations(): Promise<void> {
 	await Bun.write(snapshotPath, `${JSON.stringify(snapshot, null, "\t")}\n`);
 
 	run(["bunx", "oxfmt", snapshotPath], "Failed to format the migration snapshot.");
-	console.log(`Refreshed migration baseline: ${relative(PROJECT_ROOT, baselineDirectory)}`);
+	console.log(`Refreshed migration baseline: ${relative(process.cwd(), baselineDirectory)}`);
 }
 
 function run(command: string[], errorMessage: string): void {
 	const result = Bun.spawnSync({
 		cmd: command,
-		cwd: PROJECT_ROOT,
 		stdout: "pipe",
 		stderr: "inherit",
 	});
