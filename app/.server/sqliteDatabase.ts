@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 import { drizzle } from "drizzle-orm/bun-sqlite";
+import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 
 import type {
 	ApplicationDatabase,
@@ -47,6 +48,22 @@ export function openSqliteDatabase(path: string) {
 			);
 		},
 	});
+}
+
+/**
+ * Applies pending SQL migrations to the local file and closes the connection.
+ * Repeating the operation preserves application records.
+ */
+export function migrateSqliteDatabase(path: string): void {
+	const connection = openSqliteDatabase(path);
+
+	try {
+		migrate(connection, {
+			migrationsFolder: join(process.cwd(), "drizzle/migrations"),
+		});
+	} finally {
+		connection.$client.close();
+	}
 }
 
 /**

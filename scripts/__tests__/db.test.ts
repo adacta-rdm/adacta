@@ -4,8 +4,7 @@ import { join } from "node:path";
 
 import { sql } from "drizzle-orm";
 
-import { migrateSqliteDatabase } from "~/app/.server/migrateSqliteDatabase.ts";
-import { sqliteDatabasePath } from "~/app/.server/sqliteDatabase.ts";
+import { migrateSqliteDatabase, sqliteDatabasePath } from "~/app/.server/sqliteDatabase.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { setupTestPersistenceEnvironment } from "~/app/testUtils/testUtils.ts";
 import { User } from "~/drizzle/schema/BetterAuth.ts";

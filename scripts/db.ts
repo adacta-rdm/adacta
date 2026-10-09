@@ -13,8 +13,7 @@
 import { rmSync } from "node:fs";
 
 import { createAppContainer } from "~/app/.server/appContainer.ts";
-import { migrateSqliteDatabase } from "~/app/.server/migrateSqliteDatabase.ts";
-import { sqliteDatabasePath } from "~/app/.server/sqliteDatabase.ts";
+import { migrateSqliteDatabase, sqliteDatabasePath } from "~/app/.server/sqliteDatabase.ts";
 import { Env } from "~/lib/env/Env.ts";
 import { refreshMigrations } from "~/scripts/db/refreshMigrations.ts";
 import { assertPresetExists, seedDatabase } from "~/seed/seed.ts";

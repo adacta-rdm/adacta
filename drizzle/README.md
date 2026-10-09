@@ -25,8 +25,8 @@ in `app/lib/quantities.ts` and `app/lib/PID.ts`. Domain records refer to these
 names through foreign keys. A changed list therefore requires
 `bun run db:migrations:refresh` and a database reset.
 
-The local connection is opened in `app/.server/sqliteDatabase.ts`. The CLI
-and test setup apply SQL through `app/.server/migrateSqliteDatabase.ts`.
+The local connection is opened and migrated in `app/.server/sqliteDatabase.ts`.
+The app opens it. Only the CLI and the test setup migrate it.
 `bun run dev` and `bun run start` run the migration command before the server
 starts.
 

@@ -16,8 +16,7 @@ import { join } from "node:path";
 import { Writable } from "node:stream";
 
 import { createLocalAppContainer } from "~/app/.server/appContainer.local.ts";
-import { migrateSqliteDatabase } from "~/app/.server/migrateSqliteDatabase.ts";
-import { sqliteDatabasePath } from "~/app/.server/sqliteDatabase.ts";
+import { migrateSqliteDatabase, sqliteDatabasePath } from "~/app/.server/sqliteDatabase.ts";
 import { BetterAuth } from "~/app/services/BetterAuth.ts";
 import { Security } from "~/app/services/Security.ts";
 import { Env, type EnvSource } from "~/lib/env/Env.ts";
