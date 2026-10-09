@@ -11,30 +11,31 @@
 		]
 	},
 	"scripts": {
-		"dev": "bun run db:migrations:migrate && bun run generate && bun --bun react-router dev",
 		"build": "bun run generate && bun --bun react-router build",
 		"build:tsrc": "bun lib/tsrc/cli.ts",
-		"start": "bun run db:migrations:migrate && bun server.ts",
-		"start:e2e": "sh e2e/server.sh",
-		"db:migrations:refresh": "bun scripts/db.ts refresh",
 		"db:migrations:migrate": "bun scripts/db.ts migrate",
+		"db:migrations:refresh": "bun scripts/db.ts refresh",
 		"db:reset": "bun scripts/db.ts reset",
 		"db:setup": "bun scripts/db.ts setup",
-		"precommit": "bun install --dry-run --frozen-lockfile --silent && bun run typecheck && oxlint --fix && oxfmt && bun test",
-		"typegen": "bun --bun react-router typegen",
+		"dev": "bun run db:migrations:migrate && bun run generate && bun --bun react-router dev",
+		"format": "oxfmt",
+		"format:check": "oxfmt --check",
 		"generate": "bun run typegen && bun run build:tsrc",
-		"typecheck": "bun run generate && tsc",
+		"lint": "oxlint",
+		"precommit": "bun install --dry-run --frozen-lockfile --silent && bun run typecheck && oxlint --fix && oxfmt && bun test",
+		"start": "bun run db:migrations:migrate && bun server.ts",
+		"start:e2e": "sh e2e/server.sh",
 		"test": "bun test",
 		"test:e2e": "playwright test",
 		"test:e2e:ui": "playwright test --ui",
-		"lint": "oxlint",
-		"format": "oxfmt",
-		"format:check": "oxfmt --check"
+		"typecheck": "bun run generate && tsc",
+		"typegen": "bun --bun react-router typegen"
 	},
 	"dependencies": {
 		"@headlessui/react": "^2.2.10",
 		"@heroicons/react": "^2.2.0",
 		"@markdoc/markdoc": "^0.5.7",
+		"@playwright/test": "^1.63.0",
 		"@react-router/dev": "~8.2.0",
 		"@react-router/fs-routes": "~8.2.0",
 		"@remix-run/form-data-parser": "^0.17.5",
@@ -61,13 +62,10 @@
 		"react": "^19.2.7",
 		"react-dom": "^19.2.7",
 		"react-router": "^8",
+		"svgo": "^4.1.0",
 		"tailwindcss": "^4.2.2",
 		"type-fest": "^5.8.0",
 		"typescript": "^6.0.3",
 		"vite": "^8.0.3"
-	},
-	"devDependencies": {
-		"@playwright/test": "^1.63.0",
-		"svgo": "^4.1.0"
 	}
 }
