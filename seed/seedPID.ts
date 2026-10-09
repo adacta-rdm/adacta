@@ -9,17 +9,21 @@
  * Within a file, each node and each edge carries a "key" instead of an id. A
  * key is unique within its file. A diagram can therefore be written without
  * knowing which ids the database will assign. This module converts each key
- * into an id as it inserts the rows.
+ * into an id. It then writes the diagram through PIDManager, as the editor
+ * does.
  *
  * A diagram belongs to a rig. A file named after an entry of another kind is
  * an error, because the application draws a P&ID only for a rig.
  */
-import type { PIDEdgeKind, PIDInletCount, PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
+import type {
+	PIDEdgeKind,
+	PIDGraph,
+	PIDInletCount,
+	PIDOrientation,
+	PIDSymbolKind,
+} from "~/app/lib/PID.ts";
 import { defaultEndArrow, isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
-import { type BatchStatement, ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
-import { Security } from "~/app/services/Security.ts";
-import { PIDEdge } from "~/drizzle/schema/PIDEdge.ts";
-import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
+import { PIDManager } from "~/app/services/PIDManager.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, keyOf, readJson, seedPath } from "~/seed/files.ts";
 
@@ -80,10 +84,6 @@ export async function seedPID(
 	preset: string,
 	entryIds: Map<string, number>,
 ): Promise<number> {
-	const db = scope.get(ApplicationDatabase);
-	const creatorId = scope.get(Security).userId;
-	const createdAt = new Date();
-
 	const files = jsonFiles(seedPath("presets", preset, "pid"));
 	if (files.length === 0) return 0;
 
@@ -95,30 +95,20 @@ export async function seedPID(
 			throw new Error(`No inventory entry named "${entryKey}.json" for the diagram in ${file}.`);
 		}
 
-		await writeDiagram(db, readJson<SeedPID>(file), {
-			entryId,
-			creatorId,
-			createdAt,
-			file,
-		});
+		const graph = graphOf(readJson<SeedPID>(file), entryId, file);
+		await scope.get(PIDManager).replace(entryId, graph);
 	}
 
 	return files.length;
 }
 
 /**
- * Writes one diagram. The nodes and edges are inserted in one batch.
+ * Converts one diagram file into the graph that the editor saves.
  *
  * A node id is composed of the entry id and the node key. Two entries can
  * therefore both seed a node named "reactor" without a collision.
  */
-async function writeDiagram(
-	db: ApplicationDatabase,
-	diagram: SeedPID,
-	context: { entryId: number; creatorId: string; createdAt: Date; file: string },
-): Promise<void> {
-	const { entryId, creatorId, createdAt, file } = context;
-
+function graphOf(diagram: SeedPID, entryId: number, file: string): PIDGraph {
 	const nodeIds = new Map(
 		diagram.nodes.map((node) => [node.key, `pid-node-${entryId}-${node.key}`]),
 	);
@@ -146,50 +136,33 @@ async function writeDiagram(
 		}
 	}
 
-	const statements: BatchStatement[] = [];
-	if (diagram.nodes.length > 0) {
-		statements.push(
-			db.insert(PIDNode).values(
-				diagram.nodes.map((node, drawingOrder) => ({
-					id: nodeIds.get(node.key)!,
-					inventoryEntryId: entryId,
-					kind: node.kind,
-					label: node.label,
-					secondaryLabel: node.secondaryLabel ?? null,
-					parentNodeId: node.parent === undefined ? null : nodeIds.get(node.parent)!,
-					drawingOrder,
-					inletCount: node.inletCount ?? 1,
-					orientation: node.orientation,
-					positionX: node.position.x,
-					positionY: node.position.y,
-					metadataCreatorId: creatorId,
-					metadataCreationTimestamp: createdAt,
-				})),
-			),
-		);
-	}
+	return {
+		nodes: diagram.nodes.map((node) => ({
+			id: nodeIds.get(node.key)!,
+			kind: node.kind,
+			label: node.label,
+			secondaryLabel: node.secondaryLabel ?? null,
+			parentId: node.parent === undefined ? null : nodeIds.get(node.parent)!,
+			inletCount: node.inletCount ?? 1,
+			orientation: node.orientation,
+			position: node.position,
+		})),
 
-	if (diagram.edges.length > 0) {
-		statements.push(
-			db.insert(PIDEdge).values(
-				diagram.edges.map((edge, drawingOrder) => ({
-					id: `pid-edge-${entryId}-${edge.key}`,
-					inventoryEntryId: entryId,
-					kind: edge.kind,
-					endArrow: edge.endArrow ?? defaultEndArrow(edge.kind),
-					arrowPositions: edge.arrowPositions ?? [],
-					weight: edge.weight ?? 1,
-					sourceNodeId: nodeIds.get(edge.source)!,
-					targetNodeId: nodeIds.get(edge.target)!,
-					sourceHandle: edge.sourceHandle,
-					targetHandle: edge.targetHandle,
-					drawingOrder,
-					metadataCreatorId: creatorId,
-					metadataCreationTimestamp: createdAt,
-				})),
-			),
-		);
-	}
-
-	await db.batch(statements);
+		// A seed file records no pipe materials or sizes.
+		edges: diagram.edges.map((edge) => ({
+			id: `pid-edge-${entryId}-${edge.key}`,
+			kind: edge.kind,
+			endArrow: edge.endArrow ?? defaultEndArrow(edge.kind),
+			arrowPositions: edge.arrowPositions ?? [],
+			weight: edge.weight ?? 1,
+			material: null,
+			innerDiameter: null,
+			outerDiameter: null,
+			length: null,
+			source: nodeIds.get(edge.source)!,
+			target: nodeIds.get(edge.target)!,
+			sourceHandle: edge.sourceHandle,
+			targetHandle: edge.targetHandle,
+		})),
+	};
 }

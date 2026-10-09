@@ -16,8 +16,8 @@ import { PIDEditor } from "~/app/components/PIDEditor.tsx";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import type { PIDGraph, PIDLength, PIDLengthUnit } from "~/app/lib/PID.ts";
 import { isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
-import { type BatchStatement, ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
-import { Security } from "~/app/services/Security.ts";
+import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
+import { PIDManager } from "~/app/services/PIDManager.ts";
 import { Button } from "~/catalyst-ui/button.tsx";
 import { Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
@@ -104,68 +104,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 		return data({ error: "The diagram contains invalid data." }, { status: 400 });
 	}
 
-	const createdAt = new Date();
-	const creatorId = container.get(Security).userId;
-
-	// A save describes the complete current diagram. Replacing both collections
-	// also removes symbols and connections that disappeared from the canvas.
-	const statements: BatchStatement[] = [
-		db.delete(PIDEdge).where(eq(PIDEdge.inventoryEntryId, entry.id)),
-		db.delete(PIDNode).where(eq(PIDNode.inventoryEntryId, entry.id)),
-	];
-
-	if (graph.nodes.length > 0) {
-		statements.push(
-			db.insert(PIDNode).values(
-				graph.nodes.map((node, drawingOrder) => ({
-					id: node.id,
-					inventoryEntryId: entry.id,
-					kind: node.kind,
-					label: node.label,
-					secondaryLabel: node.secondaryLabel,
-					parentNodeId: node.parentId,
-					drawingOrder,
-					inletCount: node.inletCount,
-					orientation: node.orientation,
-					positionX: node.position.x,
-					positionY: node.position.y,
-					metadataCreatorId: creatorId,
-					metadataCreationTimestamp: createdAt,
-				})),
-			),
-		);
-	}
-
-	if (graph.edges.length > 0) {
-		statements.push(
-			db.insert(PIDEdge).values(
-				graph.edges.map((edge, drawingOrder) => ({
-					id: edge.id,
-					inventoryEntryId: entry.id,
-					kind: edge.kind,
-					endArrow: edge.endArrow,
-					arrowPositions: edge.arrowPositions,
-					weight: edge.weight,
-					material: edge.material,
-					innerDiameterValue: edge.innerDiameter?.value ?? null,
-					innerDiameterUnit: edge.innerDiameter?.unit ?? null,
-					outerDiameterValue: edge.outerDiameter?.value ?? null,
-					outerDiameterUnit: edge.outerDiameter?.unit ?? null,
-					lengthValue: edge.length?.value ?? null,
-					lengthUnit: edge.length?.unit ?? null,
-					sourceNodeId: edge.source,
-					targetNodeId: edge.target,
-					sourceHandle: edge.sourceHandle,
-					targetHandle: edge.targetHandle,
-					drawingOrder,
-					metadataCreatorId: creatorId,
-					metadataCreationTimestamp: createdAt,
-				})),
-			),
-		);
-	}
-
-	await db.batch(statements);
+	await container.get(PIDManager).replace(entry.id, graph);
 
 	return redirect(`/inventory/${encodeURIComponent(params.entrySlug)}/pid`, 303);
 }
