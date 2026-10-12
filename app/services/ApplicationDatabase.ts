@@ -13,12 +13,16 @@ import { service } from "~/lib/service-container/ServiceContainer.ts";
  * Writes that belong together use `batch`. Each deployment provides a batch
  * method that returns `BatchResult[]`.
  *
+ * The result of `run()` has the form of the database driver. Its type is
+ * therefore unknown. A caller that needs the number of changed rows runs the
+ * statement as a batch, even when it is a single statement.
+ *
  * A write that breaks a unique constraint rejects with
  * UniqueConstraintViolationError from lib/sqlite-errors, whatever form the
  * database driver reports it in. Every other error is the driver's own.
  */
 export type ApplicationDatabase = Omit<
-	SQLiteAsyncDatabase<"async", any, AnyRelations>,
+	SQLiteAsyncDatabase<"async", unknown, AnyRelations>,
 	"transaction" | "batch"
 > & {
 	/**

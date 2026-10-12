@@ -183,22 +183,24 @@ export async function action({ context, request }: Route.ActionArgs) {
 	/*
 		A batch is archived only while it is active, and restored only while it is
 		archived. Two people working at the same time therefore cannot undo each
-		other. The second click changes no row and answers 404.
+		other. The second click changes no row and answers 404. The statement runs
+		as a batch, because only a batch reports the number of changed rows.
 	*/
-	const changed = await db
-		.update(SampleBatch)
-		.set({ metadataArchivedAt: archiving ? new Date() : null })
-		.where(
-			and(
-				eq(SampleBatch.slug, slug),
-				archiving
-					? isNull(SampleBatch.metadataArchivedAt)
-					: isNotNull(SampleBatch.metadataArchivedAt),
+	const [changed] = await db.batch([
+		db
+			.update(SampleBatch)
+			.set({ metadataArchivedAt: archiving ? new Date() : null })
+			.where(
+				and(
+					eq(SampleBatch.slug, slug),
+					archiving
+						? isNull(SampleBatch.metadataArchivedAt)
+						: isNotNull(SampleBatch.metadataArchivedAt),
+				),
 			),
-		)
-		.run();
+	]);
 
-	if (changed.changes === 0) {
+	if (changed!.changes === 0) {
 		throw new Response(`Batch "${slug}" not found.`, { status: 404 });
 	}
 

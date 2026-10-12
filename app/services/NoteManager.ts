@@ -216,21 +216,24 @@ export class NoteManager {
 	async archive(noteId: number, subjectIds: readonly number[]): Promise<void> {
 		const current = await this.currentNote(noteId, subjectIds);
 
-		const archived = await this.db
-			.update(Note)
-			.set({ metadataArchivedAt: new Date() })
-			.where(
-				and(
-					eq(Note.id, current.id),
-					isNull(Note.metadataArchivedAt),
-					notExists(
-						this.db.select({ id: Note.id }).from(Note).where(eq(Note.supersedesId, current.id)),
+		// The statement runs as a batch, because only a batch reports the number
+		// of changed rows.
+		const [archived] = await this.db.batch([
+			this.db
+				.update(Note)
+				.set({ metadataArchivedAt: new Date() })
+				.where(
+					and(
+						eq(Note.id, current.id),
+						isNull(Note.metadataArchivedAt),
+						notExists(
+							this.db.select({ id: Note.id }).from(Note).where(eq(Note.supersedesId, current.id)),
+						),
 					),
 				),
-			)
-			.run();
+		]);
 
-		if (archived.changes === 0) throw new NoteNotFoundError();
+		if (archived!.changes === 0) throw new NoteNotFoundError();
 	}
 
 	/**
