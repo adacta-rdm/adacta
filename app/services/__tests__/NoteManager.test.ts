@@ -97,7 +97,7 @@ describe("NoteManager", () => {
 		const { scope, db, notes, batch } = await environment();
 		const upload = await stageUpload(scope, ["refused-edit.txt"]);
 
-		expect(
+		await expect(
 			notes.edit(MISSING_NOTE_ID, [batch.id], input({ body: "Changed" }), upload),
 		).rejects.toBeInstanceOf(NoteNotFoundError);
 		expect(await db.select().from(OriginalFile).all()).toEqual([]);
@@ -417,7 +417,7 @@ describe("NoteManager", () => {
 		const original = (await db.select().from(Note).get())!;
 		await notes.edit(original.id, [batch.id], input({ body: "Second version" }));
 
-		expect(
+		await expect(
 			notes.edit(original.id, [batch.id], input({ body: "Another edit" })),
 		).rejects.toBeInstanceOf(NoteNotFoundError);
 		expect(await db.select().from(Note).all()).toHaveLength(2);
@@ -504,9 +504,9 @@ describe("NoteManager", () => {
 		await notes.add(otherBatch.id, input({ body: "Other note" }));
 		const note = (await db.select().from(Note).get())!;
 
-		expect(notes.edit(note.id, [batch.id], input({ body: "Changed" }))).rejects.toBeInstanceOf(
-			NoteNotFoundError,
-		);
+		await expect(
+			notes.edit(note.id, [batch.id], input({ body: "Changed" })),
+		).rejects.toBeInstanceOf(NoteNotFoundError);
 		await expect(notes.archive(note.id, [batch.id])).rejects.toThrow(NoteNotFoundError);
 	});
 
@@ -516,9 +516,9 @@ describe("NoteManager", () => {
 		const note = (await db.select().from(Note).get())!;
 		await notes.archive(note.id, [batch.id]);
 
-		expect(notes.edit(note.id, [batch.id], input({ body: "Changed" }))).rejects.toBeInstanceOf(
-			NoteNotFoundError,
-		);
+		await expect(
+			notes.edit(note.id, [batch.id], input({ body: "Changed" })),
+		).rejects.toBeInstanceOf(NoteNotFoundError);
 		await expect(notes.archive(note.id, [batch.id])).rejects.toThrow(NoteNotFoundError);
 	});
 });
