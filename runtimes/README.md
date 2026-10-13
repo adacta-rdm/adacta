@@ -38,6 +38,12 @@ check. The check holds only types, so the runtime contains no code for it.
 | `e2eEnvironment.ts`  | `e2eSettings`, which keep the data of the browser tests apart from the development data                                            |
 | `testEnvironment.ts` | `createTestAppContainer()`, a container with an empty database and empty file storage, `migrateTestDatabase()` and `storedFiles()` |
 
+`__tests__/` holds the tests that every runtime must pass unchanged. They use
+the selected runtime through the test environment. For example,
+`__tests__/ApplicationDatabase.test.ts` checks that a write that breaks a
+unique constraint rejects with `UniqueConstraintViolationError`, whatever form
+the database driver reports it in.
+
 A command checks its arguments before it calls the runtime. For example,
 `seed:load a b` stops with an error in every runtime, and `seed:load pilot`
 calls `seedLoad("pilot")`.

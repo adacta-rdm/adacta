@@ -21,7 +21,7 @@ their public APIs.
 | `logger/`            | Writes structured log messages to a stream.                                               |
 | `parallel-lines/`    | Turns a route of right-angled segments into parallel lines.                               |
 | `service-container/` | Resolves services and provides independently configurable scopes.                         |
-| `sqlite-errors/`     | Recognizes SQLite constraint failures by the columns they name.                           |
+| `sqlite-errors/`     | Translates the unique-constraint failures of any SQLite driver into one error class.      |
 | `storage-engine/`    | The common interface for storing files as streams. A runtime provides the implementation. |
 | `tsrc/`              | Generates runtime validators from TypeScript declarations.                                |
 

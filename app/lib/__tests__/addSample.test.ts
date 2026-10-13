@@ -230,12 +230,13 @@ describe("addSample", () => {
 		const { db, userId } = await environment();
 		const missingBatchId = 999_999;
 
-		await expect(addSample(db, sampleValues(missingBatchId, userId))).rejects.toMatchObject({
-			cause: {
-				code: "SQLITE_CONSTRAINT_FOREIGNKEY",
-				message: "FOREIGN KEY constraint failed",
-			},
-		});
+		const result = addSample(db, sampleValues(missingBatchId, userId));
+
+		// The error is the database driver's own. Each driver reports a foreign
+		// key failure in its own form.
+		await expect(result).rejects.toBeInstanceOf(Error);
+		await expect(result).rejects.not.toBeInstanceOf(EntityAlreadyExistsError);
+		await expect(result).rejects.not.toBeInstanceOf(SlugAllocationError);
 		expect(await db.select().from(Sample).where(eq(Sample.batchId, missingBatchId)).all()).toEqual(
 			[],
 		);

@@ -28,7 +28,7 @@ import { NoteAttachment } from "~/drizzle/schema/NoteAttachment.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import { Service } from "~/lib/service-container/ServiceContainer.ts";
-import { isUniqueConstraintOn } from "~/lib/sqlite-errors/isUniqueConstraintOn.ts";
+import { UniqueConstraintViolationError } from "~/lib/sqlite-errors/UniqueConstraintViolationError.ts";
 
 export interface NoteInput {
 	body: string;
@@ -188,7 +188,7 @@ export class NoteManager {
 				await this.db.batch(statements);
 			} catch (error) {
 				// Another edit of the same version wrote its row first.
-				if (isUniqueConstraintOn(error, [Note.supersedesId])) {
+				if (error instanceof UniqueConstraintViolationError && error.isOn([Note.supersedesId])) {
 					return noteErrorsWithFileRetry(
 						{
 							form: "Someone else changed this note. Reload the page to see the latest text.",

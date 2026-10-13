@@ -3,7 +3,7 @@ import { asc, count, eq } from "drizzle-orm";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Account, User } from "~/drizzle/schema/BetterAuth.ts";
 import { Service } from "~/lib/service-container/ServiceContainer.ts";
-import { isUniqueConstraintOn } from "~/lib/sqlite-errors/isUniqueConstraintOn.ts";
+import { UniqueConstraintViolationError } from "~/lib/sqlite-errors/UniqueConstraintViolationError.ts";
 
 /**
  * An email address already identifies a user in the application database.
@@ -99,7 +99,7 @@ export class UserManager {
 			// The unique index decides whether the address is taken. A check
 			// before the insert cannot decide. Another request can insert the same
 			// address in between.
-			if (isUniqueConstraintOn(error, [User.email])) {
+			if (error instanceof UniqueConstraintViolationError && error.isOn([User.email])) {
 				throw new UserEmailAlreadyExistsError(email);
 			}
 

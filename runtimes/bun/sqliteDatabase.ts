@@ -12,6 +12,7 @@ import type {
 } from "~/app/services/ApplicationDatabase.ts";
 import { authRelations } from "~/drizzle/schema/BetterAuth.ts";
 import type { Env } from "~/lib/env/Env.ts";
+import { translateErrors } from "~/lib/sqlite-errors/translateErrors.ts";
 
 /**
  * Returns the local database path from ADACTA_DB_DIR.
@@ -34,7 +35,10 @@ export function openSqliteDatabase(path: string) {
 	// a table uses PRAGMA defer_foreign_keys, because PRAGMA foreign_keys
 	// has no effect inside a transaction.
 	client.run("PRAGMA foreign_keys = ON");
-	const connection = drizzle({ client, relations: authRelations });
+	const connection = translateErrors(
+		drizzle({ client, relations: authRelations }),
+		uniqueColumnsOf,
+	);
 
 	return Object.assign(connection, {
 		async batch(statements: BatchStatements): Promise<BatchResult[]> {
@@ -48,6 +52,32 @@ export function openSqliteDatabase(path: string) {
 			);
 		},
 	});
+}
+
+/**
+ * bun:sqlite starts the message of a unique-constraint failure with this text.
+ * The columns follow, for example "Person.team, Person.nickname".
+ */
+const UNIQUE_FAILURE_PREFIX = "UNIQUE constraint failed: ";
+
+/**
+ * Returns the columns that a unique-constraint failure of bun:sqlite names.
+ * Returns undefined for any other error. Drizzle wraps the driver's error.
+ * Hence, the error and each of its causes are searched.
+ */
+function uniqueColumnsOf(error: unknown): string[] | undefined {
+	for (let current = error; current instanceof Error; current = current.cause) {
+		if (
+			"code" in current &&
+			(current.code === "SQLITE_CONSTRAINT_UNIQUE" ||
+				current.code === "SQLITE_CONSTRAINT_PRIMARYKEY") &&
+			current.message.startsWith(UNIQUE_FAILURE_PREFIX)
+		) {
+			return current.message.slice(UNIQUE_FAILURE_PREFIX.length).split(", ");
+		}
+	}
+
+	return undefined;
 }
 
 /**

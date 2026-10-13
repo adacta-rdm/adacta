@@ -8,7 +8,7 @@ import type { Entity, NewEntity } from "~/drizzle/Schema.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { Sample } from "~/drizzle/schema/Sample.ts";
 import { id53 } from "~/lib/id53/id53.ts";
-import { isUniqueConstraintOn } from "~/lib/sqlite-errors/isUniqueConstraintOn.ts";
+import { UniqueConstraintViolationError } from "~/lib/sqlite-errors/UniqueConstraintViolationError.ts";
 
 type SampleValues = Omit<NewEntity<"Sample">, "slug" | "id">;
 
@@ -42,12 +42,12 @@ export async function addSample(
 
 			return (await db.select().from(Sample).where(eq(Sample.id, id)).get())!;
 		} catch (error) {
-			if (isUniqueConstraintOn(error, [Sample.name])) {
+			if (error instanceof UniqueConstraintViolationError && error.isOn([Sample.name])) {
 				throw new EntityAlreadyExistsError("Sample", "name", values.name);
 			}
 
 			// Another insertion can take the selected slug before this insertion begins.
-			if (isUniqueConstraintOn(error, [Sample.slug])) {
+			if (error instanceof UniqueConstraintViolationError && error.isOn([Sample.slug])) {
 				slug = `${base}-${i + 2}`;
 				continue;
 			}
