@@ -14,10 +14,11 @@ export function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {
 	if (data.kind === "note") {
 		return (
 			<div
+				data-pid-label-field="label"
 				className={
 					marked
-						? "pid-symbol-selected max-w-48 rounded bg-surface/90 px-1 text-xs leading-normal text-foreground"
-						: "max-w-48 rounded bg-surface/90 px-1 text-xs leading-normal text-foreground"
+						? "nodrag pid-label pid-symbol-selected max-w-48 cursor-text rounded bg-surface/90 px-1 text-xs leading-normal text-foreground"
+						: "nodrag pid-label max-w-48 cursor-text rounded bg-surface/90 px-1 text-xs leading-normal text-foreground"
 				}
 			>
 				{data.label || "Note"}
@@ -37,13 +38,24 @@ export function PIDSymbolNode({ id, data, selected }: NodeProps<PIDNode>) {
 
 			{data.kind === "junction" || data.contained ? null : data.kind === "instrument" ? (
 				<span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center leading-none">
-					<span className="max-w-full truncate px-1 text-[0.5rem] font-medium">{data.label}</span>
-					<span className="max-w-full truncate px-1 text-[0.5rem]">
+					<span
+						data-pid-label-field="label"
+						className="pid-label pointer-events-auto max-w-full cursor-text truncate px-1 text-[0.5rem] font-medium"
+					>
+						{data.label}
+					</span>
+					<span
+						data-pid-label-field="tag"
+						className="pid-label pointer-events-auto max-w-full cursor-text truncate px-1 text-[0.5rem]"
+					>
 						{data.secondaryLabel ?? ""}
 					</span>
 				</span>
 			) : (
-				<span className="pointer-events-none absolute top-full left-1/2 mt-1 w-max max-w-32 -translate-x-1/2 rounded bg-surface/90 px-1 text-center text-xs font-medium">
+				<span
+					data-pid-label-field="label"
+					className="nodrag pid-label absolute top-full left-1/2 mt-1 w-max max-w-32 -translate-x-1/2 cursor-text rounded px-1 text-center text-xs font-medium"
+				>
 					{data.label || "Unnamed"}
 				</span>
 			)}

@@ -4,11 +4,14 @@ import {
 	ArrowsUpDownIcon,
 	ArrowUturnLeftIcon,
 	ArrowUturnRightIcon,
+	CheckIcon,
 	ChevronDownIcon,
 	ClipboardDocumentIcon,
 	ClipboardIcon,
 	CursorArrowRaysIcon,
 	DocumentDuplicateIcon,
+	ExclamationTriangleIcon,
+	EyeIcon,
 	HandRaisedIcon,
 	Squares2X2Icon,
 } from "@heroicons/react/20/solid";
@@ -23,6 +26,8 @@ type EditorTool = "select" | "pan";
 export interface PIDEditorToolbarProps {
 	activeTool: EditorTool;
 	setActiveTool: (tool: EditorTool) => void;
+	showSelectionDetails: boolean;
+	openSelectionDetails: () => void;
 	canCopySelection: boolean;
 	canPaste: boolean;
 	duplicateSelection: () => void;
@@ -100,7 +105,9 @@ function ArrangeMenuItem({
 	disabled,
 	onClick,
 	ariaLabel,
-}: ToolbarButtonProps & { ariaLabel?: string }) {
+	warning = false,
+	complete = false,
+}: ToolbarButtonProps & { ariaLabel?: string; warning?: boolean; complete?: boolean }) {
 	return (
 		<MenuItem disabled={disabled}>
 			<button
@@ -112,7 +119,19 @@ function ArrangeMenuItem({
 				onClick={onClick}
 			>
 				{icon}
-				{label}
+				<span className="flex-1">{label}</span>
+				{warning && (
+					<span className="flex items-center gap-1 text-warning">
+						<ExclamationTriangleIcon className="size-3.5" aria-hidden="true" />
+						May overlap
+					</span>
+				)}
+				{complete && (
+					<span className="flex items-center gap-1 text-foreground-muted">
+						<CheckIcon className="size-3.5" aria-hidden="true" />
+						Already aligned
+					</span>
+				)}
 			</button>
 		</MenuItem>
 	);
@@ -121,6 +140,8 @@ function ArrangeMenuItem({
 export function PIDEditorToolbar({
 	activeTool,
 	setActiveTool,
+	showSelectionDetails,
+	openSelectionDetails,
 	canCopySelection,
 	canPaste,
 	duplicateSelection,
@@ -163,6 +184,16 @@ export function PIDEditorToolbar({
 						onClick={() => setActiveTool("pan")}
 					/>
 				</ToolbarGroup>
+				{showSelectionDetails ? (
+					<ToolbarGroup label="Selection">
+						<ToolbarButton
+							icon={<EyeIcon className="size-4" />}
+							label="Show details"
+							title="Show selected item details"
+							onClick={openSelectionDetails}
+						/>
+					</ToolbarGroup>
+				) : null}
 				<ToolbarGroup label="Clipboard">
 					<ToolbarButton
 						icon={<DocumentDuplicateIcon className="size-4" />}
@@ -208,33 +239,38 @@ export function PIDEditorToolbar({
 					<MenuItems
 						anchor="bottom start"
 						transition
-						className="z-30 mt-1 w-60 origin-top-left rounded-lg border border-border bg-surface p-1 shadow-lg transition duration-100 ease-out [--anchor-gap:0.25rem] focus:outline-none data-closed:scale-95 data-closed:opacity-0"
+						className="z-30 mt-1 w-72 origin-top-left rounded-lg border border-border bg-surface p-1 shadow-lg transition duration-100 ease-out [--anchor-gap:0.25rem] focus:outline-none data-closed:scale-95 data-closed:opacity-0"
 					>
 						<div className="flex items-center justify-between px-2 py-1.5 text-[0.6875rem] font-semibold text-foreground-muted">
 							<span>Align</span>
 							<span>For 2+ symbols</span>
 						</div>
-						{(["left", "right", "top", "bottom"] as const).map((alignment) => {
+						{(
+							["left", "right", "top", "bottom", "handles-vertical", "handles-horizontal"] as const
+						).map((alignment) => {
+							const name = alignmentName(alignment);
+							const usesGridPoint = alignment.startsWith("handles-");
 							const label = layoutControlLabel(
-								`Align selected symbols ${alignment}`,
+								`Align selected symbols ${name}${usesGridPoint ? " at their grid points" : ""}`,
 								selectionCount,
 								2,
 								alignmentCollisions[alignment],
 								alignmentChanges[alignment],
-								`aligned ${alignment}`,
+								`aligned ${name}${usesGridPoint ? " at their grid points" : ""}`,
 							);
-							const disabled =
-								!canAlignSelection ||
-								alignmentCollisions[alignment] > 0 ||
-								!alignmentChanges[alignment];
+							const disabled = !canAlignSelection;
 							return (
 								<ArrangeMenuItem
 									key={alignment}
 									icon={<PIDAlignIcon alignment={alignment} />}
-									label={`Align ${alignment}`}
+									label={`Align ${name}`}
 									ariaLabel={label}
 									title={label}
 									disabled={disabled}
+									warning={
+										!disabled && alignmentChanges[alignment] && alignmentCollisions[alignment] > 0
+									}
+									complete={!disabled && !alignmentChanges[alignment]}
 									onClick={() => alignSelectedNodes(alignment)}
 								/>
 							);
@@ -253,10 +289,7 @@ export function PIDEditorToolbar({
 								distributionChanges[axis],
 								`distributed ${axis === "horizontal" ? "horizontally" : "vertically"}`,
 							);
-							const disabled =
-								!canDistributeSelection ||
-								distributionCollisions[axis] > 0 ||
-								!distributionChanges[axis];
+							const disabled = !canDistributeSelection || !distributionChanges[axis];
 							return (
 								<ArrangeMenuItem
 									key={axis}
@@ -271,6 +304,7 @@ export function PIDEditorToolbar({
 									ariaLabel={label}
 									title={label}
 									disabled={disabled}
+									warning={!disabled && distributionCollisions[axis] > 0}
 									onClick={() => distributeSelectedNodes(axis)}
 								/>
 							);
@@ -308,12 +342,35 @@ function layoutControlLabel(
 ) {
 	if (selectionCount < minimumSelection)
 		return `${action} — select at least ${minimumSelection} top-level nodes`;
-	if (collisions > 0) return `${action} — unavailable because nodes would overlap or be too close`;
 	if (!changesLayout) return `${action} — nodes are already ${completedDescription}`;
+	if (collisions > 0) return `${action} — may overlap or be too close`;
 	return action;
 }
 
+function alignmentName(alignment: PIDAlignment): string {
+	if (alignment === "handles-vertical") return "vertically";
+	if (alignment === "handles-horizontal") return "horizontally";
+	return alignment;
+}
+
 function PIDAlignIcon({ alignment }: { alignment: PIDAlignment }) {
+	if (alignment === "handles-vertical" || alignment === "handles-horizontal") {
+		const vertical = alignment === "handles-vertical";
+		return (
+			<svg viewBox="0 0 20 20" aria-hidden="true" className="size-4" fill="currentColor">
+				<path d={vertical ? "M10 2v16" : "M2 10h16"} stroke="currentColor" strokeWidth="1.5" />
+				{[4, 10, 16].map((position) => (
+					<circle
+						key={position}
+						cx={vertical ? 10 : position}
+						cy={vertical ? position : 10}
+						r="1.5"
+					/>
+				))}
+			</svg>
+		);
+	}
+
 	if (alignment === "left" || alignment === "right") {
 		const lineX = alignment === "left" ? 2.5 : 17.5;
 		const starts = alignment === "left" ? [4.5, 4.5, 4.5] : [7, 10, 5];

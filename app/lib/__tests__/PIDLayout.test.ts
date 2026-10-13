@@ -69,6 +69,113 @@ describe("P&ID box alignment", () => {
 			{ id: "b", x: -37, y: 0 },
 		]);
 	});
+
+	test.each(["left", "right", "top", "bottom", "handles-vertical", "handles-horizontal"] as const)(
+		"snaps %s alignment by each symbol's handle offset",
+		(alignment) => {
+			const selected = [
+				{
+					id: "a",
+					x: 2,
+					y: -2,
+					width: 32,
+					height: 32,
+					gridOriginOffset: { x: 12, y: 6 },
+				},
+				{
+					id: "b",
+					x: 40,
+					y: 40,
+					width: 20,
+					height: 20,
+					gridOriginOffset: { x: 0, y: 0 },
+				},
+			];
+
+			const deltas = alignPIDBoxes(selected, alignment);
+
+			const expected = {
+				left: [
+					{ id: "a", x: 0, y: 0 },
+					{ id: "b", x: -40, y: 0 },
+				],
+				right: [
+					{ id: "a", x: 30, y: 0 },
+					{ id: "b", x: 0, y: 0 },
+				],
+				top: [
+					{ id: "a", x: 0, y: 0 },
+					{ id: "b", x: 0, y: -40 },
+				],
+				bottom: [
+					{ id: "a", x: 0, y: 30 },
+					{ id: "b", x: 0, y: 0 },
+				],
+				"handles-vertical": [
+					{ id: "a", x: 10, y: 0 },
+					{ id: "b", x: -10, y: 0 },
+				],
+				"handles-horizontal": [
+					{ id: "a", x: 0, y: 20 },
+					{ id: "b", x: 0, y: -10 },
+				],
+			};
+			const moved = selected.map((box, index) => ({
+				...box,
+				x: box.x + deltas[index].x,
+				y: box.y + deltas[index].y,
+			}));
+			const axis = ["left", "right", "handles-vertical"].includes(alignment) ? "x" : "y";
+
+			expect(deltas).toEqual(expected[alignment]);
+			for (const box of moved) {
+				const reference =
+					axis === "x"
+						? box.x + box.width / 2 + box.gridOriginOffset.x
+						: box.y + box.height / 2 + box.gridOriginOffset.y;
+				expect(reference % 10).toBe(0);
+			}
+		},
+	);
+
+	test("aligns reference handles on a vertical line", () => {
+		const selected = [
+			{ id: "a", x: 0, y: 0, width: 20, height: 20, gridOriginOffset: { x: 10, y: 0 } },
+			{ id: "b", x: 40, y: 40, width: 20, height: 20, gridOriginOffset: { x: 0, y: 0 } },
+		];
+
+		const deltas = alignPIDBoxes(selected, "handles-vertical");
+
+		expect(deltas).toEqual([
+			{ id: "a", x: 20, y: 0 },
+			{ id: "b", x: -10, y: 0 },
+		]);
+	});
+
+	test("aligns reference handles on a horizontal line", () => {
+		const selected = [
+			{ id: "a", x: 0, y: 0, width: 20, height: 20, gridOriginOffset: { x: 0, y: 10 } },
+			{ id: "b", x: 40, y: 40, width: 20, height: 20, gridOriginOffset: { x: 0, y: 0 } },
+		];
+
+		const deltas = alignPIDBoxes(selected, "handles-horizontal");
+
+		expect(deltas).toEqual([
+			{ id: "a", x: 0, y: 20 },
+			{ id: "b", x: 0, y: -10 },
+		]);
+	});
+
+	test("leaves reference handles on the same line in place", () => {
+		const selected = [
+			{ id: "a", x: 0, y: 0, width: 20, height: 20, gridOriginOffset: { x: 10, y: 0 } },
+			{ id: "b", x: 10, y: 40, width: 20, height: 20, gridOriginOffset: { x: 0, y: 0 } },
+		];
+
+		const deltas = alignPIDBoxes(selected, "handles-vertical");
+
+		expect(hasPIDLayoutMovement(deltas)).toBe(false);
+	});
 });
 
 describe("P&ID box distribution", () => {

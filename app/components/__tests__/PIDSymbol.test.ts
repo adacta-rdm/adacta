@@ -3,7 +3,11 @@ import { describe, expect, test } from "bun:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { maximumSizeForPIDSymbol } from "~/app/components/PIDSymbol.tsx";
+import {
+	maximumSizeForPIDSymbol,
+	pidInstrumentPresets,
+	searchPIDSymbolGroups,
+} from "~/app/components/PIDSymbol.tsx";
 import {
 	connectedPIDPortIds,
 	pidHandleMarker,
@@ -11,7 +15,11 @@ import {
 	rotatePIDPort,
 	type PIDPort,
 } from "~/app/components/pid-symbols/ConnectablePIDSymbol.tsx";
-import { JunctionSymbol, junctionPath } from "~/app/components/pid-symbols/JunctionSymbol.tsx";
+import {
+	JunctionSymbol,
+	junctionArmsForNode,
+	junctionPath,
+} from "~/app/components/pid-symbols/JunctionSymbol.tsx";
 import {
 	ThreeWayValveSymbol,
 	threeWayValvePorts,
@@ -22,7 +30,7 @@ describe("maximumSizeForPIDSymbol", () => {
 		expect(maximumSizeForPIDSymbol("gas-bottle")).toBe(56);
 		expect(maximumSizeForPIDSymbol("pump")).toBe(40);
 		expect(maximumSizeForPIDSymbol("valve")).toBe(32);
-		expect(maximumSizeForPIDSymbol("junction")).toBe(10);
+		expect(maximumSizeForPIDSymbol("junction")).toBe(20);
 	});
 
 	test("caps a context size at the footprint target", () => {
@@ -142,20 +150,39 @@ describe("P&ID handle direction markers", () => {
 	});
 });
 
-describe("junctionPath", () => {
+describe("JunctionSymbol", () => {
 	test("shows a faint cross before a connection is added", () => {
-		const markup = renderToStaticMarkup(createElement(JunctionSymbol, { connectedPortIds: [] }));
+		const markup = renderToStaticMarkup(createElement(JunctionSymbol, { connectedArms: [] }));
 
 		expect(markup).toContain("pid-symbol-drawing opacity-30");
-		expect(markup).toContain('d="M 0 5 H 5 M 5 0 V 5 M 5 5 H 10 M 5 5 V 10"');
+		expect(markup).toContain('d="M 0 10 H 10 M 10 0 V 10 M 10 10 H 20 M 10 10 V 20"');
 	});
 
-	test("draws only the arms with connected ports", () => {
-		expect(junctionPath(["inlet", "outlet"])).toBe("M 0 5 H 5 M 5 5 H 10");
-		expect(junctionPath(["inlet", "branch-inlet", "outlet"])).toBe(
-			"M 0 5 H 5 M 5 0 V 5 M 5 5 H 10",
+	test("draws each arm with its connected line kind and weight", () => {
+		const markup = renderToStaticMarkup(
+			createElement(JunctionSymbol, {
+				connectedArms: [
+					{ portId: "inlet", kind: "jacketed", weight: 2, outgoing: false },
+					{ portId: "outlet", kind: "traced", weight: 1, outgoing: true },
+				],
+			}),
 		);
-		expect(junctionPath(["branch-inlet", "outlet"])).toBe("M 5 0 V 5 M 5 5 H 10");
+
+		expect(markup).toContain('viewBox="0 0 20 20"');
+		expect(markup).toContain('style="stroke-width:2"');
+		expect(markup).toContain("stroke-dasharray=");
+		expect(markup).toContain('d="M -8 10');
+		expect(markup).not.toContain("<circle");
+	});
+});
+
+describe("junctionPath", () => {
+	test("draws only the arms with connected ports", () => {
+		expect(junctionPath(["inlet", "outlet"])).toBe("M 0 10 H 10 M 10 10 H 20");
+		expect(junctionPath(["inlet", "branch-inlet", "outlet"])).toBe(
+			"M 0 10 H 10 M 10 0 V 10 M 10 10 H 20",
+		);
+		expect(junctionPath(["branch-inlet", "outlet"])).toBe("M 10 0 V 10 M 10 10 H 20");
 	});
 
 	test("draws no arm without a connection", () => {
@@ -163,6 +190,102 @@ describe("junctionPath", () => {
 	});
 
 	test("extends an arm to a handle centered on the boundary", () => {
-		expect(junctionPath(["inlet", "branch"], 4)).toBe("M -4 5 H 5 M 5 5 V 14");
+		expect(junctionPath(["inlet", "branch"], 4)).toBe("M -4 10 H 10 M 10 10 V 24");
+	});
+});
+
+describe("junctionArmsForNode", () => {
+	test("uses each edge's kind and weight at its junction handle", () => {
+		const edges = [
+			{
+				source: "feed",
+				sourceHandle: "outlet",
+				target: "junction",
+				targetHandle: "inlet",
+				data: { kind: "jacketed" as const, weight: 2 },
+			},
+			{
+				source: "junction",
+				sourceHandle: "outlet",
+				target: "reactor",
+				targetHandle: "inlet",
+				data: { kind: "traced" as const, weight: 1 },
+			},
+		];
+
+		const arms = junctionArmsForNode(edges, "junction");
+
+		expect(arms).toEqual([
+			{ portId: "inlet", kind: "jacketed", weight: 2, outgoing: false },
+			{ portId: "outlet", kind: "traced", weight: 1, outgoing: true },
+		]);
+	});
+});
+
+describe("P&ID symbol search", () => {
+	const cases = [
+		["MFC", ["instrument"]],
+		["MFM", ["instrument"]],
+		["Mass flow controller", ["instrument"]],
+		["FIRC", ["instrument"]],
+		["pressure gauge", ["instrument"]],
+		["gas-cylinder", ["gas-bottle"]],
+		["pressure vessel", ["horizontal-vessel", "vertical-vessel"]],
+		["packed tower", ["fluid-contacting-column"]],
+		["plate column", ["tray-column"]],
+		["three way valve", ["three-way-valve"]],
+		["non return valve", ["check-valve"]],
+		["metering valve", ["needle-valve"]],
+		["pressure regulator", ["pressure-reducing-valve"]],
+		["gravity damper", ["backdraft-damper"]],
+		["PHE", ["plate-heat-exchanger"]],
+		["fixed tube sheet heat exchanger", ["straight-tube-heat-exchanger"]],
+		["sight glass", ["viewing-glass"]],
+		["flow indicator", ["instrument", "viewing-glass"]],
+		["Exhaust", ["covered-gas-vent", "curved-gas-vent"]],
+	] as const;
+
+	for (const [query, kinds] of cases) {
+		test(`finds ${kinds.join(" and ")} for ${query}`, () => {
+			const results = searchPIDSymbolGroups(query).flatMap((group) => group.symbols);
+
+			expect(results.map((symbol) => symbol.kind)).toEqual([...kinds]);
+		});
+	}
+
+	for (const preset of pidInstrumentPresets) {
+		test(`finds only Instrument for the complete ${preset.code} code`, () => {
+			const results = searchPIDSymbolGroups(preset.code).flatMap((group) => group.symbols);
+
+			expect(results.map((symbol) => symbol.kind)).toEqual(["instrument"]);
+			expect(results[0]?.matchedAlias).toBe(preset.code);
+		});
+	}
+
+	test("shows the alias that matched a symbol", () => {
+		const results = searchPIDSymbolGroups("Exhaust").flatMap((group) => group.symbols);
+
+		expect(results[0]?.matchedAlias).toBe("exhaust");
+	});
+
+	test("keeps canonical matches ahead of aliases", () => {
+		const results = searchPIDSymbolGroups("check valve").flatMap((group) => group.symbols);
+
+		expect(results.map((symbol) => symbol.kind)).toEqual(["check-valve"]);
+		expect(results[0]?.matchedAlias).toBeUndefined();
+	});
+
+	test("does not equate pressure relief and pressure reduction", () => {
+		const results = searchPIDSymbolGroups("pressure relief valve");
+
+		expect(results).toEqual([]);
+	});
+
+	test("keeps canonical results when the filter is blank", () => {
+		const results = searchPIDSymbolGroups("  ").flatMap((group) => group.symbols);
+
+		expect(results.map((symbol) => symbol.kind)).toContain("instrument");
+		expect(results.map((symbol) => symbol.kind)).toContain("covered-gas-vent");
+		expect(results.every((symbol) => symbol.matchedAlias === undefined)).toBe(true);
 	});
 });

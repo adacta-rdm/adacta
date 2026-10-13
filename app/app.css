@@ -134,13 +134,20 @@ body {
 	pointer-events: none !important;
 }
 
+.pid-editor-canvas--read-only:not(.pid-editor-canvas--selection-enabled) [data-pid-label-field] {
+	cursor: default;
+}
+
+.pid-editor-canvas--selection-enabled .react-flow__node,
+.pid-editor-canvas--selection-enabled [data-pid-label-field] {
+	cursor: pointer;
+}
+
 /*
-	A symbol sits on a line of text, and a line of text is never shorter than
-	the font it is set in. A ten pixel junction would sit in the upper part of
-	a box about twenty-four pixels tall. Its connection points are placed from
-	the middle of that box. The pipes would then meet below the junction.
-	Removing the line height makes the box the size of the symbol. A note sets its own
-	line height, because a note is text.
+	A twenty pixel junction can sit in a taller inline text box. React Flow
+	positions its connection points from that box. The pipe ends would then
+	miss the drawn center. Zero line height makes the box follow the symbol.
+	A note sets its own line height because it contains text.
 */
 .pid-editor .react-flow__node {
 	line-height: 0;
@@ -161,6 +168,12 @@ body {
 	outline-offset: 5px;
 }
 
+/* The highlighted process line will be divided where the junction is dropped. */
+.pid-editor .react-flow__edge.pid-connection-split-candidate .react-flow__edge-path {
+	stroke: var(--adacta-color-accent) !important;
+	stroke-width: 2px !important;
+}
+
 /* The two symbols used for a helper line receive different temporary cues. */
 .pid-editor .react-flow__node.pid-symbol-helper-moving {
 	border-radius: 2px;
@@ -178,6 +191,13 @@ body {
 	border-radius: 2px;
 	outline: 2px solid var(--adacta-color-accent);
 	outline-offset: 3px;
+}
+
+/* A thin outline keeps label letters readable over diagram lines. */
+.pid-label {
+	-webkit-text-stroke: 2px var(--adacta-color-diagram-surface);
+	paint-order: stroke fill;
+	user-select: none;
 }
 
 .pid-symbol-drawing {

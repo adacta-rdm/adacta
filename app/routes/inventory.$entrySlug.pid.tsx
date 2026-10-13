@@ -279,10 +279,17 @@ export default function InventoryEntrySlugPid({ loaderData, actionData }: Route.
 		usePIDWorkspace();
 	const sidecar = useRightSidebarControls();
 	const diagram = useRef<HTMLDivElement>(null);
+	// A new editor discards the draft and undo history when edit mode ends.
+	const editorKey = `${loaderData.rigSlug}:${editing ? "edit" : "view"}`;
 
 	const recordGraph = useCallback((graph: PIDGraph) => {
 		setSerializedGraph(JSON.stringify(graph));
 	}, []);
+	function cancelEdit() {
+		setSerializedGraph(JSON.stringify(loaderData.graph));
+		void navigate(".", { preventScrollReset: true });
+	}
+
 	useEffect(() => {
 		if (focusedNode) diagram.current?.scrollIntoView({ block: "nearest" });
 	}, [focusedNode]);
@@ -301,11 +308,7 @@ export default function InventoryEntrySlugPid({ loaderData, actionData }: Route.
 			{editing ? (
 				<Form method="post" preventScrollReset className="flex items-center gap-2">
 					<input type="hidden" name="graph" value={serializedGraph} />
-					<Button
-						type="button"
-						outline
-						onClick={() => void navigate(".", { preventScrollReset: true })}
-					>
+					<Button type="button" outline onClick={cancelEdit}>
 						Cancel
 					</Button>
 					<Button type="submit" disabled={saving}>
@@ -342,11 +345,12 @@ export default function InventoryEntrySlugPid({ loaderData, actionData }: Route.
 
 			<div ref={diagram} className="mt-6 min-w-0">
 				<PIDEditor
-					key={loaderData.rigSlug}
+					key={editorKey}
 					value={loaderData.graph}
 					equipment={loaderData.equipment}
 					samples={loaderData.samples}
 					readOnly={!editing}
+					readOnlySelectionEnabled={sidecar.isOpen}
 					onChange={editing ? recordGraph : undefined}
 					selectedSymbolKey={selectedSymbolKey}
 					focusedSymbol={focusedSymbol}

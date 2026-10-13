@@ -51,13 +51,21 @@ export function PIDConnection({
 	const endArrow = data?.endArrow ?? defaultEndArrow(kind);
 	const arrowPositions = data?.arrowPositions ?? [];
 	const drawing = connectionDrawing(route, kind, lineWidth, endArrow);
+	const processRoute = kind === "jacketed" ? route : (drawing.lines[0]?.path ?? route);
 
 	return (
 		<>
+			{/* A jacketed connection uses its center route for split measurements. */}
+			<path
+				data-pid-process-route
+				d={processRoute}
+				style={{ fill: "none", stroke: "none", pointerEvents: "none" }}
+			/>
 			{drawing.background ? <Crossing shape={drawing.background} /> : null}
 			{drawing.lines.map((line, index) => (
 				<BaseEdge
 					key={index}
+					className={kind === "jacketed" && index === 1 ? "pid-process-line" : undefined}
 					path={line.path}
 					style={{ stroke: color, strokeWidth: lineWidth, strokeDasharray: line.dashes }}
 				/>
@@ -109,14 +117,14 @@ export function connectionDrawing(
 	}
 	if (kind === "pipe") {
 		const lines = parallelLines(route, {
-			spacing: 2 + lineWidth,
+			spacing: parallelLineSpacing(kind, lineWidth),
 			lineWidth,
 			shortenForArrow: withArrow,
 		});
 		return { background: lines.centerBackground, lines: [{ path: lines.center }] };
 	}
 	if (kind === "jacketed") {
-		const spacing = 2 + lineWidth;
+		const spacing = parallelLineSpacing(kind, lineWidth);
 		// The arrow is taller than the jacket is wide, so a jacket ending closer
 		// than one spacing behind it appears to run into it.
 		const outerEndGap = withArrow ? lineWidth + arrowLength(lineWidth) + spacing : spacing;
@@ -134,11 +142,24 @@ export function connectionDrawing(
 	// Both lines reach the symbol, because one of them is the pipe. Neither
 	// carries an arrow: they run beside the centre, so an arrow on one of them
 	// would point from the side.
-	const lines = parallelLines(route, { spacing: 1 + lineWidth, lineWidth, outerEndGap: 0 });
+	const lines = parallelLines(route, {
+		spacing: parallelLineSpacing(kind, lineWidth),
+		lineWidth,
+		outerEndGap: 0,
+	});
 	return {
 		background: lines.fullBackground,
 		lines: [{ path: lines.right }, { path: lines.left, dashes: tracerDashes(lineWidth) }],
 	};
+}
+
+/**
+ * Returns the distance between a pipe and each line beside it.
+ */
+export function parallelLineSpacing(kind: PIDEdgeKind, lineWidth: number): number {
+	if (kind === "traced") return 1 + lineWidth;
+	if (kind === "pipe" || kind === "jacketed") return 2 + lineWidth;
+	return 0;
 }
 
 function ConnectionArrow({

@@ -3,11 +3,34 @@ import type { PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
 
 export type { PIDOrientation, PIDSymbolKind } from "~/app/lib/PID.ts";
 
-export const pidSymbolGroups = [
+export type PIDSymbolDefinition = {
+	kind: PIDSymbolKind;
+	label: string;
+	footprint: "major" | "compact" | "inline" | "point";
+	aliases?: readonly string[];
+};
+
+export const pidSymbolGroups: readonly {
+	label: string;
+	symbols: readonly PIDSymbolDefinition[];
+}[] = [
 	{
 		label: "Instruments and marks",
 		symbols: [
-			{ kind: "instrument", label: "Instrument", footprint: "compact" },
+			{
+				kind: "instrument",
+				label: "Instrument",
+				footprint: "compact",
+				aliases: [
+					"MFC",
+					"MFM",
+					"mass flow meter",
+					"flow meter",
+					"pressure gauge",
+					"pressure sensor",
+					"temperature sensor",
+				],
+			},
 			{ kind: "junction", label: "Junction", footprint: "point" },
 			{ kind: "note", label: "Note", footprint: "inline" },
 			{ kind: "sample", label: "Sample", footprint: "inline" },
@@ -16,21 +39,28 @@ export const pidSymbolGroups = [
 	{
 		label: "Vessels and process equipment",
 		symbols: [
-			{ kind: "gas-bottle", label: "Gas bottle", footprint: "major" },
+			{ kind: "gas-bottle", label: "Gas bottle", footprint: "major", aliases: ["gas cylinder"] },
 			{ kind: "autoclave", label: "Autoclave", footprint: "major" },
 			{ kind: "half-pipe-reactor", label: "Half-pipe reactor", footprint: "major" },
 			{
 				kind: "horizontal-vessel",
 				label: "Pressurized vessel (horizontal)",
 				footprint: "major",
+				aliases: ["pressure vessel"],
 			},
 			{
 				kind: "vertical-vessel",
 				label: "Pressurized vessel (vertical)",
 				footprint: "major",
+				aliases: ["pressure vessel"],
 			},
-			{ kind: "fluid-contacting-column", label: "Packed column", footprint: "major" },
-			{ kind: "tray-column", label: "Tray column", footprint: "major" },
+			{
+				kind: "fluid-contacting-column",
+				label: "Packed column",
+				footprint: "major",
+				aliases: ["packed tower", "packed bed column"],
+			},
+			{ kind: "tray-column", label: "Tray column", footprint: "major", aliases: ["plate column"] },
 			{ kind: "dryer", label: "Dryer", footprint: "major" },
 			{ kind: "dust-trap", label: "Dust trap", footprint: "compact" },
 			{ kind: "bag", label: "Bag", footprint: "compact" },
@@ -41,21 +71,42 @@ export const pidSymbolGroups = [
 		label: "Valves and dampers",
 		symbols: [
 			{ kind: "valve", label: "Valve", footprint: "inline" },
-			{ kind: "three-way-valve", label: "3-way valve", footprint: "inline" },
-			{ kind: "check-valve", label: "Check valve", footprint: "inline" },
+			{
+				kind: "three-way-valve",
+				label: "3-way valve",
+				footprint: "inline",
+				aliases: ["three-way valve", "3-port valve"],
+			},
+			{
+				kind: "check-valve",
+				label: "Check valve",
+				footprint: "inline",
+				aliases: ["non-return valve", "one-way valve", "clack valve"],
+			},
 			{ kind: "ball-valve", label: "Ball valve", footprint: "inline" },
 			{ kind: "butterfly-valve", label: "Butterfly valve", footprint: "inline" },
 			{ kind: "control-valve", label: "Control valve", footprint: "inline" },
 			{ kind: "diaphragm-valve", label: "Diaphragm valve", footprint: "inline" },
 			{ kind: "manual-valve", label: "Manual valve", footprint: "inline" },
-			{ kind: "needle-valve", label: "Needle valve", footprint: "inline" },
+			{
+				kind: "needle-valve",
+				label: "Needle valve",
+				footprint: "inline",
+				aliases: ["metering valve"],
+			},
 			{ kind: "gate-valve", label: "Gate valve", footprint: "inline" },
 			{
 				kind: "pressure-reducing-valve",
 				label: "Pressure-reducing valve",
 				footprint: "inline",
+				aliases: ["pressure regulator", "pressure-reducing regulator"],
 			},
-			{ kind: "backdraft-damper", label: "Backdraft damper", footprint: "inline" },
+			{
+				kind: "backdraft-damper",
+				label: "Backdraft damper",
+				footprint: "inline",
+				aliases: ["gravity damper"],
+			},
 		],
 	},
 	{
@@ -75,9 +126,15 @@ export const pidSymbolGroups = [
 				kind: "straight-tube-heat-exchanger",
 				label: "Fixed-tube heat exchanger",
 				footprint: "compact",
+				aliases: ["fixed tube-sheet heat exchanger"],
 			},
 			{ kind: "u-tube-heat-exchanger", label: "U-tube heat exchanger", footprint: "compact" },
-			{ kind: "plate-heat-exchanger", label: "Plate heat exchanger", footprint: "compact" },
+			{
+				kind: "plate-heat-exchanger",
+				label: "Plate heat exchanger",
+				footprint: "compact",
+				aliases: ["PHE", "plate-and-frame heat exchanger"],
+			},
 			{ kind: "spiral-heat-exchanger", label: "Spiral heat exchanger", footprint: "compact" },
 		],
 	},
@@ -100,14 +157,27 @@ export const pidSymbolGroups = [
 		label: "Fittings and outlets",
 		symbols: [
 			{ kind: "steam-trap", label: "Steam trap", footprint: "inline" },
-			{ kind: "viewing-glass", label: "Viewing glass", footprint: "inline" },
-			{ kind: "covered-gas-vent", label: "Covered gas vent", footprint: "compact" },
-			{ kind: "curved-gas-vent", label: "Curved gas vent", footprint: "compact" },
+			{
+				kind: "viewing-glass",
+				label: "Viewing glass",
+				footprint: "inline",
+				aliases: ["sight glass", "sight flow indicator"],
+			},
+			{
+				kind: "covered-gas-vent",
+				label: "Covered gas vent",
+				footprint: "compact",
+				aliases: ["exhaust", "exhaust vent"],
+			},
+			{
+				kind: "curved-gas-vent",
+				label: "Curved gas vent",
+				footprint: "compact",
+				aliases: ["exhaust", "exhaust vent"],
+			},
 		],
 	},
-] as const;
-
-export type PIDSymbolDefinition = (typeof pidSymbolGroups)[number]["symbols"][number];
+];
 
 /**
  * Ready-made instruments, in the order they are offered.
@@ -147,6 +217,61 @@ export const pidInstrumentPresets = [
 	{ code: "FIRC", label: "Mass flow controller" },
 ] as const;
 
+export type PIDSymbolSearchResult = PIDSymbolDefinition & { matchedAlias?: string };
+
+function normalizeSymbolSearchText(value: string): string {
+	return value
+		.toLowerCase()
+		.replace(/[\s-]+/g, " ")
+		.trim();
+}
+
+export function searchPIDSymbolGroups(query: string): {
+	label: string;
+	symbols: PIDSymbolSearchResult[];
+}[] {
+	const normalizedQuery = normalizeSymbolSearchText(query);
+	const matchingPresetCode = pidInstrumentPresets.find(
+		(preset) => preset.code.toLowerCase() === normalizedQuery,
+	);
+
+	return pidSymbolGroups
+		.map((group) => {
+			const symbols: PIDSymbolSearchResult[] = [];
+
+			for (const symbol of group.symbols) {
+				// A complete preset code names an instrument function. For example, PI
+				// selects Instrument even though its letters also occur in half-pipe reactor.
+				if (matchingPresetCode) {
+					if (symbol.kind === "instrument") {
+						symbols.push({ ...symbol, matchedAlias: matchingPresetCode.code });
+					}
+					continue;
+				}
+
+				if (normalizeSymbolSearchText(symbol.label).includes(normalizedQuery)) {
+					symbols.push(symbol);
+					continue;
+				}
+
+				// Instrument presets name devices that use the same circle.
+				const presetTerms =
+					symbol.kind === "instrument"
+						? pidInstrumentPresets.flatMap((preset) => [preset.code, preset.label])
+						: [];
+				const aliases = [...(symbol.aliases ?? []), ...presetTerms];
+				const matchedAlias =
+					aliases.find((alias) => normalizeSymbolSearchText(alias) === normalizedQuery) ??
+					aliases.find((alias) => normalizeSymbolSearchText(alias).includes(normalizedQuery));
+
+				if (matchedAlias) symbols.push({ ...symbol, matchedAlias });
+			}
+
+			return { label: group.label, symbols };
+		})
+		.filter((group) => group.symbols.length > 0);
+}
+
 const pidSymbols: readonly PIDSymbolDefinition[] = pidSymbolGroups.flatMap((group) => [
 	...group.symbols,
 ]);
@@ -159,7 +284,7 @@ const pidSymbolMaximumSizes = {
 	 * A mark rather than a piece of equipment.
 	 * For example, a junction is the cross where pipes meet.
 	 */
-	point: 10,
+	point: 20,
 } as const;
 
 export function getPIDSymbol(kind: PIDSymbolKind): PIDSymbolDefinition {

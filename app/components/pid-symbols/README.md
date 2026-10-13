@@ -7,6 +7,16 @@ The plain component renders only the symbol. The connectable component adds the
 interactive handles used by the diagram editor. Shared components provide
 consistent sizing, rotation, and handle behavior.
 
+A junction has a 20 px drawing box. Each connected arm uses the kind and weight
+of its line. For example, an arm connected to a traced pipe includes its tracer.
+
+The editor places each symbol by one reference point on its 10 px grid. For
+equipment, this point is the measured center of its outlet handle. A three-way
+valve uses one of its current source handles. Gas vents, notes, and samples use
+their visual center. Other handles keep their positions within the drawing.
+Existing diagrams are aligned when they open. The new positions are stored when
+the diagram is saved.
+
 The drawings were prepared with SVGO before being copied into these components.
 The original SVG files remain in `vendor/pid-symbols/` as references.
 

@@ -15,6 +15,11 @@ The current journeys are:
 
 - `journeys/login.e2e.ts`: credential sign-in and rejected credentials.
 - `journeys/navigation.e2e.ts`: the application entry point and main sections.
+- `journeys/pid.e2e.ts`: selecting symbols while the sidecar is open,
+  canceling diagram edits, opening P&ID label fields, finding symbols by familiar names,
+  placing Junctions and Samples inside equipment, placing Junctions on pipes,
+  adding a Caption from equipment,
+  copying a newly placed symbol, and moving the selection panel.
 - `journeys/samples.e2e.ts`: finding, opening, and creating sample batches.
 - `journeys/users.e2e.ts`: creating a record-only user.
 

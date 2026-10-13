@@ -4,6 +4,7 @@ export interface PIDLayoutBox {
 	y: number;
 	width: number;
 	height: number;
+	gridOriginOffset?: { x: number; y: number };
 }
 
 export interface PIDLayoutDelta {
@@ -20,7 +21,13 @@ export interface PIDNudgeNode {
 	height?: number;
 }
 
-export type PIDAlignment = "left" | "right" | "top" | "bottom";
+export type PIDAlignment =
+	| "left"
+	| "right"
+	| "top"
+	| "bottom"
+	| "handles-vertical"
+	| "handles-horizontal";
 export type PIDDistributionAxis = "horizontal" | "vertical";
 
 export const PID_GRID_SIZE = 10;
@@ -123,42 +130,76 @@ function constrainedMovement(movement: number, minimum: number, maximum: number)
 	return Math.min(Math.max(movement, minimum), maximum);
 }
 
-/** Returns the movement that aligns the requested outer edge of every box. */
+/**
+ * Returns movement that aligns the requested edges or reference handles.
+ * Each symbol is snapped by the reference point used during dragging.
+ */
 export function alignPIDBoxes(boxes: PIDLayoutBox[], alignment: PIDAlignment): PIDLayoutDelta[] {
 	if (boxes.length < 2) return [];
 
+	const left = Math.min(...boxes.map((box) => box.x));
+	const right = Math.max(...boxes.map((box) => box.x + box.width));
+	const top = Math.min(...boxes.map((box) => box.y));
+	const bottom = Math.max(...boxes.map((box) => box.y + box.height));
+
 	if (alignment === "left") {
-		const target = Math.min(...boxes.map((box) => box.x));
 		return snapLayoutDeltas(
 			boxes,
-			boxes.map((box) => ({ id: box.id, x: target - box.x, y: 0 })),
+			boxes.map((box) => ({ id: box.id, x: left - box.x, y: 0 })),
 			"horizontal",
+			"gridOrigin",
 		);
 	}
 
 	if (alignment === "right") {
-		const target = Math.max(...boxes.map((box) => box.x + box.width));
 		return snapLayoutDeltas(
 			boxes,
-			boxes.map((box) => ({ id: box.id, x: target - box.x - box.width, y: 0 })),
+			boxes.map((box) => ({ id: box.id, x: right - box.x - box.width, y: 0 })),
 			"horizontal",
+			"gridOrigin",
 		);
 	}
 
 	if (alignment === "top") {
-		const target = Math.min(...boxes.map((box) => box.y));
 		return snapLayoutDeltas(
 			boxes,
-			boxes.map((box) => ({ id: box.id, x: 0, y: target - box.y })),
+			boxes.map((box) => ({ id: box.id, x: 0, y: top - box.y })),
 			"vertical",
+			"gridOrigin",
 		);
 	}
 
-	const target = Math.max(...boxes.map((box) => box.y + box.height));
+	if (alignment === "bottom") {
+		return snapLayoutDeltas(
+			boxes,
+			boxes.map((box) => ({ id: box.id, x: 0, y: bottom - box.y - box.height })),
+			"vertical",
+			"gridOrigin",
+		);
+	}
+
+	if (alignment === "handles-vertical") {
+		const references = boxes.map((box) => box.x + box.width / 2 + (box.gridOriginOffset?.x ?? 0));
+		const target =
+			Math.round((Math.min(...references) + Math.max(...references)) / 2 / PID_GRID_SIZE) *
+			PID_GRID_SIZE;
+		return snapLayoutDeltas(
+			boxes,
+			boxes.map((box, index) => ({ id: box.id, x: target - references[index], y: 0 })),
+			"horizontal",
+			"gridOrigin",
+		);
+	}
+
+	const references = boxes.map((box) => box.y + box.height / 2 + (box.gridOriginOffset?.y ?? 0));
+	const target =
+		Math.round((Math.min(...references) + Math.max(...references)) / 2 / PID_GRID_SIZE) *
+		PID_GRID_SIZE;
 	return snapLayoutDeltas(
 		boxes,
-		boxes.map((box) => ({ id: box.id, x: 0, y: target - box.y - box.height })),
+		boxes.map((box, index) => ({ id: box.id, x: 0, y: target - references[index] })),
 		"vertical",
+		"gridOrigin",
 	);
 }
 
@@ -239,6 +280,7 @@ function snapLayoutDeltas(
 	boxes: PIDLayoutBox[],
 	deltas: PIDLayoutDelta[],
 	axis: PIDDistributionAxis,
+	reference: "center" | "gridOrigin" = "center",
 	grid = PID_GRID_SIZE,
 ): PIDLayoutDelta[] {
 	const boxById = new Map(boxes.map((box) => [box.id, box]));
@@ -248,11 +290,12 @@ function snapLayoutDeltas(
 		const box = boxById.get(delta.id);
 		if (!box) return delta;
 
-		// React Flow stores these positions at the node centre (`nodeOrigin` is
-		// [0.5, 0.5]), so snap the resulting centre rather than the measured
-		// top-left corner. Symbols with odd dimensions can consequently have a
-		// fractional top-left while their model position remains grid-aligned.
-		const current = horizontal ? box.x + box.width / 2 : box.y + box.height / 2;
+		// Alignment uses the same reference point as dragging. Distribution
+		// continues to use the measured center of each symbol.
+		const offset = reference === "gridOrigin" ? box.gridOriginOffset : undefined;
+		const current = horizontal
+			? box.x + box.width / 2 + (offset?.x ?? 0)
+			: box.y + box.height / 2 + (offset?.y ?? 0);
 		const movement = horizontal ? delta.x : delta.y;
 		const snappedPosition = Math.round((current + movement) / grid) * grid;
 		const snappedMovement = snappedPosition - current;

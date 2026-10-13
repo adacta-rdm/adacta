@@ -153,7 +153,8 @@ export const PID_EDGE_KINDS = {
 
 	caption: {
 		name: "Caption",
-		description: "A note attached to a symbol. No process fluid travels along it.",
+		description:
+			"Connects an Instrument to the point it measures. No process fluid travels along it.",
 		carriesProcessFluid: false,
 		supportsArrows: false,
 	},
