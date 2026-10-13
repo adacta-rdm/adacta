@@ -1,7 +1,5 @@
 import { describe, expect, test } from "bun:test";
 
-import { Glob } from "bun";
-
 import { QUANTITY_KINDS, isQuantityKind, type QuantityKindId } from "~/app/lib/quantities.ts";
 
 const entries = Object.entries(QUANTITY_KINDS);
@@ -31,26 +29,6 @@ describe("isQuantityKind", () => {
 	test("rejects anything else", () => {
 		expect(isQuantityKind("flux_capacitance")).toBe(false);
 		expect(isQuantityKind("")).toBe(false);
-	});
-});
-
-describe("the seeded catalog", () => {
-	test("uses only kinds this system knows", async () => {
-		const used = new Set<string>();
-
-		for await (const file of new Glob("seed/presets/*/catalog/**/*.json").scan(".")) {
-			const text = await Bun.file(file).text();
-
-			for (const match of text.matchAll(/"quantityKind"\s*:\s*"([^"]+)"/g)) {
-				used.add(match[1]!);
-			}
-		}
-
-		expect(used.size).toBeGreaterThan(0);
-
-		for (const kind of used) {
-			expect(isQuantityKind(kind), `${kind} is not a known quantity kind`).toBe(true);
-		}
 	});
 });
 

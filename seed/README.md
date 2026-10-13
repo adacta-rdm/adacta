@@ -47,12 +47,3 @@ references to `OriginalFile.id`. The application serves the bytes through
 
 The demo preset includes a drawn SVG logo and a generated photograph of a
 fictional flow controller. Each image is under 20 KB.
-
-## Tests
-
-`__tests__/seedCatalog.test.ts` tests the catalog import. `seedCatalog` takes
-the catalog directory as an argument. A test therefore writes its catalog to a
-temporary directory instead of adding a preset.
-
-Command-line validation and database-reset tests remain in
-`scripts/__tests__/db.test.ts`.
