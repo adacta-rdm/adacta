@@ -209,7 +209,7 @@ describe("samples.$batchSlug._index", () => {
 				noteErrors: { body: "A note cannot be empty. Attach the files again." },
 			});
 			expect(await scope.get(ApplicationDatabase).select().from(OriginalFile).all()).toEqual([]);
-			expect(storedFiles(scope)).toEqual([]);
+			expect(await storedFiles(scope)).toEqual([]);
 		});
 
 		test("answers 404 and discards files for a sample of another batch", async () => {
@@ -226,7 +226,7 @@ describe("samples.$batchSlug._index", () => {
 
 			expect(result.status).toBe(404);
 			expect((await route.loader()).data!.notes).toEqual([]);
-			expect(storedFiles(scope)).toEqual([]);
+			expect(await storedFiles(scope)).toEqual([]);
 		});
 
 		test.each([["rig"], ["sample:abc"], ["sample:"]])(

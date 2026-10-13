@@ -1,7 +1,7 @@
 # Seed presets
 
-`bun run db:setup [preset]` resets the application database and loads one
-directory under `presets/`. The default preset is `demo`. User records come
+`bun run seed:load [preset]` deletes the local data and loads one directory
+under `presets/`. The default preset is `demo`. User records come
 from `users/`. The development user is recorded as the creator of seeded
 catalog records and image files.
 

@@ -3,12 +3,12 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-import { createLocalAppContainer } from "~/app/.server/appContainer.local.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
-import { setupTestPersistenceEnvironment } from "~/app/testUtils/testUtils.ts";
 import { Env } from "~/lib/env/Env.ts";
-import { FileSystemStorageEngine } from "~/lib/storage-engine/FileSystemStorageEngine.ts";
 import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
+import { createBunAppContainer } from "~/runtimes/bun/appContainer.ts";
+import { FileSystemStorageEngine } from "~/runtimes/bun/lib/FileSystemStorageEngine.ts";
+import { createTestAppContainer } from "~/runtimes/bun/testEnvironment.ts";
 
 const directories: string[] = [];
 
@@ -18,9 +18,9 @@ afterEach(async () => {
 	}
 });
 
-describe("createLocalAppContainer", () => {
+describe("createBunAppContainer", () => {
 	test("shares one connection across requests", () => {
-		const app = setupTestPersistenceEnvironment();
+		const app = createTestAppContainer();
 		const first = app.clone();
 		const second = app.clone();
 
@@ -33,7 +33,7 @@ describe("createLocalAppContainer", () => {
 	test("configures filesystem storage from ADACTA_STORAGE_DIR", async () => {
 		const directory = await mkdtemp(join(tmpdir(), "adacta-storage-config-"));
 		directories.push(directory);
-		const app = createLocalAppContainer(new Env({ ADACTA_STORAGE_DIR: directory }));
+		const app = createBunAppContainer(new Env({ ADACTA_STORAGE_DIR: directory }));
 
 		const storage = app.clone().get(StorageEngine);
 		const another = app.clone().get(StorageEngine);

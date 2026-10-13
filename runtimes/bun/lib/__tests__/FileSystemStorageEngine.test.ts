@@ -5,9 +5,9 @@ import { join } from "node:path";
 
 import { FileAlreadyExistsError } from "~/lib/storage-engine/FileAlreadyExistsError.ts";
 import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
-import { FileSystemStorageEngine } from "~/lib/storage-engine/FileSystemStorageEngine.ts";
 import { InvalidStoragePathError } from "~/lib/storage-engine/InvalidStoragePathError.ts";
 import type { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
+import { FileSystemStorageEngine } from "~/runtimes/bun/lib/FileSystemStorageEngine.ts";
 
 describe("FileSystemStorageEngine", () => {
 	let directory: string;

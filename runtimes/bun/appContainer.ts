@@ -1,29 +1,29 @@
 import { stdout } from "node:process";
 
-import {
-	applicationDatabase,
-	openSqliteDatabase,
-	sqliteDatabasePath,
-} from "~/app/.server/sqliteDatabase.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Env } from "~/lib/env/Env.ts";
 import { Logger, logLevelFromName } from "~/lib/logger/Logger.ts";
 import { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
-import { FileSystemStorageEngine } from "~/lib/storage-engine/FileSystemStorageEngine.ts";
+import { FileSystemStorageEngine } from "~/runtimes/bun/lib/FileSystemStorageEngine.ts";
+import {
+	applicationDatabase,
+	openSqliteDatabase,
+	sqliteDatabasePath,
+} from "~/runtimes/bun/sqliteDatabase.ts";
 
-const root = createLocalAppContainer();
+const root = createBunAppContainer();
 
 /**
- * Creates an application container for a local request.
+ * Creates an application container for one request.
  */
 export function createAppContainer(): ServiceContainer {
 	return root.clone();
 }
 
 /**
- * Creates a local application container with the supplied environment.
+ * Creates the root container of the Bun runtime with the supplied environment.
  */
-export function createLocalAppContainer(env = new Env()): ServiceContainer {
+export function createBunAppContainer(env = new Env()): ServiceContainer {
 	const container = new ServiceContainer();
 	container.set(env);
 

@@ -29,6 +29,7 @@
 		"paths": {
 			"@/*": ["./@/*"],
 			"~/*": ["./*"],
+			"~runtime/*": ["./runtimes/bun/*"],
 			"~/catalyst-ui/*": ["./vendor/catalyst-ui-kit/typescript/*"]
 		},
 		"rootDirs": [".", "./.react-router/types"]

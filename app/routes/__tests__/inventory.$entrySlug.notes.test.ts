@@ -83,7 +83,7 @@ describe("inventory.$entrySlug.notes", () => {
 				noteErrors: { observedAt: "Enter a valid observed time. Attach the files again." },
 			});
 			expect((await route.loader()).data!.notes).toEqual([]);
-			expect(storedFiles(scope)).toEqual([]);
+			expect(await storedFiles(scope)).toEqual([]);
 		});
 
 		test("discards files when an edit has an invalid observed time", async () => {
@@ -112,7 +112,7 @@ describe("inventory.$entrySlug.notes", () => {
 				{ body: note.body, observedAt: note.observedAt },
 			]);
 			expect(await scope.get(ApplicationDatabase).select().from(OriginalFile).all()).toEqual([]);
-			expect(storedFiles(scope)).toEqual([]);
+			expect(await storedFiles(scope)).toEqual([]);
 		});
 
 		test("discards files when the edited note is no longer current", async () => {
@@ -135,7 +135,7 @@ describe("inventory.$entrySlug.notes", () => {
 			expect(result.status).toBe(404);
 			expect((await route.loader()).data!.notes).toMatchObject([{ body: "Current version" }]);
 			expect(await scope.get(ApplicationDatabase).select().from(OriginalFile).all()).toEqual([]);
-			expect(storedFiles(scope)).toEqual([]);
+			expect(await storedFiles(scope)).toEqual([]);
 		});
 
 		test.each([["editNote"], ["archiveNote"]])(
@@ -155,7 +155,7 @@ describe("inventory.$entrySlug.notes", () => {
 				);
 
 				expect(result.status).toBe(404);
-				expect(storedFiles(scope)).toEqual([]);
+				expect(await storedFiles(scope)).toEqual([]);
 			},
 		);
 	});

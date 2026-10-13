@@ -7,11 +7,15 @@
  *
  * Run "bun run build" first. The server build does not exist before that.
  */
+import { join } from "node:path";
+
 import { createRequestHandler, type ServerBuild } from "react-router";
 
 // The path is held in a variable so TypeScript does not try to resolve the
-// server build at type-check time. It only exists after a build.
-const serverBuildPath = "./build/server/index.js";
+// server build at type-check time. It only exists after a build. An import
+// resolves a relative path from this file. The build lies below the working
+// directory, so the path starts there.
+const serverBuildPath = join(process.cwd(), "build/server/index.js");
 const build = (await import(serverBuildPath)) as ServerBuild;
 
 const handleRequest = createRequestHandler(build, "production");

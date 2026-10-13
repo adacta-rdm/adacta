@@ -12,20 +12,20 @@ reads every file in `schema/` into one migration history under `migrations/`.
 ## Migration baseline
 
 Migration SQL initializes the database and applies schema changes.
-`bun run db:migrations:refresh` replaces the history with one migration from
+`bun run migrations:baseline` replaces the history with one migration from
 an empty database to the current schema. The baseline uses the fixed directory
-`19861014000000_baseline` and a fixed snapshot identifier. A repeated refresh
+`19861014000000_baseline` and a fixed snapshot identifier. A repeated rebuild
 therefore shows only schema changes in Git.
 
-The existing migration directory is deleted before generation. A failed refresh
+The existing migration directory is deleted before generation. A failed rebuild
 can be rerun or the previous files can be restored with Git.
 
 The baseline inserts the fixed quantity kinds and diagram edge kinds listed
 in `app/lib/quantities.ts` and `app/lib/PID.ts`. Domain records refer to these
 names through foreign keys. A changed list therefore requires
-`bun run db:migrations:refresh` and a database reset.
+`bun run migrations:baseline` and `bun run seed:load`.
 
-The local connection is opened and migrated in `app/.server/sqliteDatabase.ts`.
+The SQLite connection is opened and migrated in `runtimes/bun/sqliteDatabase.ts`.
 The app opens it. Only the CLI and the test setup migrate it.
 `bun run dev` and `bun run start` run the migration command before the server
 starts.

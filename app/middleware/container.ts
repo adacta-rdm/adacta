@@ -1,5 +1,6 @@
+import { createAppContainer } from "~runtime/appContainer.ts";
+
 import type { Route } from "~/.react-router/types/app/+types/root.ts";
-import { createAppContainer } from "~/app/.server/appContainer.ts";
 import { services } from "~/app/.server/context.ts";
 
 /**

@@ -1,6 +1,6 @@
 /**
  * Registers every user in seed/users/ and loads one preset from seed/presets/.
- * For example, bun run db:setup pilot loads the pilot inventory and samples.
+ * For example, bun run seed:load pilot loads the pilot inventory and samples.
  * The setup command resets and migrates the database before loading these fixtures.
  */
 import { BetterAuth } from "~/app/services/BetterAuth.ts";

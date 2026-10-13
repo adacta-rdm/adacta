@@ -10,7 +10,7 @@ import { basename, join } from "node:path";
 
 /**
  * The seed tree is the directory "seed" in the working directory. Package
- * scripts such as `bun run db:setup` run in the project root, so the seed finds
+ * scripts such as `bun run seed:load` run in the project root, so the seed finds
  * it there. A bundled copy of the seed code finds it the same way, although the
  * bundle lives elsewhere.
  */

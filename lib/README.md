@@ -13,17 +13,17 @@ their public APIs.
 
 ## Contents
 
-| Path                 | Purpose                                                           |
-| -------------------- | ----------------------------------------------------------------- |
-| `env/`               | Reads environment values as typed values.                         |
-| `form-values/`       | Reads submitted form fields as typed values.                      |
-| `id53/`              | Generates and reads 53-bit IDs that increase within a sequence.   |
-| `logger/`            | Writes structured log messages to a stream.                       |
-| `parallel-lines/`    | Turns a route of right-angled segments into parallel lines.       |
-| `service-container/` | Resolves services and provides independently configurable scopes. |
-| `sqlite-errors/`     | Recognizes SQLite constraint failures by the columns they name.   |
-| `storage-engine/`    | Stores files as streams behind a common interface.                |
-| `tsrc/`              | Generates runtime validators from TypeScript declarations.        |
+| Path                 | Purpose                                                                                   |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| `env/`               | Reads environment values as typed values.                                                 |
+| `form-values/`       | Reads submitted form fields as typed values.                                              |
+| `id53/`              | Generates and reads 53-bit IDs that increase within a sequence.                           |
+| `logger/`            | Writes structured log messages to a stream.                                               |
+| `parallel-lines/`    | Turns a route of right-angled segments into parallel lines.                               |
+| `service-container/` | Resolves services and provides independently configurable scopes.                         |
+| `sqlite-errors/`     | Recognizes SQLite constraint failures by the columns they name.                           |
+| `storage-engine/`    | The common interface for storing files as streams. A runtime provides the implementation. |
+| `tsrc/`              | Generates runtime validators from TypeScript declarations.                                |
 
 Tests live beside the source. Each module's public API and tests are meaningful
 without knowledge of the Adacta application.

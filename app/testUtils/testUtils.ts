@@ -5,23 +5,23 @@
  * container. Tests construct their own inputs and resolve the services or data
  * they need from that container. Environment overrides are passed as raw values.
  *
- * The setups build on each other. They add an environment, isolated
- * persistence, a migrated schema, and a registered user.
- * Each step uses the same services the application uses. A test therefore
- * never restates what the application already does.
+ * The setups build on each other. They add an environment with an empty
+ * database and empty file storage, the migrated schema, a registered user, and
+ * a request scope. The selected runtime provides the first two steps. See
+ * runtimes/README.md. Each step uses the same services the application uses.
+ * A test therefore never restates what the application already does.
  */
-import { existsSync, mkdtempSync, readdirSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { Writable } from "node:stream";
 
-import { createLocalAppContainer } from "~/app/.server/appContainer.local.ts";
-import { migrateSqliteDatabase, sqliteDatabasePath } from "~/app/.server/sqliteDatabase.ts";
+import { createTestAppContainer, migrateTestDatabase } from "~runtime/testEnvironment.ts";
+
 import { BetterAuth } from "~/app/services/BetterAuth.ts";
 import { Security } from "~/app/services/Security.ts";
-import { Env, type EnvSource } from "~/lib/env/Env.ts";
+import type { EnvSource } from "~/lib/env/Env.ts";
 import { LOG_LEVEL, Logger } from "~/lib/logger/Logger.ts";
 import { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
+
+export { storedFiles } from "~runtime/testEnvironment.ts";
 
 export const TEST_USER = {
 	name: "Test User",
@@ -30,24 +30,11 @@ export const TEST_USER = {
 } as const;
 
 /**
- * Create the root service-container environment shared by more specialized test fixtures.
+ * Creates an environment with an empty database and empty file storage. No
+ * migrations have run.
  */
 export function setupTestEnvironment(env: EnvSource = {}): ServiceContainer {
-	return createLocalAppContainer(new Env({ ...env, ADACTA_LOG_LEVEL: "silent" }));
-}
-
-/**
- * Create an environment whose databases and stored files live in a fresh
- * temporary directory. No migrations have run yet.
- */
-export function setupTestPersistenceEnvironment(env: EnvSource = {}): ServiceContainer {
-	const tmpDir = mkdtempSync(join(tmpdir(), "adacta-test-"));
-
-	return setupTestEnvironment({
-		ADACTA_DB_DIR: join(tmpDir, "db"),
-		ADACTA_STORAGE_DIR: join(tmpDir, "storage"),
-		...env,
-	});
+	return createTestAppContainer(env);
 }
 
 /**
@@ -56,9 +43,9 @@ export function setupTestPersistenceEnvironment(env: EnvSource = {}): ServiceCon
 export async function setupEmptyTestDatabaseEnvironment(
 	env: EnvSource = {},
 ): Promise<ServiceContainer> {
-	const container = setupTestPersistenceEnvironment(env);
+	const container = setupTestEnvironment(env);
 
-	migrateSqliteDatabase(sqliteDatabasePath(container.get(Env)));
+	await migrateTestDatabase(container);
 
 	return container;
 }
@@ -122,18 +109,6 @@ export async function signUpTestUser(
 	});
 
 	return user.id;
-}
-
-/**
- * Return the names of every stored file, including staged files.
- */
-export function storedFiles(scope: ServiceContainer): string[] {
-	const directory = scope.get(Env).string("ADACTA_STORAGE_DIR");
-	if (!existsSync(directory)) return [];
-
-	return readdirSync(directory, { recursive: true, withFileTypes: true })
-		.filter((entry) => entry.isFile())
-		.map((entry) => entry.name);
 }
 
 /**

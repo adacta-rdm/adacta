@@ -35,10 +35,11 @@ Install Chromium before the first run if it is not already present:
 bun x playwright install chromium
 ```
 
-The test server uses SQLite databases and file storage under `.adacta/e2e/`.
-It resets these directories and loads the `demo` preset before each server
-start. It then builds the application and starts the production server. Port
-5273 must be free.
+`server.ts` starts the test server. It deletes the data of the previous run and
+loads the `demo` preset. It then builds the application and starts the
+production server. Port 5273 must be free. The selected runtime keeps this data
+apart from the development data. For example, the Bun runtime uses
+`.adacta/e2e/`.
 
 The suite runs against a production build, locally and in CI. The development
 server reloads every open page when it prepares a newly imported dependency for

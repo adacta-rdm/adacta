@@ -1,5 +1,6 @@
 /**
  * Rebuilds the SQL baseline used to initialize the application database.
+
  * The directory and snapshot identifier have fixed values. Repeated runs
  * therefore show only schema changes in Git.
  *
@@ -25,7 +26,7 @@ const SNAPSHOT_ID = "00000000-0000-0000-0000-000000000001";
 /**
  * Replaces the migration history with one baseline from an empty database.
  */
-export async function refreshMigrations(): Promise<void> {
+export async function rebuildBaseline(): Promise<void> {
 	const outputDirectory = join(process.cwd(), "drizzle", "migrations");
 	rmSync(outputDirectory, { recursive: true, force: true });
 	mkdirSync(outputDirectory, { recursive: true });
@@ -64,7 +65,7 @@ export async function refreshMigrations(): Promise<void> {
 	await Bun.write(snapshotPath, `${JSON.stringify(snapshot, null, "\t")}\n`);
 
 	run(["bunx", "oxfmt", snapshotPath], "Failed to format the migration snapshot.");
-	console.log(`Refreshed migration baseline: ${relative(process.cwd(), baselineDirectory)}`);
+	console.log(`Rebuilt migration baseline: ${relative(process.cwd(), baselineDirectory)}`);
 }
 
 function run(command: string[], errorMessage: string): void {

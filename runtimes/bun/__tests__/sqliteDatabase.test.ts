@@ -5,11 +5,10 @@ import { join } from "node:path";
 import { eq, sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-import { migrateSqliteDatabase, sqliteDatabasePath } from "~/app/.server/sqliteDatabase.ts";
 import { PID_EDGE_KINDS } from "~/app/lib/PID.ts";
 import { QUANTITY_KINDS } from "~/app/lib/quantities.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
-import { setupTestPersistenceEnvironment, signUpTestUser } from "~/app/testUtils/testUtils.ts";
+import { signUpTestUser } from "~/app/testUtils/testUtils.ts";
 import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { Channel } from "~/drizzle/schema/Channel.ts";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
@@ -19,6 +18,8 @@ import { Product } from "~/drizzle/schema/Product.ts";
 import { QuantityKind } from "~/drizzle/schema/QuantityKind.ts";
 import { Env } from "~/lib/env/Env.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
+import { migrateSqliteDatabase, sqliteDatabasePath } from "~/runtimes/bun/sqliteDatabase.ts";
+import { createTestAppContainer } from "~/runtimes/bun/testEnvironment.ts";
 
 /**
  * Converts a synchronous driver error into a promise rejection.
@@ -27,7 +28,7 @@ async function settle<T>(query: () => Promise<T>): Promise<T> {
 	return await query();
 }
 
-const environment = setupTestPersistenceEnvironment;
+const environment = createTestAppContainer;
 const BatchTest = sqliteTable("batch_test", {
 	id: integer("id").primaryKey(),
 	name: text("name").notNull().unique(),
@@ -138,7 +139,7 @@ describe("local SQLite connection", () => {
 				.map((kind) => kind.id)
 				.sort();
 			const edgeKinds = (await db.select().from(PIDEdgeKind).all()).map((kind) => kind.id).sort();
-			const message = "Run bun run db:migrations:refresh to regenerate the SQL baseline.";
+			const message = "Run bun run migrations:baseline to rebuild the SQL baseline.";
 			expect(quantityKinds, message).toEqual(Object.keys(QUANTITY_KINDS).sort());
 			expect(edgeKinds, message).toEqual(Object.keys(PID_EDGE_KINDS).sort());
 		});
