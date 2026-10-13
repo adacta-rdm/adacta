@@ -8,26 +8,20 @@
 import { e2eSettings } from "~runtime/e2eEnvironment.ts";
 
 import { E2E_BASE_URL, E2E_PORT } from "~/e2e/settings.ts";
+import { Env } from "~/lib/env/Env.ts";
 import { run } from "~/scripts/helpers/run.ts";
 
-// A development user would skip the sign-in that the tests exercise.
-delete process.env.ADACTA_DEV_USER;
-
-// seed:load stops when NODE_ENV is production. Only the build and the server
-// run with it.
-delete process.env.NODE_ENV;
-
-const env = {
+const env = new Env({
 	...e2eSettings,
 	ADACTA_URL: E2E_BASE_URL,
 	ADACTA_AUTH_SECRET: "adacta-e2e-secret-for-local-tests-only",
 	ADACTA_LOG_LEVEL: "warn",
-};
+	PORT: String(E2E_PORT),
+});
 
 await run(["bun", "run", "seed:load", "demo"], env);
 
 // The tests run against a production build. See the comment on webServer in
 // playwright.config.ts.
-const production = { ...env, NODE_ENV: "production" };
-await run(["bun", "run", "build"], production);
-await run(["bun", "run", "start"], { ...production, PORT: String(E2E_PORT) });
+await run(["bun", "run", "build"], new Env({ ...env.values, NODE_ENV: "production" }));
+await run(["bun", "run", "start"], env);

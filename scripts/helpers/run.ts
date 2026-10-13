@@ -1,11 +1,18 @@
+import { Env } from "~/lib/env/Env.ts";
+
 /**
  * Runs a command in the working directory with the terminal as its input and
- * output. The environment of this script is passed on, with the given values
- * added. A failed command ends the script with the same exit code.
+ * output. The command inherits the environment of this script. The given
+ * values are added and replace inherited values of the same name. For
+ * example, `new Env({ NODE_ENV: "production" })` runs the command for
+ * production. A failed command ends the script with the same exit code.
  */
-export async function run(command: string[], env: Record<string, string> = {}): Promise<void> {
+export async function run(command: string[], env = new Env({})): Promise<void> {
+	const inherited = { ...process.env };
+	env.populate(inherited, true);
+
 	const child = Bun.spawn(command, {
-		env: { ...process.env, ...env },
+		env: inherited,
 		stdio: ["inherit", "inherit", "inherit"],
 	});
 	const exitCode = await child.exited;
