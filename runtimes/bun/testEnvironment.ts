@@ -3,7 +3,7 @@
  * file and its stored files in a new temporary directory. A test therefore
  * never sees the rows or files of another test.
  */
-import { existsSync, mkdtempSync, readdirSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -29,6 +29,12 @@ export function createTestAppContainer(env: EnvSource = {}): ServiceContainer {
 
 export async function migrateTestDatabase(container: ServiceContainer): Promise<void> {
 	migrateSqliteDatabase(sqliteDatabasePath(container.get(Env)));
+}
+
+// Each container has its own directory. Its storage is therefore emptied by
+// deleting that directory.
+export async function emptyTestStorage(container: ServiceContainer): Promise<void> {
+	rmSync(container.get(Env).string("ADACTA_STORAGE_DIR")!, { recursive: true, force: true });
 }
 
 export async function storedFiles(scope: ServiceContainer): Promise<string[]> {

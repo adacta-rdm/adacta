@@ -26,6 +26,21 @@ describe("original file download", () => {
 		expect(await result.text()).toBe("a,b\n1,2\n3,4");
 	});
 
+	test("downloads an empty file", async () => {
+		const scope = await setupTestRequestScope();
+		const { fileId } = await createTestUpload(scope, { contents: "" });
+		const request = new Request(`http://localhost/files/originals/${fileId}`);
+		const [args] = createMiddlewareArgs(scope, {
+			request,
+			params: { fileId: String(fileId) },
+		});
+
+		const result = await loader(args);
+
+		expect(result.headers.get("Content-Length")).toBe("0");
+		expect(await result.text()).toBe("");
+	});
+
 	test("answers 404 for an unknown file", async () => {
 		const scope = await setupTestRequestScope();
 		const fileId = "1234567890123";

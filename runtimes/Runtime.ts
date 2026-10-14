@@ -86,18 +86,24 @@ export type Cli = {
  */
 export type TestEnvironmentModule = {
 	/**
-	 * Creates a root container with the supplied settings. Its database and
-	 * file storage start empty, and no migrations have run. Two containers
-	 * never share rows or files. For example, a test of a service that needs
-	 * no tables starts here.
+	 * Creates a root container with the supplied settings. No migrations have
+	 * run. For example, a test of a service that needs no tables starts here.
+	 * A runtime may let the containers of one test file share their database
+	 * and file storage. The two functions below therefore empty them.
 	 */
 	createTestAppContainer(env?: EnvSource): ServiceContainer;
 
 	/**
-	 * Applies the migrations to the database of a container from
-	 * createTestAppContainer().
+	 * Deletes every row of the container's database and applies the
+	 * migrations.
 	 */
 	migrateTestDatabase(container: ServiceContainer): Promise<void>;
+
+	/**
+	 * Deletes every file of the container's file storage. The database stays
+	 * as it is.
+	 */
+	emptyTestStorage(container: ServiceContainer): Promise<void>;
 
 	/**
 	 * Returns the names of every stored file, including staged files.

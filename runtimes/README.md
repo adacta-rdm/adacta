@@ -31,18 +31,20 @@ names it in its `dev` and `build` operations.
 selects. A missing export or a different signature therefore fails the type
 check. The check holds only types, so the runtime contains no code for it.
 
-| Module               | Provides                                                                                                                           |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `appContainer.ts`    | `createAppContainer()`, the root container with the runtime's database, file storage and settings                                  |
-| `cli.ts`             | The operations behind `seed:load`, `migrations:apply`, `generate`, `dev`, `build`, `start` and `test`                              |
-| `e2eEnvironment.ts`  | `e2eSettings`, which keep the data of the browser tests apart from the development data                                            |
-| `testEnvironment.ts` | `createTestAppContainer()`, a container with an empty database and empty file storage, `migrateTestDatabase()` and `storedFiles()` |
+| Module               | Provides                                                                                                                                                         |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `appContainer.ts`    | `createAppContainer()`, the root container with the runtime's database, file storage and settings                                                                |
+| `cli.ts`             | The operations behind `seed:load`, `migrations:apply`, `generate`, `dev`, `build`, `start` and `test`                                                            |
+| `e2eEnvironment.ts`  | `e2eSettings`, which keep the data of the browser tests apart from the development data                                                                          |
+| `testEnvironment.ts` | `createTestAppContainer()`, `migrateTestDatabase()` and `emptyTestStorage()`, which give the tests an empty database and empty file storage, and `storedFiles()` |
 
 `__tests__/` holds the tests that every runtime must pass unchanged. They use
 the selected runtime through the test environment. For example,
 `__tests__/ApplicationDatabase.test.ts` checks that a write that breaks a
 unique constraint rejects with `UniqueConstraintViolationError`, whatever form
-the database driver reports it in.
+the database driver reports it in. `__tests__/StorageEngine.test.ts` checks the
+file storage against `lib/storage-engine/StorageEngine.ts`. Tests of what only
+one engine does stay beside it, for example in `bun/lib/__tests__/`.
 
 A command checks its arguments before it calls the runtime. For example,
 `seed:load a b` stops with an error in every runtime, and `seed:load pilot`

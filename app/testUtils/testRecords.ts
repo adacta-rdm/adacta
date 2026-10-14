@@ -255,14 +255,18 @@ export async function createTestNote(
 }
 
 /**
- * Store a measurement file and return its upload and file identifiers.
+ * Store a measurement file and return its upload and file identifiers. The
+ * contents default to a small CSV table.
  */
-export async function createTestUpload(scope: ServiceContainer) {
+export async function createTestUpload(
+	scope: ServiceContainer,
+	{ contents = "a,b\n1,2\n3,4" }: { contents?: string } = {},
+) {
 	const upload = scope.get(UploadManager).beginUpload();
 	const fileId = await upload.add({
 		originalName: "measurement ä.csv",
 		mediaType: "text/csv",
-		source: new Blob(["a,b\n1,2\n3,4"]).stream(),
+		source: new Blob([contents]).stream(),
 	});
 
 	const uploadId = await upload.commit(scope.get(Security).userId);

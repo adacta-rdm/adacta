@@ -22,7 +22,8 @@ export abstract class StorageEngine {
 	 *
 	 * The start is a zero-based byte offset. The length is a byte count. A range
 	 * that extends beyond the file returns the available bytes. A start at or
-	 * beyond the end returns an empty stream.
+	 * beyond the end returns an empty stream. A negative start, or a start or
+	 * length that is not a whole number, rejects with `RangeError`.
 	 *
 	 * The promise rejects with `FileNotFoundError` before returning a stream when
 	 * the file does not exist. Errors that occur during transfer are reported by
@@ -53,7 +54,8 @@ export abstract class StorageEngine {
 	abstract rename(from: string, to: string): Promise<void>;
 
 	/**
-	 * Returns the file size in bytes. The promise rejects if the file is absent.
+	 * Returns the file size in bytes. The promise rejects with
+	 * `FileNotFoundError` if the file is absent.
 	 */
 	abstract size(path: string): Promise<number>;
 

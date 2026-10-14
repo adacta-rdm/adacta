@@ -13,7 +13,11 @@
  */
 import { Writable } from "node:stream";
 
-import { createTestAppContainer, migrateTestDatabase } from "~runtime/testEnvironment.ts";
+import {
+	createTestAppContainer,
+	emptyTestStorage,
+	migrateTestDatabase,
+} from "~runtime/testEnvironment.ts";
 
 import { BetterAuth } from "~/app/services/BetterAuth.ts";
 import { Security } from "~/app/services/Security.ts";
@@ -46,6 +50,20 @@ export async function setupEmptyTestDatabaseEnvironment(
 	const container = setupTestEnvironment(env);
 
 	await migrateTestDatabase(container);
+
+	return container;
+}
+
+/**
+ * Creates an environment with empty file storage. No migrations have run. For
+ * example, a test of the storage engine starts here.
+ */
+export async function setupEmptyTestStorageEnvironment(
+	env: EnvSource = {},
+): Promise<ServiceContainer> {
+	const container = setupTestEnvironment(env);
+
+	await emptyTestStorage(container);
 
 	return container;
 }
