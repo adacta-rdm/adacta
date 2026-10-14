@@ -26,6 +26,13 @@ to load `pilot` instead.
 the server. A rebuilt baseline requires a database reset. Run
 `bun run seed:load` after pulling that change.
 
+## Application version
+
+Open `/version` without signing in to see the full Git commit and the UTC build
+time of the running application. The suffix ` (modified)` means tracked or
+untracked files had changes when the Vite configuration loaded; ignored files
+do not count. In development, both values are recorded when the server starts.
+
 ## Data
 
 One database holds authentication and laboratory records. The file storage

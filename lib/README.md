@@ -17,6 +17,7 @@ their public APIs.
 | -------------------- | ----------------------------------------------------------------------------------------- |
 | `env/`               | Reads environment values as typed values.                                                 |
 | `form-values/`       | Reads submitted form fields as typed values.                                              |
+| `git-commit/`        | Reads the current Git commit and whether files have changed.                              |
 | `id53/`              | Generates and reads 53-bit IDs that increase within a sequence.                           |
 | `logger/`            | Writes structured log messages to a stream.                                               |
 | `parallel-lines/`    | Turns a route of right-angled segments into parallel lines.                               |
