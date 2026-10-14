@@ -16,6 +16,7 @@ import { PIDEditor } from "~/app/components/PIDEditor.tsx";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import type { PIDGraph, PIDLength, PIDLengthUnit } from "~/app/lib/PID.ts";
 import { isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
+import { parentsFirst } from "~/app/lib/parentsFirst.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { PIDManager } from "~/app/services/PIDManager.ts";
 import { Button } from "~/catalyst-ui/button.tsx";
@@ -223,15 +224,14 @@ function parseGraph(value: FormDataEntryValue | null): PIDGraph | undefined {
 	}
 
 	// A symbol that sits inside another names it. The name must belong to the
-	// same diagram, and a symbol cannot sit inside itself.
-	if (
-		parsed.nodes.some(
-			(node) =>
-				node.parentId !== null && (!nodeIds.has(node.parentId) || node.parentId === node.id),
-		)
-	) {
+	// same diagram.
+	if (parsed.nodes.some((node) => node.parentId !== null && !nodeIds.has(node.parentId))) {
 		return;
 	}
+
+	// Symbols cannot sit inside each other. For example, a symbol inside itself
+	// is refused.
+	if (parentsFirst(parsed.nodes) === undefined) return;
 
 	const edgeIds = new Set(parsed.edges.map((edge) => edge.id));
 	if (

@@ -7,6 +7,7 @@
 import { eq } from "drizzle-orm";
 
 import type { PIDGraph } from "~/app/lib/PID.ts";
+import { parentsFirst } from "~/app/lib/parentsFirst.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
 import { PIDEdge } from "~/drizzle/schema/PIDEdge.ts";
@@ -27,19 +28,30 @@ export class PIDManager {
 	 * it does not contain are therefore deleted. The order of the nodes and of
 	 * the edges is stored as their drawing order. If one row fails, the
 	 * previous diagram remains unchanged.
+	 *
+	 * @throws Error when symbols sit inside each other.
 	 */
 	async replace(inventoryEntryId: number, graph: PIDGraph): Promise<void> {
 		const createdAt = new Date();
 		const creatorId = this.security.userId;
 
-		const nodes = graph.nodes.map((node, drawingOrder) => ({
+		// A symbol references the symbol it sits inside. Each row has its own
+		// insert, and the database checks the reference at the end of each
+		// statement. The parent is therefore inserted first. The drawing order
+		// keeps the order of the graph.
+		const insertionOrder = parentsFirst(graph.nodes);
+		if (insertionOrder === undefined)
+			throw new Error("Symbols of the diagram sit inside each other.");
+		const drawingOrders = new Map(graph.nodes.map((node, index) => [node.id, index]));
+
+		const nodes = insertionOrder.map((node) => ({
 			id: node.id,
 			inventoryEntryId,
 			kind: node.kind,
 			label: node.label,
 			secondaryLabel: node.secondaryLabel,
 			parentNodeId: node.parentId,
-			drawingOrder,
+			drawingOrder: drawingOrders.get(node.id)!,
 			inletCount: node.inletCount,
 			orientation: node.orientation,
 			positionX: node.position.x,

@@ -191,6 +191,39 @@ describe("P&ID route", () => {
 		expect((await load(scope)).graph.nodes.at(-1)).toEqual(tap);
 	});
 
+	test("keeps a symbol listed before the symbol it sits inside", async () => {
+		const scope = await setupRig();
+		const tap = { ...graph.nodes[1], id: "reactor-tap", parentId: graph.nodes[0].id };
+		const childFirst = { nodes: [tap, ...graph.nodes], edges: graph.edges };
+
+		await save(scope, childFirst);
+
+		expect((await load(scope)).graph).toEqual(childFirst);
+	});
+
+	test("keeps a chain of nested symbols listed innermost first", async () => {
+		const scope = await setupRig();
+		const outer = { ...graph.nodes[0], id: "outer" };
+		const middle = { ...graph.nodes[0], id: "middle", parentId: "outer" };
+		const inner = { ...graph.nodes[0], id: "inner", parentId: "middle" };
+		const innermostFirst = { nodes: [inner, middle, outer], edges: [] };
+
+		await save(scope, innermostFirst);
+
+		expect((await load(scope)).graph).toEqual(innermostFirst);
+	});
+
+	test("rejects symbols that sit inside each other", async () => {
+		const scope = await setupRig();
+		const first = { ...graph.nodes[0], id: "first", parentId: "second" };
+		const second = { ...graph.nodes[0], id: "second", parentId: "first" };
+
+		const result = await save(scope, { nodes: [first, second], edges: [] });
+
+		if (result instanceof Response) throw new Error("Expected action data.");
+		expect(result.init?.status).toBe(400);
+	});
+
 	test("rejects a symbol that sits inside one outside the diagram", async () => {
 		const scope = await setupRig();
 		const orphan = { ...graph.nodes[0], id: "orphan", parentId: "missing-node" };
