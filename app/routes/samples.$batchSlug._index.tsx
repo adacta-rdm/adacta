@@ -56,7 +56,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	// The page shows the notes about the batch and about each of its samples,
 	// archived ones included.
 	const notes = resolveNoteAuthors(
-		await container.get(NoteManager).about([batch.id, ...samples.map((sample) => sample.id)], {
+		await container.get(NoteManager).aboutBatch(batch.id, {
 			samples: new Map(
 				samples.map((sample) => [
 					sample.id,

@@ -72,6 +72,27 @@ describe("P&ID route", () => {
 		expect((await load(scope)).graph).toEqual(graph);
 	});
 
+	test("saves and reloads a large diagram", async () => {
+		const scope = await setupRig();
+		const valves = Array.from({ length: 30 }, (_, i) => ({
+			...graph.nodes[1],
+			id: `valve-${i}`,
+			label: `Valve ${i}`,
+			position: { x: 140 * i, y: 160 },
+		}));
+		const pipes = valves.slice(1).map((valve, i) => ({
+			...graph.edges[0],
+			id: `pipe-${i}`,
+			source: valves[i].id,
+			target: valve.id,
+		}));
+		const large = { nodes: valves, edges: pipes };
+
+		await save(scope, large);
+
+		expect((await load(scope)).graph).toEqual(large);
+	});
+
 	test("keeps a three-way valve's inlet count", async () => {
 		const scope = await setupRig();
 		const valve: PIDGraphNode = {

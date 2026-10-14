@@ -78,9 +78,10 @@ export async function seedInventory(
 		};
 	});
 
+	// Separate inserts avoid a large parameter list per statement.
 	await db.batch([
-		db.insert(Id).values(rows.map(({ id }) => ({ id }))),
-		db.insert(InventoryEntry).values(rows),
+		...rows.map(({ id }) => db.insert(Id).values({ id })),
+		...rows.map((row) => db.insert(InventoryEntry).values(row)),
 	]);
 
 	return new Map(rows.map((row, index) => [keyOf(files[index]), row.id]));

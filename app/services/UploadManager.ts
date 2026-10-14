@@ -164,10 +164,10 @@ export class PendingUpload {
 			})) satisfies NewEntity<"OriginalFile">[];
 
 			// The batch writes either every row of the upload or none. Await it
-			// before publishing the upload identifier.
+			// before publishing the upload identifier. Separate inserts avoid a large parameter list per statement.
 			await this.database.batch([
-				this.database.insert(Id).values(files.map(({ id }) => ({ id }))),
-				this.database.insert(OriginalFile).values(files),
+				...files.map(({ id }) => this.database.insert(Id).values({ id })),
+				...files.map((file) => this.database.insert(OriginalFile).values(file)),
 			]);
 
 			this.state = "committed";

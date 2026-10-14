@@ -9,7 +9,7 @@
  * An edit creates a row that names the version it replaces. An archive marks
  * the current row. Existing text and attachments therefore remain unchanged.
  */
-import { and, asc, eq, inArray, isNull, notExists } from "drizzle-orm";
+import { type SQL, and, asc, eq, inArray, isNull, notExists, or } from "drizzle-orm";
 
 import {
 	currentNotes,
@@ -26,6 +26,7 @@ import type { Entity } from "~/drizzle/Schema.ts";
 import { Note } from "~/drizzle/schema/Note.ts";
 import { NoteAttachment } from "~/drizzle/schema/NoteAttachment.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
+import { Sample } from "~/drizzle/schema/Sample.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import { Service } from "~/lib/service-container/ServiceContainer.ts";
 import { UniqueConstraintViolationError } from "~/lib/sqlite-errors/UniqueConstraintViolationError.ts";
@@ -60,15 +61,40 @@ export class NoteManager {
 	): Promise<CurrentNote[]> {
 		if (subjectIds.length === 0) return [];
 
-		const rows = await this.db
-			.select()
-			.from(Note)
-			.where(inArray(Note.noteSubjectId, [...subjectIds]))
-			.all();
+		return this.currentNotesWhere(inArray(Note.noteSubjectId, [...subjectIds]), options);
+	}
+
+	/**
+	 * Return the current notes about a batch and about each of its samples.
+	 */
+	async aboutBatch(
+		batchId: number,
+		options: Omit<CurrentNotesOptions, "attachments"> = {},
+	): Promise<CurrentNote[]> {
+		const sampleIds = this.db
+			.select({ id: Sample.id })
+			.from(Sample)
+			.where(eq(Sample.batchId, batchId));
+
+		return this.currentNotesWhere(
+			or(eq(Note.noteSubjectId, batchId), inArray(Note.noteSubjectId, sampleIds))!,
+			options,
+		);
+	}
+
+	/**
+	 * Return the current versions of the notes that match the condition, with
+	 * their files.
+	 */
+	private async currentNotesWhere(
+		condition: SQL,
+		options: Omit<CurrentNotesOptions, "attachments">,
+	): Promise<CurrentNote[]> {
+		const rows = await this.db.select().from(Note).where(condition).all();
 
 		return currentNotes(rows, {
 			...options,
-			attachments: await this.noteAttachments(rows.map((note) => note.id)),
+			attachments: await this.attachmentsOfNotesWhere(condition),
 		});
 	}
 
@@ -104,17 +130,12 @@ export class NoteManager {
 				}),
 			];
 
-			if (fileIds.length > 0) {
-				statements.push(
-					this.db.insert(NoteAttachment).values(
-						fileIds.map((originalFileId, position) => ({
-							noteId,
-							originalFileId,
-							position,
-						})),
-					),
-				);
-			}
+			// Separate inserts avoid a large parameter list per statement.
+			statements.push(
+				...fileIds.map((originalFileId, position) =>
+					this.db.insert(NoteAttachment).values({ noteId, originalFileId, position }),
+				),
+			);
 
 			await this.db.batch(statements);
 
@@ -172,17 +193,12 @@ export class NoteManager {
 				}),
 			];
 
-			if (attachmentFileIds.length > 0) {
-				statements.push(
-					this.db.insert(NoteAttachment).values(
-						attachmentFileIds.map((originalFileId, position) => ({
-							noteId: newNoteId,
-							originalFileId,
-							position,
-						})),
-					),
-				);
-			}
+			// Separate inserts avoid a large parameter list per statement.
+			statements.push(
+				...attachmentFileIds.map((originalFileId, position) =>
+					this.db.insert(NoteAttachment).values({ noteId: newNoteId, originalFileId, position }),
+				),
+			);
 
 			try {
 				await this.db.batch(statements);
@@ -237,12 +253,13 @@ export class NoteManager {
 	}
 
 	/**
-	 * Load the files of the supplied note versions and group them by version.
+	 * Load the files of the note versions that match the condition and group
+	 * them by version.
 	 */
-	private async noteAttachments(
-		noteIds: readonly number[],
+	private async attachmentsOfNotesWhere(
+		condition: SQL,
 	): Promise<Map<number, NoteAttachmentData[]>> {
-		if (noteIds.length === 0) return new Map();
+		const noteIds = this.db.select({ id: Note.id }).from(Note).where(condition);
 
 		const rows = await this.db
 			.select({
