@@ -110,10 +110,3 @@ fictional flow controller. Each image is under 20 KB.
 It uses a temporary diagram.
 A diagram node can set `equipment` to the filename of an equipment inventory item without `.json`.
 For example, `"equipment": "pressure-sensor"` links a symbol to `inventory/pressure-sensor.json`.
-
-`__tests__/seedCatalog.test.ts` tests the catalog import. `seedCatalog` takes
-the catalog directory as an argument. A test therefore writes its catalog to a
-temporary directory instead of adding a preset.
-
-Command-line validation and database-reset tests remain in
-`scripts/__tests__/db.test.ts`.
