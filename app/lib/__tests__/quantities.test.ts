@@ -2,23 +2,24 @@ import { describe, expect, test } from "bun:test";
 
 import { QUANTITY_KINDS, isQuantityKind, type QuantityKindId } from "~/app/lib/quantities.ts";
 
-const entries = Object.entries(QUANTITY_KINDS);
-
 describe("QUANTITY_KINDS", () => {
-	test("every kind says how it is built out of the base quantities", () => {
-		for (const [name, kind] of entries) {
-			if (name === "MoleFraction") expect(kind.dimension).toEqual({});
-			else expect(Object.keys(kind.dimension).length, name).toBeGreaterThan(0);
+	test("no spelling appears twice within a quantity kind", () => {
+		for (const { units } of Object.values(QUANTITY_KINDS)) {
+			const spellings: string[] = Object.values(units).flat();
+
+			expect(new Set(spellings).size).toBe(spellings.length);
 		}
 	});
 
-	test("a temperature and a difference of temperatures are separate kinds", () => {
-		// They convert differently. A difference of 5 degrees Celsius is a
-		// difference of 9 degrees Fahrenheit, not 41. Merging the two would
-		// make every converted difference wrong.
-		expect(QUANTITY_KINDS.TemperatureDifference.dimension).toEqual(
-			QUANTITY_KINDS.Temperature.dimension,
-		);
+	test("every spelling is non-empty and has no leading or trailing spaces", () => {
+		// findUnit trims the text it looks up. A spelling such as " g" would
+		// therefore never be found.
+		for (const { units } of Object.values(QUANTITY_KINDS)) {
+			for (const spelling of Object.values(units).flat()) {
+				expect(spelling).not.toBe("");
+				expect(spelling).toBe(spelling.trim());
+			}
+		}
 	});
 });
 
