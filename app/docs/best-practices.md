@@ -6,10 +6,10 @@ The following practices help keep the record in Adacta consistent and traceable 
 
 ## Product and device naming
 
-Keep catalog definitions general and physical-device names specific.
+Use the product name for equipment. Give each rig a stable name that describes its purpose.
 
 - Use the manufacturer's official model designation for the product.
-- Give each inventory item a unique, recognizable name.
+- Use a serial number to distinguish physical units of the same product.
 - Include stable identifiers such as serial number, asset number, calibrated range, or channel designation where useful.
 - Do not include temporary service descriptions that can change, such as the current gas or reactor assignment.
 - Add a useful device image when it improves identification.

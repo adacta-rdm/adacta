@@ -6,19 +6,19 @@ This chapter lists common problems encountered while working with Adacta togethe
 
 ## A device is not available in the flowchart palette
 
-Check that the corresponding product has been exported to inventory, the item is assigned to the selected facility, the item is not already used elsewhere in the state, and its type matches the selected node.
+Check that the corresponding product has been exported to inventory, the item is assigned to the selected rig, the item is not already used elsewhere in the state, and its type matches the selected node.
 
 ## A resource cannot be linked to a device
 
-Compare the resource timestamp range with the device usage intervals and facility-state dates.
+Compare the resource timestamp range with the device usage intervals and rig configuration dates.
 
 {% callout title="Resolution" %}
-The relevant intervals must overlap. Correct the device usage history or the facility-state dates so that the resource timestamp falls within a recorded installation interval.
+The relevant intervals must overlap. Correct the device usage history or the rig configuration dates so that the resource timestamp falls within a recorded installation interval.
 {% /callout %}
 
 ## A resource is associated with the wrong sample
 
-Inspect the facility state that was valid at the resource timestamp.
+Inspect the rig configuration that was valid at the resource timestamp.
 
 {% callout title="Resolution" %}
 Correct the sample installation history or create the missing state, then repeat the resource mapping if necessary.

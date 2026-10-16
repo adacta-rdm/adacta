@@ -2,7 +2,7 @@
 title: Resources
 ---
 
-A resource is a file or dataset managed by Adacta. Resources can contain raw measurements, processed data, facility documents, images, or other experiment-related information. {% .lead %}
+A resource is a file or dataset managed by Adacta. Resources can contain raw measurements, processed data, rig documents, images, or other experiment-related information. {% .lead %}
 
 ## Resource overview
 
@@ -26,9 +26,9 @@ Select resource rows with the checkboxes before invoking operations that act on 
 
 ## Importing data
 
-The import workflow preserves every supplied source file and connects its values to the facility context in which they were recorded. It supports self-describing CSV files, CSV files with TOML sidecars, and guided import for undocumented CSV files.
+The import workflow preserves every supplied source file and connects its values to the rig context in which they were recorded. It supports self-describing CSV files, CSV files with TOML sidecars, and guided import for undocumented CSV files.
 
-See [Importing data](/docs/importing-data) for the supported paths, complete file examples, and how to resolve conflicts between imported device IDs and the facility record.
+See [Importing data](/docs/importing-data) for the supported paths, complete file examples, and how to resolve conflicts between imported device IDs and the rig record.
 
 ## Compare resources
 

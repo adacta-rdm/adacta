@@ -20,8 +20,8 @@ Select the batch, then press **Add Sample**. Enter a unique sample name and conf
 
 Select a sample to open its detail page. Use **Edit** to correct the sample name. A sample should represent a physical portion of the batch, not merely a data column or analytical result.
 
-## Install a sample in a facility state
+## Install a sample in a rig configuration
 
-Create the batch and sample before editing the facility state. In the flowchart, select the device that physically contains the sample, add the sample, and save the state. When the sample is replaced, create a new state with the replacement time and assign the new sample there.
+Create the batch and sample before editing the rig configuration. In the flowchart, select the device that physically contains the sample, add the sample, and save the state. When the sample is replaced, create a new state with the replacement time and assign the new sample there.
 
 This sequence preserves the time interval over which each sample was installed.

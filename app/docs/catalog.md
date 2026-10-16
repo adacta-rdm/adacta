@@ -18,9 +18,9 @@ Select a product to see its specifications, measurement channels, and source inf
 
 Select the products that represent physical units in the laboratory, then choose **Import selected**. The selection remains while you search or open a manufacturer. The form creates one equipment entry for each selected product.
 
-Equipment takes its name from the linked product. A serial number is optional. A recorded serial number identifies only one physical equipment unit, including archived equipment. Some models request unit-specific values, such as a calibrated range. Supply every required value before importing.
+Equipment takes its name from the linked product. A serial number is optional. A recorded serial number identifies one unit of a product, including archived equipment. Different products can share a serial number. Some models request unit-specific values, such as a calibrated range. Supply every required value before importing.
 
-The equipment remains linked to its catalog model. Model-wide specifications and measurement channels remain on the product. Values that distinguish one physical unit are recorded on its equipment entry.
+Every equipment unit refers to a product. A product with equipment is archived when it is no longer used; it is retained so its units keep their model information. Model-wide specifications and measurement channels remain on the product. Values that distinguish one physical unit are recorded on its equipment entry.
 
 ## Add equipment manually
 

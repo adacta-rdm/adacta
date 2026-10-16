@@ -2,7 +2,7 @@
 title: Importing data
 ---
 
-Adacta preserves the original files supplied for an import and connects their recorded values to the equipment, facility configuration, and samples that give them scientific meaning. {% .lead %}
+Adacta preserves the original files supplied for an import and connects their recorded values to the equipment, rig configuration, and samples that give them scientific meaning. {% .lead %}
 
 You can drop any data file into Adacta. Adacta retains it even when it cannot yet interpret the contents. The amount of work needed to import a CSV-based file depends on how much information the file provides about its columns, devices, and units.
 
@@ -137,13 +137,17 @@ Adacta reads the CSV and writes Parquet in batches. The full CSV and Parquet fil
 
 The dataset page charts the complete recording using a bounded overview. Each interval retains its first and last row, the minimum and maximum value for each numeric channel, and the outer missing-value boundaries. When an interval has additional gaps, one marker can stand for several gaps and interrupts the chart line. The data table shows 200 exact rows per page. A quality table reports exact missing-value counts and channel ranges. It also reports repeated or backward x values and the longest forward step. The Parquet file records the x axis in file metadata.
 
-The order of `columns` is the order of fields in the CSV. An item is identified by exactly one of `id`, `slug`, or `serial_number`. Each entry in `experiment.samples` pairs a diagram `symbol_key` with exactly one sample `id` or `slug`. The sample list can be empty. Prefer `slug` for reusable item mappings because database IDs can differ between Adacta installations. Sample slugs are unique only within their batch; generated sidecars use sample IDs to identify them unambiguously.
+The order of `columns` is the order of fields in the CSV. An equipment unit is identified by exactly one of `id`, `slug`, or `serial_number`. The `slug` belongs to equipment, even when a rig has the same slug. Each entry in `experiment.samples` pairs a diagram `symbol_key` with exactly one sample `id` or `slug`. The sample list can be empty. Prefer `slug` for reusable item mappings because database IDs can differ between Adacta installations. Sample slugs are unique only within their batch; generated sidecars use sample IDs to identify them unambiguously.
+
+### Serial numbers shared by different products
+
+Serial numbers are unique within a product. If `serial_number` matches several equipment units in the selected rig's P&ID, the import stops and names those units. Use the unit's `id` or `slug` in the corrected sidecar, then upload it with the CSV again.
 
 ## Generate device mappings in control software
 
 The Standard Format and TOML-sidecar paths are especially convenient when hardware-control software, such as LabVIEW, can read the configured devices' identifiers and use them when it exports data. The control software can then generate the CSV header rows or sidecar automatically instead of requiring an operator to enter a mapping after each recording.
 
-When a file receives its device IDs directly from the configured hardware, you may treat those device mappings as authoritative. If Adacta reports that they conflict with the saved facility flowchart, the file is strong evidence that the facility record needs correction. Adacta still reports the conflict, so that you can review the change before updating the facility record.
+When a file receives its device IDs directly from the configured hardware, you may treat those device mappings as authoritative. If Adacta reports that they conflict with the saved rig flowchart, the file is strong evidence that the rig record needs correction. Adacta still reports the conflict, so that you can review the change before updating the rig record.
 
 ## 3. Use guided import
 
@@ -153,17 +157,17 @@ Adacta shows a preview and asks for the file structure, time axis, column meanin
 
 This is the most manual import path, but it makes ordinary and undocumented CSV files importable without changing the acquisition system.
 
-## Resolve conflicts with the facility record
+## Resolve conflicts with the rig record
 
-Adacta compares the device IDs supplied or selected during import with the facility flowchart (P&ID) recorded for the data's time range. If they disagree, Adacta reports the conflict rather than automatically deciding which record is correct.
+Adacta compares the device IDs supplied or selected during import with the rig flowchart (P&ID) recorded for the data's time range. If they disagree, Adacta reports the conflict rather than automatically deciding which record is correct.
 
 You can then choose one of two actions:
 
 - Correct the source file or sidecar and upload the corrected files when the imported device information is wrong.
-- Change the facility record when the imported device information is correct and the saved facility flowchart no longer reflects the real setup.
+- Change the rig record when the imported device information is correct and the saved rig flowchart no longer reflects the real setup.
 
 The original source bundle remains available in either case. Corrected files are uploaded as a new source bundle; Adacta does not overwrite the original evidence.
 
 ## Validate the imported dataset
 
-Before relying on an imported dataset, verify its time range, each device and channel association, physical units, facility context, and any reported conflicts or warnings. Correct the source description or facility record when necessary, then repeat the import using the preserved source files.
+Before relying on an imported dataset, verify its time range, each device and channel association, physical units, rig context, and any reported conflicts or warnings. Correct the source description or rig record when necessary, then repeat the import using the preserved source files.

@@ -6,13 +6,13 @@ title: Setup evidence and change types
 This document describes planned features. They are currently not available.
 {% /callout %}
 
-Adacta records which equipment was installed in a facility at any point in the past. This page describes where that record comes from, how well it is supported, and what happens when two sources disagree. {% .lead %}
+Adacta records which equipment was installed in a rig at any point in the past. This page describes where that record comes from, how well it is supported, and what happens when two sources disagree. {% .lead %}
 
-The facility state itself is described in [Facility flowcharts and states](/docs/flowcharts-and-states).
+The rig configuration itself is described in [Rig flowcharts and states](/docs/flowcharts-and-states).
 
 ## Two kinds of setup change
 
-Not every change to a facility costs the same amount of work. Adacta distinguishes two kinds.
+Not every change to a rig costs the same amount of work. Adacta distinguishes two kinds.
 
 A **light change** replaces one item with another of the same kind in the same position. Fitting a spare mass flow controller after the original fails is a light change. The process itself is unchanged, so the flowchart stays as it is and existing photographs still show the setup correctly. Only the record of which physical item occupied the position changes.
 
@@ -28,17 +28,17 @@ Because a light change cannot alter the flowchart, it is safe to derive from imp
 
 ## Photographs of the setup
 
-A flowchart shows how a facility is meant to work. A photograph shows what was actually there. Both are worth keeping.
+A flowchart shows how a rig is meant to work. A photograph shows what was actually there. Both are worth keeping.
 
-A photograph carries its own **capture date and time**. This is separate from the validity date of a facility state, and it is what makes the photograph useful as evidence. It records the condition of the equipment at one specific moment.
+A photograph carries its own **capture date and time**. This is separate from the validity date of a rig configuration, and it is what makes the photograph useful as evidence. It records the condition of the equipment at one specific moment.
 
 Upload photographs whenever the visible setup changes, and after every heavy change. A photograph taken at commissioning and never replaced becomes misleading once the rig has been rebuilt.
 
-Adacta can point out when the photographs for a facility are older than its most recent heavy change.
+Adacta can point out when the photographs for a rig are older than its most recent heavy change.
 
 ### Placing tags on a photograph
 
-A **tag** marks a region of a photograph and links it to something in the facility. Mark the region, then choose what it refers to:
+A **tag** marks a region of a photograph and links it to something in the rig. Mark the region, then choose what it refers to:
 
 - a position in the flowchart;
 - a specific inventory item, when the photograph shows something that identifies it, such as a serial number plate;
@@ -61,7 +61,7 @@ Repeated imports that agree do not create repeated entries. They confirm the exi
 
 Confirmation is requested once for each mapping, not once for each file.
 
-The judgment a person has to make is whether a source identifier such as `FT-101` refers to a particular position in a particular facility. Once that mapping is confirmed, later imports using the same identifier are applied without asking again. An identifier that Adacta has not seen before triggers a new request.
+The judgment a person has to make is whether a source identifier such as `FT-101` refers to a particular position in a particular rig. Once that mapping is confirmed, later imports using the same identifier are applied without asking again. An identifier that Adacta has not seen before triggers a new request.
 
 ### What a sidecar can and cannot show
 
@@ -96,11 +96,11 @@ A disputed record stays readable, and anything that depends on it is marked as w
 
 Warnings appear where the affected information is used:
 
-- on the facility, for conflicts touching that facility;
-- on a facility state, for conflicts inside its validity period; and
+- on the rig, for conflicts touching that rig;
+- on a rig configuration, for conflicts inside its validity period; and
 - on a resource, when the setup record covering its recording interval is disputed.
 
-The last one matters most. Someone downloading a dataset needs to know that the setup record for that period is contested, and that person may never open the facility page.
+The last one matters most. Someone downloading a dataset needs to know that the setup record for that period is contested, and that person may never open the rig page.
 
 A application-wide warning is reserved for conflicts that nobody has marked. An unmarked conflict means something went wrong that no one noticed, so it is shown at the top of the application until it is resolved or marked as disputed. Conflicts that are already marked as disputed do not trigger this warning, because someone is already dealing with them.
 
@@ -110,15 +110,15 @@ The warning names what is wrong rather than reporting a general fault:
 2 unresolved conflicts
 
 MFC-4 (serial 12345)
-  Catalyst Test Station A, position MFC-4   2026-03-01 to 2026-06-14
-  Catalyst Test Station B, position MFC-2   2026-05-02 to open
-  Sources: sidecar (Station A), manual entry (Station B)
+  Catalyst Test Rig A, position MFC-4   2026-03-01 to 2026-06-14
+  Catalyst Test Rig B, position MFC-2   2026-05-02 to open
+  Sources: sidecar (Rig A), manual entry (Rig B)
 ```
 
 ## Recording changes well
 
 - Record a light change when an item is replaced in an otherwise unchanged setup.
-- Create a new facility state for a heavy change, and edit the flowchart to match.
+- Create a new rig configuration for a heavy change, and edit the flowchart to match.
 - Take a photograph after every heavy change, and tag the positions it shows.
 - Do not correct a record you are unsure about. Mark it as disputed and resolve it once the facts are known.
 - Keep the source of every statement. A record whose origin is unknown cannot be weighed against a record that disagrees with it.

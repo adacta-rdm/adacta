@@ -9,8 +9,6 @@ This document describes a planned feature. It is currently not available.
 
 The planned import workflow preserves original source files while turning their scientific meaning and real-world context into searchable relationships. It is intended to reduce repetitive manual mapping without hiding uncertainty or inventing information that is absent from the source. {% .lead %}
 
-This page uses **station** for the concept currently called **facility** in the application.
-
 ## Source bundles
 
 A **source bundle** is the complete group of original files supplied together for one import. It may contain:
@@ -80,7 +78,7 @@ Source field: FT101_PV
 Unit: ml/min
 ```
 
-Several recorded channels can share one time axis while belonging to different physical items. This allows a station-wide CSV to remain one coherent dataset without losing the device association of each individual channel.
+Several recorded channels can share one time axis while belonging to different physical items. This allows a rig-wide CSV to remain one coherent dataset without losing the device association of each individual channel.
 
 The efficient stored representation may be tabular or columnar, but that representation does not define the scientific model. Device associations, channel meaning, axes, and provenance remain explicit and queryable.
 
@@ -96,7 +94,7 @@ A sidecar may describe:
 - source identifiers for equipment;
 - product-channel keys;
 - quantity kinds and units;
-- station, sample, or sample-batch identifiers; and
+- rig, sample, or sample-batch identifiers; and
 - other information required by a format-specific importer.
 
 Dataset CSV imports use a TOML sidecar. It defines the CSV structure and describes each column in source order:
@@ -150,29 +148,29 @@ The first implementation does not require a separate history table for every cor
 
 Files can be dropped from several places in Adacta. The drop location provides useful context, but it is a starting hypothesis rather than a boundary on what the source may contain.
 
-| Drop location               | Initial information                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------------------ |
-| Application-wide drop zone  | No station or item is assumed. Adacta first uses evidence from the source.                 |
-| Station page                | The station is a strong candidate, and its time-valid items can be used during resolution. |
-| Inventory-item page         | The item, its product, and its product channels become useful candidates.                  |
-| Sample or sample-batch page | The sample lifecycle association becomes a candidate.                                      |
+| Drop location               | Initial information                                                                    |
+| --------------------------- | -------------------------------------------------------------------------------------- |
+| Application-wide drop zone  | No rig or item is assumed. Adacta first uses evidence from the source.                 |
+| Rig page                    | The rig is a strong candidate, and its time-valid items can be used during resolution. |
+| Inventory-item page         | The item, its product, and its product channels become useful candidates.              |
+| Sample or sample-batch page | The sample lifecycle association becomes a candidate.                                  |
 
-Drop context, sidecar information, embedded vendor metadata, detected timestamps, station history, and user input are all evidence. When they agree, Adacta can resolve context automatically. When they conflict, the import page shows the conflict instead of silently choosing one source.
+Drop context, sidecar information, embedded vendor metadata, detected timestamps, rig history, and user input are all evidence. When they agree, Adacta can resolve context automatically. When they conflict, the import page shows the conflict instead of silently choosing one source.
 
-### A station-wide CSV dropped onto one MFC
+### A rig-wide CSV dropped onto one MFC
 
 Dropping a CSV onto one MFC does not mean every column belongs to that MFC. If inspection finds columns from several devices, the selected MFC acts as an anchor:
 
-1. Adacta uses the MFC and recording time to suggest the station in which it was installed.
+1. Adacta uses the MFC and recording time to suggest the rig in which it was installed.
 2. Columns matching the MFC's product channels can be resolved to that item.
-3. Other identifiers are resolved independently against items present in the station configuration.
-4. The station-wide source remains one dataset containing recorded channels from several items.
+3. Other identifiers are resolved independently against items present in the rig configuration.
+4. The rig-wide source remains one dataset containing recorded channels from several items.
 5. Unknown or conflicting columns are presented for review.
 
 The import page might therefore report:
 
 ```text
-Suggested station: Catalyst Test Station A
+Suggested rig: Catalyst Test Rig A
 Reason: MFC-4 and five other identified items were installed there
 during the detected recording interval.
 
@@ -184,7 +182,7 @@ Other items
 1 channel needs attention
 ```
 
-If the source provides no useful identifiers, the drop target can still narrow the initial station and product-channel choices, but Adacta does not automatically assign unrelated columns to it.
+If the source provides no useful identifiers, the drop target can still narrow the initial rig and product-channel choices, but Adacta does not automatically assign unrelated columns to it.
 
 ### Unknown and conflicting context
 
@@ -233,9 +231,9 @@ The interface reports progress and failures. It provides retry and cancellation 
 The model is intended to support questions such as:
 
 - Which data was recorded by this physical item?
-- Which data was produced at this station during a particular period?
+- Which data was produced at this rig during a particular period?
 - Which data was associated with this sample batch across its full lifecycle?
 - Which work was performed by a particular user during a time range?
 - Which actual values correspond to a particular setpoint history?
 
-An experiment can therefore be presented as a dynamic or saved selection over sample batch, station, time, user, and other context. It does not need to be a rigid container that owns one recording. This allows synthesis, characterization, activation, and activity measurements to be viewed together when they belong to the same sample-batch lifecycle.
+An experiment can therefore be presented as a dynamic or saved selection over sample batch, rig, time, user, and other context. It does not need to be a rigid container that owns one recording. This allows synthesis, characterization, activation, and activity measurements to be viewed together when they belong to the same sample-batch lifecycle.
