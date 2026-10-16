@@ -7,6 +7,7 @@ import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { NoteManager } from "~/app/services/NoteManager.ts";
 import { Security } from "~/app/services/Security.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
+import { UserManager } from "~/app/services/UserManager.ts";
 import { createTestBatch, createTestSample, createTestNote } from "~/app/testUtils/testRecords.ts";
 import { testRoute } from "~/app/testUtils/testRoute.ts";
 import {
@@ -23,6 +24,32 @@ import { id53 } from "~/lib/id53/id53.ts";
 
 describe("samples.$batchSlug._index", () => {
 	describe("loader", () => {
+		test("returns batches and samples with their preparers", async () => {
+			const scope = await setupTestRequestScope();
+			const preparer = await scope.get(UserManager).createRecordOnlyUser({
+				name: "Ada Researcher",
+				email: "ada@example.com",
+			});
+			const batch = await createTestBatch(scope, {
+				preparedById: preparer.id,
+			});
+			const sample = await createTestSample(scope, batch, {
+				preparedById: scope.get(Security).userId,
+			});
+			const route = testRoute(scope, batchRoute, { batchSlug: batch.slug });
+
+			const result = await route.loader();
+
+			expect(result.data!.batch).toMatchObject({
+				name: batch.name,
+				preparedBy: { id: preparer.id, name: preparer.name },
+			});
+			expect(result.data!.samples[0]).toMatchObject({
+				id: sample.id,
+				preparedBy: { id: scope.get(Security).userId, name: "Test User" },
+			});
+		});
+
 		test("returns current text with the first author and edit details", async () => {
 			const scope = await setupTestRequestScope();
 			const firstAuthorId = scope.get(Security).userId;
@@ -380,7 +407,7 @@ describe("samples.$batchSlug._index", () => {
 
 			expect(result.status).toBe(303);
 			const { samples } = (await route.loader()).data!;
-			expect(samples[0]?.preparedById).toBe(batch.preparedById);
+			expect(samples[0]?.preparedBy?.id).toBe(batch.preparedById);
 		});
 
 		test("accepts a registered sample preparer and records the creator separately", async () => {

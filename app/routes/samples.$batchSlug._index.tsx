@@ -8,7 +8,6 @@ import { services } from "~/app/.server/context.ts";
 import { formatBatchComposition } from "~/app/lib/batchComposition.ts";
 import { formatCalendarDate } from "~/app/lib/dates.ts";
 import { readNoteFormData } from "~/app/lib/noteFormData.ts";
-import { resolveNoteAuthors } from "~/app/lib/notes.ts";
 import { compareSampleNames } from "~/app/lib/sampleNames.ts";
 import {
 	addSubmittedSample,
@@ -24,6 +23,7 @@ import { Security } from "~/app/services/Security.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
 import { UserManager } from "~/app/services/UserManager.ts";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
+import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { Sample } from "~/drizzle/schema/Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { parseId53 } from "~/lib/id53/parseId53.ts";
@@ -51,10 +51,11 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		.select({
 			id: Sample.id,
 			name: Sample.name,
-			preparedById: Sample.preparedById,
+			preparedBy: { id: User.id, name: User.name },
 			metadataArchivedAt: Sample.metadataArchivedAt,
 		})
 		.from(Sample)
+		.innerJoin(User, eq(User.id, Sample.preparedById))
 		.where(eq(Sample.batchId, batch.id));
 
 	samples.sort((left, right) => compareSampleNames(left.name, right.name));
@@ -62,17 +63,14 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	const users = new Map((await access.users()).map((user) => [user.id, user]));
 	// The page shows the notes about the batch and about each of its samples,
 	// archived ones included.
-	const notes = resolveNoteAuthors(
-		await container.get(NoteManager).aboutBatch(batch.id, {
-			samples: new Map(
-				samples.map((sample) => [
-					sample.id,
-					{ name: sample.name, archived: sample.metadataArchivedAt !== null },
-				]),
-			),
-		}),
-		users,
-	);
+	const notes = await container.get(NoteManager).aboutBatch(batch.id, {
+		samples: new Map(
+			samples.map((sample) => [
+				sample.id,
+				{ name: sample.name, archived: sample.metadataArchivedAt !== null },
+			]),
+		),
+	});
 
 	return {
 		// An archived batch keeps its page, so a link from the archived tab
@@ -80,12 +78,8 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		// offers no way to change it.
 		archived,
 
-		// A record may refer to a deleted user. Its name is then unavailable.
-		batch: { ...batch, preparedBy: users.get(batch.preparedById) },
-		samples: samples.map((sample) => ({
-			...sample,
-			preparedBy: users.get(sample.preparedById),
-		})),
+		batch: { ...batch, preparedBy: found.preparedBy },
+		samples,
 		notes,
 		users,
 	};
@@ -280,7 +274,7 @@ export default function SamplesBatchSlugIndex({ actionData, loaderData }: Route.
 						</time>
 					</Fact>
 
-					<Fact label="Prepared by">{batch.preparedBy?.name ?? "Unknown"}</Fact>
+					<Fact label="Prepared by">{batch.preparedBy.name}</Fact>
 
 					<Fact label="Composition">
 						{composition ? (
@@ -355,6 +349,7 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 async function findBatch(db: ApplicationDatabase, batchSlug: string) {
 	return await db
 		.select({
+			preparedBy: { id: User.id, name: User.name },
 			archived: sql<boolean>`${SampleBatch.metadataArchivedAt} is not null`.mapWith(Boolean),
 			batch: {
 				id: SampleBatch.id,
@@ -367,6 +362,7 @@ async function findBatch(db: ApplicationDatabase, batchSlug: string) {
 			},
 		})
 		.from(SampleBatch)
+		.innerJoin(User, eq(User.id, SampleBatch.preparedById))
 		.where(eq(SampleBatch.slug, batchSlug))
 		.get();
 }

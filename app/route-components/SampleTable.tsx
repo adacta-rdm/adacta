@@ -9,7 +9,7 @@ import type { SampleErrors } from "~/app/lib/sampleSubmission.ts";
 export interface SampleRow {
 	id: number;
 	name: string;
-	preparedBy?: { name: string } | undefined;
+	preparedBy: { name: string };
 	metadataArchivedAt: Date | null;
 }
 
@@ -17,7 +17,7 @@ export interface SampleBatchRow {
 	name: string;
 	preparationDate: string;
 	preparedById: string;
-	preparedBy?: { name: string } | undefined;
+	preparedBy: { name: string };
 }
 
 /**
@@ -157,7 +157,7 @@ export function SampleRows({
 								{sample.name}
 							</span>
 						),
-						[columns.preparedBy]: sample.preparedBy?.name ?? "Unknown",
+						[columns.preparedBy]: sample.preparedBy.name,
 
 						// A sample is a portion of the batch. It was prepared on the day the
 						// batch material was prepared.
@@ -223,7 +223,7 @@ export function SampleRows({
 										aria-describedby={preparerError ? preparerErrorId : undefined}
 										className="rounded-md border border-border bg-surface px-2 py-1 text-foreground focus:border-focus focus:outline-none"
 									>
-										<option value="">Same as batch ({batch.preparedBy?.name ?? "Unknown"})</option>
+										<option value="">Same as batch ({batch.preparedBy.name})</option>
 										{preparers
 											.filter((preparer) => preparer.id !== batch.preparedById)
 											.map((preparer) => (

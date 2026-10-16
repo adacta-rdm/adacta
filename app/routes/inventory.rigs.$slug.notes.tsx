@@ -7,12 +7,11 @@ import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { parseZonedDateTime } from "~/app/lib/dates.ts";
 import { inventoryEntryPath } from "~/app/lib/inventory.ts";
 import { readNoteFormData } from "~/app/lib/noteFormData.ts";
-import { noteErrorsWithFileRetry, resolveNoteAuthors } from "~/app/lib/notes.ts";
+import { noteErrorsWithFileRetry } from "~/app/lib/notes.ts";
 import { NoteList } from "~/app/route-components/NoteList.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { NoteManager, NoteNotFoundError } from "~/app/services/NoteManager.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
-import { UserManager } from "~/app/services/UserManager.ts";
 import { Subheading } from "~/catalyst-ui/heading.tsx";
 import { Rig } from "~/drizzle/schema/Rig.ts";
 
@@ -27,11 +26,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 
 	if (!rig) throw new Response(`Rig "${params.slug}" not found.`, { status: 404 });
 
-	const users = new Map((await container.get(UserManager).users()).map((user) => [user.id, user]));
-	const notes = resolveNoteAuthors(
-		await container.get(NoteManager).about([rig.id], { order: "observed" }),
-		users,
-	);
+	const notes = await container.get(NoteManager).about([rig.id], { order: "observed" });
 
 	return { notes, defaultObservedAt: new Date() };
 }

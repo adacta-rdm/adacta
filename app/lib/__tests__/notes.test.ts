@@ -3,16 +3,20 @@ import { describe, expect, test } from "bun:test";
 import { currentNotes } from "~/app/lib/notes.ts";
 import type { Entity } from "~/drizzle/Schema.ts";
 
-function note(overrides: Partial<Entity<"Note">> & Pick<Entity<"Note">, "id" | "body">) {
+function note(
+	overrides: Partial<Entity<"Note">> &
+		Pick<Entity<"Note">, "id" | "body"> & { author?: { id: string; name: string } },
+) {
 	return {
 		noteSubjectId: 17,
 		observedAt: null,
 		supersedesId: null,
 		metadataCreatorId: "first-author",
+		author: { id: "first-author", name: "First author" },
 		metadataCreationTimestamp: new Date("2026-01-15T13:00:00.000Z"),
 		metadataArchivedAt: null,
 		...overrides,
-	} satisfies Entity<"Note">;
+	};
 }
 
 describe("currentNotes", () => {
@@ -23,6 +27,7 @@ describe("currentNotes", () => {
 			body: "Powder is light grey.",
 			supersedesId: first.id,
 			metadataCreatorId: "editor",
+			author: { id: "editor", name: "Editor" },
 			metadataCreationTimestamp: new Date("2026-01-16T14:00:00.000Z"),
 		});
 
@@ -31,10 +36,10 @@ describe("currentNotes", () => {
 				id: edit.id,
 				versionIds: [edit.id, first.id],
 				body: edit.body,
-				authorId: "first-author",
+				author: first.author,
 				writtenAt: first.metadataCreationTimestamp,
 				edit: {
-					authorId: "editor",
+					author: edit.author,
 					editedAt: edit.metadataCreationTimestamp,
 				},
 				attachments: [],

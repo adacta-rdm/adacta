@@ -47,8 +47,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 				createdBy: User.name,
 			})
 			.from(Rig)
-			// A record may refer to a deleted user. Its name is then unavailable.
-			.leftJoin(User, eq(User.id, Rig.metadataCreatorId))
+			.innerJoin(User, eq(User.id, Rig.metadataCreatorId))
 			.where(and(isNull(Rig.metadataArchivedAt), eq(Rig.slug, params.slug)))
 			.limit(1)
 	).at(0);

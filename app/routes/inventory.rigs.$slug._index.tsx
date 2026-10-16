@@ -9,7 +9,7 @@ export default function InventoryRigsSlugIndex() {
 
 	return (
 		<div className="space-y-2 text-sm text-foreground-muted">
-			<p>Added by: {data.createdBy ?? "Unknown"}</p>
+			<p>Added by: {data.createdBy}</p>
 			<p>
 				Added to Adacta:{" "}
 				<time dateTime={data.createdAt.toISOString()}>{formatTimestamp(data.createdAt)}</time>

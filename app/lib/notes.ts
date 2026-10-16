@@ -9,10 +9,10 @@ export interface CurrentNote {
 	id: number;
 	versionIds: number[];
 	body: string;
-	authorId: string;
+	author: { id: string; name: string };
 	writtenAt: Date;
 	edit: {
-		authorId: string;
+		author: { id: string; name: string };
 		editedAt: Date;
 	} | null;
 	observedAt?: Date | undefined;
@@ -53,7 +53,7 @@ export interface CurrentNotesOptions {
  * Build one display row for every note chain that remains visible.
  */
 export function currentNotes(
-	rows: Entity<"Note">[],
+	rows: (Entity<"Note"> & { author: CurrentNote["author"] })[],
 	options: CurrentNotesOptions = {},
 ): CurrentNote[] {
 	const byId = new Map(rows.map((row) => [row.id, row]));
@@ -78,14 +78,14 @@ export function currentNotes(
 				id: current.id,
 				versionIds,
 				body: current.body,
-				authorId: first.metadataCreatorId,
+				author: first.author,
 				writtenAt: first.metadataCreationTimestamp,
 				attachments: options.attachments?.get(current.id) ?? [],
 				edit:
 					current.id === first.id
 						? null
 						: {
-								authorId: current.metadataCreatorId,
+								author: current.author,
 								editedAt: current.metadataCreationTimestamp,
 							},
 			};
@@ -114,27 +114,6 @@ export function currentNotes(
 
 			return leftTime - rightTime || left.id - right.id;
 		});
-}
-
-/**
- * Replace the author IDs of each note with the users. For example, the author
- * ID "u1" becomes `{ id: "u1", name: "Ada" }`. An ID that is not in `users`
- * becomes undefined.
- */
-export function resolveNoteAuthors(
-	notes: CurrentNote[],
-	users: Map<string, { id: string; name: string }>,
-) {
-	return notes.map(({ authorId, edit, ...note }) => ({
-		...note,
-		author: users.get(authorId),
-		edit: edit
-			? {
-					author: users.get(edit.authorId),
-					editedAt: edit.editedAt,
-				}
-			: null,
-	}));
 }
 
 /**

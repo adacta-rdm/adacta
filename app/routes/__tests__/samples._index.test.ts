@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import * as indexRoute from "~/app/routes/samples._index.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
+import { UserManager } from "~/app/services/UserManager.ts";
 import { createTestBatch, createTestSample } from "~/app/testUtils/testRecords.ts";
 import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { captureTestLogs, setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
@@ -13,6 +14,32 @@ import { id53 } from "~/lib/id53/id53.ts";
 
 describe("samples._index", () => {
 	describe("loader", () => {
+		test("returns batches and samples with their preparers", async () => {
+			const scope = await setupTestRequestScope();
+			const preparer = await scope.get(UserManager).createRecordOnlyUser({
+				name: "Ada Researcher",
+				email: "ada@example.com",
+			});
+			const batch = await createTestBatch(scope, {
+				preparedById: preparer.id,
+			});
+			const sample = await createTestSample(scope, batch, {
+				preparedById: scope.get(Security).userId,
+			});
+			const route = testRoute(scope, indexRoute, {});
+
+			const result = await route.loader({ query: { open: batch.slug } });
+
+			expect(result.data!.batches[0]).toMatchObject({
+				name: batch.name,
+				preparedBy: { id: preparer.id, name: preparer.name },
+			});
+			expect(result.data!.openSamples?.[0]).toMatchObject({
+				id: sample.id,
+				preparedBy: { id: scope.get(Security).userId, name: "Test User" },
+			});
+		});
+
 		test("describes each batch", async () => {
 			const scope = await setupTestRequestScope();
 			const route = testRoute(scope, indexRoute, {});

@@ -7,14 +7,6 @@ import { NoteMarkdown } from "~/app/components/NoteMarkdown.tsx";
 import type { CurrentNote, NoteAttachmentData, NoteErrors } from "~/app/lib/notes.ts";
 import { parseId53 } from "~/lib/id53/parseId53.ts";
 
-type DisplayNote = Omit<CurrentNote, "authorId" | "edit"> & {
-	author: { id: string; name: string } | undefined;
-	edit: {
-		author: { id: string; name: string } | undefined;
-		editedAt: Date;
-	} | null;
-};
-
 /**
  * The current notes of one subject page and the forms that change them.
  *
@@ -29,7 +21,7 @@ export function NoteList({
 	aboutOptions,
 	defaultObservedAt,
 }: {
-	notes: readonly DisplayNote[];
+	notes: readonly CurrentNote[];
 	pagePath: string;
 	filePath: string;
 	readOnly: boolean;
@@ -178,7 +170,7 @@ export function NoteList({
 														{note.sampleName}
 													</span>
 												) : null}
-												<span>{note.author?.name ?? "Unknown"}</span>
+												<span>{note.author.name}</span>
 												{!note.observedAt ||
 												!hasHydrated ||
 												!sameDay(note.observedAt, note.writtenAt) ? (
@@ -193,7 +185,7 @@ export function NoteList({
 
 											{note.edit ? (
 												<p>
-													Edited by {note.edit.author?.name ?? "Unknown"} on{" "}
+													Edited by {note.edit.author.name} on{" "}
 													<LocalDateTime value={note.edit.editedAt} />
 												</p>
 											) : null}

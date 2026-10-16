@@ -9,7 +9,7 @@
  * An edit creates a row that names the version it replaces. An archive marks
  * the current row. Existing text and attachments therefore remain unchanged.
  */
-import { type SQL, and, asc, eq, inArray, isNull, notExists, or } from "drizzle-orm";
+import { type SQL, and, asc, eq, getColumns, inArray, isNull, notExists, or } from "drizzle-orm";
 
 import {
 	currentNotes,
@@ -23,6 +23,7 @@ import { type BatchStatement, ApplicationDatabase } from "~/app/services/Applica
 import { Security } from "~/app/services/Security.ts";
 import { type PendingUpload, UploadManager } from "~/app/services/UploadManager.ts";
 import type { Entity } from "~/drizzle/Schema.ts";
+import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { Note } from "~/drizzle/schema/Note.ts";
 import { NoteAttachment } from "~/drizzle/schema/NoteAttachment.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
@@ -50,10 +51,7 @@ export class NoteManager {
 	) {}
 
 	/**
-	 * Return the current notes about the given subjects.
-	 *
-	 * Creator ids remain plain ids here. The routes resolve their names through
-	 * the application database before passing the notes to the component.
+	 * Return the current notes about the given subjects, with their authors.
 	 */
 	async about(
 		subjectIds: readonly number[],
@@ -90,7 +88,14 @@ export class NoteManager {
 		condition: SQL,
 		options: Omit<CurrentNotesOptions, "attachments">,
 	): Promise<CurrentNote[]> {
-		const rows = await this.db.select().from(Note).where(condition).all();
+		// Each version carries its author, so the first and latest versions retain
+		// their names when currentNotes follows the chain of edits.
+		const rows = await this.db
+			.select({ ...getColumns(Note), author: { id: User.id, name: User.name } })
+			.from(Note)
+			.innerJoin(User, eq(User.id, Note.metadataCreatorId))
+			.where(condition)
+			.all();
 
 		return currentNotes(rows, {
 			...options,

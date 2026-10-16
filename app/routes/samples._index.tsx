@@ -40,6 +40,7 @@ import { Security } from "~/app/services/Security.ts";
 import { UserManager } from "~/app/services/UserManager.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
+import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { Sample } from "~/drizzle/schema/Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { FormValues } from "~/lib/form-values/FormValues.ts";
@@ -83,6 +84,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 			slug: SampleBatch.slug,
 			name: SampleBatch.name,
 			preparedById: SampleBatch.preparedById,
+			preparedBy: { id: User.id, name: User.name },
 			archivedAt: SampleBatch.metadataArchivedAt,
 			preparationDate: SampleBatch.preparationDate,
 			activeMaterial: SampleBatch.activeMaterial,
@@ -90,6 +92,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 			sampleCount: count(Sample.id),
 		})
 		.from(SampleBatch)
+		.innerJoin(User, eq(User.id, SampleBatch.preparedById))
 		// Archived samples are left out of the join, so a batch with none left
 		// still appears, with a count of zero.
 		.leftJoin(Sample, and(eq(Sample.batchId, SampleBatch.id), isNull(Sample.metadataArchivedAt)))
@@ -114,8 +117,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 		.where(isNull(SampleBatch.metadataArchivedAt))
 		.get();
 
-	// A record may refer to a deleted user. Its name is then unavailable.
-	const users = new Map((await access.users()).map((user) => [user.id, user]));
+	const preparers = await access.users();
 
 	/*
 		A row can only be open when it is on the tab in view. An address naming a
@@ -133,7 +135,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 
 	return {
 		open: openBatch?.slug ?? null,
-		preparers: [...users.values()],
+		preparers,
 
 		// Archived samples are read as well. The add row suggests the next free
 		// label, and a label that was used before is not free.
@@ -143,23 +145,19 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 						.select({
 							id: Sample.id,
 							name: Sample.name,
-							preparedById: Sample.preparedById,
+							preparedBy: { id: User.id, name: User.name },
 							metadataArchivedAt: Sample.metadataArchivedAt,
 						})
 						.from(Sample)
+						.innerJoin(User, eq(User.id, Sample.preparedById))
 						.where(eq(Sample.batchId, openBatch.id))
 						.all()
-				)
-					.sort((left, right) => compareSampleNames(left.name, right.name))
-					.map((sample) => ({ ...sample, preparedBy: users.get(sample.preparedById) }))
+				).sort((left, right) => compareSampleNames(left.name, right.name))
 			: null,
 
 		showArchived,
 		counts: { active: activeCount?.total ?? 0, archived: archivedCount?.total ?? 0 },
-		batches: rows.map((batch) => ({
-			...batch,
-			preparedBy: users.get(batch.preparedById),
-		})),
+		batches: rows,
 	};
 }
 
@@ -398,9 +396,7 @@ export default function SamplesIndex({ actionData, loaderData }: Route.Component
 
 											<td className="py-3 pr-4 text-foreground-muted">{batch.sampleCount}</td>
 
-											<td className="py-3 pr-4 text-foreground-muted">
-												{batch.preparedBy?.name ?? "Unknown"}
-											</td>
+											<td className="py-3 pr-4 text-foreground-muted">{batch.preparedBy.name}</td>
 
 											<td className="py-3 pr-4 text-foreground-muted">
 												<time dateTime={batch.preparationDate}>

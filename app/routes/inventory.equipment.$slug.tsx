@@ -68,8 +68,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			.from(Equipment)
 			.innerJoin(Product, eq(Product.id, Equipment.productId))
 			.innerJoin(Manufacturer, eq(Manufacturer.id, Product.manufacturerId))
-			// A record may refer to a deleted user. Its name is then unavailable.
-			.leftJoin(User, eq(User.id, Equipment.metadataCreatorId))
+			.innerJoin(User, eq(User.id, Equipment.metadataCreatorId))
 			.where(and(isNull(Equipment.metadataArchivedAt), eq(Equipment.slug, params.slug)))
 			.limit(1)
 	).at(0);
@@ -160,7 +159,7 @@ export default function InventoryEquipmentSlug({ loaderData }: Route.ComponentPr
 			</section>
 
 			<div className="space-y-2 text-sm text-foreground-muted">
-				<p>Added by: {entry.createdBy ?? "Unknown"}</p>
+				<p>Added by: {entry.createdBy}</p>
 				<p>
 					Added to Adacta:{" "}
 					<time dateTime={entry.createdAt.toISOString()}>{formatTimestamp(entry.createdAt)}</time>
