@@ -43,7 +43,20 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	const db = context.get(services).get(ApplicationDatabase);
 
 	const row = await db
-		.select({ product: Product, series: ProductSeries })
+		.select({
+			productId: Product.id,
+			seriesId: ProductSeries.id,
+			manufacturerName: Manufacturer.name,
+			product: {
+				name: Product.name,
+				productNumber: Product.productNumber,
+				subtitle: Product.subtitle,
+				description: Product.description,
+				imageFileId: Product.imageFileId,
+				origin: Product.origin,
+			},
+			series: { name: ProductSeries.name },
+		})
 		.from(Product)
 		.innerJoin(Manufacturer, eq(Manufacturer.id, Product.manufacturerId))
 		.leftJoin(ProductSeries, eq(ProductSeries.id, Product.seriesId))
@@ -60,13 +73,15 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		throw new Response(`Product "${params.productSlug}" not found.`, { status: 404 });
 	}
 
-	const specificationsOf = async (productId: number) => {
+	const { productId, seriesId, ...details } = row;
+
+	const specificationsOf = async (id: number) => {
 		const rows = await db
 			.select({ name: ProductSpecification.name, value: ProductSpecification.value })
 			.from(ProductSpecification)
 			.where(
 				and(
-					eq(ProductSpecification.productId, productId),
+					eq(ProductSpecification.productId, id),
 					isNotNull(ProductSpecification.value),
 					isNull(ProductSpecification.metadataArchivedAt),
 				),
@@ -76,16 +91,16 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		return rows.map((row) => ({ ...row, value: row.value! }));
 	};
 
-	const specifications = await specificationsOf(row.product.id);
+	const specifications = await specificationsOf(productId);
 
 	// The database stores every specification on every product. Which of them
 	// the family shares is therefore read back from the other members.
 	let sharedNames = new Set<string>();
-	if (row.series) {
+	if (seriesId !== null) {
 		const members = await db
 			.select({ id: Product.id })
 			.from(Product)
-			.where(and(eq(Product.seriesId, row.series.id), isNull(Product.metadataArchivedAt)))
+			.where(and(eq(Product.seriesId, seriesId), isNull(Product.metadataArchivedAt)))
 			.all();
 
 		const comparison = compareSpecifications(
@@ -105,41 +120,28 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			quantityKindId: Channel.quantityKindId,
 		})
 		.from(Channel)
-		.where(eq(Channel.productId, row.product.id))
+		.where(eq(Channel.productId, productId))
 		.orderBy(asc(Channel.position))
 		.all();
 
 	const source = await db
-		.select()
+		.select({
+			url: CatalogSource.url,
+			title: CatalogSource.title,
+			retrievedAt: CatalogSource.retrievedAt,
+		})
 		.from(CatalogSource)
-		.where(eq(CatalogSource.productId, row.product.id))
+		.where(eq(CatalogSource.productId, productId))
 		.get();
 
 	return {
-		manufacturerName: (await db
-			.select({ name: Manufacturer.name })
-			.from(Manufacturer)
-			.where(eq(Manufacturer.slug, params.manufacturerSlug))
-			.get())!.name,
-		product: {
-			name: row.product.name,
-			productNumber: row.product.productNumber,
-			subtitle: row.product.subtitle,
-			description: row.product.description,
-			imageFileId: row.product.imageFileId,
-			origin: row.product.origin,
-		},
-		series: row.series && { slug: row.series.slug, name: row.series.name },
+		...details,
 		specifications: specifications.map((specification) => ({
 			...specification,
 			shared: sharedNames.has(specification.name),
 		})),
 		channels,
-		source: source && {
-			url: source.url,
-			title: source.title,
-			retrievedAt: source.retrievedAt,
-		},
+		source,
 	};
 }
 

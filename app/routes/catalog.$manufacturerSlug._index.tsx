@@ -53,7 +53,15 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	}
 
 	const rows = await db
-		.select()
+		.select({
+			id: Product.id,
+			seriesId: Product.seriesId,
+			slug: Product.slug,
+			name: Product.name,
+			productNumber: Product.productNumber,
+			subtitle: Product.subtitle,
+			imageFileId: Product.imageFileId,
+		})
 		.from(Product)
 		.where(and(eq(Product.manufacturerId, manufacturer.id), isNull(Product.metadataArchivedAt)))
 		.orderBy(asc(Product.seriesPosition), asc(Product.productNumber))
@@ -81,7 +89,13 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	}
 
 	const seriesRows = await db
-		.select()
+		.select({
+			id: ProductSeries.id,
+			slug: ProductSeries.slug,
+			name: ProductSeries.name,
+			subtitle: ProductSeries.subtitle,
+			description: ProductSeries.description,
+		})
 		.from(ProductSeries)
 		.where(eq(ProductSeries.manufacturerId, manufacturer.id))
 		.orderBy(asc(ProductSeries.name))
@@ -103,7 +117,6 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			name: series.name,
 			subtitle: series.subtitle,
 			description: series.description,
-			website: series.website,
 			imageFileId: rows.find((p) => p.seriesId === series.id)?.imageFileId ?? null,
 			products: rows.filter((product) => product.seriesId === series.id).map(describe),
 		})),

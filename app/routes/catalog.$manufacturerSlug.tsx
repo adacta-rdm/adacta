@@ -32,33 +32,29 @@ export function meta({ loaderData }: Route.MetaArgs) {
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const db = context.get(services).get(ApplicationDatabase);
 
-	const manufacturer = await db
-		.select()
+	const row = await db
+		.select({
+			manufacturer: {
+				slug: Manufacturer.slug,
+				name: Manufacturer.name,
+				website: Manufacturer.website,
+				logoFileId: Manufacturer.logoFileId,
+			},
+			totals: { products: count(Product.id), series: countDistinct(Product.seriesId) },
+		})
 		.from(Manufacturer)
+		.leftJoin(Product, eq(Product.manufacturerId, Manufacturer.id))
 		.where(
 			and(eq(Manufacturer.slug, params.manufacturerSlug), isNull(Manufacturer.metadataArchivedAt)),
 		)
+		.groupBy(Manufacturer.id)
 		.get();
 
-	if (!manufacturer) {
+	if (!row) {
 		throw new Response(`Manufacturer "${params.manufacturerSlug}" not found.`, { status: 404 });
 	}
 
-	const totals = await db
-		.select({ products: count(Product.id), series: countDistinct(Product.seriesId) })
-		.from(Product)
-		.where(eq(Product.manufacturerId, manufacturer.id))
-		.get();
-
-	return {
-		manufacturer: {
-			slug: manufacturer.slug,
-			name: manufacturer.name,
-			website: manufacturer.website,
-			logoFileId: manufacturer.logoFileId,
-		},
-		totals: totals ?? { products: 0, series: 0 },
-	};
+	return row;
 }
 
 export default function CatalogManufacturerSlug({ loaderData }: Route.ComponentProps) {
