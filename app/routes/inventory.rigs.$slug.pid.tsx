@@ -130,26 +130,44 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	// A length is stored as a value and a unit in two columns. The graph carries
 	// it as one object, so the rows are reshaped below.
 	const edgeRows = await db
-		.select()
+		.select({
+			id: PIDEdge.id,
+			kind: PIDEdge.kind,
+			endArrow: PIDEdge.endArrow,
+			arrowPositions: PIDEdge.arrowPositions,
+			weight: PIDEdge.weight,
+			material: PIDEdge.material,
+			innerDiameterValue: PIDEdge.innerDiameterValue,
+			innerDiameterUnit: PIDEdge.innerDiameterUnit,
+			outerDiameterValue: PIDEdge.outerDiameterValue,
+			outerDiameterUnit: PIDEdge.outerDiameterUnit,
+			lengthValue: PIDEdge.lengthValue,
+			lengthUnit: PIDEdge.lengthUnit,
+			source: PIDEdge.sourceNodeId,
+			target: PIDEdge.targetNodeId,
+			sourceHandle: PIDEdge.sourceHandle,
+			targetHandle: PIDEdge.targetHandle,
+		})
 		.from(PIDEdge)
 		.where(eq(PIDEdge.rigId, entry.id))
 		.orderBy(asc(PIDEdge.drawingOrder))
 		.all();
-	const edges = edgeRows.map((edge) => ({
-		id: edge.id,
-		kind: edge.kind,
-		endArrow: edge.endArrow,
-		arrowPositions: edge.arrowPositions,
-		weight: edge.weight,
-		material: edge.material,
-		innerDiameter: pidLength(edge.innerDiameterValue, edge.innerDiameterUnit),
-		outerDiameter: pidLength(edge.outerDiameterValue, edge.outerDiameterUnit),
-		length: pidLength(edge.lengthValue, edge.lengthUnit),
-		source: edge.sourceNodeId,
-		target: edge.targetNodeId,
-		sourceHandle: edge.sourceHandle,
-		targetHandle: edge.targetHandle,
-	}));
+	const edges = edgeRows.map(
+		({
+			innerDiameterValue,
+			innerDiameterUnit,
+			outerDiameterValue,
+			outerDiameterUnit,
+			lengthValue,
+			lengthUnit,
+			...edge
+		}) => ({
+			...edge,
+			innerDiameter: pidLength(innerDiameterValue, innerDiameterUnit),
+			outerDiameter: pidLength(outerDiameterValue, outerDiameterUnit),
+			length: pidLength(lengthValue, lengthUnit),
+		}),
+	);
 	const equipment = await db
 		.select({ id: Equipment.id, name: Product.name, productName: Product.name })
 		.from(Equipment)

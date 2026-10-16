@@ -209,10 +209,14 @@ describe("inventory.new", () => {
 					productSlug: "f-201cv-020",
 					name: "EL-FLOW Select",
 					productNumber: "F-201CV-020",
-					description: "Controls argon flow.",
 					origin: "user",
 				},
 			});
+			const model = await testRoute(scope, productRoute, {
+				manufacturerSlug: maker.slug,
+				productSlug: "f-201cv-020",
+			}).loader();
+			expect(model.data?.product.description).toBe("Controls argon flow.");
 		});
 	});
 });

@@ -1,5 +1,5 @@
 import { ChartBarIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { Link } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
@@ -51,7 +51,22 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		.all();
 	const columns = datasets.length
 		? await db
-				.select()
+				.select({
+					datasetId: DatasetColumn.datasetId,
+					id: sql<string>`cast(${DatasetColumn.id} as text)`,
+					position: DatasetColumn.position,
+					displayName: DatasetColumn.name,
+					parquetType: DatasetColumn.parquetType,
+					axis: DatasetColumn.axis,
+					unit: DatasetColumn.unit,
+					equipmentId: DatasetColumn.equipmentId,
+					inventoryName: DatasetColumn.inventoryName,
+					channelKey: DatasetColumn.channelKey,
+					channelRole: DatasetColumn.channelRole,
+					quantityKindId: DatasetColumn.quantityKindId,
+					gasName: DatasetColumn.gasName,
+					pidNodeId: DatasetColumn.pidNodeId,
+				})
 				.from(DatasetColumn)
 				.where(
 					inArray(
@@ -91,25 +106,9 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 					)
 				: [];
 			const charts = analysis
-				? datasetCharts(
-						datasetColumns.map((column) => ({
-							id: String(column.id),
-							position: column.position,
-							displayName: column.name,
-							parquetType: column.parquetType,
-							axis: column.axis,
-							unit: column.unit,
-							equipmentId: column.equipmentId,
-							inventoryName: column.inventoryName,
-							channelKey: column.channelKey,
-							channelRole: column.channelRole,
-							quantityKindId: column.quantityKindId,
-							gasName: column.gasName,
-							pidNodeId: column.pidNodeId,
-						})),
-						[],
-						rows,
-					).flatMap((sample) => sample.sections.flatMap((section) => section.charts))
+				? datasetCharts(datasetColumns, [], rows).flatMap((sample) =>
+						sample.sections.flatMap((section) => section.charts),
+					)
 				: [];
 			const temperatureColumnIds = new Set(
 				datasetColumns
@@ -117,9 +116,9 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 						(column) =>
 							column.quantityKindId === "Temperature" ||
 							column.channelKey?.toLowerCase().includes("temperature") ||
-							column.name.toLowerCase().includes("temperature"),
+							column.displayName.toLowerCase().includes("temperature"),
 					)
-					.map((column) => String(column.id)),
+					.map((column) => column.id),
 			);
 			const temperatureChart = charts.find((chart) =>
 				chart.series.some((series) => temperatureColumnIds.has(series.id ?? "")),

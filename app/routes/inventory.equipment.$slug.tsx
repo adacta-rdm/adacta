@@ -44,7 +44,6 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		await db
 			.select({
 				id: Equipment.id,
-				slug: Equipment.slug,
 				name: Product.name,
 				serialNumber: Equipment.serialNumber,
 				product: {
@@ -55,7 +54,6 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 					name: Product.name,
 					productNumber: Product.productNumber,
 					subtitle: Product.subtitle,
-					description: Product.description,
 					imageFileId: Product.imageFileId,
 					origin: Product.origin,
 				},
@@ -73,6 +71,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			// A record may refer to a deleted user. Its name is then unavailable.
 			.leftJoin(User, eq(User.id, Equipment.metadataCreatorId))
 			.where(and(isNull(Equipment.metadataArchivedAt), eq(Equipment.slug, params.slug)))
+			.limit(1)
 	).at(0);
 
 	if (!row) {

@@ -77,14 +77,14 @@ export async function action({ context, request }: Route.ActionArgs) {
 		errors.push("Manufacturer name is required when adding a manufacturer.");
 	}
 
-	let manufacturer: { id: number; name: string } | undefined;
+	let manufacturer: { id: number } | undefined;
 	if (manufacturerChoice && manufacturerChoice !== NEW_MANUFACTURER) {
 		const id = Number(manufacturerChoice);
 		if (!Number.isSafeInteger(id) || id < 1) {
 			errors.push("Choose a valid manufacturer.");
 		} else {
 			manufacturer = await db
-				.select({ id: Manufacturer.id, name: Manufacturer.name })
+				.select({ id: Manufacturer.id })
 				.from(Manufacturer)
 				.where(and(eq(Manufacturer.id, id), isNull(Manufacturer.metadataArchivedAt)))
 				.get();

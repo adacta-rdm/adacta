@@ -36,12 +36,10 @@ describe("inventory.rigs.$slug", () => {
 
 			expect(rigResult.status).toBe(200);
 			expect(rigResult.data).toMatchObject({
-				slug: "balance",
 				name: "Balance rig",
 			});
 			expect(equipmentResult.status).toBe(200);
 			expect(equipmentResult.data).toMatchObject({
-				slug: "balance",
 				serialNumber: "B-1",
 			});
 		});

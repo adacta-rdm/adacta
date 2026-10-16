@@ -101,14 +101,15 @@ export default function App({ loaderData }: Route.ComponentProps) {
 		addSelectedFiles(files);
 		const targetContext = readDropTargetContext(target);
 		const entryMatch = matches.find((match) => match.id === "routes/inventory.rigs.$slug");
-		const entry = entryMatch?.loaderData as { slug: string; name: string } | undefined;
+		const entry = entryMatch?.loaderData as { name: string } | undefined;
+		const entrySlug = entryMatch?.params.slug;
 		const batchMatch = matches.find((match) => match.id === "routes/samples.$batchSlug");
 		const batch = batchMatch?.loaderData as { name?: string } | undefined;
 		const batchSlug = batchMatch?.params.batchSlug;
 		const context: DropContext | undefined =
 			targetContext ??
-			(entry
-				? { kind: "inventory-entry", slug: entry.slug, label: entry.name }
+			(entry && typeof entrySlug === "string"
+				? { kind: "inventory-entry", slug: entrySlug, label: entry.name }
 				: batch && typeof batchSlug === "string"
 					? { kind: "sample-batch", slug: batchSlug, label: batch.name ?? batchSlug }
 					: undefined);

@@ -1,5 +1,5 @@
 import { BuildingOffice2Icon } from "@heroicons/react/20/solid";
-import { eq, isNull } from "drizzle-orm";
+import { eq, isNull, sql } from "drizzle-orm";
 import { Outlet, useMatches, useRouteLoaderData } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
@@ -29,6 +29,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 	const rigs = await db
 		.select({
 			id: Rig.id,
+			kind: sql<"rig">`'rig'`,
 			slug: Rig.slug,
 			name: Rig.name,
 			location: {
@@ -44,6 +45,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 	const equipment = await db
 		.select({
 			id: Equipment.id,
+			kind: sql<"equipment">`'equipment'`,
 			slug: Equipment.slug,
 			name: Product.name,
 			location: {
@@ -56,10 +58,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 		.innerJoin(Product, eq(Product.id, Equipment.productId))
 		.where(isNull(Equipment.metadataArchivedAt));
 
-	const entries: Entry[] = [
-		...rigs.map((rig) => ({ ...rig, kind: "rig" as const })),
-		...equipment.map((unit) => ({ ...unit, kind: "equipment" as const })),
-	];
+	const entries: Entry[] = [...rigs, ...equipment];
 
 	return { buildings: groupByLocation(entries) };
 }

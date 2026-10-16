@@ -37,7 +37,6 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	const row = (
 		await db
 			.select({
-				slug: Rig.slug,
 				name: Rig.name,
 				location: {
 					building: Rig.building,
@@ -51,6 +50,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			// A record may refer to a deleted user. Its name is then unavailable.
 			.leftJoin(User, eq(User.id, Rig.metadataCreatorId))
 			.where(and(isNull(Rig.metadataArchivedAt), eq(Rig.slug, params.slug)))
+			.limit(1)
 	).at(0);
 
 	if (!row) {
