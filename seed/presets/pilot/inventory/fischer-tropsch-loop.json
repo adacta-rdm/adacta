@@ -2,7 +2,7 @@
 	"name": "Fischer-Tropsch Loop",
 	"kind": "rig",
 	"location": {
-		"buildingIdentifier": "H1",
-		"roomIdentifier": "Hall"
+		"building": "H1",
+		"room": "Hall"
 	}
 }

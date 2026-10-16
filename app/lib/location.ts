@@ -8,7 +8,7 @@
 export type Location = {
 	building: string | null;
 	room: string | null;
-	label: string | null;
+	position: string | null;
 };
 
 /**
@@ -21,7 +21,7 @@ export type Located = { name: string; location: Location };
  */
 export function formatLocation(location: Location): string {
 	return [
-		location.label,
+		location.position,
 		location.building ? `Building ${location.building}` : undefined,
 		location.room ? `Room ${location.room}` : undefined,
 	]

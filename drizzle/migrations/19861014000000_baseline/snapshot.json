@@ -1144,7 +1144,7 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
-			"name": "location_building_identifier",
+			"name": "building",
 			"entityType": "columns",
 			"table": "Equipment"
 		},
@@ -1154,7 +1154,7 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
-			"name": "location_room_identifier",
+			"name": "room",
 			"entityType": "columns",
 			"table": "Equipment"
 		},
@@ -1164,7 +1164,7 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
-			"name": "location_label",
+			"name": "position",
 			"entityType": "columns",
 			"table": "Equipment"
 		},
@@ -2344,7 +2344,7 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
-			"name": "location_building_identifier",
+			"name": "building",
 			"entityType": "columns",
 			"table": "Rig"
 		},
@@ -2354,7 +2354,7 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
-			"name": "location_room_identifier",
+			"name": "room",
 			"entityType": "columns",
 			"table": "Rig"
 		},
@@ -2364,7 +2364,7 @@
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
-			"name": "location_label",
+			"name": "position",
 			"entityType": "columns",
 			"table": "Rig"
 		},

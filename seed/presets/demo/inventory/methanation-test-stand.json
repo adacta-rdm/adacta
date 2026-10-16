@@ -2,7 +2,7 @@
 	"name": "Methanation Test Stand",
 	"kind": "rig",
 	"location": {
-		"buildingIdentifier": "B7",
-		"roomIdentifier": "12"
+		"building": "B7",
+		"room": "12"
 	}
 }

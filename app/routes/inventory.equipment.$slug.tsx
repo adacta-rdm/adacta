@@ -60,9 +60,9 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 					origin: Product.origin,
 				},
 				location: {
-					building: Equipment.locationBuildingIdentifier,
-					room: Equipment.locationRoomIdentifier,
-					label: Equipment.locationLabel,
+					building: Equipment.building,
+					room: Equipment.room,
+					position: Equipment.position,
 				},
 				createdAt: Equipment.metadataCreationTimestamp,
 				createdBy: User.name,

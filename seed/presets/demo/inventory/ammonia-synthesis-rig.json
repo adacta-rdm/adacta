@@ -2,8 +2,8 @@
 	"name": "Ammonia Synthesis Rig",
 	"kind": "rig",
 	"location": {
-		"buildingIdentifier": "B3",
-		"roomIdentifier": "101",
-		"label": "Bench 2"
+		"building": "B3",
+		"room": "101",
+		"position": "Bench 2"
 	}
 }

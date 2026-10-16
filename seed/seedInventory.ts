@@ -36,9 +36,9 @@ type SeedInventoryEntry = {
 	serialNumber?: string;
 	product?: string;
 	location?: {
-		buildingIdentifier: string;
-		roomIdentifier: string;
-		label?: string;
+		building: string;
+		room: string;
+		position?: string;
 	};
 };
 
@@ -91,9 +91,9 @@ export async function seedInventory(
 		const values = {
 			id,
 			slug,
-			locationBuildingIdentifier: entry.location?.buildingIdentifier ?? null,
-			locationRoomIdentifier: entry.location?.roomIdentifier ?? null,
-			locationLabel: entry.location?.label ?? null,
+			building: entry.location?.building ?? null,
+			room: entry.location?.room ?? null,
+			position: entry.location?.position ?? null,
 			metadataCreatorId: creatorId,
 			metadataCreationTimestamp: createdAt,
 		};

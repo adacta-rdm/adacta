@@ -2,8 +2,8 @@
 	"name": "Steam Reformer",
 	"kind": "rig",
 	"location": {
-		"buildingIdentifier": "H1",
-		"roomIdentifier": "Hall",
-		"label": "North bay"
+		"building": "H1",
+		"room": "Hall",
+		"position": "North bay"
 	}
 }

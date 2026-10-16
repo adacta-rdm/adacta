@@ -40,9 +40,9 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 				slug: Rig.slug,
 				name: Rig.name,
 				location: {
-					building: Rig.locationBuildingIdentifier,
-					room: Rig.locationRoomIdentifier,
-					label: Rig.locationLabel,
+					building: Rig.building,
+					room: Rig.room,
+					position: Rig.position,
 				},
 				createdAt: Rig.metadataCreationTimestamp,
 				createdBy: User.name,

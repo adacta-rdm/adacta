@@ -3,12 +3,12 @@ import { describe, expect, test } from "bun:test";
 import { formatLocation, groupByLocation, type Location } from "~/app/lib/location.ts";
 
 function location(parts: Partial<Location> = {}): Location {
-	return { building: null, room: null, label: null, ...parts };
+	return { building: null, room: null, position: null, ...parts };
 }
 
 describe("formatLocation", () => {
-	test("joins label, building and room", () => {
-		expect(formatLocation(location({ label: "Bench 2", building: "B3", room: "101" }))).toBe(
+	test("joins position, building and room", () => {
+		expect(formatLocation(location({ position: "Bench 2", building: "B3", room: "101" }))).toBe(
 			"Bench 2 · Building B3 · Room 101",
 		);
 	});
@@ -24,7 +24,7 @@ describe("formatLocation", () => {
 	});
 
 	test("ignores blank strings", () => {
-		expect(formatLocation(location({ label: "", building: "B3" }))).toBe("Building B3");
+		expect(formatLocation(location({ position: "", building: "B3" }))).toBe("Building B3");
 	});
 });
 

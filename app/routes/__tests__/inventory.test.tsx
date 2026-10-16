@@ -14,8 +14,8 @@ describe("inventory", () => {
 		test("groups active entries by location", async () => {
 			const scope = await setupTestRequestScope();
 			const rig = await createTestRig(scope, {
-				locationBuildingIdentifier: "B3",
-				locationRoomIdentifier: "101",
+				building: "B3",
+				room: "101",
 			});
 			await createTestRig(scope, { name: "Archived rig", metadataArchivedAt: new Date() });
 			const route = testRoute(scope, inventoryRoute, {});
@@ -37,13 +37,13 @@ describe("inventory", () => {
 				const scope = await setupTestRequestScope();
 				await createTestRig(scope, {
 					slug: "balance",
-					locationBuildingIdentifier: "B3",
-					locationRoomIdentifier: "101",
+					building: "B3",
+					room: "101",
 				});
 				await createTestEquipment(scope, {
 					slug: "balance",
-					locationBuildingIdentifier: "B3",
-					locationRoomIdentifier: "101",
+					building: "B3",
+					room: "101",
 				});
 				const appData = (await testRoute(scope, appRoute, {}).loader()).data!;
 				const inventoryData = (await testRoute(scope, inventoryRoute, {}).loader()).data!;

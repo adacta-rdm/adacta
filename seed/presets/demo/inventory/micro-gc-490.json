@@ -1,9 +1,9 @@
 {
 	"kind": "equipment",
 	"location": {
-		"buildingIdentifier": "B3",
-		"roomIdentifier": "102",
-		"label": "Cabinet A"
+		"building": "B3",
+		"room": "102",
+		"position": "Cabinet A"
 	},
 	"product": "agilent-technologies/490"
 }

@@ -15,6 +15,17 @@ The rig or product name supplies the URL slug. Rigs use
 The seed chooses slugs within each kind. A rig and an equipment unit may share
 a slug. The record and its slug are written in one batch.
 
+The optional `location` object uses `building`, `room`, and `position`:
+
+```json
+{ "location": { "building": "B3", "room": "101", "position": "Bench 2" } }
+```
+
+Building and room names are text because they can contain letters and numbers,
+such as "B3" and "101a". The optional `position` describes a place within the
+room, for example "Bench 2" or "Cabinet A". An entry without a fixed place
+omits `location`.
+
 Equipment names a product by its manufacturer directory and product filename:
 
 ```json

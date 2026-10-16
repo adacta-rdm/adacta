@@ -26,12 +26,20 @@ export const Rig = sqliteTable(
 		name: text("name").notNull(),
 
 		/**
-		 * Where the rig stands. Building and room identifiers are text because
-		 * organization-specific labels are often alphanumeric, such as "B3".
+		 * The building where the rig stands. Building and room names are text
+		 * because they can contain letters and numbers, such as "B3" and "101a".
 		 */
-		locationBuildingIdentifier: text("location_building_identifier"),
-		locationRoomIdentifier: text("location_room_identifier"),
-		locationLabel: text("location_label"),
+		building: text("building"),
+
+		/**
+		 * The room where the rig stands.
+		 */
+		room: text("room"),
+
+		/**
+		 * The position within the room, for example "Bench 2".
+		 */
+		position: text("position"),
 		...metadata(),
 	},
 	(table) => [

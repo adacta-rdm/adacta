@@ -12,15 +12,15 @@ describe("inventory.rigs.$slug", () => {
 			const scope = await setupTestRequestScope();
 			const rig = await createTestRig(scope, {
 				name: "Methanation Test Stand",
-				locationBuildingIdentifier: "B7",
-				locationRoomIdentifier: "12",
+				building: "B7",
+				room: "12",
 			});
 
 			const result = await testRoute(scope, entryRoute, { slug: rig.slug }).loader();
 
 			expect(result.data).toMatchObject({
 				name: rig.name,
-				location: { building: "B7", room: "12", label: null },
+				location: { building: "B7", room: "12", position: null },
 			});
 		});
 

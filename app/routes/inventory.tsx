@@ -32,9 +32,9 @@ export async function loader({ context }: Route.LoaderArgs) {
 			slug: Rig.slug,
 			name: Rig.name,
 			location: {
-				building: Rig.locationBuildingIdentifier,
-				room: Rig.locationRoomIdentifier,
-				label: Rig.locationLabel,
+				building: Rig.building,
+				room: Rig.room,
+				position: Rig.position,
 			},
 		})
 		.from(Rig)
@@ -47,9 +47,9 @@ export async function loader({ context }: Route.LoaderArgs) {
 			slug: Equipment.slug,
 			name: Product.name,
 			location: {
-				building: Equipment.locationBuildingIdentifier,
-				room: Equipment.locationRoomIdentifier,
-				label: Equipment.locationLabel,
+				building: Equipment.building,
+				room: Equipment.room,
+				position: Equipment.position,
 			},
 		})
 		.from(Equipment)
