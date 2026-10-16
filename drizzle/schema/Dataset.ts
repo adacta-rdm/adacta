@@ -2,8 +2,8 @@ import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqli
 
 import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
@@ -19,7 +19,7 @@ export const Dataset = sqliteTable(
 			.references(() => Id.id),
 		rigId: integer("rig_id")
 			.notNull()
-			.references(() => InventoryEntry.id),
+			.references(() => Rig.id),
 		/**
 		 * Files from one upload share this identifier. There is no upload table.
 		 */

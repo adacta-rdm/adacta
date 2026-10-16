@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { eq } from "drizzle-orm";
 
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
-import { createTestRig } from "~/app/testUtils/testRecords.ts";
+import { createTestEquipment, createTestRig } from "~/app/testUtils/testRecords.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
 import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 import { seedPID } from "~/seed/seedPID.ts";
@@ -23,7 +23,7 @@ describe("seedPID", () => {
 	test("resolves equipment links by inventory filename key", async () => {
 		const scope = await setupTestRequestScope();
 		const rig = await createTestRig(scope);
-		const equipment = await createTestRig(scope, { name: "Pressure sensor", kind: "equipment" });
+		const equipment = await createTestEquipment(scope, { slug: "pressure-sensor" });
 		const directory = writeDiagram("pressure-sensor-file");
 
 		const count = await seedPID(
@@ -37,12 +37,12 @@ describe("seedPID", () => {
 
 		const node = await scope
 			.get(ApplicationDatabase)
-			.select({ equipmentEntryId: PIDNode.equipmentEntryId })
+			.select({ equipmentId: PIDNode.equipmentId })
 			.from(PIDNode)
-			.where(eq(PIDNode.inventoryEntryId, rig.id))
+			.where(eq(PIDNode.rigId, rig.id))
 			.get();
 		expect(count).toBe(1);
-		expect(node?.equipmentEntryId).toBe(equipment.id);
+		expect(node?.equipmentId).toBe(equipment.id);
 	});
 
 	test("rejects a rig file as an equipment link", async () => {

@@ -20,6 +20,7 @@ import { useRightSidebarControls } from "~/app/layout/SidebarLayout.tsx";
 import type { RightSidebarHandle } from "~/app/layout/routeSidebar.ts";
 import type { PIDGraph, PIDLength, PIDLengthUnit } from "~/app/lib/PID.ts";
 import { isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
+import { inventoryEntryPath } from "~/app/lib/inventory.ts";
 import { parentsFirst } from "~/app/lib/parentsFirst.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { PIDManager } from "~/app/services/PIDManager.ts";
@@ -30,15 +31,15 @@ import { Button } from "~/catalyst-ui/button.tsx";
 import { Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { User } from "~/drizzle/schema/BetterAuth.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Equipment } from "~/drizzle/schema/Equipment.ts";
 import { PIDEdge } from "~/drizzle/schema/PIDEdge.ts";
 import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 import { Sample } from "~/drizzle/schema/Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 
-import type { Route } from "./+types/inventory.$entrySlug.pid.ts";
-import type { loader as entryLoader } from "./inventory.$entrySlug.tsx";
+import type { Route } from "./+types/inventory.rigs.$slug.pid.ts";
 
 export const handle = {
 	breadcrumb: "P&ID",
@@ -52,7 +53,7 @@ export const handle = {
 } satisfies BreadcrumbHandle & RightSidebarHandle;
 
 function DatasetSidecarSidebar() {
-	const loaderData = useRouteLoaderData<typeof loader>("routes/inventory.$entrySlug.pid");
+	const loaderData = useRouteLoaderData<typeof loader>("routes/inventory.rigs.$slug.pid");
 	const {
 		autoZoomToSelection,
 		setAutoZoomToSelection,
@@ -92,10 +93,10 @@ function DatasetSidecarSidebar() {
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const db = context.get(services).get(ApplicationDatabase);
-	const entry = await getRig(db, params.entrySlug);
+	const entry = await getRig(db, params.slug);
 
 	if (!entry) {
-		throw new Response(`Rig "${params.entrySlug}" not found.`, { status: 404 });
+		throw new Response(`Rig "${params.slug}" not found.`, { status: 404 });
 	}
 
 	const nodeRows = await db
@@ -104,7 +105,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			kind: PIDNode.kind,
 			label: PIDNode.label,
 			symbolKey: PIDNode.symbolKey,
-			equipmentId: PIDNode.equipmentEntryId,
+			equipmentId: PIDNode.equipmentId,
 			sampleId: PIDNode.sampleId,
 			secondaryLabel: PIDNode.secondaryLabel,
 			parentId: PIDNode.parentNodeId,
@@ -116,7 +117,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			},
 		})
 		.from(PIDNode)
-		.where(eq(PIDNode.inventoryEntryId, entry.id))
+		.where(eq(PIDNode.rigId, entry.id))
 		.orderBy(asc(PIDNode.drawingOrder))
 		.all();
 	const nodes = nodeRows.map(({ symbolKey, equipmentId, sampleId, ...node }) => ({
@@ -131,7 +132,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	const edgeRows = await db
 		.select()
 		.from(PIDEdge)
-		.where(eq(PIDEdge.inventoryEntryId, entry.id))
+		.where(eq(PIDEdge.rigId, entry.id))
 		.orderBy(asc(PIDEdge.drawingOrder))
 		.all();
 	const edges = edgeRows.map((edge) => ({
@@ -150,11 +151,11 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		targetHandle: edge.targetHandle,
 	}));
 	const equipment = await db
-		.select({ id: InventoryEntry.id, name: InventoryEntry.name, productName: Product.name })
-		.from(InventoryEntry)
-		.leftJoin(Product, eq(Product.id, InventoryEntry.productId))
-		.where(and(eq(InventoryEntry.kind, "equipment"), isNull(InventoryEntry.metadataArchivedAt)))
-		.orderBy(asc(InventoryEntry.name))
+		.select({ id: Equipment.id, name: Product.name, productName: Product.name })
+		.from(Equipment)
+		.innerJoin(Product, eq(Product.id, Equipment.productId))
+		.where(and(isNull(Equipment.metadataArchivedAt)))
+		.orderBy(asc(Product.name))
 		.all();
 	const samples = await db
 		.select({ id: Sample.id, name: Sample.name, batchName: SampleBatch.name })
@@ -179,17 +180,17 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		initialToml: sidecar.initialToml,
 		sidecarOmissions: sidecar.omissions,
 		sidecarNodes: await loadSidecarEditorNodes(db, graph),
-		rigSlug: params.entrySlug,
+		rigSlug: params.slug,
 	};
 }
 
 export async function action({ context, request, params }: Route.ActionArgs) {
 	const container = context.get(services);
 	const db = container.get(ApplicationDatabase);
-	const entry = await getRig(db, params.entrySlug);
+	const entry = await getRig(db, params.slug);
 
 	if (!entry) {
-		throw new Response(`Rig "${params.entrySlug}" not found.`, { status: 404 });
+		throw new Response(`Rig "${params.slug}" not found.`, { status: 404 });
 	}
 
 	const graph = parseGraph((await request.formData()).get("graph"));
@@ -229,13 +230,13 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	];
 	if (equipmentIds.length) {
 		const available = await db
-			.select({ id: InventoryEntry.id })
-			.from(InventoryEntry)
+			.select({ id: Equipment.id })
+			.from(Equipment)
 			.where(
 				and(
-					inArray(InventoryEntry.id, equipmentIds),
-					eq(InventoryEntry.kind, "equipment"),
-					isNull(InventoryEntry.metadataArchivedAt),
+					inArray(Equipment.id, equipmentIds),
+
+					isNull(Equipment.metadataArchivedAt),
 				),
 			)
 			.all();
@@ -264,11 +265,10 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 
 	await container.get(PIDManager).replace(entry.id, graph);
 
-	return redirect(`/inventory/${encodeURIComponent(params.entrySlug)}/pid`, 303);
+	return redirect(`${inventoryEntryPath("rig", params.slug)}/pid`, 303);
 }
 
-export default function InventoryEntrySlugPid({ loaderData, actionData }: Route.ComponentProps) {
-	const parentData = useRouteLoaderData<typeof entryLoader>("routes/inventory.$entrySlug")!;
+export default function InventoryRigsSlugPid({ loaderData, actionData }: Route.ComponentProps) {
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const navigation = useNavigation();
@@ -293,10 +293,6 @@ export default function InventoryEntrySlugPid({ loaderData, actionData }: Route.
 	useEffect(() => {
 		if (focusedNode) diagram.current?.scrollIntoView({ block: "nearest" });
 	}, [focusedNode]);
-
-	if (parentData.entry.kind !== "rig") {
-		return <Text>A P&amp;ID can be drawn for a rig.</Text>;
-	}
 
 	/*
 		Saving belongs to the tool bar of the editor. The canvas can be made to
@@ -366,15 +362,9 @@ export default function InventoryEntrySlugPid({ loaderData, actionData }: Route.
 
 async function getRig(db: ApplicationDatabase, slug: string) {
 	return db
-		.select({ id: InventoryEntry.id })
-		.from(InventoryEntry)
-		.where(
-			and(
-				eq(InventoryEntry.slug, slug),
-				eq(InventoryEntry.kind, "rig"),
-				isNull(InventoryEntry.metadataArchivedAt),
-			),
-		)
+		.select({ id: Rig.id })
+		.from(Rig)
+		.where(and(eq(Rig.slug, slug), isNull(Rig.metadataArchivedAt)))
 		.get();
 }
 

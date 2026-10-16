@@ -22,7 +22,7 @@ export class PIDManager {
 	) {}
 
 	/**
-	 * Replaces the diagram of one inventory entry with the given graph.
+	 * Replaces the diagram of one rig with the given graph.
 	 *
 	 * The graph describes the complete diagram. Symbols and connections that
 	 * it does not contain are therefore deleted. The order of the nodes and of
@@ -31,7 +31,7 @@ export class PIDManager {
 	 *
 	 * @throws Error when symbols sit inside each other.
 	 */
-	async replace(inventoryEntryId: number, graph: PIDGraph): Promise<void> {
+	async replace(rigId: number, graph: PIDGraph): Promise<void> {
 		const createdAt = new Date();
 		const creatorId = this.security.userId;
 
@@ -46,11 +46,11 @@ export class PIDManager {
 
 		const nodes = insertionOrder.map((node) => ({
 			id: node.id,
-			inventoryEntryId,
+			rigId,
 			kind: node.kind,
 			label: node.label,
 			symbolKey: node.symbolKey ?? null,
-			equipmentEntryId: node.equipmentId ?? null,
+			equipmentId: node.equipmentId ?? null,
 			sampleId: node.sampleId ?? null,
 			secondaryLabel: node.secondaryLabel,
 			parentNodeId: node.parentId,
@@ -67,7 +67,7 @@ export class PIDManager {
 		// in two columns.
 		const edges = graph.edges.map((edge, drawingOrder) => ({
 			id: edge.id,
-			inventoryEntryId,
+			rigId,
 			kind: edge.kind,
 			endArrow: edge.endArrow,
 			arrowPositions: edge.arrowPositions,
@@ -91,8 +91,8 @@ export class PIDManager {
 		// Edges reference nodes. They are therefore deleted first and inserted
 		// last. Separate inserts avoid a large parameter list per statement.
 		await this.db.batch([
-			this.db.delete(PIDEdge).where(eq(PIDEdge.inventoryEntryId, inventoryEntryId)),
-			this.db.delete(PIDNode).where(eq(PIDNode.inventoryEntryId, inventoryEntryId)),
+			this.db.delete(PIDEdge).where(eq(PIDEdge.rigId, rigId)),
+			this.db.delete(PIDNode).where(eq(PIDNode.rigId, rigId)),
 			...nodes.map((node) => this.db.insert(PIDNode).values(node)),
 			...edges.map((edge) => this.db.insert(PIDEdge).values(edge)),
 		]);

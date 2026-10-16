@@ -7,6 +7,6 @@ export const handle = { breadcrumb: "Data" } satisfies BreadcrumbHandle;
 /**
  * Provides the list of imported datasets for a rig.
  */
-export default function InventoryEntrySlugData() {
+export default function InventoryRigsSlugData() {
 	return <Outlet />;
 }

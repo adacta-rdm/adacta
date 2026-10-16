@@ -1,5 +1,5 @@
 import { BuildingOffice2Icon } from "@heroicons/react/20/solid";
-import { isNull } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
 import { Outlet, useMatches, useRouteLoaderData } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
@@ -13,34 +13,55 @@ import {
 	SIDEBAR_TREE_LEVEL_2_LIST,
 	SIDEBAR_TREE_ROW,
 } from "~/app/layout/sidebarTreeStyles.ts";
+import { inventoryEntryPath } from "~/app/lib/inventory.ts";
 import { groupByLocation, type Building, type Located } from "~/app/lib/location.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { SidebarItem, SidebarLabel, SidebarSection } from "~/catalyst-ui/sidebar.tsx";
-import { InventoryEntry as InventoryEntryTable } from "~/drizzle/schema/InventoryEntry.ts";
+import { Equipment } from "~/drizzle/schema/Equipment.ts";
+import { Product } from "~/drizzle/schema/Product.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 
 import type { Route } from "./+types/inventory.ts";
 
 export async function loader({ context }: Route.LoaderArgs) {
 	const db = context.get(services).get(ApplicationDatabase);
-	const entries = (
-		await db
-			.select()
-			.from(InventoryEntryTable)
-			.where(isNull(InventoryEntryTable.metadataArchivedAt))
-			.all()
-	).map((row) => ({
-		id: row.id,
-		slug: row.slug,
-		name: row.name,
-		kind: row.kind,
-		location: {
-			building: row.locationBuildingIdentifier,
-			room: row.locationRoomIdentifier,
-			label: row.locationLabel,
-		},
-	}));
 
-	return { entries, buildings: groupByLocation(entries) };
+	const rigs = await db
+		.select({
+			id: Rig.id,
+			slug: Rig.slug,
+			name: Rig.name,
+			location: {
+				building: Rig.locationBuildingIdentifier,
+				room: Rig.locationRoomIdentifier,
+				label: Rig.locationLabel,
+			},
+		})
+		.from(Rig)
+		.where(isNull(Rig.metadataArchivedAt));
+
+	// A unit has no name of its own. Its product supplies it.
+	const equipment = await db
+		.select({
+			id: Equipment.id,
+			slug: Equipment.slug,
+			name: Product.name,
+			location: {
+				building: Equipment.locationBuildingIdentifier,
+				room: Equipment.locationRoomIdentifier,
+				label: Equipment.locationLabel,
+			},
+		})
+		.from(Equipment)
+		.innerJoin(Product, eq(Product.id, Equipment.productId))
+		.where(isNull(Equipment.metadataArchivedAt));
+
+	const entries: Entry[] = [
+		...rigs.map((rig) => ({ ...rig, kind: "rig" as const })),
+		...equipment.map((unit) => ({ ...unit, kind: "equipment" as const })),
+	];
+
+	return { buildings: groupByLocation(entries) };
 }
 
 /**
@@ -50,10 +71,10 @@ export type Entry = Located & { id: number; slug: string; kind: InventoryKind };
 
 function LocationTree({
 	buildings,
-	entrySlug,
+	currentPath,
 }: {
 	buildings: Building<Entry>[];
-	entrySlug: string | undefined;
+	currentPath: string | undefined;
 }) {
 	return (
 		<ul aria-label="Inventory by location" className="space-y-2">
@@ -79,8 +100,8 @@ function LocationTree({
 									{room.entries.map((entry) => (
 										<li key={entry.id}>
 											<SidebarItem
-												href={`/inventory/${entry.slug}`}
-												current={entry.slug === entrySlug}
+												href={inventoryEntryPath(entry.kind, entry.slug)}
+												current={inventoryEntryPath(entry.kind, entry.slug) === currentPath}
 												className={SIDEBAR_TREE_LEVEL_2_ITEM}
 											>
 												<KindIcon kind={entry.kind} />
@@ -102,14 +123,23 @@ export const handle = {
 	breadcrumb: "Inventory",
 	leftSidebar: function InventorySidebarFromRoute() {
 		const data = useRouteLoaderData<typeof loader>("routes/inventory");
-		const entrySlug = useMatches().at(-1)?.params.entrySlug;
+		const matches = useMatches();
+
+		// Both kinds name their parameter "slug". The matched route tells them apart.
+		const rig = matches.find((match) => match.id === "routes/inventory.rigs.$slug");
+		const equipment = matches.find((match) => match.id === "routes/inventory.equipment.$slug");
+		const currentPath = rig?.params.slug
+			? inventoryEntryPath("rig", rig.params.slug)
+			: equipment?.params.slug
+				? inventoryEntryPath("equipment", equipment.params.slug)
+				: undefined;
 		if (!data) return null;
 		return (
 			<SidebarSection>
-				<SidebarItem href="/inventory" current={!entrySlug}>
+				<SidebarItem href="/inventory" current={!currentPath}>
 					<SidebarLabel>All entries</SidebarLabel>
 				</SidebarItem>
-				<LocationTree buildings={data.buildings} entrySlug={entrySlug} />
+				<LocationTree buildings={data.buildings} currentPath={currentPath} />
 			</SidebarSection>
 		);
 	},

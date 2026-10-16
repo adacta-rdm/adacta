@@ -109,7 +109,7 @@ describe("AppLayout", () => {
 	});
 
 	test("shows the narrow sidebar strip when a route panel starts closed", () => {
-		const markup = render("/inventory/test-stand/pid", false, {
+		const markup = render("/inventory/rigs/test-stand/pid", false, {
 			id: "sidecar",
 			title: "Dataset sidecar",
 			defaultOpen: false,

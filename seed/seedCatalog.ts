@@ -250,8 +250,8 @@ export async function seedCatalog(
 
 			const name = own.name ?? shared.name;
 			const subtitle = own.subtitle ?? shared.subtitle;
-			if (name === undefined || subtitle === undefined) {
-				throw new Error(`Product "${key}" in ${manufacturerKey} has no name or no subtitle.`);
+			if (name === undefined) {
+				throw new Error(`Product "${key}" in ${manufacturerKey} has no name.`);
 			}
 
 			const { id: productId } = await db

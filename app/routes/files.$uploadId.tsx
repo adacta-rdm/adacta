@@ -14,8 +14,8 @@ import { UploadManager, UploadNotFoundError } from "~/app/services/UploadManager
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { Dataset } from "~/drizzle/schema/Dataset.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 import { parseId53 } from "~/lib/id53/parseId53.ts";
 import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
 
@@ -43,12 +43,12 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			.select({
 				id: Dataset.id,
 				csvName: OriginalFile.originalName,
-				rigName: InventoryEntry.name,
+				rigName: Rig.name,
 				rowCount: Dataset.rowCount,
 			})
 			.from(Dataset)
 			.innerJoin(OriginalFile, eq(OriginalFile.id, Dataset.csvFileId))
-			.innerJoin(InventoryEntry, eq(InventoryEntry.id, Dataset.rigId))
+			.innerJoin(Rig, eq(Rig.id, Dataset.rigId))
 			.where(eq(Dataset.uploadId, uploadId))
 			.all();
 		return {

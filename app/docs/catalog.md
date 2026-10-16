@@ -18,19 +18,19 @@ Select a product to see its specifications, measurement channels, and source inf
 
 Select the products that represent physical units in the laboratory, then choose **Import selected**. The selection remains while you search or open a manufacturer. The form creates one equipment entry for each selected product.
 
-Give each unit a recognizable equipment name. A serial number is optional. A recorded serial number identifies only one physical equipment entry, including archived equipment. Some models request unit-specific values, such as a calibrated range. Supply every required value before importing.
+Equipment takes its name from the linked product. A serial number is optional. A recorded serial number identifies only one physical equipment unit, including archived equipment. Some models request unit-specific values, such as a calibrated range. Supply every required value before importing.
 
 The equipment remains linked to its catalog model. Model-wide specifications and measurement channels remain on the product. Values that distinguish one physical unit are recorded on its equipment entry.
 
 ## Add equipment manually
 
-Select **Add equipment** in Inventory when the Catalog does not contain the model. Search the Catalog first to reduce duplicate product definitions. The form creates one physical unit and one reusable product marked **User entered**.
+Select **Add inventory item** in Inventory and choose **Equipment** when the Catalog does not contain the model. Search the Catalog first to reduce duplicate product definitions. The form creates one physical unit and one reusable product marked **User entered**.
 
 Choose an existing manufacturer when possible. Otherwise select **Add a manufacturer** and enter its name. Use **Unknown manufacturer** when the maker cannot be identified.
 
-Equipment name and product name are required. Model number, description, and serial number are optional. The form does not collect specifications or measurement channels.
+Product name is required. Model number, description, and serial number are optional. The form does not collect specifications or measurement channels.
 
-Use the manufacturer's model designation for the product. Use a local asset name for the physical equipment, such as a model name with a serial number or stable range designation.
+Use the manufacturer's model designation for the product. Serial numbers and unit-specific specifications distinguish physical units of the same product.
 
 ## Logos and photographs
 

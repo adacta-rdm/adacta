@@ -98,7 +98,7 @@ CREATE TABLE `Dataset` (
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_Dataset_dataset_id_Id_id_fk` FOREIGN KEY (`dataset_id`) REFERENCES `Id`(`id`),
-	CONSTRAINT `fk_Dataset_rig_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`rig_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`),
+	CONSTRAINT `fk_Dataset_rig_id_Rig_rig_id_fk` FOREIGN KEY (`rig_id`) REFERENCES `Rig`(`rig_id`),
 	CONSTRAINT `fk_Dataset_csv_file_id_OriginalFile_original_file_id_fk` FOREIGN KEY (`csv_file_id`) REFERENCES `OriginalFile`(`original_file_id`),
 	CONSTRAINT `fk_Dataset_sidecar_file_id_OriginalFile_original_file_id_fk` FOREIGN KEY (`sidecar_file_id`) REFERENCES `OriginalFile`(`original_file_id`),
 	CONSTRAINT `fk_Dataset_operator_id_User_id_fk` FOREIGN KEY (`operator_id`) REFERENCES `User`(`id`),
@@ -114,7 +114,7 @@ CREATE TABLE `DatasetColumn` (
 	`parquet_type` text NOT NULL,
 	`axis` text,
 	`symbol_key` text,
-	`inventory_entry_id` integer,
+	`equipment_id` integer,
 	`inventory_name` text,
 	`channel_id` integer,
 	`channel_key` text,
@@ -124,7 +124,7 @@ CREATE TABLE `DatasetColumn` (
 	`unit` text,
 	`pid_node_id` text,
 	CONSTRAINT `fk_DatasetColumn_dataset_id_Dataset_dataset_id_fk` FOREIGN KEY (`dataset_id`) REFERENCES `Dataset`(`dataset_id`),
-	CONSTRAINT `fk_DatasetColumn_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`),
+	CONSTRAINT `fk_DatasetColumn_equipment_id_Equipment_equipment_id_fk` FOREIGN KEY (`equipment_id`) REFERENCES `Equipment`(`equipment_id`),
 	CONSTRAINT `fk_DatasetColumn_channel_id_Channel_channel_id_fk` FOREIGN KEY (`channel_id`) REFERENCES `Channel`(`channel_id`)
 );
 --> statement-breakpoint
@@ -144,16 +144,10 @@ CREATE TABLE `DatasetSample` (
 	CONSTRAINT `fk_DatasetSample_sample_id_Sample_sample_id_fk` FOREIGN KEY (`sample_id`) REFERENCES `Sample`(`sample_id`)
 );
 --> statement-breakpoint
-CREATE TABLE `Id` (
-	`id` integer PRIMARY KEY
-);
---> statement-breakpoint
-CREATE TABLE `InventoryEntry` (
-	`inventory_entry_id` integer PRIMARY KEY,
+CREATE TABLE `Equipment` (
 	`slug` text NOT NULL,
-	`name` text NOT NULL,
-	`kind` text NOT NULL,
-	`product_id` integer,
+	`equipment_id` integer PRIMARY KEY,
+	`product_id` integer NOT NULL,
 	`serial_number` text,
 	`location_building_identifier` text,
 	`location_room_identifier` text,
@@ -161,33 +155,27 @@ CREATE TABLE `InventoryEntry` (
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
-	CONSTRAINT `fk_InventoryEntry_inventory_entry_id_Id_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `Id`(`id`),
-	CONSTRAINT `fk_InventoryEntry_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`) ON DELETE SET NULL,
-	CONSTRAINT `fk_InventoryEntry_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
+	CONSTRAINT `fk_Equipment_equipment_id_Id_id_fk` FOREIGN KEY (`equipment_id`) REFERENCES `Id`(`id`),
+	CONSTRAINT `fk_Equipment_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`),
+	CONSTRAINT `fk_Equipment_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT,
+	CONSTRAINT "Equipment_slug_check" CHECK(length("slug") > 0)
 );
 --> statement-breakpoint
-CREATE TABLE `InventoryEntryProduct` (
-	`inventory_entry_id` integer PRIMARY KEY,
-	`product_id` integer NOT NULL,
-	`metadata_creator_id` text NOT NULL,
-	`metadata_creation_timestamp` integer NOT NULL,
-	`metadata_archived_at` integer,
-	CONSTRAINT `fk_InventoryEntryProduct_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE CASCADE,
-	CONSTRAINT `fk_InventoryEntryProduct_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`),
-	CONSTRAINT `fk_InventoryEntryProduct_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
-);
---> statement-breakpoint
-CREATE TABLE `InventoryEntrySpecification` (
-	`inventory_entry_specification_id` integer PRIMARY KEY AUTOINCREMENT,
-	`inventory_entry_id` integer NOT NULL,
+CREATE TABLE `EquipmentSpecification` (
+	`equipment_specification_id` integer PRIMARY KEY AUTOINCREMENT,
+	`equipment_id` integer NOT NULL,
 	`product_specification_id` integer NOT NULL,
 	`value` text NOT NULL,
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
-	CONSTRAINT `fk_InventoryEntrySpecification_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE CASCADE,
-	CONSTRAINT `fk_InventoryEntrySpecification_product_specification_id_ProductSpecification_product_specification_id_fk` FOREIGN KEY (`product_specification_id`) REFERENCES `ProductSpecification`(`product_specification_id`),
-	CONSTRAINT `fk_InventoryEntrySpecification_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
+	CONSTRAINT `fk_EquipmentSpecification_equipment_id_Equipment_equipment_id_fk` FOREIGN KEY (`equipment_id`) REFERENCES `Equipment`(`equipment_id`) ON DELETE CASCADE,
+	CONSTRAINT `fk_EquipmentSpecification_product_specification_id_ProductSpecification_product_specification_id_fk` FOREIGN KEY (`product_specification_id`) REFERENCES `ProductSpecification`(`product_specification_id`),
+	CONSTRAINT `fk_EquipmentSpecification_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
+);
+--> statement-breakpoint
+CREATE TABLE `Id` (
+	`id` integer PRIMARY KEY
 );
 --> statement-breakpoint
 CREATE TABLE `Manufacturer` (
@@ -242,7 +230,7 @@ CREATE TABLE `OriginalFile` (
 --> statement-breakpoint
 CREATE TABLE `PIDEdge` (
 	`pid_edge_id` text PRIMARY KEY,
-	`inventory_entry_id` integer NOT NULL,
+	`rig_id` integer NOT NULL,
 	`source_node_id` text NOT NULL,
 	`target_node_id` text NOT NULL,
 	`kind` text NOT NULL,
@@ -262,7 +250,7 @@ CREATE TABLE `PIDEdge` (
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
-	CONSTRAINT `fk_PIDEdge_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE CASCADE,
+	CONSTRAINT `fk_PIDEdge_rig_id_Rig_rig_id_fk` FOREIGN KEY (`rig_id`) REFERENCES `Rig`(`rig_id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_PIDEdge_source_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`source_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_PIDEdge_target_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`target_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_PIDEdge_kind_PIDEdgeKind_pid_edge_kind_id_fk` FOREIGN KEY (`kind`) REFERENCES `PIDEdgeKind`(`pid_edge_kind_id`) ON UPDATE CASCADE,
@@ -279,11 +267,11 @@ CREATE TABLE `PIDEdgeKind` (
 --> statement-breakpoint
 CREATE TABLE `PIDNode` (
 	`pid_node_id` text PRIMARY KEY,
-	`inventory_entry_id` integer NOT NULL,
+	`rig_id` integer NOT NULL,
 	`kind` text NOT NULL,
 	`label` text NOT NULL,
 	`symbol_key` text,
-	`equipment_entry_id` integer,
+	`equipment_id` integer,
 	`sample_id` integer,
 	`secondary_label` text,
 	`parent_node_id` text,
@@ -295,8 +283,8 @@ CREATE TABLE `PIDNode` (
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
-	CONSTRAINT `fk_PIDNode_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE CASCADE,
-	CONSTRAINT `fk_PIDNode_equipment_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`equipment_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE SET NULL,
+	CONSTRAINT `fk_PIDNode_rig_id_Rig_rig_id_fk` FOREIGN KEY (`rig_id`) REFERENCES `Rig`(`rig_id`) ON DELETE CASCADE,
+	CONSTRAINT `fk_PIDNode_equipment_id_Equipment_equipment_id_fk` FOREIGN KEY (`equipment_id`) REFERENCES `Equipment`(`equipment_id`) ON DELETE SET NULL,
 	CONSTRAINT `fk_PIDNode_sample_id_Sample_sample_id_fk` FOREIGN KEY (`sample_id`) REFERENCES `Sample`(`sample_id`) ON DELETE SET NULL,
 	CONSTRAINT `fk_PIDNode_parent_node_id_PIDNode_pid_node_id_fk` FOREIGN KEY (`parent_node_id`) REFERENCES `PIDNode`(`pid_node_id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_PIDNode_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT,
@@ -361,6 +349,21 @@ CREATE TABLE `QuantityKind` (
 	`quantity_kind_id` text PRIMARY KEY
 );
 --> statement-breakpoint
+CREATE TABLE `Rig` (
+	`slug` text NOT NULL,
+	`rig_id` integer PRIMARY KEY,
+	`name` text NOT NULL,
+	`location_building_identifier` text,
+	`location_room_identifier` text,
+	`location_label` text,
+	`metadata_creator_id` text NOT NULL,
+	`metadata_creation_timestamp` integer NOT NULL,
+	`metadata_archived_at` integer,
+	CONSTRAINT `fk_Rig_rig_id_Id_id_fk` FOREIGN KEY (`rig_id`) REFERENCES `Id`(`id`),
+	CONSTRAINT `fk_Rig_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT,
+	CONSTRAINT "Rig_slug_check" CHECK(length("slug") > 0)
+);
+--> statement-breakpoint
 CREATE TABLE `Sample` (
 	`sample_id` integer PRIMARY KEY,
 	`sample_batch_id` integer NOT NULL,
@@ -401,19 +404,20 @@ CREATE UNIQUE INDEX `Dataset_source_pair_unique` ON `Dataset` (`csv_file_id`,`si
 CREATE INDEX `Dataset_rig_archive_created_idx` ON `Dataset` (`rig_id`,`metadata_archived_at`,`metadata_creation_timestamp`);--> statement-breakpoint
 CREATE INDEX `Dataset_upload_idx` ON `Dataset` (`upload_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `DatasetColumn_dataset_position_unique` ON `DatasetColumn` (`dataset_id`,`position`);--> statement-breakpoint
-CREATE INDEX `DatasetColumn_inventory_entry_idx` ON `DatasetColumn` (`inventory_entry_id`);--> statement-breakpoint
+CREATE INDEX `DatasetColumn_equipment_idx` ON `DatasetColumn` (`equipment_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `DatasetSample_dataset_position_unique` ON `DatasetSample` (`dataset_id`,`position`);--> statement-breakpoint
 CREATE INDEX `DatasetSample_sample_idx` ON `DatasetSample` (`sample_id`);--> statement-breakpoint
-CREATE UNIQUE INDEX `InventoryEntry_slug_unique` ON `InventoryEntry` (`slug`);--> statement-breakpoint
-CREATE UNIQUE INDEX `InventoryEntry_serial_number_unique` ON `InventoryEntry` (`serial_number`);--> statement-breakpoint
-CREATE UNIQUE INDEX `InventoryEntrySpecification_entry_product_specification_unique` ON `InventoryEntrySpecification` (`inventory_entry_id`,`product_specification_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `Equipment_slug_unique` ON `Equipment` (`slug`);--> statement-breakpoint
+CREATE UNIQUE INDEX `Equipment_product_serial_number_unique` ON `Equipment` (`product_id`,`serial_number`);--> statement-breakpoint
+CREATE UNIQUE INDEX `EquipmentSpecification_equipment_product_specification_unique` ON `EquipmentSpecification` (`equipment_id`,`product_specification_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Manufacturer_slug_unique` ON `Manufacturer` (`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Note_supersedes_id_unique` ON `Note` (`supersedes_id`);--> statement-breakpoint
-CREATE INDEX `PIDEdge_inventory_entry_idx` ON `PIDEdge` (`inventory_entry_id`);--> statement-breakpoint
-CREATE INDEX `PIDNode_inventory_entry_idx` ON `PIDNode` (`inventory_entry_id`);--> statement-breakpoint
-CREATE UNIQUE INDEX `PIDNode_inventory_entry_symbol_key_unique` ON `PIDNode` (`inventory_entry_id`,`symbol_key`);--> statement-breakpoint
+CREATE INDEX `PIDEdge_rig_idx` ON `PIDEdge` (`rig_id`);--> statement-breakpoint
+CREATE INDEX `PIDNode_rig_idx` ON `PIDNode` (`rig_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `PIDNode_rig_symbol_key_unique` ON `PIDNode` (`rig_id`,`symbol_key`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Product_slug_unique` ON `Product` (`manufacturer_id`,`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `ProductSeries_slug_unique` ON `ProductSeries` (`manufacturer_id`,`slug`);--> statement-breakpoint
+CREATE UNIQUE INDEX `Rig_slug_unique` ON `Rig` (`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Sample_batch_name_unique` ON `Sample` (`sample_batch_id`,`name`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Sample_batch_slug_unique` ON `Sample` (`sample_batch_id`,`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `SampleBatch_slug_unique` ON `SampleBatch` (`slug`);

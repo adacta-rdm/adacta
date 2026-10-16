@@ -11,11 +11,11 @@ import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { signUpTestUser } from "~/app/testUtils/testUtils.ts";
 import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { Channel } from "~/drizzle/schema/Channel.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
 import { PIDEdgeKind } from "~/drizzle/schema/PIDEdgeKind.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
 import { QuantityKind } from "~/drizzle/schema/QuantityKind.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 import { Env } from "~/lib/env/Env.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { migrateSqliteDatabase, sqliteDatabasePath } from "~/runtimes/bun/sqliteDatabase.ts";
@@ -70,7 +70,7 @@ describe("local SQLite connection", () => {
 		test("leaves migration explicit when opening", async () => {
 			const db = environment().get(ApplicationDatabase);
 
-			await expect(settle(() => db.select().from(InventoryEntry).all())).rejects.toThrow();
+			await expect(settle(() => db.select().from(Rig).all())).rejects.toThrow();
 		});
 	});
 
@@ -126,7 +126,7 @@ describe("local SQLite connection", () => {
 
 			const db = container.get(ApplicationDatabase);
 			expect(await db.select().from(User).all()).toEqual([]);
-			expect(await db.select().from(InventoryEntry).all()).toEqual([]);
+			expect(await db.select().from(Rig).all()).toEqual([]);
 		});
 
 		test("the SQL baseline holds exactly the kinds the application lists", async () => {

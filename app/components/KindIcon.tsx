@@ -10,12 +10,10 @@
 import { CubeIcon } from "@heroicons/react/20/solid";
 import { useId } from "react";
 
-import type { Entity } from "~/drizzle/Schema.ts";
-
 /**
  * Custom rigs carry a P&ID; standalone equipment does not.
  */
-export type InventoryKind = Entity<"InventoryEntry">["kind"];
+export type InventoryKind = "rig" | "equipment";
 
 export function KindIcon({ kind, className }: { kind: InventoryKind; className?: string }) {
 	/*

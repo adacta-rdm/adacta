@@ -42,6 +42,22 @@ may therefore be optional.
 Both types are inferred from the table definition. A schema change therefore
 changes the corresponding entity types without a second declaration.
 
+## Inventory addresses
+
+`Rig` holds experimental devices at which samples are measured. `Equipment` holds physical units whose names
+come from their linked `Product`. `Equipment.productId` requires that product.
+`EquipmentSpecification` records values supplied for one unit during import.
+A serial number is unique within its product, including archived units.
+
+`Rig.slug` assigns `/inventory/rigs/<slug>` to a rig. `Equipment.slug` assigns
+`/inventory/equipment/<slug>` to a unit. Each column is required and has a
+unique index and a check that its value is not empty. A rig and equipment
+unit may share a slug. Archiving a row keeps its slug reserved.
+
+Writers choose a candidate from the slugs in the same table. They retry a
+slug collision reported by the database. A list of existing slugs helps choose
+numbered candidates; it does not decide whether the write can succeed.
+
 ## PROV labels
 
 Some tables end their comment with a line such as `PROV: prov:Entity.`. The

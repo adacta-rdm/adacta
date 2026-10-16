@@ -3,17 +3,18 @@ import { useState } from "react";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
-import { slugify } from "~/app/lib/slugs.ts";
+import { inventoryEntryPath } from "~/app/lib/inventory.ts";
+import { availableSlug, slugify } from "~/app/lib/slugs.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
 import { Combobox, ComboboxOption } from "~/catalyst-ui/combobox.tsx";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
+import { Equipment } from "~/drizzle/schema/Equipment.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
-import { InventoryEntryProduct } from "~/drizzle/schema/InventoryEntryProduct.ts";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import { UniqueConstraintViolationError } from "~/lib/sqlite-errors/UniqueConstraintViolationError.ts";
 
@@ -27,7 +28,7 @@ type ManufacturerOption = { id: string; name: string; isNew: boolean };
 const EMPTY_MANUFACTURER: ManufacturerOption = { id: "", name: "", isNew: false };
 
 export function meta() {
-	return [{ title: "Add equipment — Adacta" }];
+	return [{ title: "Add inventory item — Adacta" }];
 }
 
 export async function loader({ context }: Route.LoaderArgs) {
@@ -44,7 +45,14 @@ export async function loader({ context }: Route.LoaderArgs) {
 
 export async function action({ context, request }: Route.ActionArgs) {
 	const formData = await request.formData();
-	const entryName = stringValue(formData, "entryName");
+	const kind = stringValue(formData, "kind") || "equipment";
+	const container = context.get(services);
+	const [db, security] = container.get(ApplicationDatabase, Security);
+	if (kind === "rig") return addRig(db, security, stringValue(formData, "entryName"));
+	if (kind !== "equipment") {
+		return data({ error: "Choose a valid inventory type." }, { status: 400 });
+	}
+
 	const productName = stringValue(formData, "productName");
 	const productNumber = stringValue(formData, "productNumber") || null;
 	const description = stringValue(formData, "description") || null;
@@ -53,11 +61,10 @@ export async function action({ context, request }: Route.ActionArgs) {
 	const manufacturerName = stringValue(formData, "manufacturerName");
 	const errors: string[] = [];
 
-	if (!entryName) errors.push("Equipment name is required.");
 	if (!productName) errors.push("Product name is required.");
 	const sluggedValues = [
-		["Equipment name", entryName],
 		["Product name", productName],
+		["Model number", productNumber ?? ""],
 		...(manufacturerChoice === NEW_MANUFACTURER
 			? [["Manufacturer name", manufacturerName] as const]
 			: []),
@@ -70,8 +77,6 @@ export async function action({ context, request }: Route.ActionArgs) {
 		errors.push("Manufacturer name is required when adding a manufacturer.");
 	}
 
-	const container = context.get(services);
-	const [db, security] = container.get(ApplicationDatabase, Security);
 	let manufacturer: { id: number; name: string } | undefined;
 	if (manufacturerChoice && manufacturerChoice !== NEW_MANUFACTURER) {
 		const id = Number(manufacturerChoice);
@@ -93,14 +98,24 @@ export async function action({ context, request }: Route.ActionArgs) {
 	const manufacturerId = manufacturer?.id ?? id53();
 	const productId = id53();
 	const entryId = id53();
-	const productBase = slugify(productNumber ?? productName);
-	const entryBase = slugify(entryName);
-	let productSlug = productBase;
-	let entrySlug = entryBase;
-	let productSuffix = 2;
-	let entrySuffix = 2;
+	for (let attempt = 0; attempt < 5; attempt++) {
+		// These candidates may be taken by another write. The unique constraints
+		// decide whether the complete batch can be stored.
+		const productSlugs = await db
+			.select({ slug: Product.slug })
+			.from(Product)
+			.where(eq(Product.manufacturerId, manufacturerId))
+			.all();
+		const equipmentSlugs = await db.select({ slug: Equipment.slug }).from(Equipment).all();
+		const productSlug = availableSlug(
+			productNumber ?? productName,
+			productSlugs.map(({ slug }) => slug),
+		);
+		const entrySlug = availableSlug(
+			productName,
+			equipmentSlugs.map(({ slug }) => slug),
+		);
 
-	for (let attempt = 0; attempt < 10; attempt++) {
 		// Separate inserts avoid a large parameter list per statement.
 		const statements = [
 			...(manufacturerChoice === NEW_MANUFACTURER
@@ -124,46 +139,36 @@ export async function action({ context, request }: Route.ActionArgs) {
 				...metadata,
 			}),
 			db.insert(Id).values({ id: entryId }),
-			db.insert(InventoryEntry).values({
+			db.insert(Equipment).values({
 				id: entryId,
 				slug: entrySlug,
-				name: entryName,
-				kind: "equipment",
 				productId,
 				serialNumber,
 				...metadata,
 			}),
-			db
-				.insert(InventoryEntryProduct)
-				.values({ inventoryEntryId: entryId, productId, ...metadata }),
 		];
 
 		try {
 			await db.batch(statements);
-			return redirect(`/inventory/${entrySlug}`, 303);
+			return redirect(inventoryEntryPath("equipment", entrySlug), 303);
 		} catch (error) {
 			if (!(error instanceof UniqueConstraintViolationError)) throw error;
-			if (error.isOn([Product.slug])) {
-				productSlug = `${productBase}-${productSuffix++}`;
-				continue;
-			}
-			if (error.isOn([InventoryEntry.slug])) {
-				entrySlug = `${entryBase}-${entrySuffix++}`;
-				continue;
-			}
+			if (error.isOn([Product.slug]) || error.isOn([Equipment.slug])) continue;
+
 			if (error.isOn([Manufacturer.slug]))
 				return data(
 					{ error: "This manufacturer already exists. Choose it instead." },
 					{ status: 400 },
 				);
-			if (error.isOn([InventoryEntry.serialNumber]))
-				return data({ error: "The serial number is already in use." }, { status: 400 });
 			throw error;
 		}
 	}
 
 	return data(
-		{ error: "Could not assign unique product and equipment addresses. Choose different names." },
+		{
+			error:
+				"Could not assign unique product and equipment addresses. Try adding the equipment again.",
+		},
 		{ status: 409 },
 	);
 }
@@ -172,6 +177,7 @@ export default function InventoryNew({ actionData, loaderData }: Route.Component
 	const navigation = useNavigation();
 	const submitting = navigation.formData !== undefined;
 	const [manufacturer, setManufacturer] = useState<ManufacturerOption>(EMPTY_MANUFACTURER);
+	const [kind, setKind] = useState<"rig" | "equipment">("equipment");
 	const manufacturerOptions: ManufacturerOption[] = [
 		{ id: NEW_MANUFACTURER, name: "Add a manufacturer", isNew: true },
 		...loaderData.manufacturers.map((candidate) => ({
@@ -189,66 +195,103 @@ export default function InventoryNew({ actionData, loaderData }: Route.Component
 			>
 				← Inventory
 			</Link>
-			<Heading className="mt-4">Add equipment</Heading>
-			<Text className="mt-2">
-				Record a physical unit and the reusable product information known about it.
-			</Text>
+			<Heading className="mt-4">Add inventory item</Heading>
+			<Text className="mt-2">Add a rig or record a physical equipment unit.</Text>
 
 			<Form method="post" className="mt-8 space-y-8">
-				<section>
-					<Subheading>Physical unit</Subheading>
-					<div className="mt-4 grid gap-4 sm:grid-cols-2">
-						<Field label="Equipment name" name="entryName" required />
-						<Field label="Serial number" name="serialNumber" />
-					</div>
-				</section>
-
-				<section className="border-t border-border pt-6">
-					<Subheading>Product</Subheading>
-					<Text className="mt-1 text-sm">
-						This product is marked as user entered. It can be reused when another unit is added.
-					</Text>
-					<div className="mt-4 grid gap-4 sm:grid-cols-2">
-						<Field label="Product name" name="productName" required />
-						<Field label="Model number" name="productNumber" />
-						<div>
-							<label htmlFor="manufacturer" className="block text-sm font-medium text-foreground">
-								Manufacturer *
-							</label>
-							<input type="hidden" name="manufacturerId" value={manufacturer.id} />
-							<Combobox
-								value={manufacturer}
-								onChange={(option) => setManufacturer(option ?? EMPTY_MANUFACTURER)}
-								options={manufacturerOptions}
-								displayValue={(option) => (option?.id ? option.name : undefined)}
-								filter={(option, query) =>
-									option.isNew || option.name.toLowerCase().includes(query.toLowerCase())
-								}
-								placeholder="Search manufacturers"
-								aria-label="Manufacturer"
-								className="mt-1"
-							>
-								{(option) => <ComboboxOption value={option}>{option.name}</ComboboxOption>}
-							</Combobox>
-						</div>
-						{manufacturer.isNew ? (
-							<Field
-								label="New manufacturer name"
-								name="manufacturerName"
-								required
-								description="Use Unknown manufacturer when the maker cannot be identified."
+				<fieldset>
+					<legend className="text-sm font-semibold">Type</legend>
+					<div className="mt-3 flex gap-5 text-sm">
+						<label className="flex items-center gap-2">
+							<input
+								type="radio"
+								name="kind"
+								value="equipment"
+								checked={kind === "equipment"}
+								onChange={() => setKind("equipment")}
 							/>
-						) : null}
+							Equipment
+						</label>
+						<label className="flex items-center gap-2">
+							<input
+								type="radio"
+								name="kind"
+								value="rig"
+								checked={kind === "rig"}
+								onChange={() => setKind("rig")}
+							/>
+							Rig
+						</label>
 					</div>
-					<label className="mt-4 block text-sm font-medium text-foreground">
-						Description
-						<textarea
-							name="description"
-							rows={4}
-							className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm focus:border-focus focus:outline-none"
-						/>
-					</label>
-				</section>
+				</fieldset>
+
+				{kind === "rig" ? (
+					<Field label="Rig name" name="entryName" required />
+				) : (
+					<>
+						<section>
+							<Subheading>Physical unit</Subheading>
+							<div className="mt-4 grid gap-4 sm:grid-cols-2">
+								<Field label="Serial number" name="serialNumber" />
+							</div>
+						</section>
+
+						<section className="border-t border-border pt-6">
+							<Subheading>Product</Subheading>
+							<Text className="mt-1 text-sm">
+								This product is marked as user entered. It can be reused when another unit is added.
+							</Text>
+							<div className="mt-4 grid gap-4 sm:grid-cols-2">
+								<Field
+									label="Product name"
+									name="productName"
+									required
+									description="This name is shown for every physical unit of the product."
+								/>
+								<Field label="Model number" name="productNumber" />
+								<div>
+									<label
+										htmlFor="manufacturer"
+										className="block text-sm font-medium text-foreground"
+									>
+										Manufacturer *
+									</label>
+									<input type="hidden" name="manufacturerId" value={manufacturer.id} />
+									<Combobox
+										value={manufacturer}
+										onChange={(option) => setManufacturer(option ?? EMPTY_MANUFACTURER)}
+										options={manufacturerOptions}
+										displayValue={(option) => (option?.id ? option.name : undefined)}
+										filter={(option, query) =>
+											option.isNew || option.name.toLowerCase().includes(query.toLowerCase())
+										}
+										placeholder="Search manufacturers"
+										aria-label="Manufacturer"
+										className="mt-1"
+									>
+										{(option) => <ComboboxOption value={option}>{option.name}</ComboboxOption>}
+									</Combobox>
+								</div>
+								{manufacturer.isNew ? (
+									<Field
+										label="New manufacturer name"
+										name="manufacturerName"
+										required
+										description="Use Unknown manufacturer when the maker cannot be identified."
+									/>
+								) : null}
+							</div>
+							<label className="mt-4 block text-sm font-medium text-foreground">
+								Description
+								<textarea
+									name="description"
+									rows={4}
+									className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm focus:border-focus focus:outline-none"
+								/>
+							</label>
+						</section>
+					</>
+				)}
 
 				{actionData?.error ? (
 					<p role="alert" className="text-sm text-danger">
@@ -262,7 +305,7 @@ export default function InventoryNew({ actionData, loaderData }: Route.Component
 						disabled={submitting}
 						className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-accent-foreground hover:bg-accent-hover disabled:opacity-50"
 					>
-						{submitting ? "Adding…" : "Add equipment"}
+						{submitting ? "Adding…" : kind === "rig" ? "Add rig" : "Add equipment"}
 					</button>
 					<Link to={`/inventory`} className="text-sm text-foreground-muted hover:text-foreground">
 						Cancel
@@ -270,6 +313,43 @@ export default function InventoryNew({ actionData, loaderData }: Route.Component
 				</div>
 			</Form>
 		</div>
+	);
+}
+
+async function addRig(db: ApplicationDatabase, security: Security, name: string) {
+	if (!name || !slugify(name)) {
+		return data({ error: "Rig name needs at least one letter or number." }, { status: 400 });
+	}
+
+	for (let attempt = 0; attempt < 5; attempt++) {
+		const rigSlugs = await db.select({ slug: Rig.slug }).from(Rig).all();
+		const slug = availableSlug(
+			name,
+			rigSlugs.map(({ slug }) => slug),
+		);
+		const id = id53();
+
+		try {
+			await db.batch([
+				db.insert(Id).values({ id }),
+				db.insert(Rig).values({
+					id,
+					slug,
+					name,
+					metadataCreatorId: security.userId,
+					metadataCreationTimestamp: new Date(),
+				}),
+			]);
+			return redirect(inventoryEntryPath("rig", slug), 303);
+		} catch (error) {
+			if (error instanceof UniqueConstraintViolationError && error.isOn([Rig.slug])) continue;
+			throw error;
+		}
+	}
+
+	return data(
+		{ error: "Could not assign a unique rig address. Try adding the rig again." },
+		{ status: 409 },
 	);
 }
 

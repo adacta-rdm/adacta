@@ -4,7 +4,7 @@ import type { PIDGraph } from "~/app/lib/PID.ts";
 import type { SidecarEditorNode } from "~/app/lib/sidecarEditor.ts";
 import type { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Channel } from "~/drizzle/schema/Channel.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Equipment } from "~/drizzle/schema/Equipment.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
 import { Sample } from "~/drizzle/schema/Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
@@ -19,23 +19,17 @@ export async function loadSidecarEditorNodes(db: ApplicationDatabase, graph: PID
 	const equipment = equipmentIds.length
 		? await db
 				.select({
-					id: InventoryEntry.id,
-					slug: InventoryEntry.slug,
-					serialNumber: InventoryEntry.serialNumber,
-					productId: InventoryEntry.productId,
+					id: Equipment.id,
+					slug: Equipment.slug,
+					serialNumber: Equipment.serialNumber,
+					productId: Equipment.productId,
 				})
-				.from(InventoryEntry)
+				.from(Equipment)
 				.innerJoin(
 					Product,
-					and(eq(Product.id, InventoryEntry.productId), isNull(Product.metadataArchivedAt)),
+					and(eq(Product.id, Equipment.productId), isNull(Product.metadataArchivedAt)),
 				)
-				.where(
-					and(
-						inArray(InventoryEntry.id, equipmentIds),
-						eq(InventoryEntry.kind, "equipment"),
-						isNull(InventoryEntry.metadataArchivedAt),
-					),
-				)
+				.where(and(inArray(Equipment.id, equipmentIds), isNull(Equipment.metadataArchivedAt)))
 				.all()
 		: [];
 	const productIds = [

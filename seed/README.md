@@ -5,6 +5,29 @@ under `presets/`. The default preset is `demo`. User records come
 from `users/`. The development user is recorded as the creator of seeded
 catalog records and image files.
 
+## Inventory
+
+Each file in `presets/<preset>/inventory/` describes a rig or equipment unit.
+Its `kind` selects the table. A rig supplies its own `name`. Equipment has
+no name field and requires a `product` key. Its product supplies its name.
+The rig or product name supplies the URL slug. Rigs use
+`/inventory/rigs/<slug>` and equipment uses `/inventory/equipment/<slug>`.
+The seed chooses slugs within each kind. A rig and an equipment unit may share
+a slug. The record and its slug are written in one batch.
+
+Equipment names a product by its manufacturer directory and product filename:
+
+```json
+{ "product": "mettler-toledo/xs205" }
+```
+
+The catalog loads before the inventory. An unknown product stops the seed.
+The demo analytical balance links to the Mettler Toledo XS205 product.
+The spare controller uses the DFC-100 product. The demo Micro GC 490 and the
+pilot Gas Chromatograph 8890 use products under Agilent Technologies.
+New catalog products may contain only a name and product number. Their
+subtitle, specifications, channels, and images are optional.
+
 ## Catalog images
 
 Each catalog manufacturer has a directory with `manufacturer.json`, optional

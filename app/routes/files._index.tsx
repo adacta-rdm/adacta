@@ -12,8 +12,8 @@ import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Dataset } from "~/drizzle/schema/Dataset.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 
 import type { Route } from "./+types/files._index.ts";
 
@@ -32,7 +32,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 			.select({
 				id: Dataset.id,
 				csvName: OriginalFile.originalName,
-				rigName: InventoryEntry.name,
+				rigName: Rig.name,
 				rowCount: Dataset.rowCount,
 				operatorEmail: Dataset.operatorEmail,
 				startTime: Dataset.startTime,
@@ -41,7 +41,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 			})
 			.from(Dataset)
 			.innerJoin(OriginalFile, eq(OriginalFile.id, Dataset.csvFileId))
-			.leftJoin(InventoryEntry, eq(InventoryEntry.id, Dataset.rigId))
+			.leftJoin(Rig, eq(Rig.id, Dataset.rigId))
 			.where(isNull(Dataset.metadataArchivedAt))
 			.orderBy(desc(Dataset.metadataCreationTimestamp))
 			.all(),

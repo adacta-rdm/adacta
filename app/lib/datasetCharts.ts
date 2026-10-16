@@ -8,7 +8,7 @@ export type ChartColumn = {
 	parquetType: string;
 	axis?: string | null;
 	unit: string | null;
-	inventoryEntryId: number | null;
+	equipmentId: number | null;
 	inventoryName: string | null;
 	channelKey: string | null;
 	channelRole: string | null;
@@ -92,10 +92,7 @@ export function datasetCharts(
 	const seriesKeys = [
 		...new Set(
 			numeric.map(({ column }) =>
-				JSON.stringify([
-					column.inventoryEntryId ?? column.pidNodeId ?? column.id,
-					column.channelKey,
-				]),
+				JSON.stringify([column.equipmentId ?? column.pidNodeId ?? column.id, column.channelKey]),
 			),
 		),
 	];
@@ -151,7 +148,7 @@ export function datasetCharts(
 				const deviceNames = new Map<string | number, string>();
 				const seriesCounts = new Map<string | number, number>();
 				for (const { column } of members) {
-					const device = column.inventoryEntryId ?? column.pidNodeId ?? column.id;
+					const device = column.equipmentId ?? column.pidNodeId ?? column.id;
 					const role = column.channelRole === "setpoint" ? "setpoint" : "measurement";
 					const roleKey = `${device}:${role}`;
 					seriesCounts.set(roleKey, (seriesCounts.get(roleKey) ?? 0) + 1);
@@ -160,7 +157,7 @@ export function datasetCharts(
 						column.gasName &&
 						!column.gasName.includes(",") &&
 						sameGas.every(
-							({ column: peer }) => (peer.inventoryEntryId ?? peer.pidNodeId ?? peer.id) === device,
+							({ column: peer }) => (peer.equipmentId ?? peer.pidNodeId ?? peer.id) === device,
 						);
 					const sameName = members.filter(
 						({ column: peer }) => peer.inventoryName === column.inventoryName,
@@ -168,7 +165,7 @@ export function datasetCharts(
 					const nameIdentifiesDevice =
 						column.inventoryName &&
 						sameName.every(
-							({ column: peer }) => (peer.inventoryEntryId ?? peer.pidNodeId ?? peer.id) === device,
+							({ column: peer }) => (peer.equipmentId ?? peer.pidNodeId ?? peer.id) === device,
 						);
 					deviceNames.set(
 						device,
@@ -186,7 +183,7 @@ export function datasetCharts(
 						: (first.channelKey ?? first.displayName),
 					unit: first.unit ?? "",
 					series: members.map(({ column, data }) => {
-						const device = column.inventoryEntryId ?? column.pidNodeId ?? column.id;
+						const device = column.equipmentId ?? column.pidNodeId ?? column.id;
 						const role = column.channelRole === "setpoint" ? "Setpoint" : "Measured";
 						const roleKey = `${device}:${role === "Setpoint" ? "setpoint" : "measurement"}`;
 						const deviceLabel =

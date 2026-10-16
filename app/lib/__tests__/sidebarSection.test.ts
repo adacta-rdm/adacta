@@ -5,7 +5,7 @@ import { sidebarSection } from "../sidebarSection.ts";
 describe("sidebarSection", () => {
 	test("the first path segment names the section", () => {
 		expect(sidebarSection("/inventory")).toBe("inventory");
-		expect(sidebarSection("/inventory/rig-1")).toBe("inventory");
+		expect(sidebarSection("/inventory/rigs/rig-1")).toBe("inventory");
 		expect(sidebarSection("/samples/new")).toBe("samples");
 		expect(sidebarSection("/catalog/netzsch")).toBe("catalog");
 		expect(sidebarSection("/files/import")).toBe("files");

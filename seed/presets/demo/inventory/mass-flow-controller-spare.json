@@ -1,4 +1,4 @@
 {
-	"name": "Mass Flow Controller (spare)",
-	"kind": "equipment"
+	"kind": "equipment",
+	"product": "adacta-demo-instruments/dfc-100"
 }

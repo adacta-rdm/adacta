@@ -11,11 +11,15 @@
  * "availableSlug", which is what the application does. The seed therefore
  * cannot produce a slug the application could not produce.
  */
+import { eq } from "drizzle-orm";
+
 import { availableSlug } from "~/app/lib/slugs.ts";
-import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
+import { type BatchStatement, ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
+import { Equipment } from "~/drizzle/schema/Equipment.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Product } from "~/drizzle/schema/Product.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, keyOf, readJson, seedPath } from "~/seed/files.ts";
@@ -27,10 +31,10 @@ import { jsonFiles, keyOf, readJson, seedPath } from "~/seed/files.ts";
  * alphanumeric. For example a building may be called "B3".
  */
 type SeedInventoryEntry = {
-	name: string;
+	name?: string;
 	kind: "rig" | "equipment";
-	product?: string;
 	serialNumber?: string;
+	product?: string;
 	location?: {
 		buildingIdentifier: string;
 		roomIdentifier: string;
@@ -60,40 +64,53 @@ export async function seedInventory(
 
 	const entries = files.map((file) => readJson<SeedInventoryEntry>(file));
 
-	// The slugs taken so far are the ones handed out in this loop. Two names
+	// Each kind keeps the slugs handed out in this loop. Two names
 	// that reduce to the same slug push the second one to a numbered variant.
-	const takenSlugs: string[] = [];
+	const takenSlugs: Record<"rig" | "equipment", string[]> = { rig: [], equipment: [] };
 
-	const rows = entries.map((entry, index) => {
-		const slug = availableSlug(entry.name, takenSlugs);
-		takenSlugs.push(slug);
-		const productId = entry.product === undefined ? null : productIds.get(entry.product);
-		if (entry.product !== undefined && productId === undefined) {
-			throw new Error(
-				`Inventory entry ${files[index]} names no catalog product "${entry.product}".`,
-			);
-		}
-
-		return {
-			id: id53(),
+	const rows: { id: number; slug: string }[] = [];
+	const statements: BatchStatement[] = [];
+	for (const [index, entry] of entries.entries()) {
+		const productId = entry.product === undefined ? undefined : productIds.get(entry.product);
+		const product =
+			productId === undefined
+				? undefined
+				: await db
+						.select({ name: Product.name })
+						.from(Product)
+						.where(eq(Product.id, productId))
+						.get();
+		if (entry.kind === "equipment" && !product)
+			throw new Error(`Equipment ${files[index]} needs an existing catalog product.`);
+		const name = entry.kind === "rig" ? entry.name : product!.name;
+		if (!name) throw new Error(`Rig ${files[index]} needs a name.`);
+		const slug = availableSlug(name, takenSlugs[entry.kind]);
+		takenSlugs[entry.kind].push(slug);
+		const id = id53();
+		rows.push({ id, slug });
+		const values = {
+			id,
 			slug,
-			name: entry.name,
-			kind: entry.kind,
-			productId,
-			serialNumber: entry.serialNumber ?? null,
 			locationBuildingIdentifier: entry.location?.buildingIdentifier ?? null,
 			locationRoomIdentifier: entry.location?.roomIdentifier ?? null,
 			locationLabel: entry.location?.label ?? null,
 			metadataCreatorId: creatorId,
 			metadataCreationTimestamp: createdAt,
 		};
-	});
+		if (entry.kind === "rig") {
+			statements.push(db.insert(Id).values({ id }), db.insert(Rig).values({ ...values, name }));
+		} else {
+			statements.push(
+				db.insert(Id).values({ id }),
+				db
+					.insert(Equipment)
+					.values({ ...values, productId: productId!, serialNumber: entry.serialNumber ?? null }),
+			);
+		}
+	}
 
 	// Separate inserts avoid a large parameter list per statement.
-	await db.batch([
-		...rows.map(({ id }) => db.insert(Id).values({ id })),
-		...rows.map((row) => db.insert(InventoryEntry).values(row)),
-	]);
+	await db.batch(statements);
 
 	return new Map(rows.map((row, index) => [keyOf(files[index]), row.id]));
 }

@@ -1,14 +1,19 @@
 import { describe, expect, test } from "bun:test";
 
 import * as productRoute from "~/app/routes/catalog.$manufacturerSlug.$productSlug.tsx";
-import * as entryRoute from "~/app/routes/inventory.$entrySlug.tsx";
-import * as inventoryRoute from "~/app/routes/inventory._index.tsx";
+import * as entryRoute from "~/app/routes/inventory.equipment.$slug.tsx";
 import * as newRoute from "~/app/routes/inventory.new.tsx";
-import { createTestManufacturer, createTestRig } from "~/app/testUtils/testRecords.ts";
+import * as rigRoute from "~/app/routes/inventory.rigs.$slug.tsx";
+import { listedInventory } from "~/app/testUtils/listedInventory.ts";
+import {
+	createTestEquipment,
+	createTestManufacturer,
+	createTestRig,
+} from "~/app/testUtils/testRecords.ts";
 import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
 
-describe("new inventory equipment", () => {
+describe("inventory.new", () => {
 	describe("loader", () => {
 		test("lists active manufacturers for the form", async () => {
 			const scope = await setupTestRequestScope();
@@ -26,19 +31,61 @@ describe("new inventory equipment", () => {
 	});
 
 	describe("action", () => {
+		test("creates a rig without catalog fields and opens its rig address", async () => {
+			const scope = await setupTestRequestScope();
+
+			const result = await testRoute(scope, newRoute, {}).action({
+				kind: "rig",
+				entryName: "Synthesis rig",
+			});
+
+			expect(result.location).toBe("/inventory/rigs/synthesis-rig");
+			const detail = await testRoute(scope, rigRoute, { slug: "synthesis-rig" }).loader();
+			expect(detail.data).toMatchObject({
+				name: "Synthesis rig",
+			});
+		});
+
+		test("numbers a rig slug already reserved by an archived rig", async () => {
+			const scope = await setupTestRequestScope();
+			await createTestRig(scope, { slug: "controller", metadataArchivedAt: new Date() });
+
+			const result = await testRoute(scope, newRoute, {}).action({
+				kind: "rig",
+				entryName: "Controller",
+			});
+
+			expect(result.location).toBe("/inventory/rigs/controller-2");
+			const detail = await testRoute(scope, rigRoute, { slug: "controller-2" }).loader();
+			expect(detail.status).toBe(200);
+		});
+
+		test.each([
+			{ kind: "other", entryName: "" },
+			{ kind: "rig", entryName: "" },
+			{ kind: "rig", entryName: "!!!" },
+		])("rejects invalid rig entries %j", async (values) => {
+			const scope = await setupTestRequestScope();
+
+			const result = await testRoute(scope, newRoute, {}).action(values);
+
+			expect(result.status).toBe(400);
+		});
+
 		test("creates an unknown manufacturer and incomplete product identity", async () => {
 			const scope = await setupTestRequestScope();
 
 			const result = await testRoute(scope, newRoute, {}).action({
-				entryName: "Bench controller",
 				productName: "Flow controller",
 				manufacturerId: "new",
 				manufacturerName: "Unknown manufacturer",
 			});
 
 			expect(result.status).toBe(303);
-			const detail = await testRoute(scope, entryRoute, { entrySlug: "bench-controller" }).loader();
-			expect(detail.data?.entry.product).toMatchObject({
+			const detail = await testRoute(scope, entryRoute, {
+				slug: "flow-controller",
+			}).loader();
+			expect(detail.data?.product).toMatchObject({
 				manufacturerName: "Unknown manufacturer",
 				productNumber: null,
 				subtitle: null,
@@ -51,35 +98,33 @@ describe("new inventory equipment", () => {
 			const maker = await createTestManufacturer(scope);
 
 			const result = await testRoute(scope, newRoute, {}).action({
-				entryName: "Controller",
 				productName: "Flow controller",
 				manufacturerId: "new",
 				manufacturerName: maker.name,
 			});
 
 			expect(result.status).toBe(400);
-			const inventory = await testRoute(scope, inventoryRoute, {}).loader();
-			expect(inventory.data?.entries).toHaveLength(0);
+			expect(await listedInventory(scope)).toEqual([]);
 		});
 
-		test("keeps product and entry slugs unique", async () => {
+		test("numbers equipment slugs reserved by active and archived units", async () => {
 			const scope = await setupTestRequestScope();
 			const maker = await createTestManufacturer(scope);
 			const route = testRoute(scope, newRoute, {});
 			const values = {
-				entryName: "Argon controller",
 				productName: "Flow controller",
 				manufacturerId: String(maker.id),
 			};
+			await createTestEquipment(scope, { slug: "flow-controller", metadataArchivedAt: new Date() });
 			await route.action(values);
 
 			const result = await route.action(values);
 
-			expect(result.location).toBe("/inventory/argon-controller-2");
+			expect(result.location).toBe("/inventory/equipment/flow-controller-3");
 			const detail = await testRoute(scope, entryRoute, {
-				entrySlug: "argon-controller-2",
+				slug: "flow-controller-3",
 			}).loader();
-			expect(detail.data?.entry.product?.productSlug).toBe("flow-controller-2");
+			expect(detail.data?.product?.productSlug).toBe("flow-controller-2");
 			const model = await testRoute(scope, productRoute, {
 				manufacturerSlug: maker.slug,
 				productSlug: "flow-controller-2",
@@ -87,41 +132,30 @@ describe("new inventory equipment", () => {
 			expect(model.data?.product.name).toBe("Flow controller");
 		});
 
-		test("keeps generated slugs unique across rigs and equipment", async () => {
-			const scope = await setupTestRequestScope();
-			const maker = await createTestManufacturer(scope);
-			await createTestRig(scope, { name: "Controller" });
-
-			const result = await testRoute(scope, newRoute, {}).action({
-				entryName: "Controller",
-				productName: "Flow controller",
-				manufacturerId: String(maker.id),
-			});
-
-			expect(result.location).toBe("/inventory/controller-2");
-			const detail = await testRoute(scope, entryRoute, { entrySlug: "controller-2" }).loader();
-			expect(detail.data?.entry.kind).toBe("equipment");
-		});
-
-		test.each([
-			{ entryName: "", productName: "Product", manufacturerId: "new", manufacturerName: "Maker" },
-			{ entryName: "Unit", productName: "", manufacturerId: "new", manufacturerName: "Maker" },
-			{
-				entryName: "!!!",
-				productName: "Product",
-				manufacturerId: "new",
-				manufacturerName: "Maker",
-			},
-			{ entryName: "Unit", productName: "Product", manufacturerId: "", manufacturerName: "" },
-			{
-				entryName: "Unit",
-				productName: "Product",
-				manufacturerId: "invalid",
-				manufacturerName: "",
-			},
-			{ entryName: "Unit", productName: "Product", manufacturerId: "999999", manufacturerName: "" },
-			{ entryName: "Unit", productName: "Product", manufacturerId: "new", manufacturerName: "" },
-		])("rejects invalid manual entries %j", async (values) => {
+		test.each(
+			[
+				{
+					productName: "Product",
+					productNumber: "!!!",
+					manufacturerId: "new",
+					manufacturerName: "Maker",
+				},
+				{ productName: "", manufacturerId: "new", manufacturerName: "Maker" },
+				{
+					productName: "!!!",
+					manufacturerId: "new",
+					manufacturerName: "Maker",
+				},
+				{ productName: "Product", manufacturerId: "", manufacturerName: "" },
+				{
+					productName: "Product",
+					manufacturerId: "invalid",
+					manufacturerName: "",
+				},
+				{ productName: "Product", manufacturerId: "999999", manufacturerName: "" },
+				{ productName: "Product", manufacturerId: "new", manufacturerName: "" },
+			].map((values) => ({ ...values, productNumber: values.productNumber ?? "" })),
+		)("rejects invalid manual entries %j", async (values) => {
 			const scope = await setupTestRequestScope();
 
 			const result = await testRoute(scope, newRoute, {}).action(values);
@@ -129,24 +163,25 @@ describe("new inventory equipment", () => {
 			expect(result.status).toBe(400);
 		});
 
-		test("rejects duplicate serial numbers without creating a product", async () => {
+		test("accepts the same serial number for a different product", async () => {
 			const scope = await setupTestRequestScope();
 			const maker = await createTestManufacturer(scope);
-			await createTestRig(scope, { kind: "equipment", name: "Existing", serialNumber: "Taken" });
+			await createTestEquipment(scope, { serialNumber: "Taken" });
 
 			const result = await testRoute(scope, newRoute, {}).action({
-				entryName: "Unit",
 				productName: "Product",
 				manufacturerId: String(maker.id),
 				serialNumber: "Taken",
 			});
 
-			expect(result.status).toBe(400);
+			expect(result.status).toBe(303);
 			const missingProduct = await testRoute(scope, productRoute, {
 				manufacturerSlug: maker.slug,
 				productSlug: "product",
 			}).loader();
-			expect(missingProduct.status).toBe(404);
+			expect(missingProduct.data?.product.name).toBe("Product");
+			const detail = await testRoute(scope, entryRoute, { slug: "product" }).loader();
+			expect(detail.data?.serialNumber).toBe("Taken");
 		});
 		test("creates a user product and its first equipment entry", async () => {
 			const scope = await setupTestRequestScope();
@@ -154,7 +189,6 @@ describe("new inventory equipment", () => {
 			const route = testRoute(scope, newRoute, {});
 
 			const result = await route.action({
-				entryName: "Argon controller",
 				serialNumber: "A-20",
 				productName: "EL-FLOW Select",
 				productNumber: "F-201CV-020",
@@ -163,12 +197,13 @@ describe("new inventory equipment", () => {
 			});
 
 			expect(result.status).toBe(303);
-			expect(result.location).toBe("/inventory/argon-controller");
-			const detail = await testRoute(scope, entryRoute, { entrySlug: "argon-controller" }).loader();
-			expect(detail.data?.entry).toMatchObject({
-				name: "Argon controller",
+			expect(result.location).toBe("/inventory/equipment/el-flow-select");
+			const detail = await testRoute(scope, entryRoute, {
+				slug: "el-flow-select",
+			}).loader();
+			expect(detail.data).toMatchObject({
+				name: "EL-FLOW Select",
 				serialNumber: "A-20",
-				kind: "equipment",
 				product: {
 					manufacturerName: maker.name,
 					productSlug: "f-201cv-020",

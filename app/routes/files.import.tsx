@@ -22,8 +22,8 @@ import { Security } from "~/app/services/Security.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 
 import type { Route } from "./+types/files.import.ts";
 
@@ -45,21 +45,15 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 	if (!slug) return { suggestion: null };
 	const db = context.get(services).get(ApplicationDatabase);
 	const rig = await db
-		.select({ id: InventoryEntry.id, slug: InventoryEntry.slug, name: InventoryEntry.name })
-		.from(InventoryEntry)
-		.where(
-			and(
-				eq(InventoryEntry.slug, slug),
-				eq(InventoryEntry.kind, "rig"),
-				isNull(InventoryEntry.metadataArchivedAt),
-			),
-		)
+		.select({ id: Rig.id, slug: Rig.slug, name: Rig.name })
+		.from(Rig)
+		.where(and(eq(Rig.slug, slug), isNull(Rig.metadataArchivedAt)))
 		.get();
 	if (!rig) return { suggestion: null };
 	const symbols = await db
 		.select({ key: PIDNode.symbolKey })
 		.from(PIDNode)
-		.where(and(eq(PIDNode.inventoryEntryId, rig.id), isNull(PIDNode.metadataArchivedAt)))
+		.where(and(eq(PIDNode.rigId, rig.id), isNull(PIDNode.metadataArchivedAt)))
 		.all();
 	return {
 		suggestion: {

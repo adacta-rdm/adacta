@@ -2,7 +2,7 @@
  * The sidebar has a fixed top zone and a middle zone that changes with the
  * section in view. This module names the section for a path.
  *
- * For example, "/inventory/rig-1" is in the "inventory" section.
+ * For example, "/inventory/rigs/rig-1" is in the "inventory" section.
  * The root and unknown segments belong to no section.
  */
 

@@ -7,6 +7,7 @@ import {
 	stringifyDatasetSidecar,
 	type SidecarItem,
 } from "~/app/lib/datasetSidecar.ts";
+import * as uploadRoute from "~/app/routes/files.$uploadId.tsx";
 import { action, loader } from "~/app/routes/files.$uploadId_.datasets.import.tsx";
 import * as reviewRoute from "~/app/routes/files.$uploadId_.datasets.import.tsx";
 import { loader as datasetLoader } from "~/app/routes/files.datasets.$datasetId.tsx";
@@ -14,7 +15,13 @@ import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
 import { createMiddlewareArgs } from "~/app/testUtils/createMiddlewareArgs.ts";
-import { createTestRig, createTestUpload } from "~/app/testUtils/testRecords.ts";
+import {
+	createTestEquipment,
+	createTestManufacturer,
+	createTestProduct,
+	createTestRig,
+	createTestUpload,
+} from "~/app/testUtils/testRecords.ts";
 import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
 import { Channel } from "~/drizzle/schema/Channel.ts";
@@ -24,6 +31,68 @@ import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
 
 describe("dataset import review", () => {
+	test("refuses a serial number that identifies several units on the selected rig", async () => {
+		const scope = await setupTestRequestScope();
+		const { uploadId, rigId } = await numericUpload(scope, false, "Position,Signal\n0,1\n", {
+			equipmentSerialNumber: "SN-001",
+			sidecarItem: { serial_number: "SN-001" },
+		});
+		const maker = await createTestManufacturer(scope, { name: "Other manufacturer" });
+		const product = await createTestProduct(scope, maker, { name: "Second model" });
+		const equipment = await createTestEquipment(
+			scope,
+			{ slug: "second-device", serialNumber: "SN-001" },
+			product,
+		);
+		await scope
+			.get(ApplicationDatabase)
+			.insert(PIDNode)
+			.values({
+				id: "second-device-node",
+				rigId,
+				equipmentId: equipment.id,
+				symbolKey: "SECOND",
+				kind: "instrument",
+				label: "Second device",
+				drawingOrder: 1,
+				orientation: 0,
+				positionX: 0,
+				positionY: 0,
+				metadataCreatorId: scope.get(Security).userId,
+				metadataCreationTimestamp: new Date(),
+			})
+			.run();
+		const route = testRoute(scope, reviewRoute, { uploadId: String(uploadId) });
+
+		const result = await route.action({ rigId: String(rigId) });
+
+		expect(result.status).toBe(422);
+		expect(result.data?.error).toContain('serial number "SN-001"');
+		expect(result.data?.error).toContain("Scan device (scan-device)");
+		expect(result.data?.error).toContain("Second model (second-device)");
+		const upload = await testRoute(scope, uploadRoute, { uploadId: String(uploadId) }).loader();
+		expect(upload.data?.datasetImports).toHaveLength(0);
+	});
+
+	test("resolves a sidecar slug to equipment when a rig has the same slug", async () => {
+		const scope = await setupTestRequestScope();
+		const { uploadId, rigId } = await numericUpload(scope, false, "Position,Signal\n0,1\n", {
+			sidecarItem: { slug: "scan-device" },
+		});
+		await createTestRig(scope, { slug: "scan-device" });
+		const route = testRoute(scope, reviewRoute, { uploadId: String(uploadId) });
+
+		const result = await route.action({ rigId: String(rigId) });
+
+		expect(result.status).toBe(303);
+		const datasetId = result.location!.split("/").at(-1)!;
+		const dataset = await datasetLoader(createMiddlewareArgs(scope, { params: { datasetId } })[0]);
+		expect(dataset.columns[1]).toMatchObject({
+			inventoryName: "Scan device",
+			channelKey: "signal",
+		});
+	});
+
 	test("rejects an oversized sidecar whose prefix is valid TOML", async () => {
 		const scope = await setupTestRequestScope();
 		const { uploadId, rigId } = await numericUpload(scope, false, "Position,Signal\n0,1\n", {
@@ -98,7 +167,7 @@ describe("dataset import review", () => {
 			axis: "numeric",
 			parquetType: "DOUBLE",
 			unit: "mm",
-			inventoryEntryId: linked ? equipmentId : null,
+			equipmentId: linked ? equipmentId : null,
 		});
 		expect(detail.analysis?.overview).toEqual([
 			{ x: 0, values: [0, 1] },
@@ -130,7 +199,7 @@ describe("dataset import review", () => {
 		const detail = testRoute(scope, { loader: datasetLoader }, { datasetId: datasetId! });
 		const imported = (await detail.loader()).data;
 		expect(imported?.columns[1]).toMatchObject({
-			inventoryEntryId: equipmentId,
+			equipmentId: equipmentId,
 			channelKey: "signal",
 		});
 	});
@@ -206,7 +275,7 @@ describe("dataset import review", () => {
 			.insert(PIDNode)
 			.values({
 				id: "flow-node",
-				inventoryEntryId: rig.id,
+				rigId: rig.id,
 				kind: "instrument",
 				label: "Flow",
 				symbolKey: "FIRC_101",
@@ -304,10 +373,8 @@ describe("dataset import review", () => {
 			})
 			.returning({ id: Product.id })
 			.get();
-		const equipment = await createTestRig(scope, {
-			kind: "equipment",
+		const equipment = await createTestEquipment(scope, {
 			slug: "flow-meter",
-			name: "Flow meter",
 			productId: product.id,
 		});
 		await db
@@ -324,8 +391,8 @@ describe("dataset import review", () => {
 			.insert(PIDNode)
 			.values({
 				id: "flow-node",
-				inventoryEntryId: rig.id,
-				equipmentEntryId: equipment.id,
+				rigId: rig.id,
+				equipmentId: equipment.id,
 				kind: "instrument",
 				label: "Flow",
 				symbolKey: "FIRC_101",
@@ -431,8 +498,7 @@ async function numericUpload(
 		})
 		.returning({ id: Product.id })
 		.get();
-	const equipment = await createTestRig(scope, {
-		kind: "equipment",
+	const equipment = await createTestEquipment(scope, {
 		slug: "scan-device",
 		productId: product.id,
 		serialNumber: options.equipmentSerialNumber,
@@ -449,8 +515,8 @@ async function numericUpload(
 		.insert(PIDNode)
 		.values({
 			id: "scan-node",
-			inventoryEntryId: rig.id,
-			equipmentEntryId: equipment.id,
+			rigId: rig.id,
+			equipmentId: equipment.id,
 			kind: "instrument",
 			label: "Scan",
 			symbolKey: "SCAN",

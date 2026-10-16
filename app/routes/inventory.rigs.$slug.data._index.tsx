@@ -11,27 +11,21 @@ import { Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { Dataset } from "~/drizzle/schema/Dataset.ts";
 import { DatasetColumn } from "~/drizzle/schema/DatasetColumn.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 
-import type { Route } from "./+types/inventory.$entrySlug.data._index.ts";
+import type { Route } from "./+types/inventory.rigs.$slug.data._index.ts";
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const db = context.get(services).get(ApplicationDatabase);
 	const rig = await db
-		.select({ id: InventoryEntry.id })
-		.from(InventoryEntry)
-		.where(
-			and(
-				eq(InventoryEntry.slug, params.entrySlug),
-				eq(InventoryEntry.kind, "rig"),
-				isNull(InventoryEntry.metadataArchivedAt),
-			),
-		)
+		.select({ id: Rig.id })
+		.from(Rig)
+		.where(and(eq(Rig.slug, params.slug), isNull(Rig.metadataArchivedAt)))
 		.get();
 
 	if (!rig) {
-		throw new Response(`Rig "${params.entrySlug}" not found.`, { status: 404 });
+		throw new Response(`Rig "${params.slug}" not found.`, { status: 404 });
 	}
 
 	const datasets = await db
@@ -105,7 +99,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 							parquetType: column.parquetType,
 							axis: column.axis,
 							unit: column.unit,
-							inventoryEntryId: column.inventoryEntryId,
+							equipmentId: column.equipmentId,
 							inventoryName: column.inventoryName,
 							channelKey: column.channelKey,
 							channelRole: column.channelRole,
@@ -154,7 +148,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	};
 }
 
-export default function InventoryEntrySlugDataIndex({ loaderData }: Route.ComponentProps) {
+export default function InventoryRigsSlugDataIndex({ loaderData }: Route.ComponentProps) {
 	return (
 		<section>
 			<Subheading>Recorded data</Subheading>

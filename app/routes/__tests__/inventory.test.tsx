@@ -5,7 +5,7 @@ import { createRoutesStub } from "react-router";
 
 import * as appRoute from "~/app/routes/_app.tsx";
 import * as inventoryRoute from "~/app/routes/inventory.tsx";
-import { createTestRig } from "~/app/testUtils/testRecords.ts";
+import { createTestEquipment, createTestRig } from "~/app/testUtils/testRecords.ts";
 import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
 
@@ -23,49 +23,77 @@ describe("inventory", () => {
 			const result = await route.loader();
 
 			expect(result.status).toBe(200);
-			expect(result.data?.entries.map((entry) => entry.slug)).toEqual([rig.slug]);
-			expect(result.data?.buildings[0]?.rooms[0]?.entries[0]?.slug).toBe(rig.slug);
+			const slugs = result.data?.buildings.flatMap((building) =>
+				building.rooms.flatMap((room) => room.entries.map((entry) => entry.slug)),
+			);
+			expect(slugs).toEqual([rig.slug]);
 		});
 	});
 
 	describe("sidebar", () => {
-		test("renders the location tree with padded nested rows", async () => {
-			const scope = await setupTestRequestScope();
-			const rig = await createTestRig(scope, {
-				locationBuildingIdentifier: "B3",
-				locationRoomIdentifier: "101",
-			});
-			const appData = (await testRoute(scope, appRoute, {}).loader()).data!;
-			const inventoryData = (await testRoute(scope, inventoryRoute, {}).loader()).data!;
-			const Stub = createRoutesStub([
-				{
-					id: "app",
-					Component: appRoute.default,
-					loader: () => appData,
-					children: [
-						{
-							id: "routes/inventory",
-							path: "/inventory",
-							Component: inventoryRoute.default,
-							loader: () => inventoryData,
-							handle: inventoryRoute.handle,
-							children: [{ index: true, Component: () => null }],
-						},
-					],
-				},
-			]);
+		test.each(["rigs", "equipment"])(
+			"selects only the current %s entry when slugs match",
+			async (kind) => {
+				const scope = await setupTestRequestScope();
+				await createTestRig(scope, {
+					slug: "balance",
+					locationBuildingIdentifier: "B3",
+					locationRoomIdentifier: "101",
+				});
+				await createTestEquipment(scope, {
+					slug: "balance",
+					locationBuildingIdentifier: "B3",
+					locationRoomIdentifier: "101",
+				});
+				const appData = (await testRoute(scope, appRoute, {}).loader()).data!;
+				const inventoryData = (await testRoute(scope, inventoryRoute, {}).loader()).data!;
+				const Stub = createRoutesStub([
+					{
+						id: "app",
+						Component: appRoute.default,
+						loader: () => appData,
+						children: [
+							{
+								id: "routes/inventory",
+								path: "/inventory",
+								Component: inventoryRoute.default,
+								loader: () => inventoryData,
+								handle: inventoryRoute.handle,
+								children: [
+									{ id: "routes/inventory.rigs.$slug", path: "rigs/:slug", Component: () => null },
+									{
+										id: "routes/inventory.equipment.$slug",
+										path: "equipment/:slug",
+										Component: () => null,
+									},
+								],
+							},
+						],
+					},
+				]);
 
-			const html = renderToStaticMarkup(
-				<Stub
-					initialEntries={["/inventory"]}
-					hydrationData={{ loaderData: { app: appData, "routes/inventory": inventoryData } }}
-				/>,
-			);
+				const html = renderToStaticMarkup(
+					<Stub
+						initialEntries={[`/inventory/${kind}/balance`]}
+						hydrationData={{ loaderData: { app: appData, "routes/inventory": inventoryData } }}
+					/>,
+				);
 
-			expect(html).toContain('aria-label="Inventory by location"');
-			expect(html).toContain(`href="/inventory/${rig.slug}"`);
-			expect(html).toContain("before:left-4");
-			expect(html).toContain("before:left-8");
-		});
+				expect(html).toContain('aria-label="Inventory by location"');
+				expect(html).toContain('href="/inventory/rigs/balance"');
+				expect(html).toContain('href="/inventory/equipment/balance"');
+				const activeEntries = [...html.matchAll(/<a\b[^>]*>/g)]
+					.map(([tag]) => tag)
+					.filter(
+						(tag) =>
+							tag.includes('data-current="true"') &&
+							/href="\/inventory\/(rigs|equipment)\//.test(tag),
+					);
+				expect(activeEntries).toHaveLength(1);
+				expect(activeEntries[0]).toContain(`href="/inventory/${kind}/balance"`);
+				expect(html).toContain("before:left-4");
+				expect(html).toContain("before:left-8");
+			},
+		);
 	});
 });

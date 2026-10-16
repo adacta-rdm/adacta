@@ -55,8 +55,8 @@ export default function App({ loaderData }: Route.ComponentProps) {
 	const navigation = useNavigation();
 	const location = useLocation();
 	const matches = useMatches();
-	const pidMatch = matches.find((match) => match.id === "routes/inventory.$entrySlug.pid");
-	const pidRigSlug = pidMatch?.params.entrySlug;
+	const pidMatch = matches.find((match) => match.id === "routes/inventory.rigs.$slug.pid");
+	const pidRigSlug = pidMatch?.params.slug;
 	const pidInitialToml = (pidMatch?.loaderData as { initialToml?: string } | undefined)
 		?.initialToml;
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -100,16 +100,14 @@ export default function App({ loaderData }: Route.ComponentProps) {
 	function addDroppedFiles(files: File[], target: EventTarget | null) {
 		addSelectedFiles(files);
 		const targetContext = readDropTargetContext(target);
-		const entryMatch = matches.find((match) => match.id === "routes/inventory.$entrySlug");
-		const entry = (
-			entryMatch?.loaderData as { entry?: { slug: string; name: string; kind: string } } | undefined
-		)?.entry;
+		const entryMatch = matches.find((match) => match.id === "routes/inventory.rigs.$slug");
+		const entry = entryMatch?.loaderData as { slug: string; name: string } | undefined;
 		const batchMatch = matches.find((match) => match.id === "routes/samples.$batchSlug");
 		const batch = batchMatch?.loaderData as { name?: string } | undefined;
 		const batchSlug = batchMatch?.params.batchSlug;
 		const context: DropContext | undefined =
 			targetContext ??
-			(entry?.kind === "rig"
+			(entry
 				? { kind: "inventory-entry", slug: entry.slug, label: entry.name }
 				: batch && typeof batchSlug === "string"
 					? { kind: "sample-batch", slug: batchSlug, label: batch.name ?? batchSlug }

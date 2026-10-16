@@ -1,8 +1,8 @@
 {
-	"name": "Gas Chromatograph 8890",
 	"kind": "equipment",
 	"location": {
 		"buildingIdentifier": "H1",
 		"roomIdentifier": "204"
-	}
+	},
+	"product": "agilent-technologies/8890"
 }

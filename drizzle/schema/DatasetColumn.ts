@@ -2,7 +2,7 @@ import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqli
 
 import { Channel } from "~/drizzle/schema/Channel.ts";
 import { Dataset } from "~/drizzle/schema/Dataset.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Equipment } from "~/drizzle/schema/Equipment.ts";
 
 /**
  * A dataset column records the meaning of one CSV column at import.
@@ -33,7 +33,7 @@ export const DatasetColumn = sqliteTable(
 		 */
 		axis: text("axis"),
 		symbolKey: text("symbol_key"),
-		inventoryEntryId: integer("inventory_entry_id").references(() => InventoryEntry.id),
+		equipmentId: integer("equipment_id").references(() => Equipment.id),
 		/**
 		 * This is the equipment name at import. The linked record can later be renamed.
 		 */
@@ -54,6 +54,6 @@ export const DatasetColumn = sqliteTable(
 	},
 	(table) => [
 		uniqueIndex("DatasetColumn_dataset_position_unique").on(table.datasetId, table.position),
-		index("DatasetColumn_inventory_entry_idx").on(table.inventoryEntryId),
+		index("DatasetColumn_equipment_idx").on(table.equipmentId),
 	],
 );

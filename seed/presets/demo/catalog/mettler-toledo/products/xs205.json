@@ -1,0 +1,6 @@
+{
+	"name": "Analytical Balance XS205",
+	"productNumber": "XS205",
+	"subtitle": "Analytical balance",
+	"channels": [{ "key": "mass", "role": "measurement", "quantityKind": "Mass" }]
+}

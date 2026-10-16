@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { ByteWriter, parquetWriteRows, type Writer } from "hyparquet-writer";
 import {
 	Link,
@@ -45,11 +45,12 @@ import { Channel } from "~/drizzle/schema/Channel.ts";
 import { Dataset } from "~/drizzle/schema/Dataset.ts";
 import { DatasetColumn } from "~/drizzle/schema/DatasetColumn.ts";
 import { DatasetSample } from "~/drizzle/schema/DatasetSample.ts";
+import { Equipment } from "~/drizzle/schema/Equipment.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { PIDEdge } from "~/drizzle/schema/PIDEdge.ts";
 import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 import { Sample } from "~/drizzle/schema/Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
@@ -144,10 +145,10 @@ export async function loader({ context, params, request }: Route.LoaderArgs) {
 	const sidecarResult = await readSidecar(sidecarProbe);
 	const sidecar = "sidecar" in sidecarResult ? sidecarResult.sidecar : undefined;
 	const rigs = await db
-		.select({ id: InventoryEntry.id, slug: InventoryEntry.slug, name: InventoryEntry.name })
-		.from(InventoryEntry)
-		.where(and(eq(InventoryEntry.kind, "rig"), isNull(InventoryEntry.metadataArchivedAt)))
-		.orderBy(asc(InventoryEntry.name))
+		.select({ id: Rig.id, slug: Rig.slug, name: Rig.name })
+		.from(Rig)
+		.where(and(isNull(Rig.metadataArchivedAt)))
+		.orderBy(asc(Rig.name))
 		.all();
 	const search = new URL(request.url).searchParams;
 	const contextRigSlug =
@@ -181,13 +182,13 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	const db = container.get(ApplicationDatabase);
 	const rig = Number.isSafeInteger(rigId)
 		? await db
-				.select({ id: InventoryEntry.id })
-				.from(InventoryEntry)
+				.select({ id: Rig.id })
+				.from(Rig)
 				.where(
 					and(
-						eq(InventoryEntry.id, rigId),
-						eq(InventoryEntry.kind, "rig"),
-						isNull(InventoryEntry.metadataArchivedAt),
+						eq(Rig.id, rigId),
+
+						isNull(Rig.metadataArchivedAt),
 					),
 				)
 				.get()
@@ -646,7 +647,7 @@ async function resolveColumns(
 	const nodes = await db
 		.select()
 		.from(PIDNode)
-		.where(and(eq(PIDNode.inventoryEntryId, rigId), isNull(PIDNode.metadataArchivedAt)))
+		.where(and(eq(PIDNode.rigId, rigId), isNull(PIDNode.metadataArchivedAt)))
 		.all();
 	const output: Omit<typeof DatasetColumn.$inferInsert, "id" | "datasetId" | "position">[] = [];
 	for (const [position, column] of sidecar.columns.entries()) {
@@ -656,7 +657,7 @@ async function resolveColumns(
 			parquetType: "STRING",
 			axis: null as string | null,
 			symbolKey: null as string | null,
-			inventoryEntryId: null as number | null,
+			equipmentId: null as number | null,
 			inventoryName: null as string | null,
 			channelId: null as number | null,
 			channelKey: null as string | null,
@@ -672,7 +673,7 @@ async function resolveColumns(
 		}
 		if ("axis" in column) {
 			const mapping = hasChannelMapping(column)
-				? await resolveMappedColumn(db, nodes, graph, position, column)
+				? await resolveMappedColumn(db, rigId, nodes, graph, position, column)
 				: {};
 			output.push({
 				...common,
@@ -684,7 +685,7 @@ async function resolveColumns(
 			});
 			continue;
 		}
-		const mapping = await resolveMappedColumn(db, nodes, graph, position, column);
+		const mapping = await resolveMappedColumn(db, rigId, nodes, graph, position, column);
 		output.push({
 			...common,
 			...mapping,
@@ -698,14 +699,15 @@ async function resolveColumns(
 
 async function resolveMappedColumn(
 	db: ApplicationDatabase,
+	rigId: number,
 	nodes: (typeof PIDNode.$inferSelect)[],
 	graph: PIDGraph,
 	position: number,
 	column: SidecarChannelMapping & { name: string },
 ) {
-	const item = await resolveItem(db, column);
+	const item = await resolveItem(db, rigId, column);
 	const node = nodes.filter((candidate) => candidate.symbolKey === column.symbol_key);
-	if (node.length !== 1 || node[0]!.equipmentEntryId !== item.id)
+	if (node.length !== 1 || node[0]!.equipmentId !== item.id)
 		throw new ImportError(
 			`Column ${position + 1}: symbol ${column.symbol_key} does not identify ${item.name} on this rig.`,
 		);
@@ -733,7 +735,7 @@ async function resolveMappedColumn(
 	const nodeRecord = node[0]!;
 	return {
 		symbolKey: column.symbol_key,
-		inventoryEntryId: item.id,
+		equipmentId: item.id,
 		inventoryName: item.name,
 		channelId: channel.id,
 		channelKey: channel.key,
@@ -746,33 +748,50 @@ async function resolveMappedColumn(
 
 async function resolveItem(
 	db: ApplicationDatabase,
+	rigId: number,
 	column: SidecarChannelMapping & { name: string },
 ) {
 	const identifier = column.item;
 	const filter =
 		"id" in identifier
-			? eq(InventoryEntry.id, identifier.id)
+			? eq(Equipment.id, identifier.id)
 			: "slug" in identifier
-				? eq(InventoryEntry.slug, identifier.slug)
-				: eq(InventoryEntry.serialNumber, identifier.serial_number);
-	const item = await db
+				? eq(Equipment.slug, identifier.slug)
+				: eq(Equipment.serialNumber, identifier.serial_number);
+	const items = await db
 		.select({
-			id: InventoryEntry.id,
-			name: InventoryEntry.name,
-			kind: InventoryEntry.kind,
-			productId: InventoryEntry.productId,
+			id: Equipment.id,
+			slug: Equipment.slug,
+			name: Product.name,
+			productId: Equipment.productId,
 			productArchivedAt: Product.metadataArchivedAt,
 		})
-		.from(InventoryEntry)
-		.leftJoin(Product, eq(Product.id, InventoryEntry.productId))
-		.where(and(filter, isNull(InventoryEntry.metadataArchivedAt)))
-		.get();
-	if (
-		!item ||
-		item.kind !== "equipment" ||
-		item.productId === null ||
-		item.productArchivedAt !== null
-	)
+		.from(Equipment)
+		.innerJoin(Product, eq(Product.id, Equipment.productId))
+		.where(
+			and(
+				filter,
+				isNull(Equipment.metadataArchivedAt),
+				"serial_number" in identifier
+					? inArray(
+							Equipment.id,
+							db
+								.select({ id: PIDNode.equipmentId })
+								.from(PIDNode)
+								.where(and(eq(PIDNode.rigId, rigId), isNull(PIDNode.metadataArchivedAt))),
+						)
+					: undefined,
+			),
+		)
+		.orderBy(asc(Equipment.slug))
+		.all();
+	if ("serial_number" in identifier && items.length > 1) {
+		throw new ImportError(
+			`Column ${column.name}: serial number "${identifier.serial_number}" matches several equipment units on this rig: ${items.map((item) => `${item.name} (${item.slug})`).join(", ")}. Use an id or slug.`,
+		);
+	}
+	const item = items[0];
+	if (!item || item.productArchivedAt !== null)
 		throw new ImportError(
 			`Column ${column.name}: the referenced equipment or catalog product is unavailable.`,
 		);
@@ -789,7 +808,7 @@ async function resolveSamples(
 	const nodes = await db
 		.select()
 		.from(PIDNode)
-		.where(and(eq(PIDNode.inventoryEntryId, rigId), isNull(PIDNode.metadataArchivedAt)))
+		.where(and(eq(PIDNode.rigId, rigId), isNull(PIDNode.metadataArchivedAt)))
 		.all();
 	const output: Omit<typeof DatasetSample.$inferInsert, "datasetId" | "position">[] = [];
 	const traces = traceSamples(graph);
@@ -921,7 +940,7 @@ async function loadRigGraph(db: ApplicationDatabase, rigId: number): Promise<PID
 			kind: PIDNode.kind,
 			label: PIDNode.label,
 			symbolKey: PIDNode.symbolKey,
-			equipmentId: PIDNode.equipmentEntryId,
+			equipmentId: PIDNode.equipmentId,
 			sampleId: PIDNode.sampleId,
 			secondaryLabel: PIDNode.secondaryLabel,
 			parentId: PIDNode.parentNodeId,
@@ -930,13 +949,13 @@ async function loadRigGraph(db: ApplicationDatabase, rigId: number): Promise<PID
 			position: { x: PIDNode.positionX, y: PIDNode.positionY },
 		})
 		.from(PIDNode)
-		.where(and(eq(PIDNode.inventoryEntryId, rigId), isNull(PIDNode.metadataArchivedAt)))
+		.where(and(eq(PIDNode.rigId, rigId), isNull(PIDNode.metadataArchivedAt)))
 		.orderBy(asc(PIDNode.drawingOrder))
 		.all();
 	const edgeRows = await db
 		.select()
 		.from(PIDEdge)
-		.where(and(eq(PIDEdge.inventoryEntryId, rigId), isNull(PIDEdge.metadataArchivedAt)))
+		.where(and(eq(PIDEdge.rigId, rigId), isNull(PIDEdge.metadataArchivedAt)))
 		.orderBy(asc(PIDEdge.drawingOrder))
 		.all();
 	const graph = {

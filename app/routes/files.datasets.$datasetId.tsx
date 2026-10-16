@@ -8,12 +8,13 @@ import { TimeSeriesChart } from "~/app/components/TimeSeriesChart.tsx";
 import { datasetCharts } from "~/app/lib/datasetCharts.ts";
 import type { DatasetSidecar } from "~/app/lib/datasetSidecar.ts";
 import type { DatasetSummary } from "~/app/lib/datasetSummary.ts";
+import { inventoryEntryPath } from "~/app/lib/inventory.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Dataset } from "~/drizzle/schema/Dataset.ts";
 import { DatasetColumn } from "~/drizzle/schema/DatasetColumn.ts";
 import { DatasetSample } from "~/drizzle/schema/DatasetSample.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 import { parseId53 } from "~/lib/id53/parseId53.ts";
 import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
 import { StorageEngine } from "~/lib/storage-engine/StorageEngine.ts";
@@ -46,9 +47,9 @@ export async function loader({ context, params, request }: Route.LoaderArgs) {
 		.orderBy(asc(DatasetColumn.position))
 		.all();
 	const rig = await db
-		.select({ slug: InventoryEntry.slug, name: InventoryEntry.name })
-		.from(InventoryEntry)
-		.where(eq(InventoryEntry.id, dataset.rigId))
+		.select({ slug: Rig.slug, name: Rig.name })
+		.from(Rig)
+		.where(eq(Rig.id, dataset.rigId))
 		.get();
 	const sidecarFile = await db
 		.select({ name: OriginalFile.originalName })
@@ -146,7 +147,7 @@ export default function FilesDatasetsDatasetId({ loaderData }: Route.ComponentPr
 		parquetType: column.parquetType,
 		axis: column.axis,
 		unit: column.unit,
-		inventoryEntryId: column.inventoryEntryId,
+		equipmentId: column.equipmentId,
 		inventoryName: column.inventoryName,
 		channelKey: column.channelKey,
 		channelRole: column.channelRole,
@@ -211,7 +212,7 @@ export default function FilesDatasetsDatasetId({ loaderData }: Route.ComponentPr
 				<p>
 					{dataset.rowCount.toLocaleString()} rows · Operator {dataset.operatorEmail} · Rig{" "}
 					{rig ? (
-						<Link className="underline" to={`/inventory/${rig.slug}`}>
+						<Link className="underline" to={inventoryEntryPath("rig", rig.slug)}>
 							{rig.name}
 						</Link>
 					) : (

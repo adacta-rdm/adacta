@@ -11,7 +11,7 @@ const time: ChartColumn = {
 	displayName: "Time",
 	parquetType: "TIMESTAMP",
 	unit: null,
-	inventoryEntryId: null,
+	equipmentId: null,
 	inventoryName: null,
 	channelKey: null,
 	channelRole: null,
@@ -27,7 +27,7 @@ function channel(id: string, position: number, overrides: Partial<ChartColumn> =
 		displayName: id,
 		parquetType: "DOUBLE",
 		unit: "mL/min",
-		inventoryEntryId: 1,
+		equipmentId: 1,
 		inventoryName: "MFC",
 		channelKey: "flow",
 		channelRole: "measurement",
@@ -104,7 +104,7 @@ test("assigns defined colors to eight distinct channels", () => {
 		time,
 		...Array.from({ length: 8 }, (_, index) =>
 			channel(`flow-${index}`, index + 1, {
-				inventoryEntryId: index + 1,
+				equipmentId: index + 1,
 				pidNodeId: `device-${index}`,
 			}),
 		),
@@ -126,7 +126,7 @@ test("uses gas labels for devices with the same name", () => {
 	const columns = [
 		time,
 		channel("n2", 1, { gasName: "N2" }),
-		channel("h2", 2, { gasName: "H2", inventoryEntryId: 2, pidNodeId: "other-device" }),
+		channel("h2", 2, { gasName: "H2", equipmentId: 2, pidNodeId: "other-device" }),
 	];
 	const result = datasetCharts(columns, [], [["2026-08-20T09:00:00Z", "1", "2"]]);
 	expect(result[0]!.sections[3]!.charts[0]!.series.map(({ label }) => label)).toEqual([
@@ -186,7 +186,7 @@ test("separates units and ambiguous flow positions for each sample", () => {
 		time,
 		channel("inlet", 1),
 		channel("other-unit", 2, { unit: "L/h" }),
-		channel("outlet", 3, { pidNodeId: "outlet-device", inventoryEntryId: 2 }),
+		channel("outlet", 3, { pidNodeId: "outlet-device", equipmentId: 2 }),
 	];
 	const samples = [
 		{

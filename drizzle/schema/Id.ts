@@ -3,7 +3,7 @@ import { integer, sqliteTable } from "drizzle-orm/sqlite-core";
 /**
  * Every record that other features can refer to has its ID in this table. The
  * record's own table uses the same ID as its primary key and references this
- * table. For example, a rig in InventoryEntry has a row here with the same ID.
+ * table. For example, a rig in Rig has a row here with the same ID.
  * Rows of other tables, such as vocabularies and link tables, have no row here.
  *
  * A feature that applies to several kinds of record therefore needs only one

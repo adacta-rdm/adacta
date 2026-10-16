@@ -1,13 +1,14 @@
 import { describe, expect, test } from "bun:test";
 
 import * as importRoute from "~/app/routes/catalog.import.tsx";
-import * as entryRoute from "~/app/routes/inventory.$entrySlug.tsx";
-import * as inventoryRoute from "~/app/routes/inventory._index.tsx";
+import * as entryRoute from "~/app/routes/inventory.equipment.$slug.tsx";
+import { listedInventory } from "~/app/testUtils/listedInventory.ts";
 import {
 	createTestManufacturer,
 	createTestProduct,
 	createTestSpecification,
 	createTestRig,
+	createTestEquipment,
 } from "~/app/testUtils/testRecords.ts";
 import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
@@ -49,6 +50,90 @@ describe("catalog import", () => {
 	});
 
 	describe("action", () => {
+		test("imports every selected product as equipment", async () => {
+			const scope = await setupTestRequestScope();
+			const maker = await createTestManufacturer(scope);
+			const products = [];
+			for (let index = 0; index < 120; index++) {
+				products.push(
+					await createTestProduct(scope, maker, {
+						name: `Model ${index}`,
+						productNumber: `MODEL-${index}`,
+					}),
+				);
+			}
+
+			const result = await testRoute(scope, importRoute, {}).action({
+				productId: products.map((product) => String(product.id)),
+			});
+
+			expect(result.status).toBe(303);
+			const names = (await listedInventory(scope)).map((entry) => entry.name);
+			expect(names.sort((left, right) => left.localeCompare(right))).toEqual(
+				products.map((product) => product.name).sort((left, right) => left.localeCompare(right)),
+			);
+		});
+
+		test("accepts the same serial number for a different product", async () => {
+			const scope = await setupTestRequestScope();
+			const maker = await createTestManufacturer(scope);
+			const first = await createTestProduct(scope, maker);
+			const second = await createTestProduct(scope, maker, { productNumber: "Second" });
+			await createTestEquipment(scope, { slug: "existing", serialNumber: "12345" }, first);
+
+			const result = await testRoute(scope, importRoute, {}).action({
+				productId: String(second.id),
+				[`entry-${second.id}-serialNumber`]: "12345",
+			});
+
+			expect(result.status).toBe(303);
+			const detail = await testRoute(scope, entryRoute, { slug: "controller" }).loader();
+			expect(detail.data).toMatchObject({ serialNumber: "12345" });
+		});
+
+		test("imports another unit after more than five units of the model already exist", async () => {
+			const scope = await setupTestRequestScope();
+			const maker = await createTestManufacturer(scope);
+			const product = await createTestProduct(scope, maker);
+			for (let unit = 1; unit <= 6; unit++) {
+				await createTestEquipment(
+					scope,
+					{ slug: unit === 1 ? "controller" : `controller-${unit}` },
+					product,
+				);
+			}
+
+			const result = await testRoute(scope, importRoute, {}).action({
+				productId: String(product.id),
+			});
+
+			expect(result.status).toBe(303);
+			const detail = await testRoute(scope, entryRoute, { slug: "controller-7" }).loader();
+			expect(detail.data).toMatchObject({
+				name: product.name,
+				product: { productSlug: product.slug },
+			});
+		});
+
+		test("assigns different addresses to concurrent imports of one model", async () => {
+			const scope = await setupTestRequestScope();
+			const maker = await createTestManufacturer(scope);
+			const product = await createTestProduct(scope, maker);
+			const route = testRoute(scope, importRoute, {});
+
+			const results = await Promise.all([
+				route.action({ productId: String(product.id) }),
+				route.action({ productId: String(product.id) }),
+			]);
+
+			expect(results.map((result) => result.status)).toEqual([303, 303]);
+			const slugs = (await listedInventory(scope)).map((entry) => entry.slug);
+			expect(slugs.sort((left, right) => left.localeCompare(right))).toEqual([
+				"controller",
+				"controller-2",
+			]);
+		});
+
 		test("creates equipment, product links, and unit-specific values in one batch", async () => {
 			const scope = await setupTestRequestScope();
 			const maker = await createTestManufacturer(scope);
@@ -58,27 +143,25 @@ describe("catalog import", () => {
 
 			const result = await testRoute(scope, importRoute, {}).action({
 				productId: [String(first.id), String(second.id)],
-				[`entry-${first.id}-name`]: "First controller",
-				[`entry-${second.id}-name`]: "Second controller",
 				[`entry-${first.id}-serialNumber`]: "A-20",
 				[`entry-${first.id}-specification-${specification.id}`]: "A-20",
 			});
 
 			expect(result.status).toBe(303);
 			const firstDetail = await testRoute(scope, entryRoute, {
-				entrySlug: "first-controller",
+				slug: "controller",
 			}).loader();
 			const secondDetail = await testRoute(scope, entryRoute, {
-				entrySlug: "second-controller",
+				slug: "controller-2",
 			}).loader();
-			expect(firstDetail.data?.entry).toMatchObject({
+			expect(firstDetail.data).toMatchObject({
 				serialNumber: "A-20",
 				product: {
 					productNumber: first.productNumber,
-					specifications: [{ name: "Serial number", value: "A-20" }],
 				},
+				specifications: [{ name: "Serial number", value: "A-20" }],
 			});
-			expect(secondDetail.data?.entry).toMatchObject({
+			expect(secondDetail.data).toMatchObject({
 				serialNumber: null,
 				product: { productNumber: second.productNumber },
 			});
@@ -92,13 +175,11 @@ describe("catalog import", () => {
 
 			const result = await testRoute(scope, importRoute, {}).action({
 				productId: String(product.id),
-				[`entry-${product.id}-name`]: "Argon controller",
 			});
 
 			expect(result.status).toBe(400);
 			expect(result.data?.error).toContain("Calibrated range");
-			const inventory = await testRoute(scope, inventoryRoute, {}).loader();
-			expect(inventory.data?.entries).toHaveLength(0);
+			expect(await listedInventory(scope)).toEqual([]);
 		});
 
 		test.each([[], ["invalid"], ["1", "1"], ["0"], ["999999"]].map((productId) => ({ productId })))(
@@ -117,62 +198,31 @@ describe("catalog import", () => {
 			const maker = await createTestManufacturer(scope);
 			const first = await createTestProduct(scope, maker);
 			const second = await createTestProduct(scope, maker, { productNumber: "Second" });
-			await createTestRig(scope, { kind: "equipment", name: "Existing", serialNumber: "Taken" });
+			await createTestEquipment(scope, { slug: "existing", serialNumber: "Taken" }, second);
 
 			const result = await testRoute(scope, importRoute, {}).action({
 				productId: [String(first.id), String(second.id)],
-				[`entry-${first.id}-name`]: "First",
-				[`entry-${second.id}-name`]: "Second",
 				[`entry-${second.id}-serialNumber`]: "Taken",
 			});
 
 			expect(result.status).toBe(400);
-			const inventory = await testRoute(scope, inventoryRoute, {}).loader();
-			expect(inventory.data?.entries.map((entry) => entry.name)).toEqual(["Existing"]);
+			const slugs = (await listedInventory(scope)).map((entry) => entry.slug);
+			expect(slugs).toEqual(["existing"]);
 		});
 
-		test("keeps equipment addresses unique when a rig has the requested name", async () => {
+		test("uses an equipment slug even when an archived rig has the same slug", async () => {
 			const scope = await setupTestRequestScope();
 			const maker = await createTestManufacturer(scope);
 			const product = await createTestProduct(scope, maker);
-			await createTestRig(scope, { name: "Controller" });
+			await createTestRig(scope, { name: "Controller", metadataArchivedAt: new Date() });
 
 			const result = await testRoute(scope, importRoute, {}).action({
 				productId: String(product.id),
-				[`entry-${product.id}-name`]: "Controller",
 			});
 
 			expect(result.status).toBe(303);
-			const detail = await testRoute(scope, entryRoute, { entrySlug: "controller-2" }).loader();
-			expect(detail.data?.entry.kind).toBe("equipment");
-		});
-		test("creates equipment and its product link in one batch", async () => {
-			const scope = await setupTestRequestScope();
-			const maker = await createTestManufacturer(scope);
-			const product = await createTestProduct(scope, maker);
-			const route = testRoute(scope, importRoute, {});
-
-			const result = await route.action({
-				productId: String(product.id),
-				[`entry-${product.id}-name`]: "Argon controller",
-				[`entry-${product.id}-serialNumber`]: "A-20",
-			});
-
-			expect(result.status).toBe(303);
-			expect(result.location).toBe("/inventory");
-			const detail = await testRoute(scope, entryRoute, { entrySlug: "argon-controller" }).loader();
-			expect(detail.data?.entry).toMatchObject({
-				name: "Argon controller",
-				kind: "equipment",
-				serialNumber: "A-20",
-				product: {
-					name: product.name,
-					productNumber: product.productNumber,
-					manufacturerName: maker.name,
-				},
-			});
-			const inventory = await testRoute(scope, inventoryRoute, {}).loader();
-			expect(inventory.data?.entries).toHaveLength(1);
+			const detail = await testRoute(scope, entryRoute, { slug: "controller" }).loader();
+			expect(detail.status).toBe(200);
 		});
 
 		test("stores every value when a product requests forty specifications", async () => {
@@ -183,7 +233,6 @@ describe("catalog import", () => {
 			]);
 			const fields: Record<string, string> = {
 				productId: String(product.id),
-				[`entry-${product.id}-name`]: "Range controller",
 			};
 			const expected = [{ name: "Accuracy", value: "0.5%" }];
 			for (let position = 1; position <= 40; position++) {
@@ -198,8 +247,8 @@ describe("catalog import", () => {
 			const result = await testRoute(scope, importRoute, {}).action(fields);
 
 			expect(result.status).toBe(303);
-			const detail = await testRoute(scope, entryRoute, { entrySlug: "range-controller" }).loader();
-			expect(detail.data?.entry.product?.specifications).toEqual(expected);
+			const detail = await testRoute(scope, entryRoute, { slug: "controller" }).loader();
+			expect(detail.data?.specifications).toEqual(expected);
 		});
 	});
 });

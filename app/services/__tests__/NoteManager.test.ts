@@ -8,10 +8,10 @@ import { Security } from "~/app/services/Security.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { Note } from "~/drizzle/schema/Note.ts";
 import { NoteAttachment } from "~/drizzle/schema/NoteAttachment.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 import { Sample } from "~/drizzle/schema/Sample.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
@@ -257,12 +257,11 @@ describe("NoteManager", () => {
 	test("editing a rig note keeps an unchanged observed time", async () => {
 		const { db, notes, creatorId } = await environment();
 		const rig = await db
-			.insert(InventoryEntry)
+			.insert(Rig)
 			.values({
 				id: await newId(db),
-				slug: "edited-rig",
 				name: "Edited rig",
-				kind: "rig",
+				slug: "edited-rig",
 				metadataCreatorId: creatorId,
 				metadataCreationTimestamp: new Date(),
 			})

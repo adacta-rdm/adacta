@@ -9,7 +9,7 @@ import {
 import type { PIDSidecarOmission } from "~/app/lib/sidecarEditor.ts";
 import type { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Channel } from "~/drizzle/schema/Channel.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Equipment } from "~/drizzle/schema/Equipment.ts";
 import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
 
@@ -27,28 +27,21 @@ export async function pidSidecarSkeleton(
 			kind: PIDNode.kind,
 			label: PIDNode.label,
 			symbolKey: PIDNode.symbolKey,
-			equipmentId: PIDNode.equipmentEntryId,
+			equipmentId: PIDNode.equipmentId,
 			sampleId: PIDNode.sampleId,
-			itemSlug: InventoryEntry.slug,
+			itemSlug: Equipment.slug,
 			activeProductId: Product.id,
 			channelKey: Channel.key,
 			channelRole: Channel.role,
 		})
 		.from(PIDNode)
 		.leftJoin(
-			InventoryEntry,
-			and(
-				eq(InventoryEntry.id, PIDNode.equipmentEntryId),
-				eq(InventoryEntry.kind, "equipment"),
-				isNull(InventoryEntry.metadataArchivedAt),
-			),
+			Equipment,
+			and(eq(Equipment.id, PIDNode.equipmentId), isNull(Equipment.metadataArchivedAt)),
 		)
-		.leftJoin(
-			Product,
-			and(eq(Product.id, InventoryEntry.productId), isNull(Product.metadataArchivedAt)),
-		)
+		.leftJoin(Product, and(eq(Product.id, Equipment.productId), isNull(Product.metadataArchivedAt)))
 		.leftJoin(Channel, and(eq(Channel.productId, Product.id), isNull(Channel.metadataArchivedAt)))
-		.where(and(eq(PIDNode.inventoryEntryId, rigId), isNull(PIDNode.metadataArchivedAt)))
+		.where(and(eq(PIDNode.rigId, rigId), isNull(PIDNode.metadataArchivedAt)))
 		.orderBy(asc(PIDNode.drawingOrder), asc(Channel.position))
 		.all();
 

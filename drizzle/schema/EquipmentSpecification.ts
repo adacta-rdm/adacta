@@ -1,20 +1,20 @@
 import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Equipment } from "~/drizzle/schema/Equipment.ts";
 import { ProductSpecification } from "~/drizzle/schema/ProductSpecification.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
  * A value that distinguishes one physical unit from the catalog model.
  */
-export const InventoryEntrySpecification = sqliteTable(
-	"InventoryEntrySpecification",
+export const EquipmentSpecification = sqliteTable(
+	"EquipmentSpecification",
 	{
-		id: integer("inventory_entry_specification_id").primaryKey({ autoIncrement: true }),
+		id: integer("equipment_specification_id").primaryKey({ autoIncrement: true }),
 
-		inventoryEntryId: integer("inventory_entry_id")
+		equipmentId: integer("equipment_id")
 			.notNull()
-			.references(() => InventoryEntry.id, { onDelete: "cascade" }),
+			.references(() => Equipment.id, { onDelete: "cascade" }),
 
 		productSpecificationId: integer("product_specification_id")
 			.notNull()
@@ -25,8 +25,8 @@ export const InventoryEntrySpecification = sqliteTable(
 		...metadata(),
 	},
 	(table) => [
-		uniqueIndex("InventoryEntrySpecification_entry_product_specification_unique").on(
-			table.inventoryEntryId,
+		uniqueIndex("EquipmentSpecification_equipment_product_specification_unique").on(
+			table.equipmentId,
 			table.productSpecificationId,
 		),
 	],

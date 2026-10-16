@@ -15,7 +15,6 @@
  * A diagram belongs to a rig. A file named after an entry of another kind is
  * an error, because the application draws a P&ID only for a rig.
  */
-import { eq } from "drizzle-orm";
 
 import type {
 	PIDEdgeKind,
@@ -27,7 +26,7 @@ import type {
 import { defaultEndArrow, isValidArrowConfiguration } from "~/app/lib/PIDEdgeArrows.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { PIDManager } from "~/app/services/PIDManager.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Equipment } from "~/drizzle/schema/Equipment.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, keyOf, readJson } from "~/seed/files.ts";
 
@@ -99,11 +98,7 @@ export async function seedPID(
 	const db = scope.get(ApplicationDatabase);
 	const files = jsonFiles(directory);
 	if (files.length === 0) return 0;
-	const equipment = await db
-		.select({ id: InventoryEntry.id })
-		.from(InventoryEntry)
-		.where(eq(InventoryEntry.kind, "equipment"))
-		.all();
+	const equipment = await db.select({ id: Equipment.id }).from(Equipment).all();
 
 	// Only equipment files may be linked to symbols. A rig file identifies a diagram.
 	const equipmentIds = new Set(equipment.map((item) => item.id));

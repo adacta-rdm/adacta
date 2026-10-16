@@ -23,7 +23,7 @@ The current journeys are:
 - `journeys/samples.e2e.ts`: finding, opening, and creating sample batches.
 - `journeys/users.e2e.ts`: creating a record-only user.
 - `journeys/catalog-import.e2e.ts`: selecting catalog models and importing physical units.
-- `journeys/inventory-create.e2e.ts`: adding equipment and its user-entered product.
+- `journeys/inventory-create.e2e.ts`: adding rigs, equipment, and user-entered products.
 
 Do not cover unfinished screens, visual design, responsive layouts, incidental
 wording, list order or counts, or individual validation messages here.

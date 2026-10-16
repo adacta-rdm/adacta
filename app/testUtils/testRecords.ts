@@ -12,14 +12,14 @@ import type { Entity, NewEntity } from "~/drizzle/Schema.ts";
 import { Channel } from "~/drizzle/schema/Channel.ts";
 import { Dataset } from "~/drizzle/schema/Dataset.ts";
 import { DatasetColumn } from "~/drizzle/schema/DatasetColumn.ts";
+import { Equipment } from "~/drizzle/schema/Equipment.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
-import { InventoryEntryProduct } from "~/drizzle/schema/InventoryEntryProduct.ts";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
 import { Note } from "~/drizzle/schema/Note.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
 import { ProductSeries } from "~/drizzle/schema/ProductSeries.ts";
 import { ProductSpecification } from "~/drizzle/schema/ProductSpecification.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { id53 } from "~/lib/id53/id53.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
@@ -165,59 +165,61 @@ export async function createTestSpecification(
 }
 
 /**
- * Create an inventory entry of any kind with its ID. The kind defaults to "rig".
+ * Create a rig with its ID and slug.
  */
 export async function createTestRig(
 	scope: ServiceContainer,
-	overrides: Partial<NewEntity<"InventoryEntry">> = {},
-): Promise<Entity<"InventoryEntry">> {
+	overrides: Partial<NewEntity<"Rig">> = {},
+): Promise<Entity<"Rig">> {
 	const db = scope.get(ApplicationDatabase);
-	const name = overrides.name ?? "Test rig";
+	const { slug = slugify(overrides.name ?? "Test rig"), ...rest } = overrides;
 	const values = {
 		id: id53(),
-		name,
-		slug: slugify(name),
-		kind: "rig" as const,
+		slug,
+		name: "Test rig",
 		metadataCreatorId: scope.get(Security).userId,
 		metadataCreationTimestamp: CREATION_TIME,
-		...overrides,
+		...rest,
 	};
 
-	await db.batch([
-		db.insert(Id).values({ id: values.id }),
-		db.insert(InventoryEntry).values(values),
-	]);
+	await db.batch([db.insert(Id).values({ id: values.id }), db.insert(Rig).values(values)]);
 
-	return (await db.select().from(InventoryEntry).where(eq(InventoryEntry.id, values.id)).get())!;
+	return (await db.select().from(Rig).where(eq(Rig.id, values.id)).get())!;
 }
 
 /**
- * Create a physical equipment unit, optionally linked to a product.
+ * Create equipment with its product and slug.
  */
 export async function createTestEquipment(
 	scope: ServiceContainer,
-	overrides: Partial<NewEntity<"InventoryEntry">> = {},
+	overrides: Partial<NewEntity<"Equipment">> = {},
 	product?: Entity<"Product">,
-): Promise<Entity<"InventoryEntry">> {
-	const entry = await createTestRig(scope, {
-		name: "Test equipment",
-		kind: "equipment",
-		productId: product?.id,
-		...overrides,
-	});
-	if (product) {
-		await scope
-			.get(ApplicationDatabase)
-			.insert(InventoryEntryProduct)
-			.values({
-				inventoryEntryId: entry.id,
-				productId: product.id,
-				metadataCreatorId: scope.get(Security).userId,
-				metadataCreationTimestamp: CREATION_TIME,
-			})
-			.run();
-	}
-	return entry;
+): Promise<Entity<"Equipment">> {
+	const db = scope.get(ApplicationDatabase);
+	const id = id53();
+	const productId =
+		product?.id ??
+		overrides.productId ??
+		(
+			await createTestProduct(
+				scope,
+				await createTestManufacturer(scope, { name: `Test manufacturer ${id}` }),
+				{ name: "Test equipment" },
+			)
+		).id;
+	const { slug = slugify(product?.name ?? "Test equipment"), ...rest } = overrides;
+	const values = {
+		id,
+		slug,
+		productId,
+		metadataCreatorId: scope.get(Security).userId,
+		metadataCreationTimestamp: CREATION_TIME,
+		...rest,
+	};
+
+	await db.batch([db.insert(Id).values({ id: values.id }), db.insert(Equipment).values(values)]);
+
+	return (await db.select().from(Equipment).where(eq(Equipment.id, values.id)).get())!;
 }
 
 /**
@@ -313,7 +315,7 @@ export async function createTestNote(
 }
 
 /**
- * Store a CSV data file and return its upload and file identifiers. The
+ * Store a measurement file and return its upload and file identifiers. The
  * contents default to a small CSV table.
  */
 export async function createTestUpload(

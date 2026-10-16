@@ -5,6 +5,7 @@ import { data, redirect } from "react-router";
 import { services } from "~/app/.server/context.ts";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { parseZonedDateTime } from "~/app/lib/dates.ts";
+import { inventoryEntryPath } from "~/app/lib/inventory.ts";
 import { readNoteFormData } from "~/app/lib/noteFormData.ts";
 import { noteErrorsWithFileRetry, resolveNoteAuthors } from "~/app/lib/notes.ts";
 import { NoteList } from "~/app/route-components/NoteList.tsx";
@@ -13,18 +14,18 @@ import { NoteManager, NoteNotFoundError } from "~/app/services/NoteManager.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
 import { UserManager } from "~/app/services/UserManager.ts";
 import { Subheading } from "~/catalyst-ui/heading.tsx";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 
-import type { Route } from "./+types/inventory.$entrySlug.notes.ts";
+import type { Route } from "./+types/inventory.rigs.$slug.notes.ts";
 
 export const handle = { breadcrumb: "Notes" } satisfies BreadcrumbHandle;
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const db = container.get(ApplicationDatabase);
-	const rig = await getRig(db, params.entrySlug);
+	const rig = await getRig(db, params.slug);
 
-	if (!rig) throw new Response(`Rig "${params.entrySlug}" not found.`, { status: 404 });
+	if (!rig) throw new Response(`Rig "${params.slug}" not found.`, { status: 404 });
 
 	const users = new Map((await container.get(UserManager).users()).map((user) => [user.id, user]));
 	const notes = resolveNoteAuthors(
@@ -38,9 +39,9 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 export async function action({ context, request, params }: Route.ActionArgs) {
 	const container = context.get(services);
 	const db = container.get(ApplicationDatabase);
-	const rig = await getRig(db, params.entrySlug);
+	const rig = await getRig(db, params.slug);
 
-	if (!rig) throw new Response(`Rig "${params.entrySlug}" not found.`, { status: 404 });
+	if (!rig) throw new Response(`Rig "${params.slug}" not found.`, { status: 404 });
 
 	let submitted: Awaited<ReturnType<typeof readNoteFormData>>;
 
@@ -97,7 +98,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 			return data({ noteErrors }, { status: 400 });
 		}
 
-		return redirect(`/inventory/${params.entrySlug}/notes`, 303);
+		return redirect(`${inventoryEntryPath("rig", params.slug)}/notes`, 303);
 	} catch (error) {
 		if (error instanceof NoteNotFoundError) {
 			throw new Response("Note not found.", { status: 404 });
@@ -107,7 +108,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	}
 }
 
-export default function InventoryEntrySlugNotes({
+export default function InventoryRigsSlugNotes({
 	loaderData,
 	actionData,
 	params,
@@ -120,7 +121,7 @@ export default function InventoryEntrySlugNotes({
 
 			<NoteList
 				notes={loaderData.notes}
-				pagePath={`/inventory/${params.entrySlug}/notes`}
+				pagePath={`${inventoryEntryPath("rig", params.slug)}/notes`}
 				filePath={"/files/originals"}
 				readOnly={false}
 				errors={actionData?.noteErrors}
@@ -132,14 +133,8 @@ export default function InventoryEntrySlugNotes({
 
 function getRig(db: ApplicationDatabase, slug: string) {
 	return db
-		.select()
-		.from(InventoryEntry)
-		.where(
-			and(
-				eq(InventoryEntry.slug, slug),
-				eq(InventoryEntry.kind, "rig"),
-				isNull(InventoryEntry.metadataArchivedAt),
-			),
-		)
+		.select({ id: Rig.id })
+		.from(Rig)
+		.where(and(eq(Rig.slug, slug), isNull(Rig.metadataArchivedAt)))
 		.get();
 }

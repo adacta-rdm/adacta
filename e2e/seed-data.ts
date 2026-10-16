@@ -74,11 +74,23 @@ function pick<T extends { key: string }>(entries: readonly T[], kind: string, ke
 }
 
 const users = readSeedDirectory<Omit<SeedUser, "key">>("users");
-const inventory = readSeedDirectory<Omit<SeedInventoryEntry, "key">>(
-	"presets",
-	SEED_PRESET,
-	"inventory",
-);
+const inventory = readSeedDirectory<
+	{ kind: "rig"; name: string } | { kind: "equipment"; product: string }
+>("presets", SEED_PRESET, "inventory").map((entry): SeedInventoryEntry => {
+	if (entry.kind === "rig") return entry;
+	const product = readJson<{ name: string }>(
+		seedPath(
+			"presets",
+			SEED_PRESET,
+			"catalog",
+			entry.product.split("/")[0],
+			"products",
+			`${entry.product.split("/")[1]}.json`,
+		),
+	);
+	return { key: entry.key, kind: entry.kind, name: product.name };
+});
+
 const sampleBatches = readSeedDirectory<Omit<SeedSampleBatch, "key">>(
 	"presets",
 	SEED_PRESET,

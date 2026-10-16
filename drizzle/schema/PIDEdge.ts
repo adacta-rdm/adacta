@@ -2,9 +2,9 @@ import { sql } from "drizzle-orm";
 import { check, index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 import type { PIDEdgeKind as PIDEdgeKindName, PIDLengthUnit } from "~/app/lib/PID.ts";
-import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
 import { PIDEdgeKind } from "~/drizzle/schema/PIDEdgeKind.ts";
 import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 
 /**
@@ -19,9 +19,9 @@ export const PIDEdge = sqliteTable(
 	{
 		id: text("pid_edge_id").primaryKey(),
 
-		inventoryEntryId: integer("inventory_entry_id")
+		rigId: integer("rig_id")
 			.notNull()
-			.references(() => InventoryEntry.id, { onDelete: "cascade" }),
+			.references(() => Rig.id, { onDelete: "cascade" }),
 
 		sourceNodeId: text("source_node_id")
 			.notNull()
@@ -84,7 +84,7 @@ export const PIDEdge = sqliteTable(
 		...metadata(),
 	},
 	(table) => [
-		index("PIDEdge_inventory_entry_idx").on(table.inventoryEntryId),
+		index("PIDEdge_rig_idx").on(table.rigId),
 		check("PIDEdge_weight_check", sql`${table.weight} between 1 and 3`),
 
 		// A measurement without its unit cannot be read, and a unit without a
