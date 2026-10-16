@@ -39,6 +39,28 @@ pilot Gas Chromatograph 8890 use products under Agilent Technologies.
 New catalog products may contain only a name and product number. Their
 subtitle, specifications, channels, and images are optional.
 
+## Catalog channels and specifications
+
+A channel may name a `quantityKind`, for example `"VolumeFlowRate"` for a
+flow measurement or setpoint. A specification line may use the same key:
+
+```json
+{ "name": "Maximum inlet pressure", "value": "10 bar", "quantityKind": "Pressure" }
+```
+
+The key is optional. For example, a seal material has only a name and value:
+
+```json
+{ "name": "Seal material", "value": "FKM" }
+```
+
+Each `quantityKind` must be a key of `QUANTITY_KINDS` in
+`app/lib/quantities.ts`. An unknown kind stops the seed. For a specification,
+the error names the product, the line, and the kind. It directs the author to
+add the kind to `app/lib/quantities.ts`. A line without the key stores no
+quantity kind. Both product specifications and specifications under a
+series' `shared` field support this key.
+
 ## Catalog images
 
 Each catalog manufacturer has a directory with `manufacturer.json`, optional

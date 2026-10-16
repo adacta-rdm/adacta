@@ -46,7 +46,7 @@ import { jsonFiles, keyOf, readJson, subdirs } from "~/seed/files.ts";
  */
 type SeedSource = { url: string; title?: string; retrievedAt: string };
 
-type SeedSpecification = { name: string; value: string };
+type SeedSpecification = { name: string; value: string; quantityKind?: string };
 
 type SeedChannel = {
 	key: string;
@@ -279,9 +279,28 @@ export async function seedCatalog(
 			const specifications = [...(own.specifications ?? []), ...(shared.specifications ?? [])];
 
 			for (const [position, specification] of specifications.entries()) {
+				// Name the product and line so an invalid kind can be found in the catalog.
+				if (
+					specification.quantityKind !== undefined &&
+					!isQuantityKind(specification.quantityKind)
+				) {
+					throw new Error(
+						`Specification "${specification.name}" of product "${manufacturerKey}/${key}" ` +
+							`names the quantity kind "${specification.quantityKind}", ` +
+							"which is not one this system knows. Add it to app/lib/quantities.ts.",
+					);
+				}
+
 				await db
 					.insert(ProductSpecification)
-					.values({ productId, position, ...specification, ...metadata })
+					.values({
+						productId,
+						position,
+						name: specification.name,
+						value: specification.value,
+						quantityKindId: specification.quantityKind ?? null,
+						...metadata,
+					})
 					.run();
 
 				counts.specifications += 1;

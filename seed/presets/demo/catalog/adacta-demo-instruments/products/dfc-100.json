@@ -3,6 +3,22 @@
 	"productNumber": "DFC-100",
 	"subtitle": "Mass flow controller used in development",
 	"image": "images/dfc-100.webp",
+	"specifications": [
+		{
+			"name": "Maximum flow",
+			"value": "5 L/min",
+			"quantityKind": "VolumeFlowRate"
+		},
+		{
+			"name": "Maximum inlet pressure",
+			"value": "10 bar",
+			"quantityKind": "Pressure"
+		},
+		{
+			"name": "Seal material",
+			"value": "FKM"
+		}
+	],
 	"channels": [
 		{
 			"key": "flow",
