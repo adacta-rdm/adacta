@@ -35,6 +35,65 @@
 export type Dimension = Partial<Record<"m" | "kg" | "s" | "A" | "K" | "mol" | "cd", number>>;
 
 export const QUANTITY_KINDS = {
+	// Apparent power is rated in volt-amperes. Converting it to active power
+	// in watts requires the power factor, even though the dimensions agree.
+	ApparentPower: {
+		name: "Apparent power",
+		dimension: { m: 2, kg: 1, s: -3 },
+		units: {
+			VA: ["VA"],
+			KiloVA: ["kVA"],
+		},
+	},
+
+	Count: {
+		name: "Count",
+		dimension: {},
+		units: { NUM: ["#"] },
+	},
+
+	ElectricCurrent: {
+		name: "Electric current",
+		dimension: { A: 1 },
+		units: {
+			PicoA: ["pA"],
+			NanoA: ["nA"],
+			MicroA: ["μA", "µA", "uA"],
+			MilliA: ["mA"],
+			A: ["A"],
+		},
+	},
+
+	Frequency: {
+		name: "Frequency",
+		dimension: { s: -1 },
+		units: {
+			HZ: ["Hz"],
+			KiloHZ: ["kHz"],
+			MegaHZ: ["MHz"],
+		},
+	},
+
+	Length: {
+		name: "Length",
+		dimension: { m: 1 },
+		units: {
+			NanoM: ["nm"],
+			MicroM: ["μm", "µm", "um"],
+			MilliM: ["mm"],
+			CentiM: ["cm"],
+			M: ["m"],
+			IN: ["in", "in.", '"', "″"],
+		},
+	},
+
+	// Magnification compares image and object lengths. It has no written unit.
+	LengthRatio: {
+		name: "Length ratio",
+		dimension: {},
+		units: {},
+	},
+
 	Mass: {
 		name: "Mass",
 		dimension: { kg: 1 },
@@ -53,10 +112,42 @@ export const QUANTITY_KINDS = {
 		},
 	},
 
+	MassFlowRate: {
+		name: "Mass flow rate",
+		dimension: { kg: 1, s: -1 },
+		units: {
+			"MilliGM-PER-HR": ["mg/h"],
+			"MilliGM-PER-MIN": ["mg/min"],
+			"MilliGM-PER-SEC": ["mg/s"],
+			"GM-PER-HR": ["g/h"],
+			"GM-PER-MIN": ["g/min"],
+			"GM-PER-SEC": ["g/s"],
+			"KiloGM-PER-HR": ["kg/h"],
+			"KiloGM-PER-SEC": ["kg/s"],
+		},
+	},
+
 	MoleFraction: {
 		name: "Mole fraction",
 		dimension: {},
 		units: {},
+	},
+
+	// A valve opening is a fraction of its full range. An open-or-closed
+	// state has no physical quantity.
+	OpeningRatio: {
+		name: "Opening ratio",
+		dimension: {},
+		units: { PERCENT: ["%"] },
+	},
+
+	PlaneAngle: {
+		name: "Plane angle",
+		dimension: {},
+		units: {
+			DEG: ["°", "deg"],
+			RAD: ["rad"],
+		},
 	},
 
 	Power: {
@@ -84,6 +175,27 @@ export const QUANTITY_KINDS = {
 		},
 	},
 
+	SpecificSurfaceArea: {
+		name: "Specific surface area",
+		dimension: { m: 2, kg: -1 },
+		units: {
+			"M2-PER-GM": ["m²/g", "m2/g"],
+			"M2-PER-KiloGM": ["m²/kg", "m2/kg"],
+		},
+	},
+
+	// A pore volume per sample mass is a specific volume. For example,
+	// cm³/g describes a different quantity from a volume in cm³.
+	SpecificVolume: {
+		name: "Specific volume",
+		dimension: { m: 3, kg: -1 },
+		units: {
+			"CentiM3-PER-GM": ["cm³/g", "cm3/g"],
+			"MilliL-PER-GM": ["mL/g", "ml/g"],
+			"M3-PER-KiloGM": ["m³/kg", "m3/kg"],
+		},
+	},
+
 	// QUDT also defines "ThermodynamicTemperature". That term accepts only
 	// absolute scales, so kelvin and rankine but not degrees Celsius. We
 	// choose to use "Temperature" (instead of "ThermodynamicTemperature")
@@ -107,6 +219,55 @@ export const QUANTITY_KINDS = {
 		name: "Temperature difference",
 		dimension: { K: 1 },
 		units: { DEG_C: ["°C", "degC", "℃"], K: ["K"] },
+	},
+
+	TemperaturePerTime: {
+		name: "Temperature per time",
+		dimension: { K: 1, s: -1 },
+		units: {
+			"K-PER-SEC": ["K/s"],
+			"K-PER-MIN": ["K/min"],
+			"K-PER-HR": ["K/h"],
+			"DEG_C-PER-SEC": ["°C/s", "degC/s", "℃/s"],
+			"DEG_C-PER-MIN": ["°C/min", "degC/min", "℃/min"],
+			"DEG_C-PER-HR": ["°C/h", "degC/h", "℃/h"],
+		},
+	},
+
+	Time: {
+		name: "Time",
+		dimension: { s: 1 },
+		units: {
+			MicroSEC: ["μs", "µs", "us"],
+			MilliSEC: ["ms"],
+			SEC: ["s"],
+			MIN: ["min"],
+			HR: ["h"],
+			DAY: ["d"],
+		},
+	},
+
+	Voltage: {
+		name: "Voltage",
+		dimension: { m: 2, kg: 1, s: -3, A: -1 },
+		units: {
+			MicroV: ["μV", "µV", "uV"],
+			MilliV: ["mV"],
+			V: ["V"],
+			KiloV: ["kV"],
+		},
+	},
+
+	Volume: {
+		name: "Volume",
+		dimension: { m: 3 },
+		units: {
+			MicroL: ["μL", "µL", "uL", "μl", "µl", "ul"],
+			MilliL: ["mL", "ml"],
+			L: ["L", "l"],
+			CentiM3: ["cm³", "cm3"],
+			M3: ["m³", "m3"],
+		},
 	},
 
 	VolumeFlowRate: {

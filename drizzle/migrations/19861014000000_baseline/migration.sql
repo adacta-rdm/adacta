@@ -423,12 +423,27 @@ CREATE UNIQUE INDEX `Sample_batch_slug_unique` ON `Sample` (`sample_batch_id`,`s
 CREATE UNIQUE INDEX `SampleBatch_slug_unique` ON `SampleBatch` (`slug`);
 --> statement-breakpoint
 INSERT INTO `QuantityKind` (`quantity_kind_id`) VALUES
+('ApparentPower'),
+('Count'),
+('ElectricCurrent'),
+('Frequency'),
+('Length'),
+('LengthRatio'),
 ('Mass'),
+('MassFlowRate'),
 ('MoleFraction'),
+('OpeningRatio'),
+('PlaneAngle'),
 ('Power'),
 ('Pressure'),
+('SpecificSurfaceArea'),
+('SpecificVolume'),
 ('Temperature'),
 ('TemperatureDifference'),
+('TemperaturePerTime'),
+('Time'),
+('Voltage'),
+('Volume'),
 ('VolumeFlowRate');
 --> statement-breakpoint
 INSERT INTO `PIDEdgeKind` (`pid_edge_kind_id`) VALUES
