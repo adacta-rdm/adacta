@@ -1099,22 +1099,22 @@
 			"table": "DatasetSample"
 		},
 		{
-			"type": "text",
-			"notNull": true,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "slug",
-			"entityType": "columns",
-			"table": "Equipment"
-		},
-		{
 			"type": "integer",
 			"notNull": false,
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
 			"name": "equipment_id",
+			"entityType": "columns",
+			"table": "Equipment"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "slug",
 			"entityType": "columns",
 			"table": "Equipment"
 		},
@@ -2309,22 +2309,22 @@
 			"table": "QuantityKind"
 		},
 		{
-			"type": "text",
-			"notNull": true,
-			"autoincrement": false,
-			"default": null,
-			"generated": null,
-			"name": "slug",
-			"entityType": "columns",
-			"table": "Rig"
-		},
-		{
 			"type": "integer",
 			"notNull": false,
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
 			"name": "rig_id",
+			"entityType": "columns",
+			"table": "Rig"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "slug",
 			"entityType": "columns",
 			"table": "Rig"
 		},

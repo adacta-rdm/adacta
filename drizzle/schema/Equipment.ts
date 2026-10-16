@@ -11,11 +11,11 @@ import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 export const Equipment = sqliteTable(
 	"Equipment",
 	{
-		slug: text("slug").notNull(),
-
 		id: integer("equipment_id")
 			.primaryKey()
 			.references(() => Id.id),
+
+		slug: text("slug").notNull(),
 
 		productId: integer("product_id")
 			.notNull()

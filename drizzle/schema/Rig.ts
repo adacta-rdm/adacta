@@ -14,10 +14,11 @@ import { metadata } from "~/drizzle/schemaHelpers/metadata.ts";
 export const Rig = sqliteTable(
 	"Rig",
 	{
-		slug: text("slug").notNull(),
 		id: integer("rig_id")
 			.primaryKey()
 			.references(() => Id.id),
+
+		slug: text("slug").notNull(),
 
 		/**
 		 * The name of this experimental device.

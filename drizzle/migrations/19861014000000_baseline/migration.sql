@@ -145,8 +145,8 @@ CREATE TABLE `DatasetSample` (
 );
 --> statement-breakpoint
 CREATE TABLE `Equipment` (
-	`slug` text NOT NULL,
 	`equipment_id` integer PRIMARY KEY,
+	`slug` text NOT NULL,
 	`product_id` integer NOT NULL,
 	`serial_number` text,
 	`location_building_identifier` text,
@@ -350,8 +350,8 @@ CREATE TABLE `QuantityKind` (
 );
 --> statement-breakpoint
 CREATE TABLE `Rig` (
-	`slug` text NOT NULL,
 	`rig_id` integer PRIMARY KEY,
+	`slug` text NOT NULL,
 	`name` text NOT NULL,
 	`location_building_identifier` text,
 	`location_room_identifier` text,
