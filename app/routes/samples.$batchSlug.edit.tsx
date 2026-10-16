@@ -33,7 +33,18 @@ export function meta() {
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const [db, access] = container.get(ApplicationDatabase, UserManager);
-	const batch = await getActiveBatch(db, params.batchSlug);
+	const batch = await db
+		.select({
+			slug: SampleBatch.slug,
+			name: SampleBatch.name,
+			preparationDate: SampleBatch.preparationDate,
+			preparedById: SampleBatch.preparedById,
+			activeMaterial: SampleBatch.activeMaterial,
+			support: SampleBatch.support,
+		})
+		.from(SampleBatch)
+		.where(and(eq(SampleBatch.slug, params.batchSlug), isNull(SampleBatch.metadataArchivedAt)))
+		.get();
 
 	if (!batch) {
 		throw new Response(`Sample "${params.batchSlug}" not found.`, { status: 404 });
@@ -46,7 +57,11 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	const values = new FormValues(await request.formData());
 	const container = context.get(services);
 	const [db, access] = container.get(ApplicationDatabase, UserManager);
-	const batch = await getActiveBatch(db, params.batchSlug);
+	const batch = await db
+		.select({ id: SampleBatch.id, slug: SampleBatch.slug })
+		.from(SampleBatch)
+		.where(and(eq(SampleBatch.slug, params.batchSlug), isNull(SampleBatch.metadataArchivedAt)))
+		.get();
 
 	if (!batch) {
 		throw new Response(`Sample "${params.batchSlug}" not found.`, { status: 404 });
@@ -118,16 +133,4 @@ export default function SamplesBatchSlugEdit({ actionData, loaderData }: Route.C
 			</Form>
 		</>
 	);
-}
-
-/**
- * The batch with this slug, only while it is active. An archived batch is
- * therefore treated as absent, and the page answers 404 for it.
- */
-async function getActiveBatch(db: ApplicationDatabase, batchSlug: string) {
-	return await db
-		.select()
-		.from(SampleBatch)
-		.where(and(eq(SampleBatch.slug, batchSlug), isNull(SampleBatch.metadataArchivedAt)))
-		.get();
 }

@@ -12,6 +12,7 @@ import { createTestBatch } from "~/app/testUtils/testRecords.ts";
 import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { setupTestRequestScope, signUpTestUser } from "~/app/testUtils/testUtils.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
+import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 
 describe("samples.new", () => {
 	describe("loader", () => {
@@ -113,7 +114,13 @@ describe("samples.new", () => {
 			const { batch } = (await testRoute(scope, batchRoute, { batchSlug: "pt-batch" }).loader())
 				.data!;
 			expect(batch.preparedById).toBe(preparedById);
-			expect(batch.metadataCreatorId).toBe(scope.get(Security).userId);
+			const stored = await scope
+				.get(ApplicationDatabase)
+				.select({ metadataCreatorId: SampleBatch.metadataCreatorId })
+				.from(SampleBatch)
+				.where(eq(SampleBatch.id, batch.id))
+				.get();
+			expect(stored?.metadataCreatorId).toBe(scope.get(Security).userId);
 		});
 
 		test("accepts a record-only user as the preparer", async () => {

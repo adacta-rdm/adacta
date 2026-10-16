@@ -23,7 +23,13 @@ import type { Route } from "./+types/samples.ts";
 export async function loader({ context }: Route.LoaderArgs) {
 	const db = context.get(services).get(ApplicationDatabase);
 	const batches = await db
-		.select()
+		.select({
+			id: SampleBatch.id,
+			slug: SampleBatch.slug,
+			name: SampleBatch.name,
+			activeMaterial: SampleBatch.activeMaterial,
+			support: SampleBatch.support,
+		})
 		.from(SampleBatch)
 		.where(isNull(SampleBatch.metadataArchivedAt))
 		.orderBy(asc(SampleBatch.name))

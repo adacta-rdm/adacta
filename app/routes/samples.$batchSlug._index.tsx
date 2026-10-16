@@ -1,6 +1,6 @@
 import { ArchiveBoxIcon, BeakerIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
 import { FormDataParseError } from "@remix-run/form-data-parser";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import type { ReactNode } from "react";
 import { data, Link, redirect } from "react-router";
 
@@ -35,20 +35,27 @@ import type { Route } from "./+types/samples.$batchSlug._index.ts";
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const [db, access] = container.get(ApplicationDatabase, UserManager);
-	const batch = await findBatch(db, params.batchSlug);
+	const found = await findBatch(db, params.batchSlug);
 
-	if (!batch) {
+	if (!found) {
 		throw new Response(`Sample "${params.batchSlug}" not found.`, { status: 404 });
 	}
+
+	const { batch, archived } = found;
 
 	// We return all samples, even archived ones. The UI needs the archived ones
 	// as well. It can then suggest the next available name.
 	// The assumption is that there won't be enough samples per batch to cause
 	// performance issues.
 	const samples = await db
-		.select()
+		.select({
+			id: Sample.id,
+			name: Sample.name,
+			preparedById: Sample.preparedById,
+			metadataArchivedAt: Sample.metadataArchivedAt,
+		})
 		.from(Sample)
-		.where(and(eq(Sample.batchId, batch.id)));
+		.where(eq(Sample.batchId, batch.id));
 
 	samples.sort((left, right) => compareSampleNames(left.name, right.name));
 
@@ -71,7 +78,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		// An archived batch keeps its page, so a link from the archived tab
 		// leads somewhere. The page then says that the batch is archived and
 		// offers no way to change it.
-		archived: batch.metadataArchivedAt !== null,
+		archived,
 
 		// A record may refer to a deleted user. Its name is then unavailable.
 		batch: { ...batch, preparedBy: users.get(batch.preparedById) },
@@ -198,7 +205,15 @@ async function chosenSubject(
 
 	if (sampleId === undefined) return undefined;
 
-	return (await activeSampleIds(db, batchId)).includes(sampleId) ? sampleId : undefined;
+	const sample = await db
+		.select({ id: Sample.id })
+		.from(Sample)
+		.where(
+			and(eq(Sample.id, sampleId), eq(Sample.batchId, batchId), isNull(Sample.metadataArchivedAt)),
+		)
+		.get();
+
+	return sample?.id;
 }
 
 /**
@@ -338,7 +353,22 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
  * archived batch is still worth reading.
  */
 async function findBatch(db: ApplicationDatabase, batchSlug: string) {
-	return await db.select().from(SampleBatch).where(eq(SampleBatch.slug, batchSlug)).get();
+	return await db
+		.select({
+			archived: sql<boolean>`${SampleBatch.metadataArchivedAt} is not null`.mapWith(Boolean),
+			batch: {
+				id: SampleBatch.id,
+				slug: SampleBatch.slug,
+				name: SampleBatch.name,
+				preparationDate: SampleBatch.preparationDate,
+				preparedById: SampleBatch.preparedById,
+				activeMaterial: SampleBatch.activeMaterial,
+				support: SampleBatch.support,
+			},
+		})
+		.from(SampleBatch)
+		.where(eq(SampleBatch.slug, batchSlug))
+		.get();
 }
 
 /**
@@ -347,6 +377,7 @@ async function findBatch(db: ApplicationDatabase, batchSlug: string) {
  * from an old page answers 404.
  */
 async function getBatch(db: ApplicationDatabase, batchSlug: string) {
+	// The shared add-sample helper accepts a complete batch row.
 	return await db
 		.select()
 		.from(SampleBatch)

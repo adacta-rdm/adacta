@@ -74,15 +74,27 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const [db, access] = container.get(ApplicationDatabase, UserManager);
 	const showArchived = readTab(request);
+	const batchFilter = showArchived
+		? isNotNull(SampleBatch.metadataArchivedAt)
+		: isNull(SampleBatch.metadataArchivedAt);
 
 	const rows = await db
-		.select()
+		.select({
+			slug: SampleBatch.slug,
+			name: SampleBatch.name,
+			preparedById: SampleBatch.preparedById,
+			archivedAt: SampleBatch.metadataArchivedAt,
+			preparationDate: SampleBatch.preparationDate,
+			activeMaterial: SampleBatch.activeMaterial,
+			support: SampleBatch.support,
+			sampleCount: count(Sample.id),
+		})
 		.from(SampleBatch)
-		.where(
-			showArchived
-				? isNotNull(SampleBatch.metadataArchivedAt)
-				: isNull(SampleBatch.metadataArchivedAt),
-		)
+		// Archived samples are left out of the join, so a batch with none left
+		// still appears, with a count of zero.
+		.leftJoin(Sample, and(eq(Sample.batchId, SampleBatch.id), isNull(Sample.metadataArchivedAt)))
+		.where(batchFilter)
+		.groupBy(SampleBatch.id)
 		.orderBy(desc(SampleBatch.preparationDate), SampleBatch.name)
 		.all();
 
@@ -102,18 +114,6 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 		.where(isNull(SampleBatch.metadataArchivedAt))
 		.get();
 
-	// One count for every batch, rather than one query per row.
-	const sampleCounts = new Map(
-		(
-			await db
-				.select({ batchId: Sample.batchId, total: count() })
-				.from(Sample)
-				.where(isNull(Sample.metadataArchivedAt))
-				.groupBy(Sample.batchId)
-				.all()
-		).map((row) => [row.batchId, row.total]),
-	);
-
 	// A record may refer to a deleted user. Its name is then unavailable.
 	const users = new Map((await access.users()).map((user) => [user.id, user]));
 
@@ -122,7 +122,14 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 		batch of the other tab, or naming nothing at all, opens no row.
 	*/
 	const requested = new URL(request.url).searchParams.get(OPEN_PARAM);
-	const openBatch = rows.find((batch) => batch.slug === requested);
+	const openBatch =
+		requested === null
+			? undefined
+			: await db
+					.select({ id: SampleBatch.id, slug: SampleBatch.slug })
+					.from(SampleBatch)
+					.where(and(batchFilter, eq(SampleBatch.slug, requested)))
+					.get();
 
 	return {
 		open: openBatch?.slug ?? null,
@@ -131,7 +138,18 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 		// Archived samples are read as well. The add row suggests the next free
 		// label, and a label that was used before is not free.
 		openSamples: openBatch
-			? (await db.select().from(Sample).where(eq(Sample.batchId, openBatch.id)).all())
+			? (
+					await db
+						.select({
+							id: Sample.id,
+							name: Sample.name,
+							preparedById: Sample.preparedById,
+							metadataArchivedAt: Sample.metadataArchivedAt,
+						})
+						.from(Sample)
+						.where(eq(Sample.batchId, openBatch.id))
+						.all()
+				)
 					.sort((left, right) => compareSampleNames(left.name, right.name))
 					.map((sample) => ({ ...sample, preparedBy: users.get(sample.preparedById) }))
 			: null,
@@ -139,15 +157,8 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 		showArchived,
 		counts: { active: activeCount?.total ?? 0, archived: archivedCount?.total ?? 0 },
 		batches: rows.map((batch) => ({
-			slug: batch.slug,
-			name: batch.name,
-			preparedById: batch.preparedById,
-			archivedAt: batch.metadataArchivedAt,
-			preparationDate: batch.preparationDate,
-			activeMaterial: batch.activeMaterial,
-			support: batch.support,
+			...batch,
 			preparedBy: users.get(batch.preparedById),
-			sampleCount: sampleCounts.get(batch.id) ?? 0,
 		})),
 	};
 }
@@ -222,6 +233,7 @@ async function editSamples(
 	batchSlug: string,
 ) {
 	// An archived batch is treated as absent. Its samples are read only.
+	// The shared add-sample helper accepts a complete batch row.
 	const batch = await db
 		.select()
 		.from(SampleBatch)

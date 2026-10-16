@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { eq } from "drizzle-orm";
+
 import * as batchRoute from "~/app/routes/samples.$batchSlug._index.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { NoteManager } from "~/app/services/NoteManager.ts";
@@ -397,13 +399,18 @@ describe("samples.$batchSlug._index", () => {
 			});
 
 			expect(result.status).toBe(303);
-			expect((await route.loader()).data!.samples[0]?.preparedBy).toEqual({
+			const sample = (await route.loader()).data!.samples[0]!;
+			expect(sample.preparedBy).toEqual({
 				id: preparedById,
 				name: "Zoe Researcher",
 			});
-			expect((await route.loader()).data!.samples[0]?.metadataCreatorId).toBe(
-				scope.get(Security).userId,
-			);
+			const stored = await scope
+				.get(ApplicationDatabase)
+				.select({ metadataCreatorId: Sample.metadataCreatorId })
+				.from(Sample)
+				.where(eq(Sample.id, sample.id))
+				.get();
+			expect(stored?.metadataCreatorId).toBe(scope.get(Security).userId);
 		});
 
 		test("rejects a duplicate label within the batch", async () => {
