@@ -14,6 +14,24 @@ Select a manufacturer to see its products. Products in a series are shown togeth
 
 Select a product to see its specifications, measurement channels, and source information.
 
+## Import physical equipment
+
+Select the products that represent physical units in the laboratory, then choose **Import selected**. The selection remains while you search or open a manufacturer. The form creates one equipment entry for each selected product.
+
+Give each unit a recognizable equipment name. A serial number is optional. A recorded serial number identifies only one physical equipment entry, including archived equipment. Some models request unit-specific values, such as a calibrated range. Supply every required value before importing.
+
+The equipment remains linked to its catalog model. Model-wide specifications and measurement channels remain on the product. Values that distinguish one physical unit are recorded on its equipment entry.
+
+## Add equipment manually
+
+Select **Add equipment** in Inventory when the Catalog does not contain the model. Search the Catalog first to reduce duplicate product definitions. The form creates one physical unit and one reusable product marked **User entered**.
+
+Choose an existing manufacturer when possible. Otherwise select **Add a manufacturer** and enter its name. Use **Unknown manufacturer** when the maker cannot be identified.
+
+Equipment name and product name are required. Model number, description, and serial number are optional. The form does not collect specifications or measurement channels.
+
+Use the manufacturer's model designation for the product. Use a local asset name for the physical equipment, such as a model name with a serial number or stable range designation.
+
 ## Logos and photographs
 
 A manufacturer can have a logo. A product can have a photograph. Products in the same series can share one photograph. A manufacturer without a logo shows the first letter of its name.

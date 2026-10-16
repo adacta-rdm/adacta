@@ -5,19 +5,23 @@ import clsx from "clsx";
  * The page shows the selected inventory entry. A rig keeps its selected view
  * in the path and renders that view below the shared heading.
  */
-import { and, eq, isNull } from "drizzle-orm";
-import { NavLink, Outlet } from "react-router";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { Link, NavLink, Outlet } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import { KindIcon } from "~/app/components/KindIcon.tsx";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
+import { ProductIdentity } from "~/app/components/ProductIdentity.tsx";
 import { formatLocation } from "~/app/lib/location.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { UserManager } from "~/app/services/UserManager.ts";
-import { Heading } from "~/catalyst-ui/heading.tsx";
+import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { InventoryEntrySpecification } from "~/drizzle/schema/InventoryEntrySpecification.ts";
+import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
+import { ProductSpecification } from "~/drizzle/schema/ProductSpecification.ts";
 
 import type { Route } from "./+types/inventory.$entrySlug.ts";
 
@@ -50,14 +54,41 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	if (!row) {
 		throw new Response(`Inventory entry "${params.entrySlug}" not found.`, { status: 404 });
 	}
-	const product =
-		row.productId === null
-			? undefined
-			: await db
-					.select({ name: Product.name, productNumber: Product.productNumber })
-					.from(Product)
-					.where(eq(Product.id, row.productId))
-					.get();
+
+	const model = await db
+		.select({ product: Product, manufacturer: Manufacturer })
+		.from(Product)
+		.innerJoin(Manufacturer, eq(Manufacturer.id, Product.manufacturerId))
+		.where(eq(Product.id, row.productId ?? -1))
+		.get();
+
+	const specifications = model
+		? await db
+				.select({
+					name: ProductSpecification.name,
+					// A line without a value asks for the value of each unit.
+					value: sql<
+						string | null
+					>`coalesce(${ProductSpecification.value}, ${InventoryEntrySpecification.value})`,
+				})
+				.from(ProductSpecification)
+				.leftJoin(
+					InventoryEntrySpecification,
+					and(
+						eq(InventoryEntrySpecification.productSpecificationId, ProductSpecification.id),
+						eq(InventoryEntrySpecification.inventoryEntryId, row.id),
+						isNull(InventoryEntrySpecification.metadataArchivedAt),
+					),
+				)
+				.where(
+					and(
+						eq(ProductSpecification.productId, model.product.id),
+						isNull(ProductSpecification.metadataArchivedAt),
+					),
+				)
+				.orderBy(asc(ProductSpecification.position))
+				.all()
+		: [];
 
 	// A record may refer to a deleted user. Its name is then unavailable.
 	const creator = (await access.users()).find((user) => user.id === row.metadataCreatorId);
@@ -68,7 +99,20 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			name: row.name,
 			kind: row.kind,
 			serialNumber: row.serialNumber,
-			product,
+			product: model
+				? {
+						manufacturerSlug: model.manufacturer.slug,
+						manufacturerName: model.manufacturer.name,
+						productSlug: model.product.slug,
+						name: model.product.name,
+						productNumber: model.product.productNumber,
+						subtitle: model.product.subtitle,
+						description: model.product.description,
+						imageFileId: model.product.imageFileId,
+						origin: model.product.origin,
+						specifications,
+					}
+				: null,
 			location: {
 				building: row.locationBuildingIdentifier,
 				room: row.locationRoomIdentifier,
@@ -94,14 +138,6 @@ export default function InventoryEntrySlug({ loaderData }: Route.ComponentProps)
 					<KindIcon kind={entry.kind} className="size-4" />
 					{isRig ? "Rig" : "Equipment"}
 				</p>
-				{entry.serialNumber ? (
-					<p className="mt-2 text-sm text-foreground-muted">Serial number: {entry.serialNumber}</p>
-				) : null}
-				{entry.product ? (
-					<p className="mt-2 text-sm text-foreground-muted">
-						Product: {entry.product.name} ({entry.product.productNumber})
-					</p>
-				) : null}
 
 				{location ? (
 					<p className="mt-2 text-sm text-foreground-muted">Location: {location}</p>
@@ -109,6 +145,39 @@ export default function InventoryEntrySlug({ loaderData }: Route.ComponentProps)
 					<Text className="mt-2">No location has been recorded.</Text>
 				)}
 			</div>
+
+			{entry.serialNumber && (
+				<p className="text-sm text-foreground-muted">Serial number: {entry.serialNumber}</p>
+			)}
+
+			{entry.product && (
+				<section>
+					<Subheading>Catalog model</Subheading>
+					<div className="mt-4">
+						<ProductIdentity
+							title={
+								<Link
+									to={`/catalog/${entry.product.manufacturerSlug}/${entry.product.productSlug}`}
+									className="font-semibold text-link hover:text-link-hover"
+								>
+									{entry.product.name}
+								</Link>
+							}
+							{...entry.product}
+						/>
+					</div>
+					{entry.product.specifications.length > 0 && (
+						<dl className="mt-6 divide-y divide-border text-sm">
+							{entry.product.specifications.map((specification) => (
+								<div key={specification.name} className="flex gap-4 py-3">
+									<dt className="w-1/3 text-foreground-muted">{specification.name}</dt>
+									<dd>{specification.value ?? "Not recorded"}</dd>
+								</div>
+							))}
+						</dl>
+					)}
+				</section>
+			)}
 
 			{isRig ? <RigTabs /> : null}
 

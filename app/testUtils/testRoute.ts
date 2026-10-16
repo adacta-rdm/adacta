@@ -20,7 +20,8 @@ type Result<T> = {
 	location: string | null;
 	response: Response | undefined;
 };
-type RequestOptions = { query?: Record<string, string> };
+type Fields = Record<string, string | readonly string[]>;
+type RequestOptions = { query?: Fields };
 type ActionOptions = RequestOptions & { files?: readonly File[] };
 
 /**
@@ -88,7 +89,10 @@ export function testRoute<Module extends RouteModule>(
 	function url(options: RequestOptions) {
 		const url = new URL("http://localhost/");
 
-		url.search = new URLSearchParams(options.query).toString();
+		for (const [name, value] of Object.entries(options.query ?? {})) {
+			for (const item of typeof value === "string" ? [value] : value)
+				url.searchParams.append(name, item);
+		}
 
 		return url;
 	}
@@ -99,12 +103,14 @@ export function testRoute<Module extends RouteModule>(
 
 			return call(module.loader as NonNullable<Module["loader"]>, new Request(url(options)));
 		},
-		action(fields: Record<string, string>, options: ActionOptions = {}) {
+		action(fields: Fields, options: ActionOptions = {}) {
 			if (!module.action) throw new Error("The route has no action.");
 
 			const form = new FormData();
 
-			for (const [name, value] of Object.entries(fields)) form.set(name, value);
+			for (const [name, value] of Object.entries(fields)) {
+				for (const item of typeof value === "string" ? [value] : value) form.append(name, item);
+			}
 
 			for (const file of options.files ?? []) form.append("files", file);
 

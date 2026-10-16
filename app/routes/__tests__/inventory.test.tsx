@@ -4,7 +4,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { createRoutesStub } from "react-router";
 
 import * as appRoute from "~/app/routes/_app.tsx";
-import * as inventoryIndex from "~/app/routes/inventory._index.tsx";
 import * as inventoryRoute from "~/app/routes/inventory.tsx";
 import { createTestRig } from "~/app/testUtils/testRecords.ts";
 import { testRoute } from "~/app/testUtils/testRoute.ts";
@@ -50,7 +49,7 @@ describe("inventory", () => {
 							Component: inventoryRoute.default,
 							loader: () => inventoryData,
 							handle: inventoryRoute.handle,
-							children: [{ index: true, Component: inventoryIndex.default }],
+							children: [{ index: true, Component: () => null }],
 						},
 					],
 				},

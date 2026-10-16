@@ -11,6 +11,7 @@ import { Link, Outlet, href } from "react-router";
 import { services } from "~/app/.server/context.ts";
 import { ManufacturerLogo } from "~/app/components/ManufacturerLogo.tsx";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
+import { useCatalogSelection } from "~/app/route-components/CatalogSelection.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
@@ -62,12 +63,13 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 
 export default function CatalogManufacturerSlug({ loaderData }: Route.ComponentProps) {
 	const { manufacturer, totals } = loaderData;
+	const { selectionSearch } = useCatalogSelection();
 
 	return (
 		<div className="space-y-8">
 			<div>
 				<Link
-					to={"/catalog"}
+					to={`/catalog?${selectionSearch}`}
 					className="text-sm text-link hover:text-link-hover focus-visible:outline-2 focus-visible:outline-focus"
 				>
 					← Catalog

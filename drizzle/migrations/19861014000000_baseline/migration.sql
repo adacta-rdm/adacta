@@ -166,6 +166,30 @@ CREATE TABLE `InventoryEntry` (
 	CONSTRAINT `fk_InventoryEntry_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
+CREATE TABLE `InventoryEntryProduct` (
+	`inventory_entry_id` integer PRIMARY KEY,
+	`product_id` integer NOT NULL,
+	`metadata_creator_id` text NOT NULL,
+	`metadata_creation_timestamp` integer NOT NULL,
+	`metadata_archived_at` integer,
+	CONSTRAINT `fk_InventoryEntryProduct_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE CASCADE,
+	CONSTRAINT `fk_InventoryEntryProduct_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`),
+	CONSTRAINT `fk_InventoryEntryProduct_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
+);
+--> statement-breakpoint
+CREATE TABLE `InventoryEntrySpecification` (
+	`inventory_entry_specification_id` integer PRIMARY KEY AUTOINCREMENT,
+	`inventory_entry_id` integer NOT NULL,
+	`product_specification_id` integer NOT NULL,
+	`value` text NOT NULL,
+	`metadata_creator_id` text NOT NULL,
+	`metadata_creation_timestamp` integer NOT NULL,
+	`metadata_archived_at` integer,
+	CONSTRAINT `fk_InventoryEntrySpecification_inventory_entry_id_InventoryEntry_inventory_entry_id_fk` FOREIGN KEY (`inventory_entry_id`) REFERENCES `InventoryEntry`(`inventory_entry_id`) ON DELETE CASCADE,
+	CONSTRAINT `fk_InventoryEntrySpecification_product_specification_id_ProductSpecification_product_specification_id_fk` FOREIGN KEY (`product_specification_id`) REFERENCES `ProductSpecification`(`product_specification_id`),
+	CONSTRAINT `fk_InventoryEntrySpecification_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
+);
+--> statement-breakpoint
 CREATE TABLE `Manufacturer` (
 	`manufacturer_id` integer PRIMARY KEY AUTOINCREMENT,
 	`slug` text NOT NULL,
@@ -286,8 +310,9 @@ CREATE TABLE `Product` (
 	`product_series_id` integer,
 	`slug` text NOT NULL,
 	`name` text NOT NULL,
-	`product_number` text NOT NULL,
-	`subtitle` text NOT NULL,
+	`product_number` text,
+	`subtitle` text,
+	`origin` text DEFAULT 'catalog' NOT NULL,
 	`description` text,
 	`image_file_id` integer,
 	`series_position` integer,
@@ -320,11 +345,15 @@ CREATE TABLE `ProductSpecification` (
 	`product_id` integer NOT NULL,
 	`position` integer NOT NULL,
 	`name` text NOT NULL,
-	`value` text NOT NULL,
+	`quantity_kind_id` text,
+	`value` text,
+	`required` integer DEFAULT true NOT NULL,
+	`description` text,
 	`metadata_creator_id` text NOT NULL,
 	`metadata_creation_timestamp` integer NOT NULL,
 	`metadata_archived_at` integer,
 	CONSTRAINT `fk_ProductSpecification_product_id_Product_product_id_fk` FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`),
+	CONSTRAINT `fk_ProductSpecification_quantity_kind_id_QuantityKind_quantity_kind_id_fk` FOREIGN KEY (`quantity_kind_id`) REFERENCES `QuantityKind`(`quantity_kind_id`) ON UPDATE CASCADE,
 	CONSTRAINT `fk_ProductSpecification_metadata_creator_id_User_id_fk` FOREIGN KEY (`metadata_creator_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
@@ -377,6 +406,7 @@ CREATE UNIQUE INDEX `DatasetSample_dataset_position_unique` ON `DatasetSample` (
 CREATE INDEX `DatasetSample_sample_idx` ON `DatasetSample` (`sample_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `InventoryEntry_slug_unique` ON `InventoryEntry` (`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `InventoryEntry_serial_number_unique` ON `InventoryEntry` (`serial_number`);--> statement-breakpoint
+CREATE UNIQUE INDEX `InventoryEntrySpecification_entry_product_specification_unique` ON `InventoryEntrySpecification` (`inventory_entry_id`,`product_specification_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Manufacturer_slug_unique` ON `Manufacturer` (`slug`);--> statement-breakpoint
 CREATE UNIQUE INDEX `Note_supersedes_id_unique` ON `Note` (`supersedes_id`);--> statement-breakpoint
 CREATE INDEX `PIDEdge_inventory_entry_idx` ON `PIDEdge` (`inventory_entry_id`);--> statement-breakpoint

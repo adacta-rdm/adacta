@@ -9,11 +9,12 @@
  *
  * Products in no series are shown as cards, because each one stands alone.
  */
-import { and, asc, eq, isNull } from "drizzle-orm";
-import { Link, href } from "react-router";
+import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
+import { Link } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import { compareSpecifications, type Specification } from "~/app/lib/specificationComparison.ts";
+import { CatalogSelection, useCatalogSelection } from "~/app/route-components/CatalogSelection.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
@@ -27,10 +28,11 @@ import type { Route } from "./+types/catalog.$manufacturerSlug._index.ts";
 export { SectionErrorBoundary as ErrorBoundary } from "~/app/route-components/SectionErrorBoundary.tsx";
 
 type CatalogProduct = {
+	id: number;
 	slug: string;
 	name: string;
-	productNumber: string;
-	subtitle: string;
+	productNumber: string | null;
+	subtitle: string | null;
 	imageFileId: number | null;
 	specifications: Specification[];
 };
@@ -68,13 +70,13 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		})
 		.from(ProductSpecification)
 		.innerJoin(Product, eq(Product.id, ProductSpecification.productId))
-		.where(eq(Product.manufacturerId, manufacturer.id))
+		.where(and(eq(Product.manufacturerId, manufacturer.id), isNotNull(ProductSpecification.value)))
 		.orderBy(asc(ProductSpecification.productId), asc(ProductSpecification.position))
 		.all();
 
 	for (const row of specificationRows) {
 		const list = specifications.get(row.productId) ?? [];
-		list.push({ name: row.name, value: row.value });
+		list.push({ name: row.name, value: row.value! });
 		specifications.set(row.productId, list);
 	}
 
@@ -86,6 +88,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		.all();
 
 	const describe = (product: (typeof rows)[number]): CatalogProduct => ({
+		id: product.id,
 		slug: product.slug,
 		name: product.name,
 		productNumber: product.productNumber,
@@ -101,7 +104,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			subtitle: series.subtitle,
 			description: series.description,
 			website: series.website,
-			imageFileId: rows.find((product) => product.seriesId === series.id)?.imageFileId ?? null,
+			imageFileId: rows.find((p) => p.seriesId === series.id)?.imageFileId ?? null,
 			products: rows.filter((product) => product.seriesId === series.id).map(describe),
 		})),
 		standalone: rows.filter((product) => product.seriesId === null).map(describe),
@@ -110,6 +113,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 
 export default function CatalogManufacturerSlugIndex({ loaderData, params }: Route.ComponentProps) {
 	const { series, standalone } = loaderData;
+	const { selected, selectProduct } = useCatalogSelection();
 
 	if (series.length === 0 && standalone.length === 0) {
 		return <Text>No products yet.</Text>;
@@ -117,14 +121,26 @@ export default function CatalogManufacturerSlugIndex({ loaderData, params }: Rou
 
 	return (
 		<div className="space-y-10">
+			<CatalogSelection />
 			{series.map((family) => (
-				<SeriesTable key={family.slug} family={family} manufacturer={params.manufacturerSlug} />
+				<SeriesTable
+					key={family.slug}
+					family={family}
+					manufacturer={params.manufacturerSlug}
+					selected={selected}
+					onSelect={selectProduct}
+				/>
 			))}
 
 			{standalone.length > 0 && (
 				<section>
 					{series.length > 0 && <Subheading className="mb-4">Other products</Subheading>}
-					<ProductGrid products={standalone} manufacturer={params.manufacturerSlug} />
+					<ProductGrid
+						products={standalone}
+						manufacturer={params.manufacturerSlug}
+						selected={selected}
+						onSelect={selectProduct}
+					/>
 				</section>
 			)}
 		</div>
@@ -136,7 +152,18 @@ type Family = Route.ComponentProps["loaderData"]["series"][number];
 /**
  * A series, its shared description, and a row per member.
  */
-function SeriesTable({ family, manufacturer }: { family: Family; manufacturer: string }) {
+function SeriesTable({
+	family,
+	manufacturer,
+	selected,
+	onSelect,
+}: {
+	family: Family;
+	manufacturer: string;
+	selected: Set<string>;
+	onSelect: (id: number, checked: boolean) => void;
+}) {
+	const { selectionSearch } = useCatalogSelection();
 	/*
 		A family of one has nothing to compare. Every value would count as shared,
 		which fills the header with the whole data sheet and leaves a table of one
@@ -154,9 +181,9 @@ function SeriesTable({ family, manufacturer }: { family: Family; manufacturer: s
 	return (
 		<section className="overflow-hidden rounded-xl border border-border bg-surface">
 			<div className="flex flex-col gap-5 p-5 sm:flex-row">
-				{family.imageFileId !== null && (
+				{family.imageFileId && (
 					<img
-						src={href("/files/originals/:fileId", { fileId: String(family.imageFileId) })}
+						src={`/files/originals/${family.imageFileId}`}
 						alt=""
 						className="h-20 w-20 shrink-0 self-start rounded-lg border border-border bg-surface object-contain p-1.5"
 					/>
@@ -188,6 +215,9 @@ function SeriesTable({ family, manufacturer }: { family: Family; manufacturer: s
 				<table className="w-full text-left text-sm">
 					<thead className="border-b border-border text-xs font-medium text-foreground-muted">
 						<tr>
+							<th scope="col" className="w-10 py-2 pl-3">
+								<span className="sr-only">Select</span>
+							</th>
 							<th scope="col" className="py-2 pr-4 pl-5">
 								{isFamily ? "Product number" : "Product"}
 							</th>
@@ -202,12 +232,20 @@ function SeriesTable({ family, manufacturer }: { family: Family; manufacturer: s
 					<tbody className="divide-y divide-border">
 						{family.products.map((product) => (
 							<tr key={product.slug}>
+								<td className="py-3 pl-3">
+									<input
+										type="checkbox"
+										aria-label={`Select ${product.productNumber ?? product.name}`}
+										checked={selected.has(String(product.id))}
+										onChange={(event) => onSelect(product.id, event.currentTarget.checked)}
+									/>
+								</td>
 								<th scope="row" className="py-3 pr-4 pl-5 font-normal">
 									<Link
-										to={`/catalog/${manufacturer}/${product.slug}`}
+										to={`/catalog/${manufacturer}/${product.slug}?${selectionSearch}`}
 										className="font-medium text-link hover:text-link-hover focus-visible:outline-2 focus-visible:outline-focus"
 									>
-										{product.productNumber}
+										{product.productNumber ?? "Not recorded"}
 									</Link>
 								</th>
 								{varying.map((name) => (
@@ -230,15 +268,23 @@ function SeriesTable({ family, manufacturer }: { family: Family; manufacturer: s
 function ProductGrid({
 	products,
 	manufacturer,
+	selected,
+	onSelect,
 }: {
 	products: CatalogProduct[];
 	manufacturer: string;
+	selected: Set<string>;
+	onSelect: (id: number, checked: boolean) => void;
 }) {
+	const { selectionSearch } = useCatalogSelection();
 	return (
 		<div className="overflow-x-auto rounded-xl border border-border bg-surface">
 			<table className="w-full text-left text-sm">
 				<thead className="border-b border-border text-xs font-medium text-foreground-muted">
 					<tr>
+						<th scope="col" className="w-10 py-2 pl-3">
+							<span className="sr-only">Select</span>
+						</th>
 						<th scope="col" className="w-10 py-2 pl-3" />
 						<th scope="col" className="py-2 pr-4">
 							Order code
@@ -253,12 +299,18 @@ function ProductGrid({
 					{products.map((product) => (
 						<tr key={product.slug}>
 							<td className="py-1.5 pl-3">
+								<input
+									type="checkbox"
+									aria-label={`Select ${product.productNumber ?? product.name}`}
+									checked={selected.has(String(product.id))}
+									onChange={(event) => onSelect(product.id, event.currentTarget.checked)}
+								/>
+							</td>
+							<td className="py-1.5 pl-3">
 								<div className="flex size-8 items-center justify-center rounded bg-surface-muted">
-									{product.imageFileId !== null && (
+									{product.imageFileId && (
 										<img
-											src={href("/files/originals/:fileId", {
-												fileId: String(product.imageFileId),
-											})}
+											src={`/files/originals/${product.imageFileId}`}
 											alt=""
 											className="max-h-full max-w-full object-contain p-0.5"
 										/>
@@ -268,16 +320,18 @@ function ProductGrid({
 
 							<th scope="row" className="py-1.5 pr-4 font-normal">
 								<Link
-									to={`/catalog/${manufacturer}/${product.slug}`}
+									to={`/catalog/${manufacturer}/${product.slug}?${selectionSearch}`}
 									className="font-medium text-link hover:text-link-hover focus-visible:outline-2 focus-visible:outline-focus"
 								>
-									{product.productNumber}
+									{product.productNumber ?? "Not recorded"}
 								</Link>
 							</th>
 
 							<td className="py-1.5 pr-4">
 								<span className="text-foreground">{product.name}</span>
-								<span className="ml-2 text-foreground-muted">{product.subtitle}</span>
+								{product.subtitle ? (
+									<span className="ml-2 text-foreground-muted">{product.subtitle}</span>
+								) : null}
 							</td>
 						</tr>
 					))}

@@ -95,3 +95,16 @@ export const seedInventoryEntry = (key: string): SeedInventoryEntry =>
 	pick(inventory, "inventory entry", key);
 export const seedSampleBatch = (key: string): SeedSampleBatch =>
 	pick(sampleBatches, "sample batch", key);
+
+export function seedCatalogManufacturer(key: string): { name: string } {
+	return readJson(seedPath("presets", SEED_PRESET, "catalog", key, "manufacturer.json"));
+}
+
+export function seedCatalogProduct(
+	manufacturer: string,
+	key: string,
+): { name: string; productNumber: string } {
+	return readJson(
+		seedPath("presets", SEED_PRESET, "catalog", manufacturer, "products", `${key}.json`),
+	);
+}

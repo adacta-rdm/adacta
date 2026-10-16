@@ -39,9 +39,13 @@ export const Product = sqliteTable(
 		 * The order code the manufacturer prints, for example
 		 * "F-201CV-020-RGD-33-K". Two products of one series differ here.
 		 */
-		productNumber: text("product_number").notNull(),
+		productNumber: text("product_number"),
 
-		subtitle: text("subtitle").notNull(),
+		subtitle: text("subtitle"),
+
+		origin: text("origin", { enum: ["catalog", "user"] })
+			.notNull()
+			.default("catalog"),
 
 		description: text("description"),
 

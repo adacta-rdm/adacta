@@ -14,6 +14,7 @@ import { Dataset } from "~/drizzle/schema/Dataset.ts";
 import { DatasetColumn } from "~/drizzle/schema/DatasetColumn.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { InventoryEntryProduct } from "~/drizzle/schema/InventoryEntryProduct.ts";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
 import { Note } from "~/drizzle/schema/Note.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
@@ -141,6 +142,29 @@ export async function createTestChannel(
 }
 
 /**
+ * Create a catalog value or a value requested for one physical unit.
+ */
+export async function createTestSpecification(
+	scope: ServiceContainer,
+	product: Entity<"Product">,
+	overrides: Partial<NewEntity<"ProductSpecification">> = {},
+): Promise<Entity<"ProductSpecification">> {
+	return await scope
+		.get(ApplicationDatabase)
+		.insert(ProductSpecification)
+		.values({
+			productId: product.id,
+			position: 0,
+			name: "Calibrated range",
+			metadataCreatorId: scope.get(Security).userId,
+			metadataCreationTimestamp: CREATION_TIME,
+			...overrides,
+		})
+		.returning()
+		.get();
+}
+
+/**
  * Create an inventory entry of any kind with its ID. The kind defaults to "rig".
  */
 export async function createTestRig(
@@ -165,6 +189,35 @@ export async function createTestRig(
 	]);
 
 	return (await db.select().from(InventoryEntry).where(eq(InventoryEntry.id, values.id)).get())!;
+}
+
+/**
+ * Create a physical equipment unit, optionally linked to a product.
+ */
+export async function createTestEquipment(
+	scope: ServiceContainer,
+	overrides: Partial<NewEntity<"InventoryEntry">> = {},
+	product?: Entity<"Product">,
+): Promise<Entity<"InventoryEntry">> {
+	const entry = await createTestRig(scope, {
+		name: "Test equipment",
+		kind: "equipment",
+		productId: product?.id,
+		...overrides,
+	});
+	if (product) {
+		await scope
+			.get(ApplicationDatabase)
+			.insert(InventoryEntryProduct)
+			.values({
+				inventoryEntryId: entry.id,
+				productId: product.id,
+				metadataCreatorId: scope.get(Security).userId,
+				metadataCreationTimestamp: CREATION_TIME,
+			})
+			.run();
+	}
+	return entry;
 }
 
 /**

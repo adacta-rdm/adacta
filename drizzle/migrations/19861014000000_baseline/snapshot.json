@@ -49,6 +49,14 @@
 			"entityType": "tables"
 		},
 		{
+			"name": "InventoryEntryProduct",
+			"entityType": "tables"
+		},
+		{
+			"name": "InventoryEntrySpecification",
+			"entityType": "tables"
+		},
+		{
 			"name": "Manufacturer",
 			"entityType": "tables"
 		},
@@ -1223,6 +1231,126 @@
 		{
 			"type": "integer",
 			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inventory_entry_id",
+			"entityType": "columns",
+			"table": "InventoryEntryProduct"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "product_id",
+			"entityType": "columns",
+			"table": "InventoryEntryProduct"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "InventoryEntryProduct"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "InventoryEntryProduct"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "InventoryEntryProduct"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": true,
+			"default": null,
+			"generated": null,
+			"name": "inventory_entry_specification_id",
+			"entityType": "columns",
+			"table": "InventoryEntrySpecification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "inventory_entry_id",
+			"entityType": "columns",
+			"table": "InventoryEntrySpecification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "product_specification_id",
+			"entityType": "columns",
+			"table": "InventoryEntrySpecification"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "value",
+			"entityType": "columns",
+			"table": "InventoryEntrySpecification"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creator_id",
+			"entityType": "columns",
+			"table": "InventoryEntrySpecification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_creation_timestamp",
+			"entityType": "columns",
+			"table": "InventoryEntrySpecification"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "metadata_archived_at",
+			"entityType": "columns",
+			"table": "InventoryEntrySpecification"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
 			"autoincrement": true,
 			"default": null,
 			"generated": null,
@@ -1942,7 +2070,7 @@
 		},
 		{
 			"type": "text",
-			"notNull": true,
+			"notNull": false,
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
@@ -1952,11 +2080,21 @@
 		},
 		{
 			"type": "text",
-			"notNull": true,
+			"notNull": false,
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
 			"name": "subtitle",
+			"entityType": "columns",
+			"table": "Product"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "'catalog'",
+			"generated": null,
+			"name": "origin",
 			"entityType": "columns",
 			"table": "Product"
 		},
@@ -2162,11 +2300,41 @@
 		},
 		{
 			"type": "text",
-			"notNull": true,
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "quantity_kind_id",
+			"entityType": "columns",
+			"table": "ProductSpecification"
+		},
+		{
+			"type": "text",
+			"notNull": false,
 			"autoincrement": false,
 			"default": null,
 			"generated": null,
 			"name": "value",
+			"entityType": "columns",
+			"table": "ProductSpecification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "true",
+			"generated": null,
+			"name": "required",
+			"entityType": "columns",
+			"table": "ProductSpecification"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "description",
 			"entityType": "columns",
 			"table": "ProductSpecification"
 		},
@@ -2644,6 +2812,72 @@
 			"table": "InventoryEntry"
 		},
 		{
+			"columns": ["inventory_entry_id"],
+			"tableTo": "InventoryEntry",
+			"columnsTo": ["inventory_entry_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_InventoryEntryProduct_inventory_entry_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "InventoryEntryProduct"
+		},
+		{
+			"columns": ["product_id"],
+			"tableTo": "Product",
+			"columnsTo": ["product_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_InventoryEntryProduct_product_id_Product_product_id_fk",
+			"entityType": "fks",
+			"table": "InventoryEntryProduct"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_InventoryEntryProduct_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "InventoryEntryProduct"
+		},
+		{
+			"columns": ["inventory_entry_id"],
+			"tableTo": "InventoryEntry",
+			"columnsTo": ["inventory_entry_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_InventoryEntrySpecification_inventory_entry_id_InventoryEntry_inventory_entry_id_fk",
+			"entityType": "fks",
+			"table": "InventoryEntrySpecification"
+		},
+		{
+			"columns": ["product_specification_id"],
+			"tableTo": "ProductSpecification",
+			"columnsTo": ["product_specification_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_InventoryEntrySpecification_product_specification_id_ProductSpecification_product_specification_id_fk",
+			"entityType": "fks",
+			"table": "InventoryEntrySpecification"
+		},
+		{
+			"columns": ["metadata_creator_id"],
+			"tableTo": "User",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "RESTRICT",
+			"nameExplicit": false,
+			"name": "fk_InventoryEntrySpecification_metadata_creator_id_User_id_fk",
+			"entityType": "fks",
+			"table": "InventoryEntrySpecification"
+		},
+		{
 			"columns": ["logo_file_id"],
 			"tableTo": "OriginalFile",
 			"columnsTo": ["original_file_id"],
@@ -2930,6 +3164,17 @@
 			"table": "ProductSpecification"
 		},
 		{
+			"columns": ["quantity_kind_id"],
+			"tableTo": "QuantityKind",
+			"columnsTo": ["quantity_kind_id"],
+			"onUpdate": "CASCADE",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_ProductSpecification_quantity_kind_id_QuantityKind_quantity_kind_id_fk",
+			"entityType": "fks",
+			"table": "ProductSpecification"
+		},
+		{
 			"columns": ["metadata_creator_id"],
 			"tableTo": "User",
 			"columnsTo": ["id"],
@@ -3092,6 +3337,20 @@
 			"nameExplicit": false,
 			"name": "InventoryEntry_pk",
 			"table": "InventoryEntry",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["inventory_entry_id"],
+			"nameExplicit": false,
+			"name": "InventoryEntryProduct_pk",
+			"table": "InventoryEntryProduct",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["inventory_entry_specification_id"],
+			"nameExplicit": false,
+			"name": "InventoryEntrySpecification_pk",
+			"table": "InventoryEntrySpecification",
 			"entityType": "pks"
 		},
 		{
@@ -3405,6 +3664,24 @@
 			"name": "InventoryEntry_serial_number_unique",
 			"entityType": "indexes",
 			"table": "InventoryEntry"
+		},
+		{
+			"columns": [
+				{
+					"value": "inventory_entry_id",
+					"isExpression": false
+				},
+				{
+					"value": "product_specification_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "InventoryEntrySpecification_entry_product_specification_unique",
+			"entityType": "indexes",
+			"table": "InventoryEntrySpecification"
 		},
 		{
 			"columns": [

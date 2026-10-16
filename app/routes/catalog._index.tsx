@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { Link, Form, href, useSubmit, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import { CatalogSelection, useCatalogSelection } from "~/app/route-components/CatalogSelection.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
@@ -26,10 +27,13 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 
 	let rows = await db
 		.select({
+			id: Product.id,
 			slug: Product.slug,
 			name: Product.name,
 			productNumber: Product.productNumber,
 			subtitle: Product.subtitle,
+			description: Product.description,
+			origin: Product.origin,
 			imageFileId: Product.imageFileId,
 			manufacturerSlug: Manufacturer.slug,
 			manufacturerName: Manufacturer.name,
@@ -52,6 +56,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 				product.productNumber,
 				product.name,
 				product.subtitle,
+				product.description,
 				product.manufacturerName,
 				product.seriesName,
 			]
@@ -65,7 +70,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 	rows.sort(
 		(left, right) =>
 			collator.compare(left.manufacturerName, right.manufacturerName) ||
-			collator.compare(left.productNumber, right.productNumber),
+			collator.compare(left.productNumber ?? left.name, right.productNumber ?? right.name),
 	);
 
 	return { products: rows, query };
@@ -75,6 +80,7 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 	const { products, query } = loaderData;
 	const navigation = useNavigation();
 	const submit = useSubmit();
+	const { selected, selectionSearch, selectProduct } = useCatalogSelection();
 
 	// When nothing is happening, navigation.location will be undefined,
 	// but when the user navigates it will be populated with the next
@@ -96,6 +102,7 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 		<div className="space-y-5">
 			<div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
 				<Heading>Catalog</Heading>
+				<CatalogSelection />
 				<p role="status" className="text-sm text-foreground-muted">
 					{products.length} products
 				</p>
@@ -110,6 +117,9 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 						return submit(event.currentTarget, { replace: !isFirstSearch });
 					}}
 				>
+					{[...selected].map((id) => (
+						<input key={id} type="hidden" name="selected" value={id} />
+					))}
 					{/*
 						The wait is shown where the reader is already looking. Both marks are
 						kept mounted so one fades into the other, and the spinner carries a
@@ -171,6 +181,9 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 						<table className="w-full text-left text-sm">
 							<thead className="border-b border-border text-xs font-medium text-foreground-muted">
 								<tr>
+									<th scope="col" className="w-10 py-2 pl-3">
+										<span className="sr-only">Select</span>
+									</th>
 									<th scope="col" className="w-10 py-2 pl-3" />
 									<th scope="col" className="py-2 pr-4">
 										Order code
@@ -191,6 +204,14 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 								{products.map((product) => (
 									<tr key={`${product.manufacturerSlug}/${product.slug}`}>
 										<td className="py-1.5 pl-3">
+											<input
+												type="checkbox"
+												aria-label={`Select ${product.manufacturerName} ${product.productNumber ?? product.name}`}
+												checked={selected.has(String(product.id))}
+												onChange={(event) => selectProduct(product.id, event.currentTarget.checked)}
+											/>
+										</td>
+										<td className="py-1.5 pl-3">
 											<div className="flex size-8 items-center justify-center rounded bg-surface-muted">
 												{product.imageFileId !== null && (
 													<img
@@ -206,14 +227,19 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 
 										<th scope="row" className="py-1.5 pr-4 font-normal">
 											<Link
-												to={`/catalog/${product.manufacturerSlug}/${product.slug}`}
+												to={`/catalog/${product.manufacturerSlug}/${product.slug}?${selectionSearch}`}
 												className="font-medium text-link hover:text-link-hover focus-visible:outline-2 focus-visible:outline-focus"
 											>
-												{product.productNumber}
+												{product.productNumber ?? "Not recorded"}
 											</Link>
 										</th>
 
-										<td className="py-1.5 pr-4 text-foreground">{product.name}</td>
+										<td className="py-1.5 pr-4 text-foreground">
+											{product.name}
+											{product.origin === "user" && (
+												<span className="ml-2 text-xs text-foreground-muted">User entered</span>
+											)}
+										</td>
 
 										<td className="py-1.5 pr-4 text-foreground-muted">
 											{product.seriesName ?? "—"}
@@ -221,7 +247,7 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 
 										<td className="py-1.5 pr-4">
 											<Link
-												to={`/catalog/${product.manufacturerSlug}`}
+												to={`/catalog/${product.manufacturerSlug}?${selectionSearch}`}
 												className="text-foreground-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
 											>
 												{product.manufacturerName}

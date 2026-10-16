@@ -6,14 +6,16 @@
  * marked so a reader can tell the two apart.
  */
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
-import { and, asc, eq, isNull } from "drizzle-orm";
-import { Link, href } from "react-router";
+import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
+import { Link } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
+import { ProductIdentity } from "~/app/components/ProductIdentity.tsx";
 import { formatTimestamp } from "~/app/lib/dates.ts";
 import { quantityKindName } from "~/app/lib/quantities.ts";
 import { compareSpecifications } from "~/app/lib/specificationComparison.ts";
+import { useCatalogSelection } from "~/app/route-components/CatalogSelection.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Badge } from "~/catalyst-ui/badge.tsx";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
@@ -58,13 +60,21 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		throw new Response(`Product "${params.productSlug}" not found.`, { status: 404 });
 	}
 
-	const specificationsOf = async (productId: number) =>
-		await db
+	const specificationsOf = async (productId: number) => {
+		const rows = await db
 			.select({ name: ProductSpecification.name, value: ProductSpecification.value })
 			.from(ProductSpecification)
-			.where(eq(ProductSpecification.productId, productId))
+			.where(
+				and(
+					eq(ProductSpecification.productId, productId),
+					isNotNull(ProductSpecification.value),
+					isNull(ProductSpecification.metadataArchivedAt),
+				),
+			)
 			.orderBy(asc(ProductSpecification.position))
 			.all();
+		return rows.map((row) => ({ ...row, value: row.value! }));
+	};
 
 	const specifications = await specificationsOf(row.product.id);
 
@@ -117,6 +127,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			subtitle: row.product.subtitle,
 			description: row.product.description,
 			imageFileId: row.product.imageFileId,
+			origin: row.product.origin,
 		},
 		series: row.series && { slug: row.series.slug, name: row.series.name },
 		specifications: specifications.map((specification) => ({
@@ -137,6 +148,7 @@ export default function CatalogManufacturerSlugProductSlug({
 	params,
 }: Route.ComponentProps) {
 	const { manufacturerName, product, series, specifications, channels, source } = loaderData;
+	const { selectionSearch } = useCatalogSelection();
 
 	// A value the whole family states the same way is listed apart, so what is
 	// particular to this model is read first.
@@ -147,32 +159,18 @@ export default function CatalogManufacturerSlugProductSlug({
 		<div className="space-y-8">
 			<div>
 				<Link
-					to={`/catalog/${params.manufacturerSlug}`}
+					to={`/catalog/${params.manufacturerSlug}?${selectionSearch}`}
 					className="text-sm text-link hover:text-link-hover"
 				>
 					← All products from {manufacturerName}
 				</Link>
 
-				<div className="mt-4 flex flex-col gap-6 sm:flex-row">
-					<div className="flex h-48 w-48 shrink-0 items-center justify-center rounded-xl border border-border bg-surface">
-						{product.imageFileId !== null ? (
-							<img
-								src={href("/files/originals/:fileId", { fileId: String(product.imageFileId) })}
-								alt=""
-								className="max-h-full max-w-full object-contain p-4"
-							/>
-						) : (
-							<span className="text-xs text-foreground-muted">No photograph available</span>
-						)}
-					</div>
-
-					<div className="min-w-0">
-						<Heading>{product.name}</Heading>
-						<p className="mt-1 font-mono text-sm text-foreground-muted">{product.productNumber}</p>
-						<Text className="mt-3 max-w-2xl">{product.subtitle}</Text>
-
-						{series && <Badge className="mt-3">{series.name}</Badge>}
-					</div>
+				<div className="mt-4">
+					<ProductIdentity
+						title={<Heading>{product.name}</Heading>}
+						{...product}
+						seriesName={series?.name}
+					/>
 				</div>
 			</div>
 

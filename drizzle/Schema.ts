@@ -6,6 +6,8 @@ import { DatasetColumn } from "~/drizzle/schema/DatasetColumn.ts";
 import { DatasetSample } from "~/drizzle/schema/DatasetSample.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { InventoryEntry } from "~/drizzle/schema/InventoryEntry.ts";
+import { InventoryEntryProduct } from "~/drizzle/schema/InventoryEntryProduct.ts";
+import { InventoryEntrySpecification } from "~/drizzle/schema/InventoryEntrySpecification.ts";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
 import { Note } from "~/drizzle/schema/Note.ts";
 import { NoteAttachment } from "~/drizzle/schema/NoteAttachment.ts";
@@ -26,6 +28,8 @@ const Schema = {
 	Channel,
 	Id,
 	InventoryEntry,
+	InventoryEntryProduct,
+	InventoryEntrySpecification,
 	Manufacturer,
 	DatasetColumn,
 	Dataset,

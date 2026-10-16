@@ -22,6 +22,8 @@ The current journeys are:
   copying a newly placed symbol, and moving the selection panel.
 - `journeys/samples.e2e.ts`: finding, opening, and creating sample batches.
 - `journeys/users.e2e.ts`: creating a record-only user.
+- `journeys/catalog-import.e2e.ts`: selecting catalog models and importing physical units.
+- `journeys/inventory-create.e2e.ts`: adding equipment and its user-entered product.
 
 Do not cover unfinished screens, visual design, responsive layouts, incidental
 wording, list order or counts, or individual validation messages here.
