@@ -9,7 +9,7 @@ import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
 
 describe("samples.$batchSlug.edit", () => {
 	describe("loader", () => {
-		test("returns the batch and the people who may prepare it", async () => {
+		test("returns the batch with its starting preparer", async () => {
 			const scope = await setupTestRequestScope();
 			const batch = await createTestBatch(scope);
 			const route = testRoute(scope, editRoute, { batchSlug: batch.slug });
@@ -18,9 +18,10 @@ describe("samples.$batchSlug.edit", () => {
 
 			expect(result.status).toBe(200);
 			expect(result.data!.batch).toMatchObject({ name: "Pt batch", preparationDate: "2026-01-15" });
-			expect(result.data!.preparers).toContainEqual(
-				expect.objectContaining({ id: scope.get(Security).userId }),
-			);
+			expect(result.data!.batch.preparedBy).toEqual({
+				id: scope.get(Security).userId,
+				name: "Test User",
+			});
 		});
 
 		test("answers 404 for a batch that is not there", async () => {

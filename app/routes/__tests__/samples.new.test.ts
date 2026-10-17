@@ -16,17 +16,17 @@ import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 
 describe("samples.new", () => {
 	describe("loader", () => {
-		test("returns the current user and available preparers", async () => {
+		test("returns the current user for the starting preparer", async () => {
 			const scope = await setupTestRequestScope();
 			const route = testRoute(scope, newRoute, {});
 
 			const result = await route.loader();
 
 			expect(result.status).toBe(200);
-			expect(result.data!.currentUserId).toBe(scope.get(Security).userId);
-			expect(result.data!.preparers).toContainEqual(
-				expect.objectContaining({ id: scope.get(Security).userId, name: "Test User" }),
-			);
+			expect(result.data!.currentUser).toEqual({
+				id: scope.get(Security).userId,
+				name: "Test User",
+			});
 		});
 	});
 

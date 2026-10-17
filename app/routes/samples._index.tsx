@@ -73,7 +73,7 @@ function readTab(request: Request): boolean {
 
 export async function loader({ context, request }: Route.LoaderArgs) {
 	const container = context.get(services);
-	const [db, access] = container.get(ApplicationDatabase, UserManager);
+	const db = container.get(ApplicationDatabase);
 	const showArchived = readTab(request);
 	const batchFilter = showArchived
 		? isNotNull(SampleBatch.metadataArchivedAt)
@@ -117,8 +117,6 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 		.where(isNull(SampleBatch.metadataArchivedAt))
 		.get();
 
-	const preparers = await access.users();
-
 	/*
 		A row can only be open when it is on the tab in view. An address naming a
 		batch of the other tab, or naming nothing at all, opens no row.
@@ -135,7 +133,6 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 
 	return {
 		open: openBatch?.slug ?? null,
-		preparers,
 
 		// Archived samples are read as well. The add row suggests the next free
 		// label, and a label that was used before is not free.
@@ -282,7 +279,7 @@ function ArchivedOn({ at }: { at: Date | null }) {
 }
 
 export default function SamplesIndex({ actionData, loaderData }: Route.ComponentProps) {
-	const { batches, counts, showArchived, open, openSamples, preparers } = loaderData;
+	const { batches, counts, showArchived, open, openSamples } = loaderData;
 
 	const navigation = useNavigation();
 
@@ -446,7 +443,6 @@ export default function SamplesIndex({ actionData, loaderData }: Route.Component
 												batch={batch}
 												batchSlug={batch.slug}
 												samples={openSamples}
-												preparers={preparers}
 												columns={{
 													total: showArchived ? 7 : 6,
 													label: 0,

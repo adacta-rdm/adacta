@@ -34,7 +34,7 @@ import type { Route } from "./+types/samples.$batchSlug._index.ts";
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const container = context.get(services);
-	const [db, access] = container.get(ApplicationDatabase, UserManager);
+	const db = container.get(ApplicationDatabase);
 	const found = await findBatch(db, params.batchSlug);
 
 	if (!found) {
@@ -60,7 +60,6 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 
 	samples.sort((left, right) => compareSampleNames(left.name, right.name));
 
-	const users = new Map((await access.users()).map((user) => [user.id, user]));
 	// The page shows the notes about the batch and about each of its samples,
 	// archived ones included.
 	const notes = await container.get(NoteManager).aboutBatch(batch.id, {
@@ -81,7 +80,6 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		batch: { ...batch, preparedBy: found.preparedBy },
 		samples,
 		notes,
-		users,
 	};
 }
 
@@ -231,7 +229,7 @@ async function sampleContext(container: ServiceContainer): Promise<SampleContext
 }
 
 export default function SamplesBatchSlugIndex({ actionData, loaderData }: Route.ComponentProps) {
-	const { batch, samples, notes, users, archived } = loaderData;
+	const { batch, samples, notes, archived } = loaderData;
 	const composition = formatBatchComposition(batch);
 	const sampleErrors = actionData && "errors" in actionData ? actionData.errors : undefined;
 	const noteErrors = actionData && "noteErrors" in actionData ? actionData.noteErrors : undefined;
@@ -298,7 +296,6 @@ export default function SamplesBatchSlugIndex({ actionData, loaderData }: Route.
 					batch={batch}
 					batchSlug={batch.slug}
 					samples={samples}
-					preparers={[...users.values()]}
 					archived={archived}
 					errors={sampleErrors}
 				/>

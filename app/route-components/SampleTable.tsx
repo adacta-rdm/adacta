@@ -2,6 +2,7 @@ import { PlusIcon, TrashIcon } from "@heroicons/react/20/solid";
 import type { ReactNode } from "react";
 import { Form, useNavigation } from "react-router";
 
+import { UserSelect } from "~/app/components/UserSelect.tsx";
 import { formatCalendarDate } from "~/app/lib/dates.ts";
 import { nextSampleName } from "~/app/lib/sampleNames.ts";
 import type { SampleErrors } from "~/app/lib/sampleSubmission.ts";
@@ -85,7 +86,6 @@ export function SampleRows({
 	batch,
 	batchSlug,
 	samples,
-	preparers,
 	columns,
 	archived = false,
 	indent = false,
@@ -98,7 +98,6 @@ export function SampleRows({
 	/** Makes the form and error ids of this batch unique on the page. */
 	batchSlug: string;
 	samples: readonly SampleRow[];
-	preparers: readonly { id: string; name: string }[];
 	columns: SampleColumns;
 	archived?: boolean;
 
@@ -215,23 +214,14 @@ export function SampleRows({
 							<>
 								<label>
 									<span className="sr-only">Prepared by</span>
-									<select
+									<UserSelect
 										form={formId}
 										name="preparedById"
-										defaultValue=""
+										emptyLabel={`Same as batch (${batch.preparedBy.name})`}
+										excludeUserId={batch.preparedById}
 										aria-invalid={preparerError ? true : undefined}
 										aria-describedby={preparerError ? preparerErrorId : undefined}
-										className="rounded-md border border-border bg-surface px-2 py-1 text-foreground focus:border-focus focus:outline-none"
-									>
-										<option value="">Same as batch ({batch.preparedBy.name})</option>
-										{preparers
-											.filter((preparer) => preparer.id !== batch.preparedById)
-											.map((preparer) => (
-												<option key={preparer.id} value={preparer.id}>
-													{preparer.name}
-												</option>
-											))}
-									</select>
+									/>
 								</label>
 								{preparerError ? (
 									<p id={preparerErrorId} role="alert" className="mt-2 text-sm text-danger">

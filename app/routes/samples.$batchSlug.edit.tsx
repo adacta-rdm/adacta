@@ -19,6 +19,7 @@ import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { UserManager } from "~/app/services/UserManager.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
+import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { FormValues } from "~/lib/form-values/FormValues.ts";
 
@@ -32,17 +33,18 @@ export function meta() {
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const container = context.get(services);
-	const [db, access] = container.get(ApplicationDatabase, UserManager);
+	const db = container.get(ApplicationDatabase);
 	const batch = await db
 		.select({
 			slug: SampleBatch.slug,
 			name: SampleBatch.name,
 			preparationDate: SampleBatch.preparationDate,
-			preparedById: SampleBatch.preparedById,
+			preparedBy: { id: User.id, name: User.name },
 			activeMaterial: SampleBatch.activeMaterial,
 			support: SampleBatch.support,
 		})
 		.from(SampleBatch)
+		.innerJoin(User, eq(User.id, SampleBatch.preparedById))
 		.where(and(eq(SampleBatch.slug, params.batchSlug), isNull(SampleBatch.metadataArchivedAt)))
 		.get();
 
@@ -50,7 +52,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		throw new Response(`Sample "${params.batchSlug}" not found.`, { status: 404 });
 	}
 
-	return { batch, preparers: await access.users() };
+	return { batch };
 }
 
 export async function action({ context, request, params }: Route.ActionArgs) {
@@ -85,7 +87,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 }
 
 export default function SamplesBatchSlugEdit({ actionData, loaderData }: Route.ComponentProps) {
-	const { batch, preparers } = loaderData;
+	const { batch } = loaderData;
 
 	const navigation = useNavigation();
 	// Busy until the batch page has loaded, not only while the action runs.
@@ -101,11 +103,10 @@ export default function SamplesBatchSlugEdit({ actionData, loaderData }: Route.C
 
 			<Form method="post" className="mt-8 max-w-xl space-y-6">
 				<SampleBatchFields
-					preparers={preparers}
+					preparedBy={batch.preparedBy}
 					values={{
 						name: batch.name,
 						preparationDate: batch.preparationDate,
-						preparedById: batch.preparedById,
 						activeMaterial: batch.activeMaterial ?? "",
 						support: batch.support ?? "",
 					}}

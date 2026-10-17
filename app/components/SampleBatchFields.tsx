@@ -1,3 +1,5 @@
+import { UserSelect, type UserOption } from "~/app/components/UserSelect.tsx";
+
 /**
  * The fields that describe a sample batch.
  *
@@ -8,14 +10,8 @@
 export interface SampleBatchValues {
 	name: string;
 	preparationDate: string;
-	preparedById: string;
 	activeMaterial: string;
 	support: string;
-}
-
-export interface Preparer {
-	id: string;
-	name: string;
 }
 
 const INPUT =
@@ -59,10 +55,10 @@ function Field({
 }
 
 export function SampleBatchFields({
-	preparers,
+	preparedBy,
 	values,
 }: {
-	preparers: readonly Preparer[];
+	preparedBy: UserOption;
 	values: SampleBatchValues;
 }) {
 	return (
@@ -80,13 +76,9 @@ export function SampleBatchFields({
 
 			<label className="block">
 				<span className="text-sm font-medium text-foreground">Prepared by</span>
-				<select name="preparedById" required defaultValue={values.preparedById} className={INPUT}>
-					{preparers.map((preparer) => (
-						<option key={preparer.id} value={preparer.id}>
-							{preparer.name}
-						</option>
-					))}
-				</select>
+				<div className="mt-2">
+					<UserSelect name="preparedById" required defaultValue={preparedBy} />
+				</div>
 			</label>
 
 			<Field

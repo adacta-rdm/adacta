@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
@@ -11,6 +12,7 @@ import { UserManager } from "~/app/services/UserManager.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import type { NewEntity } from "~/drizzle/Schema.ts";
+import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
 import { FormValues } from "~/lib/form-values/FormValues.ts";
@@ -26,10 +28,14 @@ export function meta() {
 
 export async function loader({ context }: Route.LoaderArgs) {
 	const container = context.get(services);
-	return {
-		preparers: await container.get(UserManager).users(),
-		currentUserId: container.get(Security).userId,
-	};
+	const [db, security] = container.get(ApplicationDatabase, Security);
+	const currentUser = await db
+		.select({ id: User.id, name: User.name })
+		.from(User)
+		.where(eq(User.id, security.userId))
+		.get();
+
+	return { currentUser: currentUser! };
 }
 
 export async function action({ context, request }: Route.ActionArgs) {
@@ -87,11 +93,10 @@ export default function SamplesNew({ actionData, loaderData }: Route.ComponentPr
 
 			<Form method="post" className="mt-8 max-w-xl space-y-6">
 				<SampleBatchFields
-					preparers={loaderData.preparers}
+					preparedBy={loaderData.currentUser}
 					values={{
 						name: "",
 						preparationDate: "",
-						preparedById: loaderData.currentUserId,
 						activeMaterial: "",
 						support: "",
 					}}
