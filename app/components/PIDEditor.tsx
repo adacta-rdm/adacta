@@ -1611,6 +1611,15 @@ function PIDEditorContents({
 			dragged.length === 1 ? createHelperLineSession(node, nodes, getInternalNode) : undefined;
 	}
 
+	// A read-only canvas still records the measured size of each symbol.
+	// React Flow hides a symbol until its node carries that size.
+	function measureNodes(changes: NodeChange<PIDNode>[]) {
+		const measurements = changes.filter((change) => change.type === "dimensions");
+		if (measurements.length === 0) return;
+
+		changeCurrentNodes((current) => applyNodeChanges<PIDNode>(measurements, current));
+	}
+
 	function changeNodes(changes: NodeChange<PIDNode>[]) {
 		const snappedChanges = changes.map((change) => {
 			if (change.type !== "position" || !change.position) return change;
@@ -2033,7 +2042,7 @@ function PIDEditorContents({
 						edges={displayedEdges}
 						nodeTypes={nodeTypes}
 						edgeTypes={edgeTypes}
-						onNodesChange={readOnly ? undefined : changeNodes}
+						onNodesChange={readOnly ? measureNodes : changeNodes}
 						onEdgesChange={readOnly ? undefined : changeEdges}
 						onConnect={readOnly ? undefined : connect}
 						onNodeClick={
