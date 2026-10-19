@@ -13,6 +13,7 @@ import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { setupTestRequestScope, signUpTestUser } from "~/app/testUtils/testUtils.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { SampleBatch } from "~/drizzle/schema/SampleBatch.ts";
+import { ForeignKeyViolationError } from "~/lib/sqlite-errors/ForeignKeyViolationError.ts";
 
 describe("samples.new", () => {
 	describe("loader", () => {
@@ -176,18 +177,18 @@ describe("samples.new", () => {
 		test("rejects a preparer whose user ID does not exist", async () => {
 			const scope = await setupTestRequestScope();
 			const route = testRoute(scope, newRoute, {});
+			const db = scope.get(ApplicationDatabase);
+			const ids = await db.select().from(Id).all();
 
-			const result = await route.action({
+			const result = route.action({
 				name: "Pt batch",
 				preparationDate: "2025-01-15",
 				preparedById: "missing-user",
 			});
 
-			expect(result.status).toBe(400);
-			expect(result.data).toEqual({
-				error: "The selected preparer is not a registered user.",
-			});
+			await expect(result).rejects.toBeInstanceOf(ForeignKeyViolationError);
 			expect((await testRoute(scope, indexRoute, {}).loader()).data!.batches).toEqual([]);
+			expect(await db.select().from(Id).all()).toEqual(ids);
 		});
 	});
 });

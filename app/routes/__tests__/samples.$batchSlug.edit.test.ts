@@ -6,6 +6,7 @@ import { Security } from "~/app/services/Security.ts";
 import { createTestBatch } from "~/app/testUtils/testRecords.ts";
 import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
+import { ForeignKeyViolationError } from "~/lib/sqlite-errors/ForeignKeyViolationError.ts";
 
 describe("samples.$batchSlug.edit", () => {
 	describe("loader", () => {
@@ -147,15 +148,16 @@ describe("samples.$batchSlug.edit", () => {
 			const batch = await createTestBatch(scope);
 			const route = testRoute(scope, editRoute, { batchSlug: batch.slug });
 
-			const result = await route.action({
-				name: batch.name,
+			const result = route.action({
+				name: "Changed name",
 				preparationDate: batch.preparationDate,
 				preparedById: "someone-else",
 			});
 
-			expect(result.status).toBe(400);
-			expect(result.data).toEqual({
-				error: "The selected preparer is not a registered user.",
+			await expect(result).rejects.toBeInstanceOf(ForeignKeyViolationError);
+			expect((await route.loader()).data!.batch).toMatchObject({
+				name: batch.name,
+				preparedBy: { id: batch.preparedById },
 			});
 		});
 

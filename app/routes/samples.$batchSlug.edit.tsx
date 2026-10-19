@@ -16,7 +16,6 @@ import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { SampleBatchFields } from "~/app/components/SampleBatchFields.tsx";
 import { readSampleBatchFields } from "~/app/lib/sampleBatchFields.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
-import { UserManager } from "~/app/services/UserManager.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { User } from "~/drizzle/schema/BetterAuth.ts";
@@ -58,7 +57,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 export async function action({ context, request, params }: Route.ActionArgs) {
 	const values = new FormValues(await request.formData());
 	const container = context.get(services);
-	const [db, access] = container.get(ApplicationDatabase, UserManager);
+	const db = container.get(ApplicationDatabase);
 	const batch = await db
 		.select({ id: SampleBatch.id, slug: SampleBatch.slug })
 		.from(SampleBatch)
@@ -76,10 +75,6 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	}
 
 	const { fields } = read;
-
-	if (!(await access.users()).some((user) => user.id === fields.preparedById)) {
-		return data({ error: "The selected preparer is not a registered user." }, { status: 400 });
-	}
 
 	await db.update(SampleBatch).set(fields).where(eq(SampleBatch.id, batch.id)).run();
 

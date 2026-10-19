@@ -35,10 +35,7 @@ export function openSqliteDatabase(path: string) {
 	// a table uses PRAGMA defer_foreign_keys, because PRAGMA foreign_keys
 	// has no effect inside a transaction.
 	client.run("PRAGMA foreign_keys = ON");
-	const connection = translateErrors(
-		drizzle({ client, relations: authRelations }),
-		uniqueColumnsOf,
-	);
+	const connection = translateErrors(drizzle({ client, relations: authRelations }), constraintOf);
 
 	return Object.assign(connection, {
 		async batch(statements: BatchStatements): Promise<BatchResult[]> {
@@ -61,12 +58,17 @@ export function openSqliteDatabase(path: string) {
 const UNIQUE_FAILURE_PREFIX = "UNIQUE constraint failed: ";
 
 /**
- * Returns the columns that a unique-constraint failure of bun:sqlite names.
+ * Returns the columns of a unique-constraint failure of bun:sqlite, or
+ * "foreign-key" for a foreign key failure.
  * Returns undefined for any other error. Drizzle wraps the driver's error.
  * Hence, the error and each of its causes are searched.
  */
-function uniqueColumnsOf(error: unknown): string[] | undefined {
+function constraintOf(error: unknown): string[] | "foreign-key" | undefined {
 	for (let current = error; current instanceof Error; current = current.cause) {
+		if ("code" in current && current.code === "SQLITE_CONSTRAINT_FOREIGNKEY") {
+			return "foreign-key";
+		}
+
 		if (
 			"code" in current &&
 			(current.code === "SQLITE_CONSTRAINT_UNIQUE" ||

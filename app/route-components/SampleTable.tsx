@@ -118,10 +118,8 @@ export function SampleRows({
 
 	const formId = `add-sample-${batchSlug}`;
 	const errorId = `${formId}-error`;
-	const preparerErrorId = `${formId}-preparer-error`;
 
 	const sampleError = errors?.name ?? errors?.form;
-	const preparerError = errors?.preparedById;
 
 	const navigation = useNavigation();
 	// Busy until the new page data has arrived, not only while the action runs.
@@ -211,24 +209,15 @@ export function SampleRows({
 							</Form>
 						),
 						[columns.preparedBy]: (
-							<>
-								<label>
-									<span className="sr-only">Prepared by</span>
-									<UserSelect
-										form={formId}
-										name="preparedById"
-										emptyLabel={`Same as batch (${batch.preparedBy.name})`}
-										excludeUserId={batch.preparedById}
-										aria-invalid={preparerError ? true : undefined}
-										aria-describedby={preparerError ? preparerErrorId : undefined}
-									/>
-								</label>
-								{preparerError ? (
-									<p id={preparerErrorId} role="alert" className="mt-2 text-sm text-danger">
-										{preparerError}
-									</p>
-								) : null}
-							</>
+							<label>
+								<span className="sr-only">Prepared by</span>
+								<UserSelect
+									form={formId}
+									name="preparedById"
+									emptyLabel={`Same as batch (${batch.preparedBy.name})`}
+									excludeUserId={batch.preparedById}
+								/>
+							</label>
 						),
 						[columns.preparedOn]: (
 							<time dateTime={batch.preparationDate}>

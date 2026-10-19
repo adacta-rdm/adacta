@@ -8,7 +8,6 @@ import { readSampleBatchFields } from "~/app/lib/sampleBatchFields.ts";
 import { availableSlug } from "~/app/lib/slugs.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
-import { UserManager } from "~/app/services/UserManager.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import type { NewEntity } from "~/drizzle/Schema.ts";
@@ -50,11 +49,7 @@ export async function action({ context, request }: Route.ActionArgs) {
 	const { fields } = read;
 
 	const container = context.get(services);
-	const [db, access, security] = container.get(ApplicationDatabase, UserManager, Security);
-
-	if (!(await access.users()).some((user) => user.id === fields.preparedById)) {
-		return data({ error: "The selected preparer is not a registered user." }, { status: 400 });
-	}
+	const [db, security] = container.get(ApplicationDatabase, Security);
 
 	// The slug is taken from the name. A batch already using that slug pushes the
 	// new one to a numbered variant.

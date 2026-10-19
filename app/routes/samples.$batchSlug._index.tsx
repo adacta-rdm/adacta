@@ -21,7 +21,6 @@ import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { NoteManager, NoteNotFoundError } from "~/app/services/NoteManager.ts";
 import { Security } from "~/app/services/Security.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
-import { UserManager } from "~/app/services/UserManager.ts";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { User } from "~/drizzle/schema/BetterAuth.ts";
 import { Sample } from "~/drizzle/schema/Sample.ts";
@@ -142,7 +141,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 			if (deletedSampleId !== null) {
 				errors = await deleteSubmittedSample(db, deletedSampleId);
 			} else if (values.has("add")) {
-				errors = await addSubmittedSample(await sampleContext(container), batch, values);
+				errors = await addSubmittedSample(sampleContext(container), batch, values);
 			} else {
 				errors = { form: "The sample action is not recognized." };
 			}
@@ -212,18 +211,12 @@ async function chosenSubject(
  * The pieces app/lib needs to add a sample. They are read from the container
  * here, so the rules themselves stay free of it.
  */
-async function sampleContext(container: ServiceContainer): Promise<SampleContext> {
-	const [db, access, security, logger] = container.get(
-		ApplicationDatabase,
-		UserManager,
-		Security,
-		Logger,
-	);
+function sampleContext(container: ServiceContainer): SampleContext {
+	const [db, security, logger] = container.get(ApplicationDatabase, Security, Logger);
 
 	return {
 		db,
 		logger,
-		preparerIds: (await access.users()).map((user) => user.id),
 		creatorId: security.userId,
 	};
 }

@@ -22,7 +22,7 @@ import { Sample } from "~/drizzle/schema/Sample.ts";
 import type { FormValues } from "~/lib/form-values/FormValues.ts";
 import type { Logger } from "~/lib/logger/Logger.ts";
 
-export type SampleErrors = Partial<Record<"form" | "name" | "preparedById", string>>;
+export type SampleErrors = Partial<Record<"form" | "name", string>>;
 
 /**
  * What a page has to supply before a sample can be added. The route reads
@@ -32,11 +32,6 @@ export type SampleErrors = Partial<Record<"form" | "name" | "preparedById", stri
 export interface SampleContext {
 	db: ApplicationDatabase;
 	logger: Logger;
-
-	/**
-	 * Every user who can be credited as a preparer.
-	 */
-	preparerIds: readonly string[];
 
 	/**
 	 * The user adding the sample.
@@ -53,19 +48,12 @@ export async function addSubmittedSample(
 	batch: Entity<"SampleBatch">,
 	values: FormValues,
 ): Promise<SampleErrors | undefined> {
-	const errors: SampleErrors = {};
 	const name = values.string("name");
 
 	// A blank box means the sample was prepared by whoever prepared the batch.
 	const preparedById = values.string("preparedById", batch.preparedById);
 
-	if (!name) errors.name = "A sample name is required.";
-
-	if (!context.preparerIds.includes(preparedById)) {
-		errors.preparedById = "The selected preparer is not a registered user.";
-	}
-
-	if (Object.keys(errors).length > 0) return errors;
+	if (!name) return { name: "A sample name is required." };
 
 	try {
 		await addSample(context.db, {

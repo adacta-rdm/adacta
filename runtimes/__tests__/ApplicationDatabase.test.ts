@@ -2,6 +2,11 @@
  * Tests the ApplicationDatabase of the selected runtime. Each database driver
  * reports a constraint failure in its own form. The runtime translates it, so
  * every runtime must pass these tests unchanged.
+ *
+ * A synchronous driver throws when a write fails, and an asynchronous driver
+ * rejects. Each test therefore passes its write to Promise.resolve. The write
+ * then runs once, and a thrown error becomes a rejection. For example, a test
+ * can check the class and the columns of the same rejection.
  */
 import { describe, expect, test } from "bun:test";
 
@@ -10,6 +15,7 @@ import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { setupEmptyTestDatabaseEnvironment } from "~/app/testUtils/testUtils.ts";
+import { ForeignKeyViolationError } from "~/lib/sqlite-errors/ForeignKeyViolationError.ts";
 import { UniqueConstraintViolationError } from "~/lib/sqlite-errors/UniqueConstraintViolationError.ts";
 
 const Person = sqliteTable("Person", {
@@ -49,71 +55,58 @@ async function database(): Promise<ApplicationDatabase> {
 	return db;
 }
 
-async function errorOf(write: PromiseLike<unknown>): Promise<unknown> {
-	try {
-		await write;
-	} catch (error) {
-		return error;
-	}
-	throw new Error("The write succeeded.");
-}
-
 describe("ApplicationDatabase", () => {
 	describe("a write that breaks a unique constraint", () => {
 		test("rejects with the columns of a constraint on one column", async () => {
 			const db = await database();
 
-			const error = await errorOf(
+			const result = Promise.resolve(
 				db.insert(Person).values({ ...ADA, id: "2", team: "b", nickname: "x" }),
 			);
 
-			expect(error).toBeInstanceOf(UniqueConstraintViolationError);
-			expect((error as UniqueConstraintViolationError).columns).toEqual(["Person.email"]);
+			await expect(result).rejects.toBeInstanceOf(UniqueConstraintViolationError);
+			await expect(result).rejects.toMatchObject({ columns: ["Person.email"] });
 		});
 
 		test("rejects with the columns of a constraint on two columns", async () => {
 			const db = await database();
 
-			const error = await errorOf(
+			const result = Promise.resolve(
 				db.insert(Person).values({ ...ADA, id: "2", email: "bob@example.com" }),
 			);
 
-			expect(error).toBeInstanceOf(UniqueConstraintViolationError);
-			expect((error as UniqueConstraintViolationError).columns).toEqual([
-				"Person.team",
-				"Person.nickname",
-			]);
+			await expect(result).rejects.toBeInstanceOf(UniqueConstraintViolationError);
+			await expect(result).rejects.toMatchObject({ columns: ["Person.team", "Person.nickname"] });
 		});
 
 		test("rejects with the column of a duplicate primary key", async () => {
 			const db = await database();
 
-			const error = await errorOf(
+			const result = Promise.resolve(
 				db.insert(Person).values({ ...ADA, email: "bob@example.com", team: "b", nickname: "x" }),
 			);
 
-			expect(error).toBeInstanceOf(UniqueConstraintViolationError);
-			expect((error as UniqueConstraintViolationError).columns).toEqual(["Person.id"]);
+			await expect(result).rejects.toBeInstanceOf(UniqueConstraintViolationError);
+			await expect(result).rejects.toMatchObject({ columns: ["Person.id"] });
 		});
 
 		test("rejects in the same way inside a batch", async () => {
 			const db = await database();
 
-			const error = await errorOf(
+			const result = Promise.resolve(
 				db.batch([db.insert(Person).values({ ...ADA, id: "2", team: "b", nickname: "x" })]),
 			);
 
-			expect(error).toBeInstanceOf(UniqueConstraintViolationError);
-			expect((error as UniqueConstraintViolationError).columns).toEqual(["Person.email"]);
+			await expect(result).rejects.toBeInstanceOf(UniqueConstraintViolationError);
+			await expect(result).rejects.toMatchObject({ columns: ["Person.email"] });
 		});
 	});
 
-	test("rejects a write that breaks a foreign key with the driver's error", async () => {
+	test("rejects a write that breaks a foreign key with ForeignKeyViolationError", async () => {
 		const db = await database();
 
-		const error = await errorOf(db.insert(Badge).values({ id: 1, personId: "missing" }));
+		const result = Promise.resolve(db.insert(Badge).values({ id: 1, personId: "missing" }));
 
-		expect(error).toBeInstanceOf(Error);
-		expect(error).not.toBeInstanceOf(UniqueConstraintViolationError);
+		await expect(result).rejects.toBeInstanceOf(ForeignKeyViolationError);
 	});
 });

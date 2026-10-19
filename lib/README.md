@@ -13,18 +13,18 @@ their public APIs.
 
 ## Contents
 
-| Path                 | Purpose                                                                                   |
-| -------------------- | ----------------------------------------------------------------------------------------- |
-| `env/`               | Reads environment values as typed values.                                                 |
-| `form-values/`       | Reads submitted form fields as typed values.                                              |
-| `git-commit/`        | Reads the current Git commit and whether files have changed.                              |
-| `id53/`              | Generates and reads 53-bit IDs that increase within a sequence.                           |
-| `logger/`            | Writes structured log messages to a stream.                                               |
-| `parallel-lines/`    | Turns a route of right-angled segments into parallel lines.                               |
-| `service-container/` | Resolves services and provides independently configurable scopes.                         |
-| `sqlite-errors/`     | Translates the unique-constraint failures of any SQLite driver into one error class.      |
-| `storage-engine/`    | The common interface for storing files as streams. A runtime provides the implementation. |
-| `tsrc/`              | Generates runtime validators from TypeScript declarations.                                |
+| Path                 | Purpose                                                                                       |
+| -------------------- | --------------------------------------------------------------------------------------------- |
+| `env/`               | Reads environment values as typed values.                                                     |
+| `form-values/`       | Reads submitted form fields as typed values.                                                  |
+| `git-commit/`        | Reads the current Git commit and whether files have changed.                                  |
+| `id53/`              | Generates and reads 53-bit IDs that increase within a sequence.                               |
+| `logger/`            | Writes structured log messages to a stream.                                                   |
+| `parallel-lines/`    | Turns a route of right-angled segments into parallel lines.                                   |
+| `service-container/` | Resolves services and provides independently configurable scopes.                             |
+| `sqlite-errors/`     | Translates unique-constraint and foreign key failures of any SQLite driver into typed errors. |
+| `storage-engine/`    | The common interface for storing files as streams. A runtime provides the implementation.     |
+| `tsrc/`              | Generates runtime validators from TypeScript declarations.                                    |
 
 Tests live beside the source. Each module's public API and tests are meaningful
 without knowledge of the Adacta application.

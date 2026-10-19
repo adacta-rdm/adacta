@@ -41,10 +41,12 @@ check. The check holds only types, so the runtime contains no code for it.
 `__tests__/` holds the tests that every runtime must pass unchanged. They use
 the selected runtime through the test environment. For example,
 `__tests__/ApplicationDatabase.test.ts` checks that a write that breaks a
-unique constraint rejects with `UniqueConstraintViolationError`, whatever form
-the database driver reports it in. `__tests__/StorageEngine.test.ts` checks the
-file storage against `lib/storage-engine/StorageEngine.ts`. Tests of what only
-one engine does stay beside it, for example in `bun/lib/__tests__/`.
+unique constraint rejects with `UniqueConstraintViolationError`. A write that
+breaks a foreign key rejects with `ForeignKeyViolationError`. This holds
+whatever form the database driver reports the failure in.
+`__tests__/StorageEngine.test.ts` checks the file storage against
+`lib/storage-engine/StorageEngine.ts`. Tests of what only one engine does stay
+beside it, for example in `bun/lib/__tests__/`.
 
 A command checks its arguments before it calls the runtime. For example,
 `seed:load a b` stops with an error in every runtime, and `seed:load pilot`

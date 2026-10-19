@@ -37,7 +37,6 @@ import {
 import { SampleRows } from "~/app/route-components/SampleTable.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
-import { UserManager } from "~/app/services/UserManager.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { User } from "~/drizzle/schema/BetterAuth.ts";
@@ -245,13 +244,12 @@ async function editSamples(
 	if (deletedSampleId !== null) {
 		errors = await deleteSubmittedSample(db, deletedSampleId);
 	} else if (values.has("add")) {
-		const [access, security, logger] = container.get(UserManager, Security, Logger);
+		const [security, logger] = container.get(Security, Logger);
 
 		errors = await addSubmittedSample(
 			{
 				db,
 				logger,
-				preparerIds: (await access.users()).map((user) => user.id),
 				creatorId: security.userId,
 			},
 			batch,

@@ -19,7 +19,8 @@ import { service } from "~/lib/service-container/ServiceContainer.ts";
  *
  * A write that breaks a unique constraint rejects with
  * UniqueConstraintViolationError from lib/sqlite-errors, whatever form the
- * database driver reports it in. Every other error is the driver's own.
+ * database driver reports it in. A write that breaks a foreign key rejects
+ * with ForeignKeyViolationError. Every other error is the driver's own.
  */
 export type ApplicationDatabase = Omit<
 	SQLiteAsyncDatabase<"async", unknown, AnyRelations>,

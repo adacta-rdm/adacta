@@ -21,6 +21,7 @@ import { Note } from "~/drizzle/schema/Note.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
 import { Sample } from "~/drizzle/schema/Sample.ts";
 import { id53 } from "~/lib/id53/id53.ts";
+import { ForeignKeyViolationError } from "~/lib/sqlite-errors/ForeignKeyViolationError.ts";
 
 describe("samples.$batchSlug._index", () => {
 	describe("loader", () => {
@@ -345,25 +346,34 @@ describe("samples.$batchSlug._index", () => {
 			);
 		});
 
-		test("returns errors for a missing name and an unknown preparer together", async () => {
+		test("returns an error for a missing name", async () => {
 			const scope = await setupTestRequestScope();
 			const batch = await createTestBatch(scope);
 			const route = testRoute(scope, batchRoute, { batchSlug: batch.slug });
 
-			const result = await route.action({
-				add: "",
-				name: " ",
-				preparedById: "missing-user",
-			});
+			const result = await route.action({ add: "", name: " " });
 
 			expect(result.status).toBe(400);
 			expect(result.data).toEqual({
 				errors: {
 					name: "A sample name is required.",
-					preparedById: "The selected preparer is not a registered user.",
 				},
 			});
 			expect((await route.loader()).data!.samples).toEqual([]);
+		});
+
+		test("rejects an unknown preparer without leaving a sample or an ID", async () => {
+			const scope = await setupTestRequestScope();
+			const batch = await createTestBatch(scope);
+			const route = testRoute(scope, batchRoute, { batchSlug: batch.slug });
+			const db = scope.get(ApplicationDatabase);
+			const ids = await db.select().from(Id).all();
+
+			const result = route.action({ add: "", name: "#01", preparedById: "missing-user" });
+
+			await expect(result).rejects.toBeInstanceOf(ForeignKeyViolationError);
+			expect((await route.loader()).data!.samples).toEqual([]);
+			expect(await db.select().from(Id).all()).toEqual(ids);
 		});
 
 		test("returns a form error for an unrecognized operation", async () => {
