@@ -34,6 +34,7 @@ import {
 } from "~/app/lib/datasetSidecar.ts";
 import { DatasetSummaryBuilder } from "~/app/lib/datasetSummary.ts";
 import { parseDatasetTimestamp } from "~/app/lib/datasetTimestamp.ts";
+import { sidecarBundle } from "~/app/lib/sidecarBundle.ts";
 import { parseCsvPreview, readTextPreview } from "~/app/lib/textPreview.ts";
 import { UploadedFilesSidebar } from "~/app/route-components/ImportFilesSidebar.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
@@ -47,6 +48,7 @@ import { DatasetColumn } from "~/drizzle/schema/DatasetColumn.ts";
 import { DatasetSample } from "~/drizzle/schema/DatasetSample.ts";
 import { Equipment } from "~/drizzle/schema/Equipment.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
+import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
 import { PIDEdge } from "~/drizzle/schema/PIDEdge.ts";
 import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
@@ -104,31 +106,36 @@ export async function loader({ context, params, request }: Route.LoaderArgs) {
 	if (uploadId === undefined) throw new Response("Upload not found.", { status: 404 });
 	const container = context.get(services);
 	const db = container.get(ApplicationDatabase);
-	const uploads = container.get(UploadManager);
-	let files: Awaited<ReturnType<UploadManager["filesOfUpload"]>>;
-	try {
-		files = await uploads.filesOfUpload(uploadId);
-	} catch (error) {
-		if (error instanceof UploadNotFoundError || error instanceof FileNotFoundError)
-			throw new Response("Upload not found.", { status: 404 });
-		throw error;
-	}
-	const csv = files.filter((file) => /\.csv$/i.test(file.originalName));
-	const toml = files.filter((file) => /\.toml$/i.test(file.originalName));
-	if (files.length !== 2 || csv.length !== 1 || toml.length !== 1)
+	const files = await db
+		.select({
+			id: OriginalFile.id,
+			originalName: OriginalFile.originalName,
+			byteSize: OriginalFile.byteSize,
+			mediaType: OriginalFile.mediaType,
+		})
+		.from(OriginalFile)
+		.where(and(eq(OriginalFile.uploadId, uploadId), isNull(OriginalFile.metadataArchivedAt)))
+		.all();
+	if (files.length === 0) throw new Response("Upload not found.", { status: 404 });
+
+	const bundle = sidecarBundle(files);
+	if (!bundle) {
 		throw new Response("This upload is not one CSV and one TOML sidecar.", { status: 404 });
-	const csvFile = csv[0]!;
-	const sidecarFile = toml[0]!;
+	}
+
+	const { csv: csvFile, toml: sidecarFile } = bundle;
+	const uploadManager = container.get(UploadManager);
 	const [csvBytes, sidecarBytes] = await Promise.all([
-		readPrefix(await (await uploads.getFile(csvFile.id)).read(), SIDECAR_READ_LIMIT),
-		readPrefix(await (await uploads.getFile(sidecarFile.id)).read(), SIDECAR_READ_LIMIT),
+		readPrefix(await (await uploadManager.getFile(csvFile.id)).read(), SIDECAR_READ_LIMIT),
+		readPrefix(await (await uploadManager.getFile(sidecarFile.id)).read(), SIDECAR_READ_LIMIT),
 	]);
 	const csvProbe = probe(csvFile, csvBytes);
 	const sidecarProbe = probe(sidecarFile, sidecarBytes);
 	const csvTextPreview = await readTextPreview(csvProbe);
 	const csvRawPreview = parseCsvPreview(csvTextPreview);
 	const sidecarTextPreview = await readTextPreview(sidecarProbe);
-	if (sidecarFile.byteSize > SIDECAR_READ_LIMIT)
+
+	if (sidecarFile.byteSize > SIDECAR_READ_LIMIT) {
 		return {
 			uploadId,
 			csvName: csvFile.originalName,
@@ -142,6 +149,8 @@ export async function loader({ context, params, request }: Route.LoaderArgs) {
 			preview: null,
 			rigPreview: null,
 		};
+	}
+
 	const sidecarResult = await readSidecar(sidecarProbe);
 	const sidecar = "sidecar" in sidecarResult ? sidecarResult.sidecar : undefined;
 	const rigs = await db
@@ -194,17 +203,27 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 				.get()
 		: undefined;
 	if (!rig) return data({ error: "Select a rig for this import." }, { status: 422 });
-	const files = await container.get(UploadManager).filesOfUpload(uploadId);
-	const csv = files.filter((file) => /\.csv$/i.test(file.originalName));
-	const toml = files.filter((file) => /\.toml$/i.test(file.originalName));
-	if (files.length !== 2 || csv.length !== 1 || toml.length !== 1)
+	const files = await db
+		.select({
+			id: OriginalFile.id,
+			originalName: OriginalFile.originalName,
+			byteSize: OriginalFile.byteSize,
+		})
+		.from(OriginalFile)
+		.where(and(eq(OriginalFile.uploadId, uploadId), isNull(OriginalFile.metadataArchivedAt)))
+		.all();
+	if (files.length === 0) throw new Response("Upload not found.", { status: 404 });
+
+	const bundle = sidecarBundle(files);
+	if (!bundle)
 		return data({ error: "Import requires one CSV and one TOML sidecar." }, { status: 422 });
-	if (toml[0]!.byteSize > SIDECAR_READ_LIMIT)
+	const { csv, toml } = bundle;
+	if (toml.byteSize > SIDECAR_READ_LIMIT)
 		return data({ error: "The sidecar exceeds the 256 KB limit." }, { status: 422 });
 	const previous = await db
 		.select({ id: Dataset.id, rigId: Dataset.rigId })
 		.from(Dataset)
-		.where(and(eq(Dataset.csvFileId, csv[0]!.id), eq(Dataset.sidecarFileId, toml[0]!.id)))
+		.where(and(eq(Dataset.csvFileId, csv.id), eq(Dataset.sidecarFileId, toml.id)))
 		.get();
 	if (previous) {
 		if (previous.rigId !== rig.id)
@@ -213,7 +232,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	}
 	try {
 		const sidecarBytes = await readPrefix(
-			await (await container.get(UploadManager).getFile(toml[0]!.id)).read(),
+			await (await container.get(UploadManager).getFile(toml.id)).read(),
 			SIDECAR_READ_LIMIT,
 		);
 		const text = new TextDecoder("utf-8", { fatal: true }).decode(sidecarBytes);
@@ -234,10 +253,10 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 			container.get(Security).userId,
 			uploadId,
 			rig.id,
-			csv[0]!,
-			toml[0]!,
+			csv,
+			toml,
 			sidecar,
-			await (await container.get(UploadManager).getFile(csv[0]!.id)).read(),
+			await (await container.get(UploadManager).getFile(csv.id)).read(),
 			container.get(StorageEngine),
 			sampleBatchSlug,
 		);
@@ -471,7 +490,7 @@ async function createDataset(
 	uploadId: number,
 	rigId: number,
 	csv: { id: number; originalName: string },
-	toml: { id: number; originalName: string },
+	toml: { id: number },
 	sidecar: DatasetSidecar,
 	csvStream: ReadableStream<Uint8Array>,
 	storage: StorageEngine,
@@ -479,7 +498,7 @@ async function createDataset(
 ) {
 	const graph = await loadRigGraph(db, rigId);
 	const columns = await resolveColumns(db, rigId, sidecar, graph);
-	const samples = await resolveSamples(db, rigId, sidecar, graph, sampleBatchSlug);
+	const samples = await resolveSamples(db, sidecar, graph, sampleBatchSlug);
 	const headerNames = sidecar.columns.map((column) => column.name);
 	const operator = await db
 		.select({ id: User.id })
@@ -644,11 +663,6 @@ async function resolveColumns(
 	sidecar: DatasetSidecar,
 	graph: PIDGraph,
 ) {
-	const nodes = await db
-		.select()
-		.from(PIDNode)
-		.where(and(eq(PIDNode.rigId, rigId), isNull(PIDNode.metadataArchivedAt)))
-		.all();
 	const output: Omit<typeof DatasetColumn.$inferInsert, "id" | "datasetId" | "position">[] = [];
 	for (const [position, column] of sidecar.columns.entries()) {
 		const common = {
@@ -673,7 +687,7 @@ async function resolveColumns(
 		}
 		if ("axis" in column) {
 			const mapping = hasChannelMapping(column)
-				? await resolveMappedColumn(db, rigId, nodes, graph, position, column)
+				? await resolveMappedColumn(db, rigId, graph, position, column)
 				: {};
 			output.push({
 				...common,
@@ -685,7 +699,7 @@ async function resolveColumns(
 			});
 			continue;
 		}
-		const mapping = await resolveMappedColumn(db, rigId, nodes, graph, position, column);
+		const mapping = await resolveMappedColumn(db, rigId, graph, position, column);
 		output.push({
 			...common,
 			...mapping,
@@ -700,13 +714,12 @@ async function resolveColumns(
 async function resolveMappedColumn(
 	db: ApplicationDatabase,
 	rigId: number,
-	nodes: (typeof PIDNode.$inferSelect)[],
 	graph: PIDGraph,
 	position: number,
 	column: SidecarChannelMapping & { name: string },
 ) {
 	const item = await resolveItem(db, rigId, column);
-	const node = nodes.filter((candidate) => candidate.symbolKey === column.symbol_key);
+	const node = graph.nodes.filter((candidate) => candidate.symbolKey === column.symbol_key);
 	if (node.length !== 1 || node[0]!.equipmentId !== item.id)
 		throw new ImportError(
 			`Column ${position + 1}: symbol ${column.symbol_key} does not identify ${item.name} on this rig.`,
@@ -800,16 +813,10 @@ async function resolveItem(
 
 async function resolveSamples(
 	db: ApplicationDatabase,
-	rigId: number,
 	sidecar: DatasetSidecar,
 	graph: PIDGraph,
 	sampleBatchSlug?: string,
 ) {
-	const nodes = await db
-		.select()
-		.from(PIDNode)
-		.where(and(eq(PIDNode.rigId, rigId), isNull(PIDNode.metadataArchivedAt)))
-		.all();
 	const output: Omit<typeof DatasetSample.$inferInsert, "datasetId" | "position">[] = [];
 	const traces = traceSamples(graph);
 	const batch = sampleBatchSlug
@@ -830,12 +837,17 @@ async function resolveSamples(
 		];
 		if (batch) filters.push(eq(Sample.batchId, batch.id));
 		const matches = await db
-			.select({ id: Sample.id, name: Sample.name, batchName: SampleBatch.name })
+			.select({
+				id: Sample.id,
+				name: Sample.name,
+				batchName: SampleBatch.name,
+			})
 			.from(Sample)
 			.innerJoin(SampleBatch, eq(SampleBatch.id, Sample.batchId))
 			.where(and(...filters))
+			.limit(2)
 			.all();
-		const node = nodes.find(
+		const node = graph.nodes.find(
 			(candidate) => candidate.symbolKey === entry.symbol_key && candidate.kind === "sample",
 		);
 		if (matches.length !== 1 || !node || node.sampleId !== matches[0]!.id)
@@ -952,31 +964,48 @@ async function loadRigGraph(db: ApplicationDatabase, rigId: number): Promise<PID
 		.where(and(eq(PIDNode.rigId, rigId), isNull(PIDNode.metadataArchivedAt)))
 		.orderBy(asc(PIDNode.drawingOrder))
 		.all();
-	const edgeRows = await db
-		.select()
+	const edges = await db
+		.select({
+			id: PIDEdge.id,
+			kind: PIDEdge.kind,
+			endArrow: PIDEdge.endArrow,
+			arrowPositions: PIDEdge.arrowPositions,
+			weight: PIDEdge.weight,
+			material: PIDEdge.material,
+			innerDiameterValue: PIDEdge.innerDiameterValue,
+			innerDiameterUnit: PIDEdge.innerDiameterUnit,
+			outerDiameterValue: PIDEdge.outerDiameterValue,
+			outerDiameterUnit: PIDEdge.outerDiameterUnit,
+			lengthValue: PIDEdge.lengthValue,
+			lengthUnit: PIDEdge.lengthUnit,
+			source: PIDEdge.sourceNodeId,
+			target: PIDEdge.targetNodeId,
+			sourceHandle: PIDEdge.sourceHandle,
+			targetHandle: PIDEdge.targetHandle,
+		})
 		.from(PIDEdge)
 		.where(and(eq(PIDEdge.rigId, rigId), isNull(PIDEdge.metadataArchivedAt)))
 		.orderBy(asc(PIDEdge.drawingOrder))
 		.all();
-	const graph = {
+	return {
 		nodes,
-		edges: edgeRows.map((edge) => ({
-			id: edge.id,
-			kind: edge.kind,
-			endArrow: edge.endArrow,
-			arrowPositions: edge.arrowPositions,
-			weight: edge.weight,
-			material: edge.material,
-			innerDiameter: pidLength(edge.innerDiameterValue, edge.innerDiameterUnit),
-			outerDiameter: pidLength(edge.outerDiameterValue, edge.outerDiameterUnit),
-			length: pidLength(edge.lengthValue, edge.lengthUnit),
-			source: edge.sourceNodeId,
-			target: edge.targetNodeId,
-			sourceHandle: edge.sourceHandle,
-			targetHandle: edge.targetHandle,
-		})),
-	} satisfies PIDGraph;
-	return graph;
+		edges: edges.map(
+			({
+				innerDiameterValue,
+				innerDiameterUnit,
+				outerDiameterValue,
+				outerDiameterUnit,
+				lengthValue,
+				lengthUnit,
+				...edge
+			}) => ({
+				...edge,
+				innerDiameter: pidLength(innerDiameterValue, innerDiameterUnit),
+				outerDiameter: pidLength(outerDiameterValue, outerDiameterUnit),
+				length: pidLength(lengthValue, lengthUnit),
+			}),
+		),
+	};
 }
 
 function pidLength(value: number | null, unit: PIDLengthUnit | null): PIDLength | null {

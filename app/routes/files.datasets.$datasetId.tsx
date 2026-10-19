@@ -1,4 +1,5 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/sqlite-core";
 import { parquetReadObjects } from "hyparquet";
 import { Link } from "react-router";
 
@@ -32,41 +33,74 @@ export async function loader({ context, params, request }: Route.LoaderArgs) {
 	if (id === undefined) throw new Response("Dataset not found.", { status: 404 });
 	const container = context.get(services);
 	const db = container.get(ApplicationDatabase);
+	const sidecarFile = alias(OriginalFile, "sidecarFile");
 	const record = await db
-		.select({ dataset: Dataset, csvName: OriginalFile.originalName })
+		.select({
+			dataset: {
+				id: Dataset.id,
+				csvName: OriginalFile.originalName,
+				csvFileId: Dataset.csvFileId,
+				sidecarFileId: Dataset.sidecarFileId,
+				rowCount: Dataset.rowCount,
+				operatorEmail: Dataset.operatorEmail,
+				startTime: Dataset.startTime,
+				endTime: Dataset.endTime,
+				importedAt: Dataset.metadataCreationTimestamp,
+			},
+			dataPath: Dataset.dataPath,
+			sidecarSnapshot: Dataset.sidecarSnapshot,
+			analysisSnapshot: Dataset.analysisSnapshot,
+			rig: { slug: Rig.slug, name: Rig.name },
+			sidecarName: sidecarFile.originalName,
+		})
 		.from(Dataset)
 		.innerJoin(OriginalFile, eq(OriginalFile.id, Dataset.csvFileId))
+		.leftJoin(Rig, eq(Rig.id, Dataset.rigId))
+		.leftJoin(sidecarFile, eq(sidecarFile.id, Dataset.sidecarFileId))
 		.where(eq(Dataset.id, id))
 		.get();
 	if (!record) throw new Response("Dataset not found.", { status: 404 });
 	const dataset = record.dataset;
 	const columns = await db
-		.select()
+		.select({
+			id: sql<string>`cast(${DatasetColumn.id} as text)`,
+			position: DatasetColumn.position,
+			displayName: DatasetColumn.name,
+			fieldName: DatasetColumn.fieldName,
+			parquetType: DatasetColumn.parquetType,
+			axis: DatasetColumn.axis,
+			unit: DatasetColumn.unit,
+			equipmentId: DatasetColumn.equipmentId,
+			inventoryName: DatasetColumn.inventoryName,
+			channelKey: DatasetColumn.channelKey,
+			channelRole: DatasetColumn.channelRole,
+			quantityKindId: DatasetColumn.quantityKindId,
+			gasName: DatasetColumn.gasName,
+			pidNodeId: DatasetColumn.pidNodeId,
+		})
 		.from(DatasetColumn)
 		.where(eq(DatasetColumn.datasetId, id))
 		.orderBy(asc(DatasetColumn.position))
 		.all();
-	const rig = await db
-		.select({ slug: Rig.slug, name: Rig.name })
-		.from(Rig)
-		.where(eq(Rig.id, dataset.rigId))
-		.get();
-	const sidecarFile = await db
-		.select({ name: OriginalFile.originalName })
-		.from(OriginalFile)
-		.where(eq(OriginalFile.id, dataset.sidecarFileId))
-		.get();
 	const samples = await db
-		.select()
+		.select({
+			id: sql<string>`cast(${DatasetSample.sampleId} as text)`,
+			sampleName: DatasetSample.sampleName,
+			sampleBatchName: DatasetSample.sampleBatchName,
+			pidNodeId: DatasetSample.pidNodeId,
+			anchorNodeId: DatasetSample.anchorNodeId,
+			inletNodeIds: DatasetSample.inletNodeIds,
+			outletNodeIds: DatasetSample.outletNodeIds,
+		})
 		.from(DatasetSample)
 		.where(eq(DatasetSample.datasetId, id))
 		.orderBy(asc(DatasetSample.position))
 		.all();
-	const sidecar = JSON.parse(dataset.sidecarSnapshot) as DatasetSidecar;
+	const sidecar = JSON.parse(record.sidecarSnapshot) as DatasetSidecar;
 	const timeZone =
 		sidecar.columns.find((column) => "axis" in column && column.axis === "time")?.timezone ?? null;
-	const analysis = dataset.analysisSnapshot
-		? (JSON.parse(dataset.analysisSnapshot) as DatasetSummary)
+	const analysis = record.analysisSnapshot
+		? (JSON.parse(record.analysisSnapshot) as DatasetSummary)
 		: null;
 	const url = new URL(request.url);
 	const page = Number(url.searchParams.get("page") ?? "1");
@@ -76,13 +110,13 @@ export async function loader({ context, params, request }: Route.LoaderArgs) {
 	const storage = container.get(StorageEngine);
 	let rows: Record<string, unknown>[];
 	try {
-		const byteLength = await storage.size(dataset.dataPath);
+		const byteLength = await storage.size(record.dataPath);
 		rows = await parquetReadObjects({
 			file: {
 				byteLength,
 				slice: async (start: number, end?: number) =>
 					new Response(
-						await storage.read(dataset.dataPath, {
+						await storage.read(record.dataPath, {
 							start,
 							length: end === undefined ? undefined : end - start,
 						}),
@@ -99,13 +133,12 @@ export async function loader({ context, params, request }: Route.LoaderArgs) {
 	return {
 		dataset: {
 			...dataset,
-			csvName: record.csvName,
-			importedAt: dataset.metadataCreationTimestamp.toISOString(),
 			startTime: dataset.startTime?.toISOString() ?? null,
 			endTime: dataset.endTime?.toISOString() ?? null,
+			importedAt: dataset.importedAt.toISOString(),
 		},
 		columns,
-		rig,
+		rig: record.rig,
 		rows: rows.map((row) =>
 			columns.map((column) => {
 				const value = row[column.fieldName];
@@ -120,16 +153,8 @@ export async function loader({ context, params, request }: Route.LoaderArgs) {
 		),
 		analysis,
 		timeZone,
-		samples: samples.map((sample) => ({
-			id: String(sample.sampleId),
-			sampleName: sample.sampleName,
-			sampleBatchName: sample.sampleBatchName,
-			pidNodeId: sample.pidNodeId,
-			anchorNodeId: sample.anchorNodeId,
-			inletNodeIds: sample.inletNodeIds,
-			outletNodeIds: sample.outletNodeIds,
-		})),
-		sidecarName: sidecarFile?.name ?? "Sidecar TOML",
+		samples,
+		sidecarName: record.sidecarName ?? "Sidecar TOML",
 		page,
 		pageCount,
 		rowStart: (page - 1) * PAGE_SIZE,
@@ -140,27 +165,12 @@ export default function FilesDatasetsDatasetId({ loaderData }: Route.ComponentPr
 	const { dataset, columns, rig, rows, page, pageCount, samples, analysis, timeZone, rowStart } =
 		loaderData;
 	const base = `/files/datasets/${dataset.id}`;
-	const chartColumns = columns.map((column) => ({
-		id: String(column.id),
-		position: column.position,
-		displayName: column.name,
-		parquetType: column.parquetType,
-		axis: column.axis,
-		unit: column.unit,
-		equipmentId: column.equipmentId,
-		inventoryName: column.inventoryName,
-		channelKey: column.channelKey,
-		channelRole: column.channelRole,
-		quantityKindId: column.quantityKindId,
-		gasName: column.gasName,
-		pidNodeId: column.pidNodeId,
-	}));
 	const xColumn = columns.find((column) => column.axis === "numeric" || column.axis === "time");
 	const numericAxis = xColumn?.axis === "numeric";
 	const chartAxis = xColumn
 		? {
 				kind: numericAxis ? ("numeric" as const) : ("time" as const),
-				name: xColumn.name,
+				name: xColumn.displayName,
 				unit: xColumn.unit ?? "",
 			}
 		: { kind: "time" as const, name: "Time", unit: "" };
@@ -179,7 +189,7 @@ export default function FilesDatasetsDatasetId({ loaderData }: Route.ComponentPr
 				),
 			)
 		: rows;
-	const sampleCharts = datasetCharts(chartColumns, samples, overviewRows);
+	const sampleCharts = datasetCharts(columns, samples, overviewRows);
 	const hasChartData = sampleCharts.some((sample) =>
 		sample.sections.some((section) => section.charts.length > 0),
 	);
@@ -315,7 +325,7 @@ export default function FilesDatasetsDatasetId({ loaderData }: Route.ComponentPr
 										? [
 												<tr key={column.id} className="border-t border-border">
 													<th className="px-3 py-2 font-medium">
-														{column.name}
+														{column.displayName}
 														{column.unit ? ` (${column.unit})` : ""}
 													</th>
 													<td className="px-3 py-2">{quality.missing.toLocaleString()}</td>
@@ -345,7 +355,7 @@ export default function FilesDatasetsDatasetId({ loaderData }: Route.ComponentPr
 								</th>
 								{columns.map((column) => (
 									<th className="border-b border-border px-3 py-2" key={column.id} scope="col">
-										{column.name}
+										{column.displayName}
 										{column.unit ? ` (${column.unit})` : ""}
 										{column.parquetType === "TIMESTAMP" ? ` (${timeZone})` : ""}
 									</th>

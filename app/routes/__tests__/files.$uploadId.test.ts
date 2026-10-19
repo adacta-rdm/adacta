@@ -60,7 +60,6 @@ describe("uploaded files loader", () => {
 			expect.objectContaining({
 				uploadId,
 				originalName: "measurement ä.csv",
-				mediaType: "text/csv",
 				byteSize: 11,
 			}),
 		]);

@@ -1,5 +1,5 @@
 import { FormDataParseError, parseFormData } from "@remix-run/form-data-parser";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, ne } from "drizzle-orm";
 import { useEffect, type SubmitEvent } from "react";
 import {
 	data,
@@ -15,6 +15,7 @@ import { services } from "~/app/.server/context.ts";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { UploadForm } from "~/app/components/UploadForm.tsx";
 import type { LeftSidebarHandle } from "~/app/layout/routeSidebar.ts";
+import { sidecarBundle } from "~/app/lib/sidecarBundle.ts";
 import { SelectedFilesSidebar } from "~/app/route-components/ImportFilesSidebar.tsx";
 import type { AppContext, DropContext } from "~/app/routes/_app.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
@@ -22,6 +23,7 @@ import { Security } from "~/app/services/Security.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
+import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
 import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 import { Rig } from "~/drizzle/schema/Rig.ts";
 
@@ -45,22 +47,30 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 	if (!slug) return { suggestion: null };
 	const db = context.get(services).get(ApplicationDatabase);
 	const rig = await db
-		.select({ id: Rig.id, slug: Rig.slug, name: Rig.name })
+		.select({
+			id: Rig.id,
+			slug: Rig.slug,
+			name: Rig.name,
+		})
 		.from(Rig)
 		.where(and(eq(Rig.slug, slug), isNull(Rig.metadataArchivedAt)))
 		.get();
 	if (!rig) return { suggestion: null };
-	const symbols = await db
+
+	const symbolKeys = await db
 		.select({ key: PIDNode.symbolKey })
 		.from(PIDNode)
-		.where(and(eq(PIDNode.rigId, rig.id), isNull(PIDNode.metadataArchivedAt)))
+		.where(
+			and(
+				eq(PIDNode.rigId, rig.id),
+				isNull(PIDNode.metadataArchivedAt),
+				isNotNull(PIDNode.symbolKey),
+				ne(PIDNode.symbolKey, ""),
+			),
+		)
 		.all();
-	return {
-		suggestion: {
-			...rig,
-			symbolKeys: symbols.flatMap((node) => (node.key ? [node.key] : [])),
-		},
-	};
+
+	return { suggestion: { ...rig, symbolKeys: symbolKeys.map((node) => node.key!) } };
 }
 
 /**
@@ -126,12 +136,14 @@ export async function action({ request, context }: Route.ActionArgs) {
 		query.set("contextSlug", contextSlug);
 		query.set("contextLabel", contextLabel);
 	}
-	const uploadedFiles = await context.get(services).get(UploadManager).filesOfUpload(uploadId);
-	const csvFiles = uploadedFiles.filter((file) => /\.csv$/i.test(file.originalName));
-	const tomlFiles = uploadedFiles.filter((file) => /\.toml$/i.test(file.originalName));
-	const hasSidecarBundle =
-		uploadedFiles.length === 2 && csvFiles.length === 1 && tomlFiles.length === 1;
-	const destination = hasSidecarBundle
+	const files = await context
+		.get(services)
+		.get(ApplicationDatabase)
+		.select({ originalName: OriginalFile.originalName })
+		.from(OriginalFile)
+		.where(and(eq(OriginalFile.uploadId, uploadId), isNull(OriginalFile.metadataArchivedAt)))
+		.all();
+	const destination = sidecarBundle(files)
 		? `/files/${uploadId}/datasets/import`
 		: `/files/${uploadId}`;
 	return redirect(`${destination}${query.size ? `?${query}` : ""}`, 303);

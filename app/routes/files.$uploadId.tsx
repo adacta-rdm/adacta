@@ -4,20 +4,19 @@ import {
 	ChevronRightIcon,
 	DocumentTextIcon,
 } from "@heroicons/react/20/solid";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Link, useSearchParams } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
+import { sidecarBundle } from "~/app/lib/sidecarBundle.ts";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
-import { UploadManager, UploadNotFoundError } from "~/app/services/UploadManager.ts";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
 import { Dataset } from "~/drizzle/schema/Dataset.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
 import { Rig } from "~/drizzle/schema/Rig.ts";
 import { parseId53 } from "~/lib/id53/parseId53.ts";
-import { FileNotFoundError } from "~/lib/storage-engine/FileNotFoundError.ts";
 
 import type { Route } from "./+types/files.$uploadId.ts";
 
@@ -35,37 +34,37 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	// Text that is not an ID gets the same answer as an unknown ID.
 	if (uploadId === undefined) throw new Response("Upload not found.", { status: 404 });
 
-	try {
-		const container = context.get(services);
-		const files = await container.get(UploadManager).filesOfUpload(uploadId);
-		const imports = await container
-			.get(ApplicationDatabase)
-			.select({
-				id: Dataset.id,
-				csvName: OriginalFile.originalName,
-				rigName: Rig.name,
-				rowCount: Dataset.rowCount,
-			})
-			.from(Dataset)
-			.innerJoin(OriginalFile, eq(OriginalFile.id, Dataset.csvFileId))
-			.innerJoin(Rig, eq(Rig.id, Dataset.rigId))
-			.where(eq(Dataset.uploadId, uploadId))
-			.all();
-		return {
-			files,
-			canImportDatasets:
-				files.length === 2 &&
-				files.filter((file) => /\.csv$/i.test(file.originalName)).length === 1 &&
-				files.filter((file) => /\.toml$/i.test(file.originalName)).length === 1 &&
-				imports.length === 0,
-			datasetImports: imports,
-		};
-	} catch (error) {
-		if (error instanceof UploadNotFoundError || error instanceof FileNotFoundError) {
-			throw new Response("Upload not found.", { status: 404 });
-		}
-		throw error;
-	}
+	const db = context.get(services).get(ApplicationDatabase);
+	const files = await db
+		.select({
+			id: OriginalFile.id,
+			uploadId: OriginalFile.uploadId,
+			originalName: OriginalFile.originalName,
+			byteSize: OriginalFile.byteSize,
+		})
+		.from(OriginalFile)
+		.where(and(eq(OriginalFile.uploadId, uploadId), isNull(OriginalFile.metadataArchivedAt)))
+		.all();
+	if (files.length === 0) throw new Response("Upload not found.", { status: 404 });
+
+	const imports = await db
+		.select({
+			id: Dataset.id,
+			csvName: OriginalFile.originalName,
+			rigName: Rig.name,
+			rowCount: Dataset.rowCount,
+		})
+		.from(Dataset)
+		.innerJoin(OriginalFile, eq(OriginalFile.id, Dataset.csvFileId))
+		.innerJoin(Rig, eq(Rig.id, Dataset.rigId))
+		.where(eq(Dataset.uploadId, uploadId))
+		.all();
+
+	return {
+		files,
+		canImportDatasets: sidecarBundle(files) !== undefined && imports.length === 0,
+		datasetImports: imports,
+	};
 }
 
 export default function FilesUploadId({ loaderData }: Route.ComponentProps) {

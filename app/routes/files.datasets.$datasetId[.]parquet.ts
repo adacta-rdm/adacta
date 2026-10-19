@@ -14,7 +14,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const dataset = await container
 		.get(ApplicationDatabase)
-		.select()
+		.select({ dataPath: Dataset.dataPath })
 		.from(Dataset)
 		.where(eq(Dataset.id, id))
 		.get();

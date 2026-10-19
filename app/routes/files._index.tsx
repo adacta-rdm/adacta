@@ -36,7 +36,6 @@ export async function loader({ context }: Route.LoaderArgs) {
 				rowCount: Dataset.rowCount,
 				operatorEmail: Dataset.operatorEmail,
 				startTime: Dataset.startTime,
-				endTime: Dataset.endTime,
 				importedAt: Dataset.metadataCreationTimestamp,
 			})
 			.from(Dataset)
@@ -49,7 +48,6 @@ export async function loader({ context }: Route.LoaderArgs) {
 			.select({
 				uploadId: OriginalFile.uploadId,
 				originalName: OriginalFile.originalName,
-				createdAt: OriginalFile.metadataCreationTimestamp,
 			})
 			.from(OriginalFile)
 			.where(isNull(OriginalFile.metadataArchivedAt))
@@ -68,7 +66,6 @@ export async function loader({ context }: Route.LoaderArgs) {
 		datasets: datasets.map((dataset) => ({
 			...dataset,
 			startTime: dataset.startTime?.toISOString() ?? null,
-			endTime: dataset.endTime?.toISOString() ?? null,
 			importedAt: dataset.importedAt.toISOString(),
 		})),
 		uploads: [...uploads].map(([id, fileNames]) => ({ id, fileNames })),
