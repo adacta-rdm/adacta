@@ -1,0 +1,70 @@
+[file_structure]
+column_delimiter = ","
+decimal_separator = "."
+header_rows = 1
+data_row = 2
+file_encoding = "UTF-8"
+
+[experiment]
+operator_email = "dev@adacta.test"
+samples = []
+
+[[columns]]
+name = "timestamp"
+axis = "time"
+format = "%Y-%m-%dT%H:%M:%SZ"
+timezone = "UTC"
+
+[[columns]]
+name = "h2_flow"
+symbol_key = "FIRC_101"
+channel = "flow"
+role = "measurement"
+unit = "mL/min"
+
+[columns.item]
+serial_number = "DFC-0101"
+
+[[columns]]
+name = "h2_flow_setpoint"
+symbol_key = "FIRC_101"
+channel = "flow"
+role = "setpoint"
+unit = "mL/min"
+
+[columns.item]
+serial_number = "DFC-0101"
+
+[[columns]]
+name = "co2_flow"
+symbol_key = "FIRC_102"
+channel = "flow"
+role = "measurement"
+unit = "mL/min"
+
+[columns.item]
+serial_number = "DFC-0102"
+
+[[columns]]
+name = "co2_flow_setpoint"
+symbol_key = "FIRC_102"
+channel = "flow"
+role = "setpoint"
+unit = "mL/min"
+
+[columns.item]
+serial_number = "DFC-0102"
+
+[[columns]]
+name = "reactor_temperature"
+symbol_key = "TI_101"
+channel = "temperature"
+role = "measurement"
+unit = "°C"
+
+[columns.item]
+serial_number = "DTT-0101"
+
+[[columns]]
+name = "ftir_spectrum"
+skip = true

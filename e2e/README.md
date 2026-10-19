@@ -26,6 +26,8 @@ The current journeys are:
   10253 with an inbox on 10254; it never sends email to real recipients.
 - `journeys/catalog-import.e2e.ts`: selecting catalog models and importing physical units.
 - `journeys/inventory-create.e2e.ts`: adding rigs, equipment, and user-entered products.
+- `journeys/files.e2e.ts`: uploading plain files together, retrieving their original
+  bytes, and importing a CSV with its TOML sidecar as a dataset.
 
 Do not cover unfinished screens, visual design, responsive layouts, incidental
 wording, list order or counts, or individual validation messages here.

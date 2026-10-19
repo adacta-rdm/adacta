@@ -1,0 +1,9 @@
+{
+	"kind": "equipment",
+	"product": "adacta-demo-instruments/dfc-100",
+	"serialNumber": "DFC-0101",
+	"location": {
+		"building": "B7",
+		"room": "12"
+	}
+}

@@ -1,0 +1,9 @@
+{
+	"kind": "equipment",
+	"product": "adacta-demo-instruments/dtt-100",
+	"serialNumber": "DTT-0101",
+	"location": {
+		"building": "B7",
+		"room": "12"
+	}
+}

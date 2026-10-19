@@ -49,7 +49,9 @@
 			"position": {
 				"x": 260,
 				"y": 250
-			}
+			},
+			"symbolKey": "FIRC_101",
+			"equipment": "mass-flow-controller-h2"
 		},
 		{
 			"key": "mfc-co2",
@@ -60,7 +62,9 @@
 			"position": {
 				"x": 260,
 				"y": 380
-			}
+			},
+			"symbolKey": "FIRC_102",
+			"equipment": "mass-flow-controller-co2"
 		},
 		{
 			"key": "feed-valve",
@@ -111,7 +115,9 @@
 			"position": {
 				"x": 530,
 				"y": 70
-			}
+			},
+			"symbolKey": "TI_101",
+			"equipment": "reactor-temperature-transmitter"
 		},
 		{
 			"key": "feed-junction",

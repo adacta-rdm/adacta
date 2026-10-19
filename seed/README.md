@@ -36,6 +36,10 @@ The catalog loads before the inventory. An unknown product stops the seed.
 The demo analytical balance links to the Mettler Toledo XS205 product.
 The spare controller uses the DFC-100 product. The demo Micro GC 490 and the
 pilot Gas Chromatograph 8890 use products under Agilent Technologies.
+The demo methanation rig links two DFC-100 controllers and one DTT-100
+temperature transmitter in building B7, room 12. Their serial numbers are
+`DFC-0101`, `DFC-0102`, and `DTT-0101`. The P&ID symbol keys `FIRC_101`,
+`FIRC_102`, and `TI_101` connect them to the dataset in `e2e/files/`.
 New catalog products may contain only a name and product number. Their
 subtitle, specifications, channels, and images are optional.
 

@@ -1,0 +1,12 @@
+{
+	"name": "Demo Temperature Transmitter",
+	"productNumber": "DTT-100",
+	"channels": [
+		{
+			"key": "temperature",
+			"role": "measurement",
+			"quantityKind": "Temperature",
+			"description": "The temperature measured by the transmitter."
+		}
+	]
+}
