@@ -22,7 +22,14 @@ test("selected catalog products create equipment entries", async ({ page }) => {
 	await expect(
 		page.getByRole("checkbox", { name: `Select ${maker.name} ${model.productNumber}` }),
 	).toBeChecked();
-	await page.getByRole("table").getByRole("link", { name: maker.name, exact: true }).click();
+	// The manufacturer has other products. Its link is unique only within the selected row.
+	await page
+		.getByRole("row")
+		.filter({
+			has: page.getByRole("checkbox", { name: `Select ${maker.name} ${model.productNumber}` }),
+		})
+		.getByRole("link", { name: maker.name, exact: true })
+		.click();
 	await page.getByRole("link", { name: "Import 1 selected", exact: true }).click();
 	await page.getByLabel("Serial number").fill(serialNumber);
 	await page.getByRole("button", { name: "Add equipment", exact: true }).click();
