@@ -138,7 +138,10 @@ export const handle = {
 				<SidebarItem href="/inventory" current={!currentPath}>
 					<SidebarLabel>All entries</SidebarLabel>
 				</SidebarItem>
-				<LocationTree buildings={data.buildings} currentPath={currentPath} />
+				<LocationTree
+					buildings={data.buildings.filter((building) => building.identifier !== null)}
+					currentPath={currentPath}
+				/>
 			</SidebarSection>
 		);
 	},

@@ -6,7 +6,7 @@ Inventory lists the rigs and physical equipment in the laboratory. A catalog pro
 
 ## Find an inventory entry
 
-Select **Inventory** in the sidebar. The sidebar then lists every rig and equipment unit, grouped by building and room. Entries without a recorded location appear under **Unassigned**. Archived entries are omitted. Select an entry to open its page.
+Select **Inventory** in the sidebar. The sidebar lists rigs and equipment units with a recorded building, grouped by building and room. Select **All entries** to find entries without a recorded building. Archived entries are omitted. Select an entry to open its page.
 
 ## Add equipment
 

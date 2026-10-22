@@ -35,6 +35,7 @@ describe("inventory", () => {
 			"selects only the current %s entry when slugs match",
 			async (kind) => {
 				const scope = await setupTestRequestScope();
+				const unassigned = await createTestRig(scope, { name: "Rig without a building" });
 				await createTestRig(scope, {
 					slug: "balance",
 					building: "B3",
@@ -80,6 +81,8 @@ describe("inventory", () => {
 				);
 
 				expect(html).toContain('aria-label="Inventory by location"');
+				expect(html).not.toContain("Unassigned");
+				expect(html).not.toContain(`href="/inventory/rigs/${unassigned.slug}"`);
 				expect(html).toContain('href="/inventory/rigs/balance"');
 				expect(html).toContain('href="/inventory/equipment/balance"');
 				const activeEntries = [...html.matchAll(/<a\b[^>]*>/g)]
