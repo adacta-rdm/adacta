@@ -5,14 +5,12 @@
  * from the other members. The rest are shared with the family, and they are
  * marked so a reader can tell the two apart.
  */
-import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
 import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
 import { Link } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { ProductIdentity } from "~/app/components/ProductIdentity.tsx";
-import { formatTimestamp } from "~/app/lib/dates.ts";
 import { quantityKindName } from "~/app/lib/quantities.ts";
 import { compareSpecifications } from "~/app/lib/specificationComparison.ts";
 import { useCatalogSelection } from "~/app/route-components/CatalogSelection.tsx";
@@ -149,7 +147,7 @@ export default function CatalogManufacturerSlugProductSlug({
 	loaderData,
 	params,
 }: Route.ComponentProps) {
-	const { manufacturerName, product, series, specifications, channels, source } = loaderData;
+	const { manufacturerName, product, series, specifications, channels } = loaderData;
 	const { selectionSearch } = useCatalogSelection();
 
 	// A value the whole family states the same way is listed apart, so what is
@@ -247,22 +245,6 @@ export default function CatalogManufacturerSlugProductSlug({
 						))}
 					</ul>
 				</section>
-			)}
-
-			{source && (
-				<Text className="text-sm">
-					Read from{" "}
-					<a
-						href={source.url}
-						target="_blank"
-						rel="noreferrer"
-						className="inline-flex items-center gap-1 font-medium text-link hover:text-link-hover"
-					>
-						{source.title ?? source.url}
-						<ArrowTopRightOnSquareIcon className="size-4" />
-					</a>{" "}
-					on {formatTimestamp(source.retrievedAt)}.
-				</Text>
 			)}
 		</div>
 	);
