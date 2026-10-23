@@ -25,7 +25,8 @@ import { Fragment } from "react";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
-import { Tab, Tabs } from "~/app/components/Tabs.tsx";
+import { ListPanel, ListEmpty, ListView } from "~/app/components/ListPanel.tsx";
+import { ListTable, ListTableHead } from "~/app/components/ListTable.tsx";
 import { formatBatchComposition } from "~/app/lib/batchComposition.ts";
 import { formatCalendarDate } from "~/app/lib/dates.ts";
 import { compareSampleNames } from "~/app/lib/sampleNames.ts";
@@ -34,6 +35,7 @@ import {
 	deleteSubmittedSample,
 	type SampleErrors,
 } from "~/app/lib/sampleSubmission.ts";
+import { ListFilter } from "~/app/route-components/ListFilter.tsx";
 import { SampleRows } from "~/app/route-components/SampleTable.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
@@ -74,6 +76,8 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 	const container = context.get(services);
 	const db = container.get(ApplicationDatabase);
 	const showArchived = readTab(request);
+	const query = new URL(request.url).searchParams.get("q") ?? "";
+	const words = query.toLowerCase().split(/\s+/).filter(Boolean);
 	const batchFilter = showArchived
 		? isNotNull(SampleBatch.metadataArchivedAt)
 		: isNull(SampleBatch.metadataArchivedAt);
@@ -130,7 +134,24 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 					.where(and(batchFilter, eq(SampleBatch.slug, requested)))
 					.get();
 
+	// Each word may match a different recorded field.
+	const batches = rows.filter((batch) => {
+		const text = [
+			batch.name,
+			formatBatchComposition(batch),
+			batch.preparedBy.name,
+			batch.preparationDate,
+			formatCalendarDate(batch.preparationDate),
+		]
+			.filter(Boolean)
+			.join(" ")
+			.toLowerCase();
+
+		return words.every((word) => text.includes(word));
+	});
+
 	return {
+		query,
 		open: openBatch?.slug ?? null,
 
 		// Archived samples are read as well. The add row suggests the next free
@@ -153,7 +174,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 
 		showArchived,
 		counts: { active: activeCount?.total ?? 0, archived: archivedCount?.total ?? 0 },
-		batches: rows,
+		batches,
 	};
 }
 
@@ -277,7 +298,7 @@ function ArchivedOn({ at }: { at: Date | null }) {
 }
 
 export default function SamplesIndex({ actionData, loaderData }: Route.ComponentProps) {
-	const { batches, counts, showArchived, open, openSamples } = loaderData;
+	const { batches, counts, showArchived, open, openSamples, query } = loaderData;
 
 	const navigation = useNavigation();
 
@@ -298,12 +319,22 @@ export default function SamplesIndex({ actionData, loaderData }: Route.Component
 		into view, whether the address was clicked here or opened from a link
 		someone sent. A row far down a long list does not stay below the fold.
 	*/
-	const rowHref = (slug: string) => {
-		const tab = showArchived ? `${TAB_PARAM}=${ARCHIVED_TAB}&` : "";
+	const listHref = (archived: boolean) => {
+		const params = new URLSearchParams();
+		if (archived) params.set(TAB_PARAM, ARCHIVED_TAB);
+		if (query) params.set("q", query);
 
-		return open === slug
-			? `${samplesPath}?${tab.slice(0, -1)}`
-			: `${samplesPath}?${tab}${OPEN_PARAM}=${slug}#batch-${slug}`;
+		return `${samplesPath}${params.size ? `?${params}` : ""}`;
+	};
+
+	const rowHref = (slug: string) => {
+		const url = new URL(listHref(showArchived), "http://localhost");
+		if (open !== slug) {
+			url.searchParams.set(OPEN_PARAM, slug);
+			url.hash = `batch-${slug}`;
+		}
+
+		return `${url.pathname}${url.search}${url.hash}`;
 	};
 
 	return (
@@ -316,58 +347,54 @@ export default function SamplesIndex({ actionData, loaderData }: Route.Component
 				</Text>
 			</div>
 
-			<section className="overflow-hidden rounded-xl border border-border bg-surface">
-				<div className="px-5 pt-4">
-					<Tabs label="Batch list">
-						<Tab to={samplesPath} label="Active" count={counts.active} current={!showArchived} />
-						<Tab
-							to={`${samplesPath}?${TAB_PARAM}=${ARCHIVED_TAB}`}
-							label="Archived"
-							count={counts.archived}
-							current={showArchived}
-						/>
-					</Tabs>
-				</div>
-
-				{batches.length === 0 ? (
-					<Text className="px-5 py-5">
-						{showArchived ? "No batches have been archived." : "No batches have been recorded yet."}
-					</Text>
-				) : (
-					<div className="overflow-x-auto">
-						<table className="w-full text-left text-sm">
-							<thead className="border-b border-border text-xs font-medium text-foreground-muted">
+			<ListView
+				filter={
+					<ListFilter
+						id="samples-filter"
+						label="Filter samples"
+						placeholder="Batch, composition, preparer, or date"
+						query={query}
+						hiddenFields={showArchived ? { show: "archived" } : {}}
+					/>
+				}
+			>
+				<ListPanel
+					label="Sample batches"
+					busy={navigation.state !== "idle"}
+					archive={{
+						active: { to: listHref(false), count: counts.active },
+						archived: { to: listHref(true), count: counts.archived },
+						showArchived,
+					}}
+				>
+					{batches.length === 0 ? (
+						<ListEmpty>
+							{query.trim()
+								? "No batches match the filter."
+								: showArchived
+									? "No batches have been archived."
+									: "No batches have been recorded yet."}
+						</ListEmpty>
+					) : (
+						<ListTable label="Sample batches">
+							<ListTableHead>
 								<tr>
-									<th scope="col" className="pt-4 pb-2 pr-4 pl-5">
-										Batch
-									</th>
-									<th scope="col" className="pt-4 pb-2 pr-4">
-										Composition
-									</th>
-									<th scope="col" className="pt-4 pb-2 pr-4">
-										Samples
-									</th>
-									<th scope="col" className="pt-4 pb-2 pr-4">
-										Prepared by
-									</th>
-									<th scope="col" className="pt-4 pb-2 pr-4">
-										Prepared on
-									</th>
-									{showArchived && (
-										<th scope="col" className="pt-4 pb-2 pr-4">
-											Archived on
-										</th>
-									)}
-									<th scope="col" className="w-28 pt-4 pb-2 pr-5 text-left">
+									<th scope="col">Batch</th>
+									<th scope="col">Composition</th>
+									<th scope="col">Samples</th>
+									<th scope="col">Prepared by</th>
+									<th scope="col">Prepared on</th>
+									{showArchived && <th scope="col">Archived on</th>}
+									<th scope="col" className="w-28 text-left">
 										<span className="sr-only">Actions</span>
 									</th>
 								</tr>
-							</thead>
+							</ListTableHead>
 
 							<tbody className="divide-y divide-border">
 								{batches.map((batch) => (
 									<Fragment key={batch.slug}>
-										<tr id={`batch-${batch.slug}`}>
+										<tr id={`batch-${batch.slug}`} className="hover:bg-surface-muted">
 											<th scope="row" className="py-3 pr-4 pl-5 font-normal">
 												<Link
 													to={rowHref(batch.slug)}
@@ -486,10 +513,10 @@ export default function SamplesIndex({ actionData, loaderData }: Route.Component
 									</Fragment>
 								))}
 							</tbody>
-						</table>
-					</div>
-				)}
-			</section>
+						</ListTable>
+					)}
+				</ListPanel>
+			</ListView>
 
 			<Link
 				to={`${samplesPath}/new`}

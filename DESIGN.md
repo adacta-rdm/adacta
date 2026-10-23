@@ -363,6 +363,22 @@ first applicable message.
 
 ### Lists
 
+Catalog, Inventory, and Samples use the same record-list structure. Pass the live search
+field through the `filter` prop of `ListView`. The component places it above its list panels
+with 24px between sections. Inventory uses separate titled panels for rigs and equipment.
+Both panels share one search field. `ListPanel` provides the surface background, a 1px border,
+and a 12px radius. It has no shadow.
+
+`ListPanel` accepts optional Active and Archived navigation. Place these tabs inside the
+panel with 20px horizontal padding and 16px above and below them. Each Inventory panel has
+its own selected view. Changing one view preserves the other view and the search query.
+Samples has one panel with archive navigation. Catalog has one panel without tabs.
+
+`ListTable` provides horizontal scrolling within the panel. `ListTableHead` uses the muted
+surface and a bottom border. Column labels use 14px medium text with 8px vertical padding.
+Use 20px at the outer column edges and 16px between columns. Keep expanded sample rows aligned
+with the batch columns. `ListEmpty` uses one muted sentence with 20px padding.
+
 When a list has groups, use the same hierarchy in the list and the sidebar. The inventory
 provides an example: buildings contain rooms. Because the group already identifies the place,
 each row contains the record name, its position within the room, and its classification. A

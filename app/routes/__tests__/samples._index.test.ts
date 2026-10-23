@@ -40,6 +40,31 @@ describe("samples._index", () => {
 			});
 		});
 
+		test.each([
+			["  PT   test user ", true],
+			["al2o3 2025-01-15", true],
+			["Jan 15", true],
+			["missing", false],
+			["   ", true],
+		])("filters recorded batch fields for %j", async (query, matches) => {
+			const scope = await setupTestRequestScope();
+			const batch = await createTestBatch(scope, {
+				name: "Catalyst A",
+				activeMaterial: "Pt",
+				support: "Al2O3",
+				preparationDate: "2025-01-15",
+				metadataArchivedAt: new Date(),
+			});
+			await createTestBatch(scope, { slug: "active", name: "Active" });
+			const route = testRoute(scope, indexRoute, {});
+
+			const result = await route.loader({ query: { q: query, show: "archived" } });
+
+			expect(result.data?.batches.map((entry) => entry.slug)).toEqual(matches ? [batch.slug] : []);
+			expect(result.data?.counts).toEqual({ active: 1, archived: 1 });
+			expect(result.data?.query).toBe(query);
+		});
+
 		test("describes each batch", async () => {
 			const scope = await setupTestRequestScope();
 			const route = testRoute(scope, indexRoute, {});

@@ -4,6 +4,10 @@ title: Samples and batches
 
 The **Samples** section organizes material into batches and individual samples. This structure is appropriate for catalyst testing: a catalyst preparation is represented as a batch, while the portions installed in reactors or used for characterization are represented as samples. {% .lead %}
 
+## Find a batch
+
+The list has **Active** and **Archived** tabs. The search field filters as you type. Use **Filter samples** to find batches by name, composition, preparer, or preparation date. Each word must match a recorded field. Select **Clear filter** to show all batches on the selected tab again.
+
 ## Create a batch
 
 Select **Create Batch** in the left pane, enter a unique batch name, and confirm the entry. The batch list is shown in Figure 21.

@@ -1,14 +1,13 @@
-import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/20/solid";
-import clsx from "clsx";
 import { eq, isNull } from "drizzle-orm";
-import { useEffect } from "react";
-import { Link, Form, href, useSubmit, useNavigation } from "react-router";
+import { Link, href, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import { ListPanel, ListEmpty, ListView } from "~/app/components/ListPanel.tsx";
+import { ListTable, ListTableHead } from "~/app/components/ListTable.tsx";
 import { CatalogSelection, useCatalogSelection } from "~/app/route-components/CatalogSelection.tsx";
+import { ListFilter } from "~/app/route-components/ListFilter.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Heading } from "~/catalyst-ui/heading.tsx";
-import { Text } from "~/catalyst-ui/text.tsx";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
 import { ProductSeries } from "~/drizzle/schema/ProductSeries.ts";
@@ -79,27 +78,12 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 	const { products, query } = loaderData;
 	const navigation = useNavigation();
-	const submit = useSubmit();
 	const { selected, selectionSearch, selectProduct } = useCatalogSelection();
 
-	// When nothing is happening, navigation.location will be undefined,
-	// but when the user navigates it will be populated with the next
-	// location while data loads.
-	// Then we check if they're searching with location.search.
-	const searching = navigation.location && new URLSearchParams(navigation.location.search).has("q");
-
-	// Keep the search input's value in sync on browser navigation.
-	// Without this, the search input would still have the old value
-	// when using the browser's back button.
-	useEffect(() => {
-		const searchField = document.getElementById("q");
-		if (searchField instanceof HTMLInputElement) {
-			searchField.value = query || "";
-		}
-	}, [query]);
+	const searching = navigation.state !== "idle";
 
 	return (
-		<div className="space-y-5">
+		<div className="space-y-6">
 			<div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
 				<Heading>Catalog</Heading>
 				<CatalogSelection />
@@ -108,102 +92,46 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 				</p>
 			</div>
 
-			<div className="relative">
-				<Form
-					id="search-form"
-					role="search"
-					onChange={(event) => {
-						const isFirstSearch = query === null;
-						return submit(event.currentTarget, { replace: !isFirstSearch });
-					}}
-				>
-					{[...selected].map((id) => (
-						<input key={id} type="hidden" name="selected" value={id} />
-					))}
-					{/*
-						The wait is shown where the reader is already looking. Both marks are
-						kept mounted so one fades into the other, and the spinner carries a
-						delay so a query answered in a few milliseconds never flashes it.
-					*/}
-					<span className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2">
-						<MagnifyingGlassIcon
-							className={clsx(
-								"size-5 text-foreground-muted transition-opacity",
-								searching && "opacity-0",
-							)}
-						/>
-						<span
-							aria-hidden
-							className={clsx(
-								"absolute inset-0 rounded-full border-2 border-border border-t-foreground opacity-0 transition-opacity",
-								searching && "animate-spin opacity-100 delay-300",
-							)}
-						/>
-					</span>
-					<input
-						id="q"
-						name="q"
-						type="text"
-						defaultValue={query ?? ""}
-						placeholder="Filter by order code, name, or manufacturer"
-						aria-label="Filter the catalog"
-						className={clsx(
-							"w-full rounded-lg border border-border bg-surface py-2 pr-10 pl-10 text-sm text-foreground placeholder:text-foreground-muted focus:border-focus focus:outline-none",
-							searching && "text-foreground-muted",
-						)}
+			<ListView
+				filter={
+					<ListFilter
+						id="catalog-filter"
+						label="Filter catalog"
+						placeholder="Order code, name, or manufacturer"
+						query={query ?? ""}
+						hiddenFields={{ selected: [...selected] }}
 					/>
-					{query && (
-						<button
-							type="button"
-							aria-label="Clear the filter"
-							onClick={(event) => {
-								const form = event.currentTarget.form;
-								if (!form) return;
-
-								const field = form.elements.namedItem("q");
-								if (field instanceof HTMLInputElement) field.value = "";
-
-								void submit(form, { replace: true });
-							}}
-							className="absolute top-1/2 right-2 -translate-y-1/2 rounded-md p-1 text-foreground-muted hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
-						>
-							<XMarkIcon className="size-4" />
-						</button>
-					)}
-				</Form>
-			</div>
-
-			<div className={clsx("transition-opacity", searching && "opacity-40 delay-300")}>
-				{products.length === 0 ? (
-					<Text>Nothing matches “{query}”.</Text>
-				) : (
-					<div className="overflow-x-auto rounded-xl border border-border bg-surface">
-						<table className="w-full text-left text-sm">
-							<thead className="border-b border-border text-xs font-medium text-foreground-muted">
+				}
+			>
+				<ListPanel label="Catalog products" busy={searching}>
+					{products.length === 0 ? (
+						<ListEmpty>
+							{query?.trim()
+								? "No products match the filter."
+								: "No products have been recorded yet."}
+						</ListEmpty>
+					) : (
+						<ListTable label="Catalog products">
+							<ListTableHead>
 								<tr>
-									<th scope="col" className="w-10 py-2 pl-3">
+									<th scope="col" className="w-10">
 										<span className="sr-only">Select</span>
 									</th>
-									<th scope="col" className="w-10 py-2 pl-3" />
-									<th scope="col" className="py-2 pr-4">
-										Order code
-									</th>
-									<th scope="col" className="py-2 pr-4">
-										Product
-									</th>
-									<th scope="col" className="py-2 pr-4">
-										Series
-									</th>
-									<th scope="col" className="py-2 pr-4">
-										Manufacturer
-									</th>
+									<th scope="col" className="w-10" />
+									<th scope="col">Order code</th>
+									<th scope="col">Product</th>
+									<th scope="col">Series</th>
+									<th scope="col">Manufacturer</th>
 								</tr>
-							</thead>
+							</ListTableHead>
 
 							<tbody className="divide-y divide-border">
 								{products.map((product) => (
-									<tr key={`${product.manufacturerSlug}/${product.slug}`}>
-										<td className="py-1.5 pl-3">
+									<tr
+										key={`${product.manufacturerSlug}/${product.slug}`}
+										className="hover:bg-surface-muted"
+									>
+										<td className="py-3 pr-4 pl-5">
 											<input
 												type="checkbox"
 												aria-label={`Select ${product.manufacturerName} ${product.productNumber ?? product.name}`}
@@ -211,7 +139,7 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 												onChange={(event) => selectProduct(product.id, event.currentTarget.checked)}
 											/>
 										</td>
-										<td className="py-1.5 pl-3">
+										<td className="py-3 pr-4">
 											<div className="flex size-8 items-center justify-center rounded bg-surface-muted">
 												{product.imageFileId !== null && (
 													<img
@@ -225,7 +153,7 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 											</div>
 										</td>
 
-										<th scope="row" className="py-1.5 pr-4 font-normal">
+										<th scope="row" className="py-3 pr-4 font-normal">
 											<Link
 												to={`/catalog/${product.manufacturerSlug}/${product.slug}?${selectionSearch}`}
 												className="font-medium text-link hover:text-link-hover focus-visible:outline-2 focus-visible:outline-focus"
@@ -234,18 +162,16 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 											</Link>
 										</th>
 
-										<td className="py-1.5 pr-4 text-foreground">
+										<td className="py-3 pr-4 text-foreground">
 											{product.name}
 											{product.origin === "user" && (
 												<span className="ml-2 text-xs text-foreground-muted">User entered</span>
 											)}
 										</td>
 
-										<td className="py-1.5 pr-4 text-foreground-muted">
-											{product.seriesName ?? "—"}
-										</td>
+										<td className="py-3 pr-4 text-foreground-muted">{product.seriesName ?? "—"}</td>
 
-										<td className="py-1.5 pr-4">
+										<td className="py-3 pr-4">
 											<Link
 												to={`/catalog/${product.manufacturerSlug}?${selectionSearch}`}
 												className="text-foreground-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
@@ -256,10 +182,10 @@ export default function CatalogIndex({ loaderData }: Route.ComponentProps) {
 									</tr>
 								))}
 							</tbody>
-						</table>
-					</div>
-				)}
-			</div>
+						</ListTable>
+					)}
+				</ListPanel>
+			</ListView>
 		</div>
 	);
 }
