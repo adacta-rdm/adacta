@@ -16,6 +16,7 @@ import { Equipment } from "~/drizzle/schema/Equipment.ts";
 import { Id } from "~/drizzle/schema/Id.ts";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
 import { Note } from "~/drizzle/schema/Note.ts";
+import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
 import { ProductSeries } from "~/drizzle/schema/ProductSeries.ts";
 import { ProductSpecification } from "~/drizzle/schema/ProductSpecification.ts";
@@ -427,4 +428,32 @@ export async function createTestDataset(scope: ServiceContainer) {
 	]);
 
 	return { datasetId, uploadId, rig, dataPath };
+}
+
+/**
+ * Adds a symbol to a rig's current diagram.
+ */
+export async function createTestPIDNode(
+	scope: ServiceContainer,
+	rig: Pick<Entity<"Rig">, "id">,
+	overrides: Partial<NewEntity<"PIDNode">> = {},
+) {
+	return scope
+		.get(ApplicationDatabase)
+		.insert(PIDNode)
+		.values({
+			id: `node-${id53()}`,
+			rigId: rig.id,
+			kind: "instrument",
+			label: "Sensor",
+			drawingOrder: 0,
+			orientation: 0,
+			positionX: 0,
+			positionY: 0,
+			metadataCreatorId: scope.get(Security).userId,
+			metadataCreationTimestamp: CREATION_TIME,
+			...overrides,
+		})
+		.returning()
+		.get();
 }

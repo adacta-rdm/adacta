@@ -11,7 +11,8 @@ reads every file in `schema/` into one migration history under `migrations/`.
 
 ## Migration baseline
 
-Migration SQL initializes the database and applies schema changes.
+This project currently keeps one baseline. Do not add incremental migrations.
+Migration SQL initializes an empty database from the current schema.
 `bun run migrations:baseline` replaces the history with one migration from
 an empty database to the current schema. The baseline uses the fixed directory
 `19861014000000_baseline` and a fixed snapshot identifier. A repeated rebuild
@@ -31,6 +32,22 @@ The app opens it. Only the CLI and the test setup migrate it.
 starts.
 
 See the root [README](../README.md) for the setup and migration commands.
+
+## Inventory archive checks
+
+Routes check archive state before saving diagrams, notes, or datasets. New
+assignments and imports require active equipment. Archive and restore updates
+include their dependency conditions in the same SQL statement. Equipment used
+by an active rig therefore cannot be archived through that update. A rig with
+archived equipment cannot be restored through it.
+
+Validation and the later write are separate operations. A concurrent request
+may archive an item after validation. The pending save or import can then
+complete. This race is accepted. Direct database writers must apply the archive
+rules themselves.
+
+Related writes use an atomic batch. A failed statement still rolls back the
+whole batch, including earlier deletions during diagram replacement.
 
 ## Entity types
 

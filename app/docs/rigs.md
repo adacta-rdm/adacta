@@ -24,6 +24,10 @@ Choose **Add inventory item** in Inventory, select **Rig**, and enter its name. 
 
 The P&ID represents its equipment and samples. Data lists the datasets imported for the rig. Notes record observations and can include file attachments. Editing a note retains its earlier version. Archiving removes the note from the active list while preserving its history. A note's observation time can differ from the time it was written.
 
+## Archived rigs
+
+An archived rig remains readable through its original address. Its **P&ID**, **Data**, and **Notes** views remain available. Diagram editing, note changes, and dataset-sidecar preparation require restoration. See [Inventory](/docs/inventory#archive-and-restore-an-item) for archive actions and equipment dependencies.
+
 ## A rig over time
 
 A rig is stable. Its configuration is not.

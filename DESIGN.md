@@ -379,6 +379,12 @@ surface and a bottom border. Column labels use 14px medium text with 8px vertica
 Use 20px at the outer column edges and 16px between columns. Keep expanded sample rows aligned
 with the batch columns. `ListEmpty` uses one muted sentence with 20px padding.
 
+Use `ArchiveButton` for table Archive and Restore actions. It pairs a 16px icon with a 14px
+label, a 6px radius, and 4px by 8px padding. Archive uses the danger surface and its foreground
+on hover. Restore uses the sunken canvas and foreground on hover. Both show a focus outline.
+Pending actions show "Archiving…" or "Restoring…" and disable the button. Disabled buttons
+use 50% opacity. The accessible label includes the record name.
+
 When a list has groups, use the same hierarchy in the list and the sidebar. The inventory
 provides an example: buildings contain rooms. Because the group already identifies the place,
 each row contains the record name, its position within the room, and its classification. A

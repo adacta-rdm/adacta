@@ -1,5 +1,5 @@
 import { FormDataParseError } from "@remix-run/form-data-parser";
-import { and, eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
@@ -28,7 +28,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 
 	const notes = await container.get(NoteManager).about([rig.id], { order: "observed" });
 
-	return { notes, defaultObservedAt: new Date() };
+	return { notes, archivedAt: rig.archivedAt, defaultObservedAt: new Date() };
 }
 
 export async function action({ context, request, params }: Route.ActionArgs) {
@@ -37,6 +37,12 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	const rig = await getRig(db, params.slug);
 
 	if (!rig) throw new Response(`Rig "${params.slug}" not found.`, { status: 404 });
+
+	if (rig.archivedAt)
+		return data(
+			{ noteErrors: { form: "Restore this rig before changing its notes." } },
+			{ status: 409 },
+		);
 
 	let submitted: Awaited<ReturnType<typeof readNoteFormData>>;
 
@@ -118,7 +124,7 @@ export default function InventoryRigsSlugNotes({
 				notes={loaderData.notes}
 				pagePath={`${inventoryEntryPath("rig", params.slug)}/notes`}
 				filePath={"/files/originals"}
-				readOnly={false}
+				readOnly={loaderData.archivedAt !== null}
 				errors={actionData?.noteErrors}
 				defaultObservedAt={loaderData.defaultObservedAt}
 			/>
@@ -128,8 +134,8 @@ export default function InventoryRigsSlugNotes({
 
 function getRig(db: ApplicationDatabase, slug: string) {
 	return db
-		.select({ id: Rig.id })
+		.select({ id: Rig.id, archivedAt: Rig.metadataArchivedAt })
 		.from(Rig)
-		.where(and(eq(Rig.slug, slug), isNull(Rig.metadataArchivedAt)))
+		.where(eq(Rig.slug, slug))
 		.get();
 }

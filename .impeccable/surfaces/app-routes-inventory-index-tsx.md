@@ -22,3 +22,9 @@ FIRST VIEWPORT: Show the page heading and existing actions above the controls. A
 FORM: Extend the existing surfaces. The user's Inventory reference determines the structure. No concept seed applies to this narrow refinement.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+
+## Inventory archival
+
+Inventory rows offer Archive or Restore according to their recorded state. Pending actions disable the row controls. Dependency failures appear beside the affected row with links to the blocking records. Archived names remain links. Rows show the archive date below the name.
+
+Archived detail pages show the archive date, read-only status, and a link to restoration in Inventory. Rigs retain readable diagrams, notes, datasets, and files. Diagram and note changes are blocked. Equipment archival requires no active rig links. Rig restoration requires all linked equipment to be active. Imports require restoration of archived records. Archive dates describe application actions rather than measurement or removal times.

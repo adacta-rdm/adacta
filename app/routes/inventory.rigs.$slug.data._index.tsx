@@ -18,11 +18,7 @@ import type { Route } from "./+types/inventory.rigs.$slug.data._index.ts";
 
 export async function loader({ context, params }: Route.LoaderArgs) {
 	const db = context.get(services).get(ApplicationDatabase);
-	const rig = await db
-		.select({ id: Rig.id })
-		.from(Rig)
-		.where(and(eq(Rig.slug, params.slug), isNull(Rig.metadataArchivedAt)))
-		.get();
+	const rig = await db.select({ id: Rig.id }).from(Rig).where(eq(Rig.slug, params.slug)).get();
 
 	if (!rig) {
 		throw new Response(`Rig "${params.slug}" not found.`, { status: 404 });

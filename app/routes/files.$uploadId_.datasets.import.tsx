@@ -191,18 +191,14 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	const db = container.get(ApplicationDatabase);
 	const rig = Number.isSafeInteger(rigId)
 		? await db
-				.select({ id: Rig.id })
+				.select({ id: Rig.id, archivedAt: Rig.metadataArchivedAt })
 				.from(Rig)
-				.where(
-					and(
-						eq(Rig.id, rigId),
-
-						isNull(Rig.metadataArchivedAt),
-					),
-				)
+				.where(eq(Rig.id, rigId))
 				.get()
 		: undefined;
 	if (!rig) return data({ error: "Select a rig for this import." }, { status: 422 });
+	if (rig.archivedAt)
+		return data({ error: "Restore this rig before importing measurements." }, { status: 422 });
 	const files = await db
 		.select({
 			id: OriginalFile.id,
@@ -329,6 +325,9 @@ export default function FilesUploadIdDatasetsImport({
 						</span>
 					) : null}
 				</label>
+				<p className="mt-2 text-sm text-foreground-muted">
+					Restore archived rigs and equipment before importing measurements.
+				</p>
 			</div>
 			<section className="rounded-xl border border-border bg-surface p-4">
 				<div className="flex flex-wrap items-start justify-between gap-4">
@@ -806,7 +805,7 @@ async function resolveItem(
 	const item = items[0];
 	if (!item || item.productArchivedAt !== null)
 		throw new ImportError(
-			`Column ${column.name}: the referenced equipment or catalog product is unavailable.`,
+			`Column ${column.name}: the referenced equipment or catalog product is unavailable. Restore archived records before importing.`,
 		);
 	return item;
 }

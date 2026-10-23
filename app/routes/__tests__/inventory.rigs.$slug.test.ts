@@ -52,13 +52,14 @@ describe("inventory.rigs.$slug", () => {
 			expect(result.status).toBe(404);
 		});
 
-		test("ignores an archived rig", async () => {
+		test("returns an archived rig with its archive date", async () => {
 			const scope = await setupTestRequestScope();
 			const entry = await createTestRig(scope, { metadataArchivedAt: new Date() });
 
 			const result = await testRoute(scope, entryRoute, { slug: entry.slug }).loader();
 
-			expect(result.status).toBe(404);
+			expect(result.status).toBe(200);
+			expect(result.data?.archivedAt).toEqual(entry.metadataArchivedAt);
 		});
 	});
 });

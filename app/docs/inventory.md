@@ -8,9 +8,21 @@ Inventory lists the rigs and physical equipment in the laboratory. A catalog pro
 
 Select **Inventory** in the sidebar. The sidebar lists rigs and equipment units with a recorded building, grouped by building and room. Select **All entries** to find entries without a recorded building. The sidebar omits archived entries. The **All entries** page has separate panels for rigs and equipment. Each panel has independent **Active** and **Archived** tabs. Select an entry to open its page.
 
-The **All entries** page lists rigs in the upper table and equipment in the lower table. Both tables include entries without a recorded location. Rigs show their name and location. Equipment shows its name, catalog model, manufacturer, and location. Select an active entry name to open its record. Archived entry names have no link. Select a catalog model to open its product page.
+The **All entries** page lists rigs in the upper table and equipment in the lower table. Both tables include entries without a recorded location. Rigs show their name and location. Equipment shows its name, catalog model, manufacturer, and location. Select an entry name to open its record. Archived records remain readable. Select a catalog model to open its product page.
 
 One search field filters both panels as you type. Use **Filter inventory** to find entries by name or location. Equipment also matches serial numbers, manufacturers, model numbers, and model descriptions. Each word must match a field in the entry. Select **Clear filter** to show all entries in the selected views again.
+
+## Archive and restore an item
+
+Select **Archive** in an active rig or equipment row. The item leaves its active list and the sidebar. Its **Archived** tab retains the record and shows when it was archived. Select **Restore** there to return the same record to active use. The search query and the other panel's selected view remain unchanged.
+
+Archiving retains the item's identifiers and relationships. A rig retains its diagram, notes, datasets, and original files. Its equipment is not archived automatically. Archived rig diagrams and notes are read only. Existing datasets and file downloads remain accessible.
+
+Equipment linked to an active rig cannot be archived. The error lists the rigs that use it. Remove those links from their diagrams, or archive the rigs first. An archived rig with archived equipment cannot be restored until that equipment has been restored. Related records are never restored automatically.
+
+Restore archived rigs and equipment before importing measurements that reference them. Archiving does not release an item's address or an equipment unit's serial number. Reuse **Restore** when the same physical item returns to service.
+
+The archive date records when the entry was archived in Adacta. It does not establish when equipment was removed or measurements stopped.
 
 ## Add equipment
 

@@ -5,6 +5,7 @@ import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { Link } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import { ArchivedNotice } from "~/app/components/ArchivedNotice.tsx";
 import { KindIcon } from "~/app/components/KindIcon.tsx";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { ProductIdentity } from "~/app/components/ProductIdentity.tsx";
@@ -45,6 +46,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			.select({
 				id: Equipment.id,
 				name: Product.name,
+				archivedAt: Equipment.metadataArchivedAt,
 				serialNumber: Equipment.serialNumber,
 				product: {
 					id: Product.id,
@@ -69,7 +71,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			.innerJoin(Product, eq(Product.id, Equipment.productId))
 			.innerJoin(Manufacturer, eq(Manufacturer.id, Product.manufacturerId))
 			.innerJoin(User, eq(User.id, Equipment.metadataCreatorId))
-			.where(and(isNull(Equipment.metadataArchivedAt), eq(Equipment.slug, params.slug)))
+			.where(eq(Equipment.slug, params.slug))
 			.limit(1)
 	).at(0);
 
@@ -114,6 +116,7 @@ export default function InventoryEquipmentSlug({ loaderData }: Route.ComponentPr
 		<div className="space-y-6">
 			<div>
 				<Heading>{entry.name}</Heading>
+				{entry.archivedAt && <ArchivedNotice at={entry.archivedAt} kind="equipment" />}
 
 				<p className="mt-2 flex items-center gap-2 text-sm text-foreground-muted">
 					<KindIcon kind="equipment" className="size-4" />

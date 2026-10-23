@@ -1,7 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
+import { eq } from "drizzle-orm";
+
 import type { PIDGraph, PIDGraphNode } from "~/app/lib/PID.ts";
 import { copyPIDSubgraph, instantiatePIDClipboard } from "~/app/lib/PIDClipboard.ts";
+import * as pidRoute from "~/app/routes/inventory.rigs.$slug.pid.tsx";
 import { action, loader } from "~/app/routes/inventory.rigs.$slug.pid.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Security } from "~/app/services/Security.ts";
@@ -10,10 +13,14 @@ import {
 	createTestManufacturer,
 	createTestProduct,
 	createTestEquipment,
+	createTestPIDNode,
 	createTestRig,
 } from "~/app/testUtils/testRecords.ts";
+import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
+import { Equipment } from "~/drizzle/schema/Equipment.ts";
 import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 
 const graph: PIDGraph = {
@@ -60,6 +67,34 @@ const graph: PIDGraph = {
 
 describe("inventory.rigs.$slug.pid", () => {
 	describe("loader", () => {
+		test("reads an archived diagram with archived equipment without preparing a sidecar", async () => {
+			const scope = await setupTestRequestScope();
+			const rig = await createTestRig(scope);
+			const equipment = await createTestEquipment(scope);
+			await createTestPIDNode(scope, rig, { equipmentId: equipment.id });
+			await scope
+				.get(ApplicationDatabase)
+				.update(Rig)
+				.set({ metadataArchivedAt: new Date() })
+				.where(eq(Rig.id, rig.id))
+				.run();
+			await scope
+				.get(ApplicationDatabase)
+				.update(Equipment)
+				.set({ metadataArchivedAt: new Date() })
+				.where(eq(Equipment.id, equipment.id))
+				.run();
+			const route = testRoute(scope, pidRoute, { slug: rig.slug });
+
+			const result = await route.loader({ query: { edit: "" } });
+
+			expect(result.data?.archivedAt).toBeInstanceOf(Date);
+			expect(result.data?.graph.nodes[0]?.equipmentId).toBe(equipment.id);
+			expect(result.data?.equipment[0]?.id).toBe(equipment.id);
+			expect(result.data?.initialToml).toBe("");
+			expect(result.data?.sidecarNodes).toEqual([]);
+		});
+
 		test("shows the equipment linked to a diagram node", async () => {
 			const scope = await setupTestRequestScope();
 			const rig = await createTestRig(scope);
@@ -186,6 +221,24 @@ describe("inventory.rigs.$slug.pid", () => {
 		});
 	});
 	describe("action", () => {
+		test("rejects a diagram change to an archived rig", async () => {
+			const scope = await setupTestRequestScope();
+			const rig = await createTestRig(scope);
+			const node = await createTestPIDNode(scope, rig);
+			await scope
+				.get(ApplicationDatabase)
+				.update(Rig)
+				.set({ metadataArchivedAt: new Date() })
+				.where(eq(Rig.id, rig.id))
+				.run();
+			const route = testRoute(scope, pidRoute, { slug: rig.slug });
+
+			const result = await route.action({ graph: JSON.stringify(graph) });
+
+			expect(result.status).toBe(409);
+			expect((await route.loader()).data?.graph.nodes.map((entry) => entry.id)).toEqual([node.id]);
+		});
+
 		test("saves a keyed symbol and its pasted copy in the same rig", async () => {
 			const scope = await setupRig();
 			const original: PIDGraph = {

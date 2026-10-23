@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, or } from "drizzle-orm";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	data,
@@ -68,6 +68,8 @@ function DatasetSidecarSidebar() {
 		setCsvFile,
 	} = usePIDWorkspace();
 	if (!loaderData) return null;
+	if (loaderData.archivedAt)
+		return <Text>Restore this rig before preparing a dataset sidecar.</Text>;
 
 	return (
 		<PIDSidecarPanel
@@ -172,7 +174,17 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		.select({ id: Equipment.id, name: Product.name, productName: Product.name })
 		.from(Equipment)
 		.innerJoin(Product, eq(Product.id, Equipment.productId))
-		.where(and(isNull(Equipment.metadataArchivedAt)))
+		.where(
+			entry.archivedAt
+				? or(
+						isNull(Equipment.metadataArchivedAt),
+						inArray(
+							Equipment.id,
+							nodeRows.flatMap((node) => (node.equipmentId === null ? [] : [node.equipmentId])),
+						),
+					)
+				: isNull(Equipment.metadataArchivedAt),
+		)
 		.orderBy(asc(Product.name))
 		.all();
 	const samples = await db
@@ -188,7 +200,9 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		.where(eq(User.id, context.get(services).get(Security).userId))
 		.get();
 	if (!user) throw new Response("User not found.", { status: 404 });
-	const sidecar = await pidSidecarSkeleton(db, entry.id, user.email);
+	const sidecar = entry.archivedAt
+		? { initialToml: "", omissions: [] }
+		: await pidSidecarSkeleton(db, entry.id, user.email);
 	const graph = { nodes, edges } as PIDGraph;
 
 	return {
@@ -197,7 +211,8 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		samples,
 		initialToml: sidecar.initialToml,
 		sidecarOmissions: sidecar.omissions,
-		sidecarNodes: await loadSidecarEditorNodes(db, graph),
+		sidecarNodes: entry.archivedAt ? [] : await loadSidecarEditorNodes(db, graph),
+		archivedAt: entry.archivedAt,
 		rigSlug: params.slug,
 	};
 }
@@ -210,6 +225,9 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 	if (!entry) {
 		throw new Response(`Rig "${params.slug}" not found.`, { status: 404 });
 	}
+
+	if (entry.archivedAt)
+		return data({ error: "Restore this rig before saving its diagram." }, { status: 409 });
 
 	const graph = parseGraph((await request.formData()).get("graph"));
 
@@ -290,7 +308,7 @@ export default function InventoryRigsSlugPid({ loaderData, actionData }: Route.C
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const navigation = useNavigation();
-	const editing = searchParams.has("edit");
+	const editing = !loaderData.archivedAt && searchParams.has("edit");
 	const saving = navigation.state === "submitting";
 	const [serializedGraph, setSerializedGraph] = useState(() => JSON.stringify(loaderData.graph));
 	const { autoZoomToSelection, selectedSymbolKey, focusedSymbol, focusedNode, focusSymbol } =
@@ -329,10 +347,10 @@ export default function InventoryRigsSlugPid({ loaderData, actionData }: Route.C
 						{saving ? "Saving…" : "Save diagram"}
 					</Button>
 				</Form>
-			) : (
+			) : !loaderData.archivedAt ? (
 				<Button href="?edit">Edit diagram</Button>
-			)}
-			{!sidecar.isOpen ? (
+			) : null}
+			{!loaderData.archivedAt && !sidecar.isOpen ? (
 				<Button type="button" outline onClick={sidecar.open}>
 					Dataset sidecar
 				</Button>
@@ -380,9 +398,9 @@ export default function InventoryRigsSlugPid({ loaderData, actionData }: Route.C
 
 async function getRig(db: ApplicationDatabase, slug: string) {
 	return db
-		.select({ id: Rig.id })
+		.select({ id: Rig.id, archivedAt: Rig.metadataArchivedAt })
 		.from(Rig)
-		.where(and(eq(Rig.slug, slug), isNull(Rig.metadataArchivedAt)))
+		.where(eq(Rig.slug, slug))
 		.get();
 }
 

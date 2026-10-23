@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { eq } from "drizzle-orm";
+
 import * as notesRoute from "~/app/routes/inventory.rigs.$slug.notes.tsx";
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { NoteManager } from "~/app/services/NoteManager.ts";
@@ -7,9 +9,28 @@ import { createTestEquipment, createTestNote, createTestRig } from "~/app/testUt
 import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { setupTestRequestScope, storedFiles } from "~/app/testUtils/testUtils.ts";
 import { OriginalFile } from "~/drizzle/schema/OriginalFile.ts";
+import { Rig } from "~/drizzle/schema/Rig.ts";
 
 describe("inventory.rigs.$slug.notes", () => {
 	describe("loader", () => {
+		test("reads notes on an archived rig", async () => {
+			const scope = await setupTestRequestScope();
+			const rig = await createTestRig(scope);
+			await createTestNote(scope, rig.id, { body: "Preserved observation" });
+			await scope
+				.get(ApplicationDatabase)
+				.update(Rig)
+				.set({ metadataArchivedAt: new Date() })
+				.where(eq(Rig.id, rig.id))
+				.run();
+			const route = testRoute(scope, notesRoute, { slug: rig.slug });
+
+			const result = await route.loader();
+
+			expect(result.data?.archivedAt).toBeInstanceOf(Date);
+			expect(result.data?.notes[0]?.body).toBe("Preserved observation");
+		});
+
 		test("responds with 404 for an entry that is not a rig", async () => {
 			const scope = await setupTestRequestScope();
 			const entry = await createTestEquipment(scope);
@@ -43,6 +64,33 @@ describe("inventory.rigs.$slug.notes", () => {
 	});
 
 	describe("action", () => {
+		test.each(["addNote", "editNote", "archiveNote"])(
+			"rejects %s on an archived rig",
+			async (operation) => {
+				const scope = await setupTestRequestScope();
+				const rig = await createTestRig(scope);
+				const note = await createTestNote(scope, rig.id, { body: "Preserved observation" });
+				await scope
+					.get(ApplicationDatabase)
+					.update(Rig)
+					.set({ metadataArchivedAt: new Date() })
+					.where(eq(Rig.id, rig.id))
+					.run();
+				const route = testRoute(scope, notesRoute, { slug: rig.slug });
+
+				const result = await route.action({
+					[operation]: String(note.id),
+					body: "Changed",
+					observedAt: "2026-09-21T14:32:00.000Z",
+				});
+
+				expect(result.status).toBe(409);
+				expect((await route.loader()).data?.notes.map((entry) => entry.body)).toEqual([
+					"Preserved observation",
+				]);
+			},
+		);
+
 		test("adds a note to a rig", async () => {
 			const scope = await setupTestRequestScope();
 			const rig = await createTestRig(scope);

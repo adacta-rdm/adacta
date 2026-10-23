@@ -2,10 +2,11 @@
  * The rig keeps its selected view in the path. Its views share one heading.
  */
 import clsx from "clsx";
-import { and, eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { NavLink, Outlet } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import { ArchivedNotice } from "~/app/components/ArchivedNotice.tsx";
 import { KindIcon } from "~/app/components/KindIcon.tsx";
 import type { BreadcrumbHandle } from "~/app/components/PageBreadcrumbs.tsx";
 import { formatLocation } from "~/app/lib/location.ts";
@@ -38,6 +39,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		await db
 			.select({
 				name: Rig.name,
+				archivedAt: Rig.metadataArchivedAt,
 				location: {
 					building: Rig.building,
 					room: Rig.room,
@@ -48,7 +50,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			})
 			.from(Rig)
 			.innerJoin(User, eq(User.id, Rig.metadataCreatorId))
-			.where(and(isNull(Rig.metadataArchivedAt), eq(Rig.slug, params.slug)))
+			.where(eq(Rig.slug, params.slug))
 			.limit(1)
 	).at(0);
 
@@ -67,6 +69,7 @@ export default function InventoryRigsSlug({ loaderData }: Route.ComponentProps) 
 		<div className="space-y-6">
 			<div>
 				<Heading>{entry.name}</Heading>
+				{entry.archivedAt && <ArchivedNotice at={entry.archivedAt} kind="rig" />}
 
 				<p className="mt-2 flex items-center gap-2 text-sm text-foreground-muted">
 					<KindIcon kind="rig" className="size-4" />

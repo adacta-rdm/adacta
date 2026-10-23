@@ -14,17 +14,13 @@
  * restored from there. Each tab is its own address, so a link to either one
  * opens on the right tab.
  */
-import {
-	ArchiveBoxArrowDownIcon,
-	ArrowUturnLeftIcon,
-	ChevronRightIcon,
-	PlusIcon,
-} from "@heroicons/react/20/solid";
+import { ChevronRightIcon, PlusIcon } from "@heroicons/react/20/solid";
 import { and, count, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { Fragment } from "react";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
+import { ArchiveButton } from "~/app/components/ArchiveButton.tsx";
 import { ListPanel, ListEmpty, ListView } from "~/app/components/ListPanel.tsx";
 import { ListTable, ListTableHead } from "~/app/components/ListTable.tsx";
 import { formatBatchComposition } from "~/app/lib/batchComposition.ts";
@@ -434,31 +430,14 @@ export default function SamplesIndex({ actionData, loaderData }: Route.Component
 
 											<td className="py-3 pr-5 text-left">
 												<Form method="post">
-													{showArchived ? (
-														<button
-															type="submit"
-															name="restore"
-															value={batch.slug}
-															disabled={submitted !== undefined}
-															aria-label={`Restore ${batch.name}`}
-															className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-canvas-sunken hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
-														>
-															<ArrowUturnLeftIcon className="size-4" />
-															{workingSlug === batch.slug ? "Restoring…" : "Restore"}
-														</button>
-													) : (
-														<button
-															type="submit"
-															name="archive"
-															value={batch.slug}
-															disabled={submitted !== undefined}
-															aria-label={`Archive ${batch.name}`}
-															className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-foreground-muted hover:bg-danger-surface hover:text-danger-surface-foreground focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-50"
-														>
-															<ArchiveBoxArrowDownIcon className="size-4" />
-															{workingSlug === batch.slug ? "Archiving…" : "Archive"}
-														</button>
-													)}
+													<ArchiveButton
+														operation={showArchived ? "restore" : "archive"}
+														recordName={batch.name}
+														name={showArchived ? "restore" : "archive"}
+														value={batch.slug}
+														disabled={submitted !== undefined}
+														pending={workingSlug === batch.slug}
+													/>
 												</Form>
 											</td>
 										</tr>
