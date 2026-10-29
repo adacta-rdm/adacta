@@ -18,7 +18,6 @@ import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { Badge } from "~/catalyst-ui/badge.tsx";
 import { Heading, Subheading } from "~/catalyst-ui/heading.tsx";
 import { Text } from "~/catalyst-ui/text.tsx";
-import { CatalogSource } from "~/drizzle/schema/CatalogSource.ts";
 import { Channel } from "~/drizzle/schema/Channel.ts";
 import { Manufacturer } from "~/drizzle/schema/Manufacturer.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
@@ -122,16 +121,6 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 		.orderBy(asc(Channel.position))
 		.all();
 
-	const source = await db
-		.select({
-			url: CatalogSource.url,
-			title: CatalogSource.title,
-			retrievedAt: CatalogSource.retrievedAt,
-		})
-		.from(CatalogSource)
-		.where(eq(CatalogSource.productId, productId))
-		.get();
-
 	return {
 		...details,
 		specifications: specifications.map((specification) => ({
@@ -139,7 +128,6 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 			shared: sharedNames.has(specification.name),
 		})),
 		channels,
-		source,
 	};
 }
 
