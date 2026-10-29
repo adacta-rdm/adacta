@@ -11,6 +11,7 @@
 		]
 	},
 	"scripts": {
+		"users:admin": "bun scripts/cli.ts users:admin",
 		"build": "bun scripts/cli.ts build",
 		"build:tsrc": "bun lib/tsrc/cli.ts",
 		"dev": "bun scripts/cli.ts dev",
@@ -64,6 +65,7 @@
 		"isbot": "^5.1.36",
 		"js-yaml": "^5.2.1",
 		"motion": "^13.1.1",
+		"nodemailer": "^10.2.1",
 		"oxfmt": "^0.65.0",
 		"oxlint": "^1.80.0",
 		"oxlint-tsgolint": "^7.0.2001",
@@ -71,8 +73,8 @@
 		"react": "^19.2.7",
 		"react-dom": "^19.2.7",
 		"react-router": "^8",
-		"svgo": "^4.1.0",
 		"smol-toml": "^1.9.0",
+		"svgo": "^4.1.0",
 		"tailwindcss": "^4.2.2",
 		"type-fest": "^5.8.0",
 		"typescript": "^6.0.3",

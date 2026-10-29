@@ -370,6 +370,16 @@
 		},
 		{
 			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "'user'",
+			"generated": null,
+			"name": "role",
+			"entityType": "columns",
+			"table": "User"
+		},
+		{
+			"type": "text",
 			"notNull": false,
 			"autoincrement": false,
 			"default": null,

@@ -1,10 +1,12 @@
 import { stdout } from "node:process";
 
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
+import { EmailSender } from "~/app/services/EmailSender.ts";
 import { Env } from "~/lib/env/Env.ts";
 import { Logger, logLevelFromName } from "~/lib/logger/Logger.ts";
 import { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { FileSystemStorageEngine } from "~/runtimes/bun/lib/FileSystemStorageEngine.ts";
+import { SmtpEmailSender } from "~/runtimes/bun/lib/SmtpEmailSender.ts";
 import {
 	applicationDatabase,
 	openSqliteDatabase,
@@ -26,6 +28,7 @@ export function createAppContainer(): ServiceContainer {
 export function createBunAppContainer(env = new Env()): ServiceContainer {
 	const container = new ServiceContainer();
 	container.set(env);
+	container.configure(EmailSender, () => new SmtpEmailSender(env));
 
 	// Every request uses the same file. Hence, the root container keeps one
 	// connection for the life of the process and shares it with request scopes.

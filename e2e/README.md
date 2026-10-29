@@ -21,7 +21,9 @@ The current journeys are:
   adding a Caption from equipment,
   copying a newly placed symbol, and moving the selection panel.
 - `journeys/samples.e2e.ts`: finding, opening, and creating sample batches.
-- `journeys/users.e2e.ts`: creating a record-only user.
+- `journeys/users.e2e.ts`: creating a record-only user and inviting a user who
+  sets a password and signs in. The test server runs a local SMTP sink on port
+  10253 with an inbox on 10254; it never sends email to real recipients.
 - `journeys/catalog-import.e2e.ts`: selecting catalog models and importing physical units.
 - `journeys/inventory-create.e2e.ts`: adding rigs, equipment, and user-entered products.
 

@@ -1,10 +1,10 @@
+import { Security } from "~/app/services/Security.ts";
 /**
  * Registers every user in seed/users/ and loads one preset from seed/presets/.
  * For example, bun run seed:load pilot loads the pilot inventory and samples.
  * The setup command resets and migrates the database before loading these fixtures.
  */
-import { BetterAuth } from "~/app/services/BetterAuth.ts";
-import { Security } from "~/app/services/Security.ts";
+import { UserProvisioning } from "~/app/services/UserProvisioning.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { jsonFiles, keyOf, readJson, seedPath, subdirs } from "~/seed/files.ts";
 import { seedCatalog } from "~/seed/seedCatalog.ts";
@@ -84,7 +84,7 @@ export async function seedDatabase(container: ServiceContainer, preset = "demo")
  * becomes the key "dev". Later fixtures name their author by that key.
  */
 async function seedUsers(app: ServiceContainer): Promise<Map<string, string>> {
-	const auth = app.get(BetterAuth);
+	const provisioning = app.get(UserProvisioning);
 
 	const files = jsonFiles(seedPath("users"));
 	if (files.length === 0) throw new Error("No user files in seed/users/.");
@@ -93,7 +93,10 @@ async function seedUsers(app: ServiceContainer): Promise<Map<string, string>> {
 
 	for (const file of files) {
 		const user = readJson<SeedUser>(file);
-		const userId = await createUser(auth, user);
+		const userId = await provisioning.create({
+			...user,
+			role: keyOf(file) === "dev" ? "admin" : "user",
+		});
 
 		idsByKey.set(keyOf(file), userId);
 
@@ -101,23 +104,4 @@ async function seedUsers(app: ServiceContainer): Promise<Map<string, string>> {
 	}
 
 	return idsByKey;
-}
-
-/**
- * Sign a seed user up through Better Auth.
- *
- * Sign-up goes through the server API rather than through an insert. The
- * password is therefore hashed the way a normal registration hashes it.
- */
-async function createUser(auth: BetterAuth, user: SeedUser): Promise<string> {
-	const response = await auth.api.signUpEmail({
-		body: { name: user.name, email: user.email, password: user.password },
-		asResponse: true,
-	});
-
-	if (!response.ok)
-		throw new Error(`Could not create seed user "${user.email}": ${response.status}.`);
-
-	const { user: created } = (await response.json()) as { user: { id: string } };
-	return created.id;
 }

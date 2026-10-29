@@ -21,6 +21,7 @@ import {
 
 import { BetterAuth } from "~/app/services/BetterAuth.ts";
 import { Security } from "~/app/services/Security.ts";
+import { UserProvisioning } from "~/app/services/UserProvisioning.ts";
 import type { EnvSource } from "~/lib/env/Env.ts";
 import { LOG_LEVEL, Logger } from "~/lib/logger/Logger.ts";
 import { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
@@ -69,8 +70,8 @@ export async function setupEmptyTestStorageEnvironment(
 }
 
 /**
- * Create a database environment containing one user registered through the
- * production authentication service. That user is set as the current identity.
+ * Create a database environment containing one user created through trusted
+ * server provisioning. That user is set as the current identity.
  */
 export async function setupTestUserEnvironment(env: EnvSource = {}): Promise<ServiceContainer> {
 	const container = await setupEmptyTestDatabaseEnvironment(env);
@@ -114,7 +115,7 @@ export async function signInTestUser(
 }
 
 /**
- * Register a user through Better Auth and return the new user id.
+ * Provision a credential user and return the new user id. Public signup stays disabled.
  */
 export async function signUpTestUser(
 	container: ServiceContainer,
@@ -122,11 +123,7 @@ export async function signUpTestUser(
 ): Promise<string> {
 	const { name, email, password } = { ...TEST_USER, ...overrides };
 
-	const { user } = await container.get(BetterAuth).api.signUpEmail({
-		body: { name, email, password },
-	});
-
-	return user.id;
+	return container.get(UserProvisioning).create({ name, email, password });
 }
 
 /**

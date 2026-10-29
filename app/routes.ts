@@ -11,6 +11,9 @@ import { flatRoutes } from "@react-router/fs-routes";
 const routes = await flatRoutes({ ignoredRouteFiles: ["routes/_app.tsx"] });
 const publicFiles = new Set([
 	"routes/login.tsx",
+	"routes/setup-account.tsx",
+	"routes/forgot-password.tsx",
+	"routes/reset-password.tsx",
 	"routes/api.auth.$.ts",
 	"routes/docs.tsx",
 	"routes/version.tsx",

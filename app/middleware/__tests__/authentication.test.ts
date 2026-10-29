@@ -59,7 +59,10 @@ describe("sessionAuth", () => {
 	});
 
 	test("ignores ADACTA_DEV_USER in production", async () => {
-		const container = await setupEmptyTestDatabaseEnvironment({ ADACTA_DEV_USER: TEST_USER.email });
+		const container = await setupEmptyTestDatabaseEnvironment({
+			ADACTA_DEV_USER: TEST_USER.email,
+			ADACTA_AUTH_SECRET: "test-secret-that-is-long-enough-for-production",
+		});
 		await signUpTestUser(container);
 
 		const [args] = createMiddlewareArgs(container);

@@ -7,6 +7,8 @@ import { existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { EmailSender } from "~/app/services/EmailSender.ts";
+import { CapturedEmailSender } from "~/app/testUtils/CapturedEmailSender.ts";
 import { Env, type EnvSource } from "~/lib/env/Env.ts";
 import type { ServiceContainer } from "~/lib/service-container/ServiceContainer.ts";
 import { createBunAppContainer } from "~/runtimes/bun/appContainer.ts";
@@ -17,7 +19,7 @@ export function createTestAppContainer(env: EnvSource = {}): ServiceContainer {
 	// test first uses the database.
 	const directory = mkdtempSync(join(tmpdir(), "adacta-test-"));
 
-	return createBunAppContainer(
+	const container = createBunAppContainer(
 		new Env({
 			ADACTA_LOG_LEVEL: "silent",
 			ADACTA_DB_DIR: join(directory, "db"),
@@ -25,6 +27,8 @@ export function createTestAppContainer(env: EnvSource = {}): ServiceContainer {
 			...env,
 		}),
 	);
+	container.configure(EmailSender, () => new CapturedEmailSender());
+	return container;
 }
 
 export async function migrateTestDatabase(container: ServiceContainer): Promise<void> {

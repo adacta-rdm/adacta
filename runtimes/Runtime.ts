@@ -42,6 +42,10 @@ export type CliModule = {
  */
 export type Cli = {
 	/**
+	 * Trusted operator provisioning and role management.
+	 */
+	usersAdmin(args: string[]): Promise<void>;
+	/**
 	 * Deletes the data of the development environment, applies the
 	 * migrations, and loads a preset, defaulting to demo.
 	 */

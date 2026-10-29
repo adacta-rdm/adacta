@@ -33,6 +33,7 @@ CREATE TABLE `User` (
 	`name` text NOT NULL,
 	`email` text NOT NULL UNIQUE,
 	`email_verified` integer DEFAULT false NOT NULL,
+	`role` text DEFAULT 'user' NOT NULL,
 	`image` text,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL

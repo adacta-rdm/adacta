@@ -18,6 +18,9 @@ import { assertPresetExists } from "~/seed/seed.ts";
 const [command, ...args] = process.argv.slice(2);
 
 switch (command) {
+	case "users:admin":
+		await cli.usersAdmin(args);
+		break;
 	case "seed:load": {
 		const [preset, ...extra] = args;
 		if (extra.length > 0) fail("seed:load accepts one preset name.");

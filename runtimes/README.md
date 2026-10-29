@@ -6,6 +6,16 @@ provides their implementations, together with the commands that develop, build
 and serve the app. This repository includes one runtime, `bun/`: Bun with an
 SQLite database and a directory of stored files.
 
+Email delivery follows the same pattern: register `EmailSender` in the runtime
+container. It accepts `{ to, subject, text, html }` and resolves when the transport
+accepts the message, or rejects on failure. The runtime owns the sender address
+and delivery configuration. Bun uses Nodemailer over SMTP; the planned Cloudflare
+implementation will use the native email binding. Shared templates and account
+logic must not import either transport. Tests register a captured-email sender.
+
+The CLI contract includes `usersAdmin(args)` for trusted operator provisioning
+and role changes. These operations are never exposed as public signup endpoints.
+
 ## Selecting a runtime
 
 The alias `~runtime` in `tsconfig.json` selects the runtime:

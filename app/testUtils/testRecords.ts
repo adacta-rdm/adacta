@@ -8,6 +8,9 @@ import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { NoteManager } from "~/app/services/NoteManager.ts";
 import { Security } from "~/app/services/Security.ts";
 import { UploadManager } from "~/app/services/UploadManager.ts";
+import type { UserRole } from "~/app/services/UserAccess.ts";
+import { UserManager } from "~/app/services/UserManager.ts";
+import { UserProvisioning } from "~/app/services/UserProvisioning.ts";
 import type { Entity, NewEntity } from "~/drizzle/Schema.ts";
 import { Channel } from "~/drizzle/schema/Channel.ts";
 import { Dataset } from "~/drizzle/schema/Dataset.ts";
@@ -456,4 +459,33 @@ export async function createTestPIDNode(
 		})
 		.returning()
 		.get();
+}
+
+/**
+ * Create a person for laboratory records or an account that can sign in.
+ */
+export async function createTestUser(
+	scope: ServiceContainer,
+	overrides: {
+		name?: string;
+		email?: string;
+		canSignIn?: boolean;
+		role?: UserRole;
+	} = {},
+) {
+	const name = overrides.name ?? "Ada Example";
+	const email = overrides.email ?? "ada@example.com";
+
+	if (overrides.canSignIn) {
+		const id = await scope.get(UserProvisioning).create({
+			name,
+			email,
+			password: "test-password",
+			role: overrides.role,
+		});
+
+		return { id, name, email };
+	}
+
+	return scope.get(UserManager).createRecordOnlyUser({ name, email });
 }

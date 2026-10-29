@@ -1,6 +1,6 @@
 import { createAuthClient } from "better-auth/react";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { AuthLayout } from "~/catalyst-ui/auth-layout.tsx";
 import { Button } from "~/catalyst-ui/button.tsx";
@@ -90,6 +90,11 @@ export default function Login() {
 				<Button type="submit" disabled={signingIn} className="mt-6 w-full">
 					{signingIn ? "Signing in…" : "Sign in"}
 				</Button>
+				<Text className="mt-4">
+					<Link to="/forgot-password" className="text-accent underline">
+						Forgot password?
+					</Link>
+				</Text>
 			</form>
 		</AuthLayout>
 	);
