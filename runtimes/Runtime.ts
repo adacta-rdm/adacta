@@ -120,12 +120,17 @@ export type TestEnvironmentModule = {
  * for the browser tests with these settings.
  */
 export type E2eEnvironmentModule = {
-	/**
-	 * Settings that keep the data of the browser tests apart from the data of
-	 * the development server. A browser test run can therefore delete its data
-	 * without changing the development data.
-	 */
-	e2eSettings: Record<string, string>;
+	e2eEnvironment: {
+		/**
+		 * Settings that keep browser test data apart from development data.
+		 */
+		settings: Record<string, string>;
+
+		/**
+		 * Whether browser tests can read messages from the test inbox.
+		 */
+		emailInbox: boolean;
+	};
 };
 
 /**

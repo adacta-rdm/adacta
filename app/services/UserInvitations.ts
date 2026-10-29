@@ -113,7 +113,9 @@ export class UserInvitations {
 		} catch {
 			await internalAdapter.deleteVerificationByIdentifier(identifier);
 			// Transport errors can contain credentials or message contents.
-			throw new InvitationError("Email could not be sent. Check SMTP configuration and try again.");
+			throw new InvitationError(
+				"Email could not be sent. Check email configuration and try again.",
+			);
 		}
 	}
 }

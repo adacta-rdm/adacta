@@ -72,7 +72,7 @@ export const BetterAuth = service(
 				} catch {
 					await db.delete(Verification).where(eq(Verification.identifier, identifier));
 					// Do not include transport exceptions: they can contain credentials or message bodies.
-					logger.error("Password recovery email could not be sent. Check SMTP configuration.");
+					logger.error("Password recovery email could not be sent. Check email configuration.");
 				}
 			},
 			async onPasswordReset({ user }) {

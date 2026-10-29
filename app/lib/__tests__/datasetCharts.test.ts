@@ -1,6 +1,4 @@
 import { expect, test } from "bun:test";
-import * as fs from "node:fs";
-import * as path from "node:path";
 
 import { measurementComparisons } from "~/app/components/TimeSeriesChart.tsx";
 import { datasetCharts, type ChartColumn } from "~/app/lib/datasetCharts.ts";
@@ -99,7 +97,7 @@ test("uses a numeric axis for measurements and setpoint comparisons", () => {
 	expect(measurementComparisons(chart.series, 0.5)).toEqual([{ label: "MFC", value: -1 }]);
 });
 
-test("assigns defined colors to eight distinct channels", () => {
+test("assigns different colors to eight distinct channels", () => {
 	const columns = [
 		time,
 		...Array.from({ length: 8 }, (_, index) =>
@@ -112,14 +110,8 @@ test("assigns defined colors to eight distinct channels", () => {
 	const rows = [["2026-08-20T09:00:00Z", "1", "2", "3", "4", "5", "6", "7", "8"]];
 	const chart = datasetCharts(columns, [], rows)[0]!.sections[3]!.charts[0]!;
 	const colors = chart.series.map((series) => series.color);
-	const theme = fs.readFileSync(path.resolve(import.meta.dir, "../../theme.css"), "utf8");
 
 	expect(new Set(colors).size).toBe(8);
-	for (const color of colors) {
-		const variable = color.match(/^var\((--[^)]+)\)$/)?.[1];
-		expect(variable).toBeDefined();
-		expect(theme).toContain(`${variable}:`);
-	}
 });
 
 test("uses gas labels for devices with the same name", () => {

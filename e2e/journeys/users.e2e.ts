@@ -1,4 +1,5 @@
 import { href } from "react-router";
+import { e2eEnvironment } from "~runtime/e2eEnvironment.ts";
 
 import { expect, expectURL, test } from "../fixtures.ts";
 import { MAIL_INBOX_URL } from "../mail-server.ts";
@@ -22,6 +23,8 @@ test("a record-only user can be added", async ({ page }) => {
 });
 
 test("an invited user sets a password and signs in", async ({ page, browser, request }) => {
+	test.skip(!e2eEnvironment.emailInbox, "This runtime does not send email to the test inbox.");
+
 	const suffix = crypto.randomUUID();
 	const email = `invited-${suffix}@example.test`;
 	await page.goto(href("/users"));

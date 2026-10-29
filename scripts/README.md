@@ -12,3 +12,5 @@ from the schema, which is the same for every runtime. `cli.ts` runs it itself.
 
 `helpers/` holds the modules that `cli.ts` and the runtimes share.
 `pid-symbols/` holds the SVGO configuration for the P&ID symbol sources.
+
+`usersAdmin.ts` implements administrator provisioning and role changes for each runtime.

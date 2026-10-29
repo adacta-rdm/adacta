@@ -5,7 +5,7 @@
  *
  *   bun run start:e2e
  */
-import { e2eSettings } from "~runtime/e2eEnvironment.ts";
+import { e2eEnvironment } from "~runtime/e2eEnvironment.ts";
 
 import { MAIL_SMTP_PORT, startMailServer } from "~/e2e/mail-server.ts";
 import { E2E_BASE_URL, E2E_PORT } from "~/e2e/settings.ts";
@@ -13,7 +13,7 @@ import { Env } from "~/lib/env/Env.ts";
 import { run } from "~/scripts/helpers/run.ts";
 
 const env = new Env({
-	...e2eSettings,
+	...e2eEnvironment.settings,
 	ADACTA_URL: E2E_BASE_URL,
 	ADACTA_AUTH_SECRET: "adacta-e2e-secret-for-local-tests-only",
 	ADACTA_LOG_LEVEL: "warn",

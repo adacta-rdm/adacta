@@ -91,7 +91,9 @@ describe("api.auth.$", () => {
 			const result = await authRoute.loader(args);
 
 			expect(result.status).toBe(200);
-			expect((await result.json()).user.id).toBe(scope.get(Security).userId);
+			expect(((await result.json()) as { user: { id: string } }).user.id).toBe(
+				scope.get(Security).userId,
+			);
 		});
 
 		test.each(["expired", "used"])(
