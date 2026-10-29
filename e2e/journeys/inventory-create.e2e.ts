@@ -70,10 +70,7 @@ test("a rig and equipment with the same name open at separate addresses", async 
 	await page.goto("/inventory");
 	await followLink(
 		page,
-		page
-			.getByRole("list", { name: "Inventory by location" })
-			.getByRole("link", { name, exact: true })
-			.and(page.locator('[href^="/inventory/rigs/"]')),
+		page.getByRole("table", { name: "Rigs" }).getByRole("link", { name, exact: true }),
 	);
 	await expectURL(page, "/inventory/rigs/:slug", { slug: rigSlug });
 	await expect(page.getByRole("link", { name: "P&ID", exact: true })).toBeVisible();

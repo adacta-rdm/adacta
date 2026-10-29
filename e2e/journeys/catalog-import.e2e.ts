@@ -8,7 +8,7 @@ test("selected catalog products create equipment entries", async ({ page }) => {
 	const model = seedCatalogProduct("adacta-demo-instruments", "dfc-100");
 	const serialNumber = `E2E DFC ${randomUUID()}`;
 	const units = page
-		.getByRole("list", { name: "Inventory by location" })
+		.getByRole("table", { name: "Equipment" })
 		.getByRole("link", { name: model.name, exact: true });
 
 	// Other units of this model exist already. The new unit is the link that is missing here.
@@ -18,7 +18,7 @@ test("selected catalog products create equipment entries", async ({ page }) => {
 	);
 	await page.goto("/catalog");
 	await page.getByRole("checkbox", { name: `Select ${maker.name} ${model.productNumber}` }).check();
-	await page.getByLabel("Filter the catalog").fill(model.productNumber);
+	await page.getByRole("textbox", { name: "Filter catalog" }).fill(model.productNumber);
 	await expect(
 		page.getByRole("checkbox", { name: `Select ${maker.name} ${model.productNumber}` }),
 	).toBeChecked();
