@@ -28,14 +28,6 @@ The P&ID represents its equipment and samples. Data lists the datasets imported 
 
 An archived rig remains readable through its original address. Its **P&ID**, **Data**, and **Notes** views remain available. Diagram editing, note changes, and dataset-sidecar preparation require restoration. See [Inventory](/docs/inventory#archive-and-restore-an-item) for archive actions and equipment dependencies.
 
-## A rig over time
-
-A rig is stable. Its configuration is not.
-
-The rig record holds what does not change: its name, its location, its contacts, and its documentation. What was installed inside it at a given moment is held separately as a time-valid configuration, so that a component swap does not create a new rig.
-
-See [Rig flowcharts and states](/docs/flowcharts-and-states) for how configurations are recorded, and [Setup evidence and change types](/docs/setup-evidence) for how Adacta decides which configuration was valid when.
-
 ## Naming a rig
 
 Choose a name that stays true as the equipment inside it changes.
