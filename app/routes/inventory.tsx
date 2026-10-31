@@ -1,5 +1,5 @@
 import { BuildingOffice2Icon } from "@heroicons/react/20/solid";
-import { eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull, notExists, sql } from "drizzle-orm";
 import { Outlet, useMatches, useRouteLoaderData } from "react-router";
 
 import { services } from "~/app/.server/context.ts";
@@ -18,6 +18,7 @@ import { groupByLocation, type Building, type Located } from "~/app/lib/location
 import { ApplicationDatabase } from "~/app/services/ApplicationDatabase.ts";
 import { SidebarItem, SidebarLabel, SidebarSection } from "~/catalyst-ui/sidebar.tsx";
 import { Equipment } from "~/drizzle/schema/Equipment.ts";
+import { PIDNode } from "~/drizzle/schema/PIDNode.ts";
 import { Product } from "~/drizzle/schema/Product.ts";
 import { Rig } from "~/drizzle/schema/Rig.ts";
 
@@ -41,7 +42,10 @@ export async function loader({ context }: Route.LoaderArgs) {
 		.from(Rig)
 		.where(isNull(Rig.metadataArchivedAt));
 
-	// A unit has no name of its own. Its product supplies it.
+	// A unit has no name of its own. Its product supplies it. A unit linked to
+	// a symbol of an active rig is a component of that rig. The sidebar leaves
+	// it out, because it is reached through the rig. For example, the flow
+	// controllers of a test stand do not appear next to the test stand.
 	const equipment = await db
 		.select({
 			id: Equipment.id,
@@ -56,7 +60,18 @@ export async function loader({ context }: Route.LoaderArgs) {
 		})
 		.from(Equipment)
 		.innerJoin(Product, eq(Product.id, Equipment.productId))
-		.where(isNull(Equipment.metadataArchivedAt));
+		.where(
+			and(
+				isNull(Equipment.metadataArchivedAt),
+				notExists(
+					db
+						.select({ id: PIDNode.id })
+						.from(PIDNode)
+						.innerJoin(Rig, eq(Rig.id, PIDNode.rigId))
+						.where(and(eq(PIDNode.equipmentId, Equipment.id), isNull(Rig.metadataArchivedAt))),
+				),
+			),
+		);
 
 	const entries: Entry[] = [...rigs, ...equipment];
 

@@ -6,7 +6,7 @@ Inventory lists the rigs and physical equipment in the laboratory. A catalog pro
 
 ## Find an inventory entry
 
-Select **Inventory** in the sidebar. The sidebar lists rigs and equipment units with a recorded building, grouped by building and room. Select **All entries** to find entries without a recorded building. The sidebar omits archived entries. The **All entries** page has separate panels for rigs and equipment. Each panel has independent **Active** and **Archived** tabs. Select an entry to open its page.
+Select **Inventory** in the sidebar. The sidebar lists rigs and equipment units with a recorded building, grouped by building and room. A unit that is linked to a symbol in the P&ID of an active rig is not listed. Open it from its rig or from **All entries**. Select **All entries** to find entries without a recorded building. The sidebar omits archived entries. The **All entries** page has separate panels for rigs and equipment. Each panel has independent **Active** and **Archived** tabs. Select an entry to open its page.
 
 The **All entries** page lists rigs in the upper table and equipment in the lower table. Both tables include entries without a recorded location. Rigs show their name and location. Equipment shows its name, catalog model, manufacturer, and location. Select an entry name to open its record. Archived records remain readable. Select a catalog model to open its product page.
 

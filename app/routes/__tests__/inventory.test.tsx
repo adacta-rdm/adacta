@@ -5,7 +5,11 @@ import { createRoutesStub } from "react-router";
 
 import * as appRoute from "~/app/routes/_app.tsx";
 import * as inventoryRoute from "~/app/routes/inventory.tsx";
-import { createTestEquipment, createTestRig } from "~/app/testUtils/testRecords.ts";
+import {
+	createTestEquipment,
+	createTestPIDNode,
+	createTestRig,
+} from "~/app/testUtils/testRecords.ts";
 import { testRoute } from "~/app/testUtils/testRoute.ts";
 import { setupTestRequestScope } from "~/app/testUtils/testUtils.ts";
 
@@ -27,6 +31,43 @@ describe("inventory", () => {
 				building.rooms.flatMap((room) => room.entries.map((entry) => entry.slug)),
 			);
 			expect(slugs).toEqual([rig.slug]);
+		});
+
+		test("leaves out equipment linked to a symbol of an active rig", async () => {
+			const scope = await setupTestRequestScope();
+			const rig = await createTestRig(scope, { slug: "test-stand", building: "B7", room: "12" });
+			const archivedRig = await createTestRig(scope, {
+				slug: "old-stand",
+				metadataArchivedAt: new Date(),
+			});
+			const component = await createTestEquipment(scope, {
+				slug: "mfc",
+				building: "B7",
+				room: "12",
+			});
+			const removed = await createTestEquipment(scope, {
+				slug: "old-mfc",
+				building: "B7",
+				room: "12",
+			});
+			const balance = await createTestEquipment(scope, {
+				slug: "balance",
+				building: "B7",
+				room: "12",
+			});
+			await createTestPIDNode(scope, rig, { equipmentId: component.id });
+			await createTestPIDNode(scope, archivedRig, { equipmentId: removed.id });
+			const route = testRoute(scope, inventoryRoute, {});
+
+			const result = await route.loader();
+
+			const slugs = result.data?.buildings.flatMap((building) =>
+				building.rooms.flatMap((room) => room.entries.map((entry) => entry.slug)),
+			);
+			expect(slugs).toContain(rig.slug);
+			expect(slugs).toContain(removed.slug);
+			expect(slugs).toContain(balance.slug);
+			expect(slugs).not.toContain(component.slug);
 		});
 	});
 
