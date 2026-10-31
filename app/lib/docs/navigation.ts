@@ -22,7 +22,6 @@ const sections: DocSection[] = [
 			"introduction",
 			"concepts",
 			"catalog",
-			"rigs",
 			"inventory",
 			"importing-files",
 			"importing-data",

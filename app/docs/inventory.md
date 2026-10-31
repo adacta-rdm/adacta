@@ -34,7 +34,7 @@ An equipment page shows the product name, serial number, location, and linked ca
 
 ## Work with a rig
 
-Rigs appear alongside equipment in Inventory. Open a rig to work with its P&ID, datasets, and notes. See [Rigs](/docs/rigs) for creation, configuration, and naming.
+Rigs appear alongside equipment in Inventory. Open a rig to work with its P&ID, datasets, and notes.
 
 ## Addresses
 
