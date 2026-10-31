@@ -381,7 +381,8 @@ export function SidebarLayout({
 					aria-label={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}
 					aria-expanded={!sidebarCollapsed}
 					title={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}
-					className="absolute top-3 right-2 z-20 rounded-md p-2 text-foreground-muted hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+					// A collapsed sidebar centers the button above the section icons.
+					className={`absolute top-3 z-20 rounded-md p-2 text-foreground-muted hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${sidebarCollapsed ? "left-1/2 -translate-x-1/2" : "right-2"}`}
 					onClick={toggleSidebar}
 				>
 					{sidebarCollapsed ? (

@@ -44,3 +44,15 @@ test("the main application sections open", async ({ page }) => {
 		await expect(page.getByRole("heading", { name: heading, exact: true, level: 1 })).toBeVisible();
 	}
 });
+
+test("the expand button of the collapsed navigation is centered above its icons", async ({
+	page,
+}) => {
+	await page.goto(href("/inventory"));
+	await page.getByRole("button", { name: "Collapse navigation" }).click();
+
+	const expand = await page.getByRole("button", { name: "Expand navigation" }).boundingBox();
+	const catalog = await page.getByRole("link", { name: "Catalog", exact: true }).boundingBox();
+
+	expect(expand!.x + expand!.width / 2).toBeCloseTo(catalog!.x + catalog!.width / 2, 0);
+});
