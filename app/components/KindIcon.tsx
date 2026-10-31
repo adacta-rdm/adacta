@@ -1,11 +1,6 @@
 /**
- * The icon standing for one kind of inventory entry.
- *
- * Standalone equipment is drawn as a single cube. A rig is drawn as the
- * same cube with a P&ID valve at the top left. A line runs from the valve
- * into the cube, and an arrow leaves the cube at the right. The valve
- * says that the entry carries a process diagram. The line and the arrow
- * say that something flows through the assembly.
+ * A gas bottle with a valve represents a rig. A bench analyzer represents a
+ * standalone device. The cube represents components and other equipment.
  */
 import { CubeIcon } from "@heroicons/react/20/solid";
 import { useId } from "react";
@@ -15,45 +10,34 @@ import { useId } from "react";
  */
 export type InventoryKind = "rig" | "equipment";
 
-export function KindIcon({ kind, className }: { kind: InventoryKind; className?: string }) {
-	/*
-		Both icons draw with fill="currentColor" and carry data-slot="icon". A
-		caller that passes no class therefore takes the size and the color of its
-		surroundings. The sidebar item sizes its icons that way.
-	*/
-	if (kind === "rig") {
-		return <RigIcon className={className} />;
-	}
+const VALVE = "M7 8L13 12L7 16Z M19 8L13 12L19 16Z";
 
-	return <CubeIcon className={className} />;
-}
+// The holes separate the display, the button, and the sample bay.
+const DEVICE =
+	"M4 3H16Q18 3 18 5V15Q18 16 17 16H3Q2 16 2 15V5Q2 3 4 3Z M5 6V10H11V6Z M13 6V8H15V6Z M5 12V14H15V12Z M5 16H6A1 1 0 0 1 7 17V17A1 1 0 0 1 6 18H5A1 1 0 0 1 4 17V17A1 1 0 0 1 5 16Z M14 16H15A1 1 0 0 1 16 17V17A1 1 0 0 1 15 18H14A1 1 0 0 1 13 17V17A1 1 0 0 1 14 16Z";
 
-// Valve, lines, and arrowhead share one line width. The gap that separates
-// them from the cube is the same width as the gap between the cube faces.
-const LINE_WIDTH = 0.8;
-const GAP = 0.6;
-
-// Two triangles tip to tip, the P&ID symbol for a valve.
-const VALVE = "M0.5 0.5L4.5 3.25L0.5 6ZM8.5 0.5L4.5 3.25L8.5 6Z";
-
-// From the right tip of the valve, right, then down into the top face.
-const INLET = "M8.5 3.25H12.3A1.2 1.2 0 0 1 13.5 4.45V6.5";
-
-// Starts inside the right face, so the gap shows it leaving the cube.
-const OUTLET = "M14.5 13.5H17.6";
-const ARROWHEAD = "M17.3 12.06L19.7 13.5L17.3 14.94Z";
-
-// Top, right, and left face of the cube, each inset by half the face gap.
-const CUBE =
-	"M9.25 4.6L15.656 7.648L9.25 10.845L2.844 7.648Z" +
-	"M9.55 11.366L16 8.147L16 15.371L9.55 18.839Z" +
-	"M2.5 8.147L8.95 11.366L8.95 18.839L2.5 15.371Z";
-
-function RigIcon({ className }: { className?: string }) {
-	// The sidebar draws this icon once per rig. Each copy needs its own mask
-	// id, or every copy would reference the first one.
+/**
+ * Equipment uses the cube unless the caller knows that it is standalone.
+ * For example, the inventory sidebar supplies this information, while the
+ * equipment page header does not.
+ */
+export function KindIcon({
+	kind,
+	standalone = false,
+	className,
+}: {
+	kind: InventoryKind;
+	standalone?: boolean;
+	className?: string;
+}) {
+	// Each rig copy needs its own mask, including copies in the page header.
 	const maskId = useId();
 
+	if (kind === "equipment" && !standalone) {
+		return <CubeIcon className={className} />;
+	}
+
+	// The sidebar sizes and colors its icons through this data slot.
 	return (
 		<svg
 			viewBox="0 0 20 20"
@@ -62,59 +46,33 @@ function RigIcon({ className }: { className?: string }) {
 			data-slot="icon"
 			className={className}
 		>
-			{/* Black areas of the mask are cut out of the cube. */}
-			<mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
-				<rect width="20" height="20" fill="#fff" />
-				<path
-					d={VALVE}
-					fill="none"
-					stroke="#000"
-					strokeWidth={LINE_WIDTH + 2 * GAP}
-					strokeLinejoin="round"
-				/>
-				<path
-					d={OUTLET}
-					fill="none"
-					stroke="#000"
-					strokeWidth={LINE_WIDTH + 2 * GAP}
-					strokeLinecap="round"
-				/>
-				<path
-					d={ARROWHEAD}
-					fill="#000"
-					stroke="#000"
-					strokeWidth={2 * GAP}
-					strokeLinejoin="round"
-				/>
-			</mask>
+			{kind === "rig" ? (
+				<>
+					<defs>
+						<mask
+							id={maskId}
+							maskUnits="userSpaceOnUse"
+							x="0"
+							y="0"
+							width="20"
+							height="20"
+							style={{ maskType: "luminance" }}
+						>
+							<rect width="20" height="20" fill="white" />
+							{/* The stroke removes one unit around the valve. */}
+							<path d={VALVE} fill="black" stroke="black" strokeWidth="2" strokeLinejoin="round" />
+						</mask>
+					</defs>
 
-			<path mask={`url(#${maskId})`} d={CUBE} />
-
-			<path
-				d={VALVE}
-				fill="none"
-				stroke="currentColor"
-				strokeWidth={LINE_WIDTH}
-				strokeLinejoin="round"
-			/>
-
-			<path
-				d={INLET}
-				fill="none"
-				stroke="currentColor"
-				strokeWidth={LINE_WIDTH}
-				strokeLinecap="round"
-				strokeLinejoin="round"
-			/>
-
-			<path
-				d={OUTLET}
-				fill="none"
-				stroke="currentColor"
-				strokeWidth={LINE_WIDTH}
-				strokeLinecap="round"
-			/>
-			<path d={ARROWHEAD} />
+					<g mask={`url(#${maskId})`}>
+						<rect x="2" y="5" width="9" height="14" rx="3" />
+						<rect x="5" y="2" width="3" height="4" rx="1" />
+					</g>
+					<path d={VALVE} />
+				</>
+			) : (
+				<path fillRule="evenodd" d={DEVICE} />
+			)}
 		</svg>
 	);
 }

@@ -118,7 +118,7 @@ function LocationTree({
 												current={inventoryEntryPath(entry.kind, entry.slug) === currentPath}
 												className={SIDEBAR_TREE_LEVEL_2_ITEM}
 											>
-												<KindIcon kind={entry.kind} />
+												<KindIcon kind={entry.kind} standalone={entry.kind === "equipment"} />
 												<SidebarLabel>{entry.name}</SidebarLabel>
 											</SidebarItem>
 										</li>
