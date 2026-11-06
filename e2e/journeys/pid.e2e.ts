@@ -364,6 +364,11 @@ test("Add Caption connects a new point inside equipment to a new Instrument", as
 	await followLink(page, page.getByRole("link", { name: "P&ID", exact: true }));
 	await page.getByRole("link", { name: "Edit diagram" }).click();
 
+	// The editor draws a line only after it has measured the symbols at both ends.
+	// The test therefore waits for the lines before it records them.
+	await expect(page.getByRole("button", { name: "Save diagram" })).toBeVisible();
+	await expect(page.locator(".react-flow__edge").first()).toBeVisible();
+
 	const originalNodeIds = await page
 		.locator(".react-flow__node")
 		.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-id")));
@@ -374,6 +379,8 @@ test("Add Caption connects a new point inside equipment to a new Instrument", as
 	await page.getByText("Methanation reactor", { exact: true }).click();
 	await page.getByRole("button", { name: "Add Caption" }).click();
 	await expect(page.getByRole("textbox", { name: "Function" })).toHaveValue("Instrument");
+	await expect(page.locator(".react-flow__node")).toHaveCount(originalNodeIds.length + 2);
+	await expect(page.locator(".react-flow__edge")).toHaveCount(originalEdgeIds.length + 1);
 
 	const addedNodeIds = (
 		await page
